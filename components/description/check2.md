@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,15 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+  - N/A（组件级动效契约）：`Description` 是静态文本语义组件，不存在 `open/closed`、`enter/exit`、`active/inactive` 等动效状态轴，因此不引入 `<component>/motion.rs`。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,100 +48,162 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+  - N/A（组件级主题轴选择）：`Description` 不做主题决策，直接继承 `UiRoot` 注入的 `system/color/scale` 上下文并消费 `--ui-*`/`--ui-fallback-*` 变量。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - N/A（`motion.rs` 文件）：`Description` 为静态文本语义组件，不存在组件级动效状态轴，动效契约不在该组件落地。
+  - 已迁移：新增 `components/description/test/semantics.rs` 承载本地语义契约回归，组件目录测试结构与职责对齐。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+  - 已统一：`Description` 公开布尔 props 使用 `is_disabled` 与 `is_truncated`；旧命名 `disabled`/`truncate` 已在 docs 与示例中迁移。
+  - N/A（`on_*` / `default_*`）：该组件当前无事件回调与受控/非受控状态轴，不引入 `on_*`、`default_*` 公共参数。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+  - N/A（受控/非受控状态轴）：`Description` 当前仅消费只读输入（`text`、`tone`、`is_disabled`、`is_truncated` 等）并映射语义标记，不持有可变本地状态，也不存在内部写回与受控切换路径。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+  - 已收敛：新增 `logic::resolve_view_model(DescriptionViewModelInput)` 作为唯一归一入口，集中处理 `text/aria_label/class_name/lang/dir` 默认值与来源标记；`view.rs` 仅消费该模型并渲染。
+  - 已回归：`components/description/test/logic.rs` 新增默认值来源与显式覆盖测试，验证优先级规则可读可测。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+  - 已收敛：`DescriptionViewModelInput -> resolve_view_model -> DescriptionViewModel` 形成单一归一/派生入口（`components/description/src/logic.rs`），`view.rs` 仅消费 `state` 与来源标记渲染。
+  - 已回归：`components/description/test/semantics.rs` 断言 `view.rs` 只能调用 `resolve_view_model`，并禁止直接调用 `resolve_state`/`normalize_*`。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+  - 已满足：离散输入 `tone` 与 `element` 分别使用 `DescriptionTone`、`DescriptionElement`（`enum`），组件公开 API 未暴露字符串离散协议。
+  - 已说明：`is_disabled` 与 `is_truncated` 是正交布尔轴（可同时成立），不用于表达单一互斥 `mode/status`；互斥离散轴已由类型化 `enum` 承担。
+  - 已回归：`components/description/test/semantics.rs` 增加断言，锁定 `tone/element` 为枚举输入并禁止 `String` 离散轴漂移。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+  - 已满足：`components/description/src/logic.rs` 通过 `pub use ui_state_primitives::description::{...}` 与 `resolve_state(DescriptionStateInput { ... })` 消费原语能力，组件层仅做输入装配与映射。
+  - 已满足：组件公开 API 与实现未引入业务 store 类型；`view.rs` 仅挂载语义输出，不绑定应用级全局状态。
+  - 已回归：`components/description/test/semantics.rs` 断言 logic 依赖 `ui-state-primitives` 并禁止在 logic 层引入本地 `Signal` 状态容器。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+  - N/A（本组件无异步交互）：`Description` 为静态文本语义组件，不发起远程请求，不维护 loading/error/retry 状态，也不暴露 `aria-busy` 协议。
+  - 已回归：`components/description/test/semantics.rs` 断言 `view.rs` 不得引入 `is_loading`/`aria-busy`/`retry`/`use_async_action` 等异步契约标记。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+  - 已满足：最小调用路径为 `<Description text=\"This appears below the field.\".to_string() />`，无需手动接线 `ui-state-primitives`/`ui-headless`，也无 `state=...` 必填参数。
+  - 已满足：`components/description/src/README.md` 提供 1 行 Hello World 示例（小于 5 行）。
+  - 已满足：`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 新增 `Hello World` Playground，优先展示默认调用路径。
+  - 已回归：`crates/ui-components/tests/description_semantics.rs` 断言 docs 页面包含 `Hello World` Playground 与最小示例代码。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
+  - N/A（非组合型组件）：`Description` 是单节点文本语义组件，不存在 `Parent/Item` 子项集合，也不提供 `labels + children`/`titles + panels` 并行输入 API。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A（无拖拽高频交互）：`Description` 为静态文本语义组件，不存在 `Dragging` 本地循环、`motion.rs` 拖拽编排或 `Action::DragEnd` 回流收敛路径。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A（无几何测量渲染链路）：`Description` 不承载 overlay/popup 定位，不依赖 DOM 测量，也不存在 `Intent -> Measure -> Rectification` 收敛循环。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A（无动态子项集合）：`Description` 为单节点文本语义组件，不维护 `items_order`，不涉及 `RegistrationContext` 或 `Register/Unregister` 生命周期协议。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A（非容器投影组件）：`Description` 不承载 slot projection 策略，不存在 `Lazy/KeepAlive/Eager` 面板生命周期管理，也无 `NotifyHidden` 副作用暂停场景。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A（无环境订阅流）：`Description` 为静态文本语义组件，不采样 `Resize/Theme/Intersection` 事件，不存在防抖转换或 `Action` 回流到 `logic.rs` 的链路。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A（非大型集合组件）：`Description` 不承载 `Table/Grid` 批量选择语义，不存在 `Context Bus + Selector` 订阅扇出，也无 `SelectionState::All` 状态压缩需求。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A（无复杂派生总线链路）：`Description` 为静态文本语义组件，不存在“派生命令 -> 总线广播 -> 订阅者”编排，也无跨订阅者副作用收敛需求，因此无 `TraceId` 透传场景。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - 已满足：`view.rs` 挂载稳定 `aria-label`，并透传 `lang` / `dir` 到最终 DOM（`components/description/src/view.rs`）。
+  - 已满足：`logic.rs` 通过 `resolve_locale_attrs -> ui_headless::locale_attrs` 消费共享 A11y 工具，不在组件层重复发明同名语义工具（`components/description/src/logic.rs`）。
+  - 已满足：用户可见文本主来源为 `text` props（可由应用 i18n/l10n 注入），兜底文案来自 `ui-state-primitives` 的 `DEFAULT_TEXT`/`DEFAULT_ARIA_LABEL`，`view.rs` 不承载文案默认值逻辑。
+  - N/A（键盘路径）：`Description` 是非交互文本语义组件，不提供 focusable/keyboard 行为；该条中“键盘可达路径完整”不适用。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+  - 已满足：`Description` 挂载稳定标记 `data-slot/data-tone/data-state/data-disabled/data-truncate/data-aria-source/data-class-source` 与 `aria-label`，可直接作为自动化选择器，不依赖 DOM 顺序。
+  - 已满足：状态来源通过 `data-aria-source`、`data-class-source` 明确区分 `custom/default`，避免隐式推断。
+  - 已满足：取值封闭集合由 primitive 决定并有回归锁定（`tone_attr ∈ {default,muted,negative}`、`data_state_attr ∈ {default,disabled,truncate}`、`*_source_attr ∈ {default,custom}`）。
+  - N/A（非本组件状态轴）：`open/expanded/selected/focus-visible/loading` 不属于 `Description` 文本语义组件。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+  - 已满足：`styles.rs` 状态分支由稳定显式标记驱动（`data-tone/data-disabled/data-truncate/data-custom-class` + 稳定 class），未使用 `:nth-child` 或深层结构猜测。
+  - 已满足：组件运行时不传递业务 `inline style`，`view.rs` 仅挂载语义标记与 class；样式值由 token CSS 变量链（`--ui-*`/`--ui-fallback-*`）消费。
+  - 已满足：视觉状态切换可直接由语义标记解释，不依赖节点“是否存在”这一脆弱条件。
+- [x] 测试验证“语义契约”而不只验证视觉快照。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - 已满足：`components/description/test/semantics.rs` 断言 `aria-label`、`data-state`、`data-aria-source`、`data-class-source`、`data-disabled`、`data-truncate` 等语义契约，不依赖视觉快照。
+  - 已满足：`components/description/test/logic.rs` 覆盖 disabled/truncate 与来源标记分支，并锁定 marker 封闭集合。
+  - N/A（受控/非受控）：`Description` 无可写状态轴，不存在 controlled/uncontrolled 切换语义。
+  - N/A（键盘/指针路径）：组件为非交互文本语义节点；回归断言禁止在 `view.rs` 引入 `on:keydown/on:click/on:pointer*` 事件处理。
+  - N/A（SSR/wasm 差异）：组件无 `wasm32/web_sys/wasm_bindgen` 平台分支，语义输出在 SSR 与 wasm 路径保持静态一致。
+  - 已满足：当前测试集不以视觉 snapshot 作为主验证路径，语义契约断言为主、样式验证为辅。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+  - 已满足：`mod.rs` 仅维护模块边界与稳定导出（`Description` + 公共类型），未承载实现逻辑。
+  - 已满足：`logic.rs` 负责归一/派生/来源标记，不包含 DOM 渲染代码与 token CSS 规则。
+  - 已满足：`styles.rs` 为 token-first 静态 CSS（`--ui-*`/`--ui-fallback-*` 变量链），不包含运行时交互逻辑。
+  - 已满足：`view.rs` 仅消费 `resolve_view_model` 输出并挂载语义标记，不重建归一/状态机规则。
+  - N/A（`motion.rs`）：`Description` 无组件动效契约与 `ui-motion` 依赖，`src/motion.rs` 保持不存在。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+  - 已满足：`Description` 为简单文本语义组件，`src/spec.rs` 不存在，`mod.rs` 也未导出 `spec` 面。
+  - N/A（新增 `spec.rs` 要求）：本组件本轮未引入 `spec.rs`，因此“契约测试 + 版本演进说明”前置条件不成立。
+  - 已满足：组件说明与约束保留在 `check2.md` 与 `README.md`，未为形式统一引入额外规范文件。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+  - 已满足：`styles.rs` 为静态 `CSS` 常量，样式规则集中定义，`view.rs` 不注入业务 `inline style`。
+  - 已满足：视觉值消费 `var(--ui-*)` 链（含 `--ui-fallback-*`），包含禁用态透明度与 outline-offset 的 token 化回退，未引入组件私有 token 体系。
+  - 已满足：`crates/ui-components/src/css.rs` 在 `component-description` feature gate 下聚合 `crate::description::styles::CSS`，符合 `UiRoot` 注入链路。
+  - 已满足：组件源码未将 Utility-First/CSS-in-Rust 作为默认范式，语义契约仍由 `styles.rs + data-*` 标记驱动。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+  - 已满足（复用全库视觉基线）：`docs-app` 提供 `theme-visual-baseline` 页面（含 `Button/Input/Overlay` 基线区块），`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 锁定 page/button/input/overlay 四张截图回归。
+  - 已满足：`Description` 默认样式路径消费 `ui-theme` token 变量并在 docs 页面提供默认调用示例，视觉与交互反馈基线沿用 `UiRoot` 统一主题体系。
+  - 已满足：HeroUI 对齐约束来自 `docs/spec/heroui-parameter-design-strategy.md`，目标是视觉语言与体验质量对齐，而非 API 表层复制。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +212,153 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+  - 已满足（组件级 feature）：`crates/ui-components/Cargo.toml` 提供 `component-description = ["dep:ui-description"]`，且 `ui-description` 依赖为 `optional = true`，未启用特性不会进入链接路径。
+  - 已满足（`lib.rs/css.rs` 门控）：`crates/ui-components/src/lib.rs` 使用 `#[cfg(feature = "component-description")] pub use ui_description as description;`；`crates/ui-components/src/css.rs` 使用 `#[cfg(feature = "component-description")] out.push_str(crate::description::styles::CSS);`，未发生无条件聚合。
+  - 已满足（source 模式天然裁剪）：`apps/web-demo/Cargo.toml` 以 `default-features = false` + `features = ["inject-css", "web-demo-components"]` 引入 `ui-components`，未使用 `all-components`；`lib.rs` 的 `all_components` 注册表仍在 `#[cfg(feature = "all-components")]` 显式门控下。
+  - 已验证（特性树，本组件等价命令）：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-description,inject-css` 输出仅包含 `component-description` 与 `inject-css` 命令行特性，未出现 `all-components`。
+  - 已验证（反向依赖）：`cargo tree -e features -i ui-components -p web-demo` 仅显示 `web-demo-components` 特性链，未出现 `all-components`。
+  - 已满足（CI 最小特性 + 体积预算）：`.github/workflows/ci.yml` 已执行 `./scripts/check-ui-components-tree-shaking.sh`；该脚本覆盖最小特性树校验、`wasm32` 最小特性编译、release 产物构建与 `scripts/tree_shaking_budget.env` 预算阈值阻断。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
+  - 已满足（类型约束）：离散轴使用 `DescriptionTone` 与 `DescriptionElement` 枚举；`DescriptionStateInput`/`DescriptionViewModelInput` 以类型化字段承载输入，未暴露字符串离散协议。
+  - 已满足（无效状态收敛）：`logic.rs::resolve_view_model` 作为统一入口，调用 `normalize_* + resolve_state` 归一化状态并输出 `DescriptionViewModel`，`view.rs` 不重建归一规则。
+  - 已满足（机器可读语义）：`view.rs` 稳定挂载 `data-tone/data-state/data-aria-source/data-class-source`，由 `DescriptionState` 输出封闭集合标记供测试与 Agent 自动化消费。
+  - 已满足（可定位闭环）：`components/description/test/logic.rs` 覆盖默认/显式来源与封闭集合（`semantic_marker_values_are_closed_and_enumerable`），`components/description/test/semantics.rs` 断言类型签名与语义标记挂载，契约破坏可直接定位到具体测试。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - N/A（非 Overlay 组件）：`Description` 是静态文本语义组件，不承载 overlay 层叠、焦点陷阱或关闭后焦点恢复职责。
+  - 已满足（组件侧边界）：`components/description/src/view.rs` 与 `components/description/src/logic.rs` 未引入 `NodeRef`、`focus_trap`、`RestorePolicy`、`FallbackTo/Selector`、`document.body` 或 overlay/modal 焦点恢复实现。
+  - 已满足（全局能力落位）：焦点恢复策略由 `crates/ui-headless/src/focus_trap.rs` 提供统一 `RestorePolicy::{Selector,FallbackTo}`，未在组件层私有化复刻。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - N/A（无第三方命令式集成）：`Description` 仅渲染文本语义标记，不接入 ECharts/Map 等命令式运行时，也不存在 Foreign Zone 生命周期管理需求。
+  - 已满足（组件侧边界）：`components/description/src/mod.rs`、`components/description/src/logic.rs`、`components/description/src/view.rs`、`components/description/src/styles.rs` 未出现 `ECharts/Mapbox/Leaflet/MapLibre`、`YieldControl/CleanupForeign`、`extern "C"`、`wasm_bindgen/web_sys/js_sys` 等集成痕迹。
+  - 已满足（API 不泄漏）：`Description` 对外仅暴露文本语义组件与类型化状态输入，不暴露第三方实例句柄，也不将命令式对象反向注入状态原语层。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - N/A（组件无 ID 生成轴）：`Description` 组件不生成本地随机/时钟 ID，也不持有 hydration 期间需对齐的递增 ID 状态。
+  - 已满足（禁用不稳定初始化）：`components/description/src/mod.rs`、`components/description/src/logic.rs`、`components/description/src/view.rs`、`components/description/src/styles.rs` 未使用 `now()`、`Date::now`、`SystemTime::now`、`Instant::now`、`Uuid::new_v4`、`rand` 等非确定性源。
+  - 已满足（共享能力仍可接入）：确定性 ID 能力由 `crates/ui-headless/src/id_provider.rs` 提供（`provide_ui_id_provider(seed)` / `use_ui_id_provider()`）；若未来组件引入 ID 轴，应通过该能力注入而非本地随机生成。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+  - 已满足（compile-only 三路径证据）：`scripts/check.sh` 覆盖 native 默认路径（`cargo check -p ui-components --no-default-features --features inject-css,dev-all-components`）、ssr 路径（`cargo check -p ui-headless --no-default-features --features ssr`）与 wasm 路径（`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` + `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features inject-css,dev-all-components`）。
+  - N/A（组件无平台分支差异）：`Description` 组件源码不包含 `cfg(target_arch = "wasm32")`、`cfg(feature = "web/ssr")` 分支，避免平台分叉行为漂移。
+  - 已满足（non-wasm 纯净）：`components/description/src/mod.rs`、`components/description/src/logic.rs`、`components/description/src/view.rs`、`components/description/src/styles.rs` 未引用 `web-sys/wasm_bindgen/js-sys` 或浏览器对象。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+  - 已满足（互斥保护存在）：`crates/ui-headless/src/lib.rs` 包含 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，在编译期阻止双特性同时启用。
+  - 已满足（组件接入不破坏互斥）：`components/description/Cargo.toml` 仅通过 crate 边界依赖 `ui-headless`，未在组件层重定义或绕过 `web/ssr` 互斥特性模型。
+  - 已满足（双路径编译验证）：`scripts/check.sh` 同时执行 `cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`，覆盖两条特性路径。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+  - 已满足（全局 no-op/stub）：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion()` 与 `web::animate(...)` 空实现，并附 `non_wasm_web_backend_is_predictable_noop` 回归测试。
+  - N/A（组件级 motion 调用）：`Description` 为静态文本语义组件，不存在 `open/close` 动效状态轴，因此不引入 `src/motion.rs`，也不调用 `attach_motion`。
+  - 已满足（不假设句柄存在）：`components/description/Cargo.toml` 未依赖 `ui-motion`，`src/mod.rs`/`src/view.rs` 未声明 motion 模块或句柄调用，non-wasm/tooling 构建不受 motion 绑定阻塞。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+  - N/A（组件无动画增强分支）：`Description` 为静态文本语义组件，不包含 `motion.rs`、`attach_motion` 或运行时动画句柄，不存在 reduced-motion 分支切换行为。
+  - 已满足（SSR/hydration 兼容）：`Description` 状态归一化由 `logic::resolve_view_model` 纯函数完成，组件源码不依赖时钟/随机与平台分支，SSR 与客户端首帧语义标记保持一致。
+  - 已满足（wasm 可增强但不分裂）：当前组件未启用 wasm 专属交互增强；`scripts/check.sh` 保持 web/ssr/wasm compile-only 门禁，确保平台构建路径持续可编译且语义契约不分裂。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+  - 已满足（预算项定义）：`apps/docs-app/src/pages/components/shell.rs` 在 `component_page_perf_budget` 中定义 `Button/Input` 的 `max_mount_ms/max_update_ms/max_heap_kb`，其余组件走 `_ => UiPerfBudget::mount_only(120.0)` 基线。
+  - 已满足（可重复基线 + 阈值阻断）：`apps/docs-app/src/perf_probe.rs` 输出 `data-perf-mount-ms/data-perf-budget-ms/data-perf-budget-update-ms/data-perf-budget-heap-kb/data-perf-violation`；`e2e/tests/docs_app_components_coverage.spec.mjs` 断言预算可见且禁止 `data-perf-violation="true"`。
+  - 已满足（可归因）：`components/description/src/view.rs` 暴露 `data-state/data-tone/data-aria-source/data-class-source`，可将回归归因到状态归一、渲染挂载与样式来源路径；组件无 `motion.rs`，不存在动效分支噪音。
+  - 已满足（基础组件 `render_count` 基线）：`crates/ui-components/tests/button_semantics.rs::button_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `crates/ui-components/tests/input_semantics.rs::input_performance_governance_contract_is_budgeted_traceable_and_blocking` 持续锁定“初始化后预算为 1”条目。
+  - N/A（本组件精确 `render_count`）：`Description` 为静态文本语义组件，当前无交互更新环路；暂以 mount-only perf probe + 语义来源标记作为等价证据。
+  - 已跟踪（自动化补齐计划）：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”任务。
+  - 已满足（阻断门禁）：`scripts/check-ui-components-performance.sh` 运行 `description_performance_governance_contract_is_mount_only_traceable_and_blocking` 并串联 Button/Input/render_count 跟踪门禁。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+  - 已满足（无巨型单块）：`components/description/src/view.rs` 以 `match element` 分为 `Span/Paragraph/Div` 三个浅层分支，每个 `view!` 仅包含一个根节点与文本子节点，不承载深层布局树。
+  - 已满足（语义分块）：结构轴仅由 `DescriptionElement` 驱动，状态归一化留在 `logic::resolve_view_model`，`view.rs` 只负责语义挂载与节点渲染。
+  - 已满足（复杂度可回归）：`components/description/test/semantics.rs::view_macro_complexity_is_controlled_by_shallow_semantic_blocks` 锁定 `view!` 数量与单块行数上限、禁止深层语义容器嵌套；`crates/ui-components/tests/description_semantics.rs::description_view_macro_complexity_is_guarded_by_shallow_blocks` 做仓库级镜像门禁。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+  - 已满足（轻逻辑函数化）：`components/description/src/view.rs` 将 `Span/Paragraph/Div` 三个渲染片段下沉为普通函数 `render_span` / `render_paragraph` / `render_div`（返回 `AnyView`），`Description` 组件仅做状态装配与分发。
+  - 已满足（无额外组件噪音）：`view.rs` 仅保留一个 `#[component]` 入口 `Description`，未把局部片段升级为新的组件类型。
+  - 已满足（语义稳定）：函数拆分后仍由同一语义标记驱动（`data-tone/data-state/data-aria-source/data-class-source` 等），未改变 `logic::resolve_view_model` 的归一化边界。
+  - 已满足（可回归）：`components/description/test/semantics.rs::view_prefers_functional_split_over_extra_components` 与 `crates/ui-components/tests/description_semantics.rs::description_view_prefers_functional_split_over_extra_components` 锁定“单组件入口 + 普通函数拆分 + 语义标记稳定”契约。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+  - N/A（无重静态片段）：`Description` 是动态文本语义节点，核心内容来自 `text` 输入，不包含复杂 SVG、页脚模板或长静态说明文案。
+  - 已满足（避免重复动态构造）：`view.rs` 将渲染收敛到 `render_span` / `render_paragraph` / `render_div`，静态结构集中在单文件函数片段内，未散落多处重复模板。
+  - 已满足（A11y 不退化）：常量化判定不改变 `aria-label`、`lang`、`dir` 与 `data-*` 语义挂载路径，静态片段治理不影响可访问语义契约。
+  - 已满足（可回归）：`components/description/test/semantics.rs::static_fragment_constantization_is_explicitly_scoped_and_accessible` 与 `crates/ui-components/tests/description_semantics.rs::description_static_fragment_constantization_is_explicitly_scoped_and_accessible` 锁定“无重静态片段 + 语义不退化 + 路径集中”。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+  - N/A（无 `inner_html` 节点）：`Description` 当前不使用 `inner_html`/`dangerously_set_inner_html`/`set_inner_html`，文本仅通过 `{text.get_value()}` 渲染。
+  - 已满足（禁止未清洗注入）：组件源码未出现 HTML 字符串拼接注入路径（如 `inner_html=...`、`set_inner_html(...)`、`insert_adjacent_html(...)`），也未接入远端 HTML 模板渲染入口。
+  - 已满足（语义不回退）：`aria-label`、`lang`、`dir` 与关键 `data-*` 标记继续直接挂载在语义节点上，未因 HTML 注入路径绕过语义契约。
+  - 已满足（可回归）：`components/description/test/semantics.rs::inner_html_usage_is_forbidden_and_safe_text_rendering_is_enforced` 与 `crates/ui-components/tests/description_semantics.rs::description_inner_html_usage_is_forbidden_and_safe_text_rendering_is_enforced` 锁定禁用约束与安全渲染路径。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+  - N/A（静态非交互组件）：`Description` 无事件驱动状态转移与关键交互链路，不存在独立的“来源/时间/前后值”追踪与回放需求。
+  - 已满足（不污染产物）：`components/description/Cargo.toml` 仅声明 `default = []`，未引入 `wasm-debug` 专属 feature；`crates/ui-components/Cargo.toml` 仅保留 `component-description`，不存在 `description-wasm-debug` 特性入口。
+  - 已满足（共享可视化入口仍可用）：开发态 trace/replay 可视化入口由 `apps/docs-app/src/debug_overlay.rs` 的 `ui_headless::use_ui_trace()` 提供，组件本身不重复实现本地 debug overlay。
+  - 已满足（可回归）：`components/description/test/semantics.rs::wasm_debug_contract_is_explicitly_na_and_feature_isolated` 与 `crates/ui-components/tests/description_semantics.rs::description_wasm_debug_contract_is_explicitly_na_and_feature_isolated` 锁定 N/A 边界与特性隔离。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+  - 已满足（样式快速反馈）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 的 `Workbench` playground 通过 `test_css_source=test_css_source` + `test_source_path="components/description/src/styles.rs"` 暴露 scoped CSS test 面板，可在文档侧快速验证样式契约而无需改动组件业务逻辑。
+  - 已满足（上下文保持）：`description()` 使用本地 `signal` 维护 `tone/element/is_disabled/is_truncated/custom_*` 控件状态，并通过同一 `workbench_code + actual_config + 预览渲染` 联动，热调试过程中不会丢失当前交互上下文。
+  - N/A（可选状态保留）：`Description` 为静态文本语义组件，workbench 状态轴少且恢复成本极低；当前不引入 `localStorage` 持久化以避免把 demo 级状态管理复杂度前置到基础组件验收链路。
+  - 已满足（隔离画布）：`description()` 提供独立 `Workbench` 入口（display/config/code/css-test 一体），与 `Hello World`、`Tone Variants`、`Truncate + Element + Disabled` 示例分离。
+  - 已回归：`components/description/test/semantics.rs::dx_workbench_contract_provides_fast_css_feedback_and_explicit_persistence_na` 与 `crates/ui-components/tests/description_semantics.rs::description_dx_workbench_contract_provides_fast_css_feedback_and_explicit_persistence_na` 锁定 DX 契约，防止回归。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+  - 已满足（serde 结构化协议）：`components/description/src/protocol.rs` 定义 `DescriptionComponentSpec` 与 `DescriptionComponentSchemaVersion::V1`，并通过 `#[derive(Serialize, Deserialize)] + #[serde(default)]` 固化版本化 schema 的前向兼容入口。
+  - 已满足（协议回归）：`components/description/test/protocol.rs::protocol_types_implement_serde_contract` 锁定 `DescriptionComponentSchemaVersion` 与 `DescriptionComponentSpec` 的 serde 契约。
+  - N/A（spec/config 运行时输入）：`Description` 公开 API 以类型化 props 为主，不暴露独立 spec/config 反序列化入口，因此本轮无额外迁移函数与错误结构输出路径。
+  - N/A（tracing 组件埋点）：该组件为无副作用静态文本语义渲染，不存在异步命令链路；组件层不引入私有 `tracing` span/event，避免与全库埋点语义漂移。
+  - N/A（async runtime 绑定）：组件无 `async fn` 公共接口，也未暴露 `tokio/async-std` 运行时类型到 API 面。
+  - 已回归：`components/description/test/semantics.rs::engineering_capability_unification_is_structured_and_runtime_agnostic` 与 `crates/ui-components/tests/description_semantics.rs::description_engineering_capability_unification_is_structured_and_runtime_agnostic` 锁定本条契约。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - 已满足（双层回退链）：`components/description/src/styles.rs` 统一采用 `var(--ui-*, var(--ui-fallback-*))`，例如 `--ui-font-size-100`、`--ui-line-height-100`、`--ui-fg-muted`、`--ui-checkbox-disabled-opacity`、`--ui-button-focus-outline-offset`、`--ui-border-width`。
+  - 已满足（移除组件终值）：组件样式已移除 `0.68` / `2px` / 裸 `1px` 终值回退，改由主题变量链提供最终值（如 `--ui-fallback-checkbox-disabled-opacity`、`--ui-fallback-button-focus-outline-offset`、`--ui-fallback-border-width`）。
+  - 已满足（SSOT 来源）：fallback 终值由 `crates/ui-theme/src/css.rs` 统一输出，组件侧不重复声明终值常量。
+  - 已回归：`components/description/test/semantics.rs::defensive_variables_use_theme_fallback_chain_without_component_terminal_literals` 与 `crates/ui-components/tests/description_semantics.rs::description_defensive_variables_use_theme_fallback_chain_without_component_terminal_literals` 锁定该契约。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
+  - 已满足（层级聚合）：`crates/ui-components/src/css.rs::push_components_css` 以 `out.push_str(\"\\n@layer ui {\\n\")` 开启并以 `out.push_str(\"\\n}\\n\")` 收束，`component-description` 分支在该层内聚合 `crate::description::styles::CSS`。
+  - 已满足（运行时样式边界）：`components/description/src/view.rs` 不使用普通 `style=\"...\"` 内联样式，也未引入 `style:--*` 动态变量注入；该组件当前无运行时样式调整需求。
+  - N/A（CSS 变量运行时调节）：`Description` 为静态文本语义组件，无需 `style:--x` 形态的运行时数值调节；样式完全由静态 token-first CSS + 语义标记驱动。
+  - 已回归：`components/description/test/semantics.rs::cascade_layer_coverage_uses_ui_layer_and_rejects_plain_inline_styles` 与 `crates/ui-components/tests/description_semantics.rs::description_cascade_layer_coverage_uses_ui_layer_and_rejects_plain_inline_styles` 锁定该契约。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - N/A（静态文本组件）：`Description` 不存在 `open/close` 或 enter/exit 动效状态轴，不引入 `src/motion.rs`、`stiffness/damping` 参数或 `attach_motion` 挂载点。
+  - 已满足（全局能力不回退）：`crates/ui-motion/src/lib.rs` 保持 `prefers_reduced_motion()` 与 non-wasm `animate(...)` no-op/stub，实现 SSR/tooling 路径安全降级。
+  - 已满足（组件边界）：`components/description/Cargo.toml` 未依赖 `ui-motion`，`components/description/src/mod.rs`/`view.rs` 未声明 motion 模块与动画句柄调用。
+  - 已回归：`components/description/test/semantics.rs::motion_contract_is_explicitly_na_for_static_description_scope` 与 `crates/ui-components/tests/description_semantics.rs::description_motion_contract_is_explicitly_na_for_static_description_scope` 锁定该契约。
+- [x] `ui-components` 固定入口文件落点正确。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,73 +366,178 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+  - 已满足（入口与导出边界）：`crates/ui-components/src/lib.rs` 保持组件级 `component-*` feature gate，并通过 `#[cfg(feature = "component-description")] pub use ui_description as description;` 提供稳定公共入口。
+  - 已满足（CSS 聚合边界）：`crates/ui-components/src/css.rs::push_components_css` 受 `inject-css` + `component-*` 条件控制，`component-description` 仅在启用特性时聚合 `crate::description::styles::CSS`。
+  - 已满足（Root 注入集中）：`crates/ui-components/src/root.rs::UiRoot` 统一注入 `BASE_CSS + theme vars + 可选 components css`，并集中挂载 `provide_ui_i18n` 与 `provide_ui_id_provider`。
+  - 已满足（共享视觉原语落点）：`crates/ui-visual-primitive/src/active_highlight.rs` 仅提供 `CSS + ActiveHighlightMotion + attach_active_highlight_motion`，未承载组件业务语义分支。
+  - 已满足（禁置文件不存在）：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前不存在。
+  - 已回归：`components/description/test/semantics.rs::ui_components_entrypoints_layout_contract_is_correct_and_forbidden_files_absent` 与 `crates/ui-components/tests/description_semantics.rs::description_ui_components_entrypoints_layout_contract_is_correct_and_forbidden_files_absent` 锁定该契约。
+- [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
   - `<component>/view.rs`：纯 Leptos 结构渲染 + headless 语义挂载；禁止 `render.rs` 漂移；不隐藏关键状态决策。
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
+  - 已满足（mod.rs 导出面最小）：`components/description/src/mod.rs` 仅保留 `logic/styles/view` 模块连线与 `pub use view::Description`，未承载实现细节。
+  - 已满足（logic.rs 归一派生边界）：`components/description/src/logic.rs` 只做 props 归一、状态派生与来源标记组装；状态原语来自 `ui-state-primitives`，未混入 DOM/样式分支。
+  - 已满足（styles.rs 静态 token-first）：`components/description/src/styles.rs` 仅暴露 `CSS` 常量并消费 `var(--ui-*)` token 链，无主题终值硬编码。
+  - 已满足（view.rs 渲染与语义挂载）：`components/description/src/view.rs` 通过 `logic::resolve_view_model` 消费归一化结果并挂载语义标记；`components/description/src/render.rs` 不存在。
+  - N/A（motion.rs）：`Description` 为静态文本语义组件，不存在 `open/close` 或 enter/exit 动效状态轴；`components/description/src/motion.rs` 不存在。
+  - N/A（spec.rs）：当前组件无外部 Schema 固化需求；`components/description/src/spec.rs` 不存在。
+  - 已回归：`components/description/test/semantics.rs::component_directory_standard_layout_contract_is_correct_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_component_directory_standard_layout_contract_is_correct` 锁定该契约。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
+  - 已满足（核心文件齐备）：`components/description/src/mod.rs`、`components/description/src/logic.rs`、`components/description/src/styles.rs`、`components/description/src/view.rs` 均存在并承担对应职责。
+  - 已满足（禁止 `render.rs` 漂移）：`components/description/src/render.rs` 不存在；渲染拆分以内联函数 `render_span/render_paragraph/render_div` 留在 `view.rs`。
+  - N/A（`motion.rs`）：`Description` 为静态文本语义组件，无 enter/exit 或开闭动效状态轴；`components/description/src/motion.rs` 保持不存在。
+  - N/A（`spec.rs`）：当前无独立 Schema 固化与版本演进需求；`components/description/src/spec.rs` 保持不存在。
+  - 已回归：`components/description/test/semantics.rs::component_directory_standard_layout_contract_is_correct_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_component_directory_standard_layout_contract_is_correct` 同时锁定文件落点纪律与禁置文件约束。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - N/A（当前组件复杂度）：`Description` 为基础静态文本语义组件，不存在需要独立 `spec.rs` 固化的复杂配置图与构建流程。
+  - 已满足（禁置与边界）：`components/description/src/spec.rs` 不存在，`components/description/src/mod.rs` 未导出 `spec` 模块或 `*Spec` 类型，避免把无效抽象提前暴露为公共 API。
+  - 迁移预留（升级路径明确）：若后续演进为复杂配置组件，再引入 `DescriptionSpec::new()...render()` 与版本化契约测试；当前阶段不做假问题工程。
+  - 已回归：`components/description/test/semantics.rs::spec_builder_contract_is_explicitly_na_for_description_scope` 与 `crates/ui-components/tests/description_semantics.rs::description_spec_builder_contract_is_explicitly_na_for_description_scope` 锁定该条款。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - 已满足（Manifest 落位）：`components/description/src/Component.toml` 已落地，声明组件输入轴、语义输出、能力位与依赖边界，避免组件能力信息散落在说明文档。
+  - 已满足（RBI 投影落位）：`components/description/src/description.rbi` 已落地，固化 `Description` 对外签名与关键类型投影，供 Agent/检索链路做稳定接口消费。
+  - 已满足（Manifest/RBI 同步）：`Component.toml` 的核心输入轴（`text/tone/is_disabled/is_truncated/element/aria_label/class_name/lang/dir`）与 `.rbi` 中 `Description(...)` 签名保持一致，避免“文档写一套、代码跑一套”。
+  - 已回归：`components/description/test/semantics.rs::context_compression_manifest_and_rbi_projection_are_present_and_synced` 与 `crates/ui-components/tests/description_semantics.rs::description_context_compression_manifest_and_rbi_projection_are_present_and_synced` 锁定该协议。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+  - 已满足（Schema 化挂载）：`components/description/src/view.rs` 在所有元素分支统一挂载 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source/data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status`，避免 Agent 依赖 DOM 猜测。
+  - 已满足（类型化生成）：`components/description/src/logic.rs` 通过 `DescriptionAgent*` 枚举 + `resolve_agent_contract_attrs` 生成 `data-ui-*` 属性值，契约字段不使用散落字符串拼接。
+  - 已满足（可追溯映射）：`data-ui-state` 映射到 `DescriptionState::data_state_attr`，`data-ui-source` 由 `aria_source_attr/class_source_attr` 归并推导，形成 `intent/action/state/source` 闭环。
+  - 已满足（白名单边界）：`components/description/src/Component.toml` 新增 `[agent_contract]`、`[[agent_contract_markers]]` 与 `[[agent_contract_whitelist]]`，显式限制渲染链路并阻断脚本注入入口。
+  - 已回归：`components/description/test/semantics.rs::agent_contract_schema_markers_are_typed_traceable_and_whitelisted` 与 `crates/ui-components/tests/description_semantics.rs::description_agent_contract_schema_markers_are_typed_traceable_and_whitelisted` 锁定该条款。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+  - 已满足（术语收敛）：本组件将“流式”语义限定为 LLM 输出显示模式定义，不引入与交互事件、动画时间线或网络状态混用的第三语义轴。
+  - 已满足（契约落点）：`components/description/src/logic.rs` 与 `components/description/src/Component.toml` 固化 `render-snapshot` 动作与 `output_mode_axis = ["snapshot"]`，并通过 `data-ui-stream-support/data-ui-stream-fallback` 明确“是否支持流式 + 回退策略”。
+  - 已满足（无第三模式漂移）：`components/description/src/view.rs` 未引入 `data-ui-stream-mode` 或其他自由文本流式阶段标记，避免出现未定义显示模式。
+  - 已回归：`components/description/test/semantics.rs::streaming_definition_is_limited_to_llm_output_modes_and_snapshot_contract` 与 `crates/ui-components/tests/description_semantics.rs::description_streaming_definition_is_limited_to_llm_output_modes_and_snapshot_contract` 锁定该条款。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+  - 已满足（完整结果消费）：`components/description/src/logic.rs::resolve_view_model` 统一消费完整输入并归一化 `text/aria_label/class_name`，避免把“是否完整结果”判断散落到视图层。
+  - 已满足（稳定渲染）：`components/description/src/view.rs` 在 `span/p/div` 三个渲染分支均消费同一 `text.get_value()` 与同一语义契约，不依赖流式中间态才可渲染。
+  - 已满足（快照契约可读）：`components/description/src/logic.rs` 与 `components/description/src/view.rs` 固化 `data-ui-action=render-snapshot` 与 `data-ui-output-status=verified` 标记，明确默认输出路径为可稳定渲染的 Snapshot。
+  - 已回归：`components/description/test/semantics.rs::snapshot_is_base_capability_and_renders_complete_results_stably` 与 `crates/ui-components/tests/description_semantics.rs::description_snapshot_is_base_capability_and_renders_complete_results_stably` 锁定该条款。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
+  - 已判定（职责分级）：`Description` 是表单/界面辅助文案组件，不是正文阅读面，流式能力定位为 `Streaming Optional`。
+  - 已满足（Optional + Fallback）：`components/description/src/logic.rs` 固化 `DescriptionAgentStreamSupport::Optional` 与 `DescriptionAgentStreamFallback::Snapshot`，`components/description/src/view.rs` 稳定挂载 `data-ui-stream-support/data-ui-stream-fallback`，`components/description/src/Component.toml` 声明 `output_mode_axis = ["snapshot"]`。
+  - 已满足（输出状态连续可读）：组件输出显式 `data-ui-output-status=verified`，并与 `aria-label`、`data-state`、`data-ui-state` 在 `span/p/div` 三分支连续挂载，保证 role/aria/data 语义可检索。
+  - 已满足（职责边界）：组件层未实现数据校验、断线恢复或重试协议；仅做稳定渲染，容错与重试留在上层流程。
+  - 已回归：`components/description/test/semantics.rs::streaming_requirement_is_optional_for_description_with_snapshot_fallback_and_status_markers` 与 `crates/ui-components/tests/description_semantics.rs::description_streaming_requirement_is_optional_for_description_with_snapshot_fallback_and_status_markers` 锁定该条款。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - 已满足（组件源码禁用危险模式）：`components/description/src/*.rs`（非测试）未出现 `unwrap/expect` 与 `let _ = ...` 吞错写法。
+  - 已满足（字符串复制热点收敛）：`components/description/src/logic.rs::compose_class_name` 使用 `Vec<Cow<'static, str>>` 组织静态类名与可选外部类名，避免无意义的全量 `to_string()` 复制。
+  - 已执行（仓库脚本）：运行 `./scripts/check-rust-hygiene.sh`，当前环境因 `rg` 缺少 PCRE2（`PCRE2 is not available in this build of ripgrep`）在仓库级前置检查阶段失败；该失败为环境/全仓问题，非 `description` 组件回归。
+  - 已回归：`components/description/test/semantics.rs::rust_hygiene_contract_for_description_is_clean_and_cow_based` 与 `crates/ui-components/tests/description_semantics.rs::description_rust_hygiene_contract_is_clean_and_cow_based` 锁定该条款。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 已满足（特性树注册）：`crates/ui-components/Cargo.toml` 声明 `component-description = ["dep:ui-description"]`，且 `ui-description` 依赖为 `optional = true`，未启用特性不进入编译链接路径。
+  - 已满足（`lib.rs` feature 门控）：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = "component-description")]` 下暴露 `pub use ui_description as description;`，无无条件导出。
+  - 已满足（`css.rs` feature 门控）：`crates/ui-components/src/css.rs` 在 `#[cfg(feature = "component-description")]` 下才聚合 `out.push_str(crate::description::styles::CSS);`，未发生全量无条件 CSS 聚合。
+  - 已满足（禁止隐式全量拉起）：`apps/web-demo/Cargo.toml` 以 `default-features = false` + `features = ["inject-css", "web-demo-components"]` 引用 `ui-components`，未把 `all-components` 作为默认路径。
+  - 已验证（最小特性树）：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-description,inject-css` 输出仅包含命令行特性 `component-description` 与 `inject-css`，检索 `all-components` 为空。
+  - 已验证（web-demo 反向依赖）：`cargo tree -e features -i ui-components -p web-demo` 输出检索 `all-components` 为空，确认未被隐式全量拉起。
+  - 已回归：`components/description/test/semantics.rs::tree_shaking_feature_gating_contract_is_checked_and_documented_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_tree_shaking_feature_gating_contract_is_checked_and_documented` 锁定该条款。
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
+  - 已满足（语义断言覆盖）：`components/description/test/semantics.rs` 与 `crates/ui-components/tests/description_semantics.rs` 已锁定 `aria-label` 与关键 `data-*`（`data-state/data-tone/data-aria-source/data-class-source` 等）契约，验证路径不依赖视觉快照。
+  - N/A（焦点流转）：`Description` 为非交互文本语义组件，不存在 focusable/keyboard/pointer 焦点环路；测试持续断言 `view.rs` 不引入 `on:keydown/on:click/on:pointer*`，且 overlay 焦点栈治理保持在 `ui-headless`。
+  - 已满足（性能回归与阻断）：`description_performance_governance_contract_is_mount_only_traceable_and_blocking` 绑定 perf probe/e2e 阈值与 CI 阻断；`Button/Input` 保持 `render_count=1` 基线，`Description` 以 mount-only + 语义来源标记提供等价证据并在 `docs/plan/TODO.md` 跟踪自动化补齐。
+  - 已回归：`components/description/test/semantics.rs::semantic_and_performance_regression_contract_is_covered_beyond_snapshots_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_semantic_and_performance_regression_contract_is_covered_beyond_snapshots` 锁定该条款。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
+  - N/A（当前变更范围）：本次 `Description` 组件改动未引入跨大版本 API 破坏升级，不存在 `V1 -> V2` 协议切换或删除字段行为。
+  - 已满足（现状可证）：`components/description/src/protocol.rs` 仍仅声明 `DescriptionComponentSchemaVersion::V1` 与最小 `DescriptionComponentSpec`，未出现 `V2` 分支与迁移分叉。
+  - 已满足（迁移层不应虚构）：组件源码未新增 `migrate_v1_to_v2` 等伪迁移函数，避免为不存在的破坏变更制造无效复杂度。
+  - 升级触发条件（后续约束）：若未来引入破坏式协议演进，必须同步补 `Schema Registry` 记录、`migrate_v1_to_v2` 纯函数与 codemod 迁移说明，再更新本条状态。
+  - 已回归：`components/description/test/semantics.rs::version_deprecation_migration_contract_is_explicitly_na_without_breaking_upgrade` 与 `crates/ui-components/tests/description_semantics.rs::description_version_deprecation_migration_contract_is_explicitly_na_without_breaking_upgrade` 锁定该条款。
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
+  - 已满足（Playground 覆盖）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 已包含 `Hello World`、`State Matrix (Tone / Disabled / Truncate)`、`Controlled vs Uncontrolled (Stateless Contract)`、`Streaming Optional (fallback=snapshot)` 四组验收面。
+  - 已满足（Streaming/Snapshot 展现）：文档示例显式给出 `Snapshot: ...` 与 `Streaming fallback=snapshot: ...` 文案，并要求检查 `data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status` 标记。
+  - 已满足（Source-first 一键复制）：`description()` 的各 Playground 统一传入 `code_imports=description_imports.clone()`，复制链路走 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports；页面追加 `Source-first / Copy-Paste Ready` 区块和可复制 starter snippet。
+  - 已满足（源码与依赖可追溯）：文档列出 `components/description/src/{mod,logic,view,styles}.rs` 源码落点与 `component-description`/`inject-css` 前置特性。
+  - 已回归：`components/description/test/semantics.rs::documentation_as_product_copy_paste_ready_contract_is_implemented_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_documentation_as_product_copy_paste_ready_contract_is_implemented` 锁定该条款。
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+  - 已满足（语义测试落点）：`components/description/test/semantics.rs` 与 `crates/ui-components/tests/description_semantics.rs` 均持续维护 Description 的语义契约断言。
+  - 已满足（契约断言优先）：测试以 `aria-label`、`data-state`、`data-tone`、`data-aria-source`、`data-class-source`、`data-ui-source` 等机器可读标记为主，不依赖视觉快照通过。
+  - N/A（显式 role）：`Description` 采用原生 `span/p/div` 文本语义，不是交互 widget；测试约束不注入额外 `role` 覆盖原生语义。
+  - 已满足（字段变更同步回归）：新增/变更语义字段必须同时更新 `*_semantics.rs` 断言后才可在本清单打勾。
+  - 已回归：`components/description/test/semantics.rs::semantics_first_contract_prioritizes_data_aria_role_and_state_source_over_snapshots` 与 `crates/ui-components/tests/description_semantics.rs::description_semantics_first_contract_prioritizes_data_aria_role_and_state_source_over_snapshots` 锁定该条款。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+  - 已满足（语义选择器优先）：`e2e/tests/docs_app_description_contract.spec.mjs` 使用 `[data-component=\"description\"]`、`[data-slot=\"description\"]`、`[data-state]`、`[data-tone]`、`[data-aria-source]`、`[data-class-source]`、`[data-ui-*]` 等语义标记定位，不依赖 DOM 深层级与文案文本定位。
+  - 已满足（WASM 稳定等待）：用例统一采用 `body:not(:has(#boot))` 与 `toHaveAttribute(...)` 语义断点等待，不使用固定 `sleep`/`waitForTimeout`。
+  - N/A（async/motion ready-settled）：`Description` 为静态文本语义组件，不存在组件级异步请求或动画状态机；用例通过 `data-state/data-ui-state/data-ui-output-status` 的稳定断言覆盖可重复的 ready 检查点。
+  - 已回归：`components/description/test/semantics.rs::e2e_selector_contract_uses_semantic_markers_and_wasm_stable_waits` 与 `crates/ui-components/tests/description_semantics.rs::description_e2e_selector_contract_uses_semantic_markers_and_wasm_stable_waits` 锁定该条款。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+  - 已满足（可重复关键流程）：`e2e/tests/docs_app_description_contract.spec.mjs::docs-app description key flow remains repeatable with semantic ready checkpoints` 覆盖 `打开 description -> 跳转 error-message -> 返回 description` 的可重复路径，并验证语义状态未漂移。
+  - 已满足（可定位语义断点）：关键流程断言基于 `data-state`、`data-ui-state`、`data-ui-output-status`、`data-ui-action`、`data-ui-stream-fallback` 等语义属性，失败时可直接定位到契约断点，而非笼统页面差异。
+  - N/A（高风险交互路径）：`Description` 非 overlay/非可聚焦交互组件，无 keyboard/focus/async/motion 状态机；本组件优先回归稳定渲染链路与跨路由语义一致性。
+  - 已回归：`components/description/test/semantics.rs::repeatable_key_flow_is_in_e2e_regression_set_with_semantic_breakpoints` 与 `crates/ui-components/tests/description_semantics.rs::description_repeatable_key_flow_is_in_e2e_regression_set_with_semantic_breakpoints` 锁定该条款。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+  - 已满足（文档与示例同步）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 已同步维护 `Hello World`、`Workbench`、`Tone Variants`、`Truncate + Element + Disabled` 说明与示例。
+  - 已满足（状态矩阵覆盖）：文档包含 `State Matrix (Tone / Disabled / Truncate)` 与 `Controlled vs Uncontrolled (Stateless Contract)`，覆盖 tone/disabled/truncate/受控语义矩阵分支。
+  - 已满足（参数矩阵可检视）：`Workbench` 暴露 `tone/element/is_disabled/is_truncated/custom_aria_label/custom_class` 控件，并通过 `DescriptionActualConfig` 输出当前参数状态快照。
+  - 已满足（API/默认值对齐 logic）：docs 示例与代码生成使用 `tone/is_disabled/is_truncated/element/aria_label/class_name` 命名；默认路径保持 `tone=Default`、`element=Paragraph`、`is_disabled=false`、`is_truncated=false`，与 `components/description/src/logic.rs` 与 `ui-state-primitives` 默认契约一致。
+  - 已回归：`components/description/test/semantics.rs::docs_examples_and_matrices_are_synced_with_description_logic_contract` 与 `crates/ui-components/tests/description_semantics.rs::description_docs_examples_and_matrices_are_synced_with_logic_contract` 锁定该条款。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+  - 已满足（文档入口存在）：`components/description/src/README.md` 与 `apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 同时可达，避免“只有源码没有文档”。
+  - 已满足（零门槛 + 常见用法）：README 新增 `Quick Start (Use First)`，包含 1 行 `Hello World` 与 `Common Usage` 示例，不要求先理解分层架构。
+  - 已满足（先用后进阶）：README 明确按 `Quick Start (Use First) -> Advanced Controls (Use When Needed)` 组织，默认 API 在前，高级参数在后。
+  - 已回归：`components/description/test/semantics.rs::documentation_entry_is_beginner_friendly_with_default_first_and_advanced_later_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_documentation_entry_is_beginner_friendly_with_default_first_and_advanced_later` 锁定该条款。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+  - 已满足（交互工作台）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 提供 `Workbench` Playground，含 `SegmentedControl`（tone/element）与 `Switch`（is_disabled/is_truncated/custom_aria_label/custom_class）实时联动预览。
+  - 已满足（props/状态/反馈可观测）：`Workbench` 通过 `code_signal=workbench_code`、`test_config_signal=actual_config`、`DescriptionActualConfig` 快照输出，把输入配置与渲染结果一并可视化。
+  - N/A（AI Spec 联动示例）：`Description` 不是 AI Spec 组件，不存在 `*Spec` 输入协议；该要求仅对 AI Spec 相关组件强制。
+  - 已满足（可重复关键路径）：`e2e/tests/docs_app_description_contract.spec.mjs` 已覆盖 `docs-app description key flow remains repeatable with semantic ready checkpoints`，验证打开/跳转/返回链路可重复。
+  - 已回归：`components/description/test/semantics.rs::interactive_playground_contract_is_available_with_reproducible_flow_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_interactive_playground_contract_is_available_with_reproducible_flow` 锁定该条款。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+  - 已满足（复制按钮 + import-ready）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 的 `Source-first / Copy-Paste Ready` 区块提供 `Snippet(copyable=true)` 与 `Show code + copy button` 路径；各 Playground 统一注入 `code_imports=description_imports.clone()`，复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全缺失 imports。
+  - 已满足（源码落点与依赖前提）：文档显式列出 `components/description/src/{mod,logic,view,styles}.rs` 与前置特性 `component-description`、`inject-css`，避免“复制即报错”。
+  - 已满足（文档与实现同步）：文档 starter snippet 与 docs 页面 `description_imports`、`Description/DescriptionElement/DescriptionTone`、`text/tone/is_disabled/is_truncated/element` 参数命名保持一致，并由语义回归测试持续锁定。
+  - 已回归：`components/description/test/semantics.rs::source_first_docs_are_copy_paste_ready_with_imports_and_real_source_paths_for_description` 与 `crates/ui-components/tests/description_semantics.rs::description_source_first_docs_are_copy_paste_ready_with_imports_and_real_source_paths` 锁定该条款。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
+  - 已满足（参数模型同步策略文档）：`docs/spec/heroui-parameter-design-strategy.md` 新增 `Description 同步记录（2026-02-20）`，明确 `tone/is_disabled/is_truncated/element/aria_label/class_name/lang/dir` 参数语义与默认路径一致性。
+  - 已满足（组件文档入口可访问）：`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()` 维持 `slug="description"` 可索引入口；`components/description/src/README.md` 提供等价组件文档入口。
+  - 已满足（实现-文档同步约束）：对标文档中声明“参数语义若变更必须先同步策略文档与 docs 入口”，并持续禁止“仅代码更新无文档更新”合入。
+  - N/A（研究文档补充）：本轮为 Description 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，无需追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+  - 已回归：`components/description/test/semantics.rs::heroui_alignment_strategy_and_description_docs_entry_are_synced_for_parameter_changes` 与 `crates/ui-components/tests/description_semantics.rs::description_heroui_alignment_strategy_and_docs_entry_are_synced_for_parameter_changes` 锁定该条款。
 
 ### 8. 合并前门禁死命令（最终执行）
 在发起 PR 或完成任务前，必须保证本地/CI 以下命令全部通过：

@@ -1,4 +1,6 @@
-use crate::{IconState, IconStateInput};
+use std::borrow::Cow;
+
+use crate::{IconSlotKind, IconState, IconStateInput};
 
 pub const DEFAULT_ARIA_LABEL: &str = "Icon";
 
@@ -72,13 +74,13 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     (DEFAULT_ARIA_LABEL.into(), false)
 }
 
-pub fn resolve_slot_kind_attr(slot: Option<&str>) -> &'static str {
+pub fn resolve_slot_kind(slot: Option<&str>) -> IconSlotKind {
     match slot {
-        None => "none",
-        Some(slot) if slot.eq_ignore_ascii_case("label") => "label",
-        Some(slot) if slot.eq_ignore_ascii_case("description") => "description",
-        Some(slot) if slot.eq_ignore_ascii_case("icon") => "icon",
-        Some(_) => "custom",
+        None => IconSlotKind::None,
+        Some(slot) if slot.eq_ignore_ascii_case("label") => IconSlotKind::Label,
+        Some(slot) if slot.eq_ignore_ascii_case("description") => IconSlotKind::Description,
+        Some(slot) if slot.eq_ignore_ascii_case("icon") => IconSlotKind::Icon,
+        Some(_) => IconSlotKind::Custom,
     }
 }
 
@@ -118,34 +120,38 @@ pub fn resolve_state(input: IconStateInput) -> IconState {
         } else {
             "default"
         },
-        slot_kind_attr: input.slot_kind_attr,
+        slot_kind: input.slot_kind,
         has_named_slot: input.has_named_slot,
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: IconState) -> String {
-    let mut classes = vec![
-        "ui-icon".to_string(),
-        state.size_class.into(),
-        state.tone_class.into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-icon"),
+        Cow::Borrowed(state.size_class),
+        Cow::Borrowed(state.tone_class),
     ];
 
     if state.is_disabled {
-        classes.push("ui-icon--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-icon--disabled"));
     }
 
     if state.is_decorative {
-        classes.push("ui-icon--decorative".to_string());
+        classes.push(Cow::Borrowed("ui-icon--decorative"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-icon--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-icon--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

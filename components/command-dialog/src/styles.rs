@@ -2,16 +2,46 @@ pub const CSS: &str = r#"
 .ui-command-dialog {
   display: grid;
   gap: 0;
+  --ui-command-dialog-open-opacity: 1;
+  --ui-command-dialog-closed-opacity: 0.98;
+  --ui-command-dialog-disabled-opacity: var(
+    --ui-checkbox-disabled-opacity,
+    var(--ui-fallback-checkbox-disabled-opacity)
+  );
+  --ui-command-dialog-border-width: var(
+    --ui-border-width,
+    var(--ui-fallback-border-width)
+  );
+  --ui-command-dialog-border-color: var(--ui-border, var(--ui-fallback-border));
+  --ui-command-dialog-modal-viewport-inset: var(
+    --ui-overlay-viewport-inset,
+    var(--ui-fallback-overlay-viewport-inset)
+  );
+  --ui-command-dialog-modal-max-inline-viewport: calc(
+    var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width)) * 4
+  );
+  --ui-command-dialog-modal-max-width: var(
+    --ui-command-panel-max-width,
+    var(--ui-fallback-command-panel-max-width)
+  );
+  --ui-command-dialog-modal-header-padding-inline: var(
+    --ui-space-sm,
+    var(--ui-fallback-space-sm)
+  );
+  --ui-command-dialog-modal-header-padding-top: var(
+    --ui-space-sm,
+    var(--ui-fallback-space-sm)
+  );
 }
 
 .ui-command-dialog--open,
 .ui-command-dialog[data-state="open"] {
-  opacity: 1;
+  opacity: var(--ui-command-dialog-open-opacity);
 }
 
 .ui-command-dialog--closed,
 .ui-command-dialog[data-state="closed"] {
-  opacity: 0.98;
+  opacity: var(--ui-command-dialog-closed-opacity);
 }
 
 .ui-command-dialog--with-description,
@@ -26,12 +56,13 @@ pub const CSS: &str = r#"
 
 .ui-command-dialog--persistent,
 .ui-command-dialog[data-close-on-action="false"] {
-  border-top: 1px solid var(--ui-border-subtle, rgba(125, 125, 125, 0.35));
+  border-top: var(--ui-command-dialog-border-width) solid
+    var(--ui-command-dialog-border-color);
 }
 
 .ui-command-dialog--disabled,
 .ui-command-dialog[data-disabled="true"] {
-  opacity: 0.72;
+  opacity: var(--ui-command-dialog-disabled-opacity);
 }
 
 .ui-command-dialog--controlled,
@@ -129,15 +160,21 @@ pub const CSS: &str = r#"
 }
 
 .ui-command-dialog__modal.ui-modal {
-  width: min(44rem, calc(100vw - 2rem));
+  width: min(
+    var(--ui-command-dialog-modal-max-width),
+    calc(
+      var(--ui-command-dialog-modal-max-inline-viewport) -
+        (var(--ui-command-dialog-modal-viewport-inset) * 2)
+    )
+  );
   padding: 0;
   overflow: hidden;
 }
 
 .ui-command-dialog__modal.ui-modal .ui-modal__title,
 .ui-command-dialog__modal.ui-modal .ui-modal__description {
-  padding-inline: 12px;
-  padding-top: 12px;
+  padding-inline: var(--ui-command-dialog-modal-header-padding-inline);
+  padding-top: var(--ui-command-dialog-modal-header-padding-top);
   margin: 0;
 }
 

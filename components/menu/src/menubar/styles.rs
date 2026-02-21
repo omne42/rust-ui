@@ -2,34 +2,43 @@ pub const CSS: &str = r#"
 .ui-menubar {
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-2xs);
-  min-height: 2.25rem;
-  padding: var(--ui-space-2xs);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-md);
-  background: color-mix(in oklab, var(--ui-bg) 92%, var(--ui-bg-muted) 8%);
-  box-shadow: var(--ui-shadow-xs);
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
+  min-height: var(--ui-button-size-m-height, var(--ui-fallback-button-size-m-height));
+  padding: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  background: color-mix(
+    in oklab,
+    var(--ui-bg, var(--ui-fallback-bg)) 92%,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted)) 8%
+  );
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-menubar--open,
 .ui-menubar[data-state="open"] {
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
 }
 
 .ui-menubar--closed,
 .ui-menubar[data-state="closed"] {
-  box-shadow: var(--ui-shadow-xs);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-menubar--empty,
 .ui-menubar[data-state="empty"],
 .ui-menubar[data-menus="empty"] {
-  border-color: color-mix(in oklab, var(--ui-border) 65%, var(--ui-fg-muted) 35%);
+  border-color: color-mix(
+    in oklab,
+    var(--ui-border, var(--ui-fallback-border)) 65%,
+    var(--ui-fg-muted, var(--ui-fallback-fg-muted)) 35%
+  );
 }
 
 .ui-menubar--has-menus,
 .ui-menubar[data-menus="populated"] {
-  border-color: var(--ui-border);
+  border-color: var(--ui-border, var(--ui-fallback-border));
 }
 
 .ui-menubar--persistent,
@@ -110,14 +119,14 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2rem;
-  padding: 0 var(--ui-space-sm);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-sm);
+  min-height: var(--ui-button-size-m-height, var(--ui-fallback-button-size-m-height));
+  padding: 0 var(--ui-space-sm, var(--ui-fallback-space-sm));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid transparent;
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
   background: transparent;
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
   font: inherit;
-  font-size: var(--ui-font-size-sm);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -126,19 +135,31 @@ pub const CSS: &str = r#"
 .ui-menubar__trigger:hover:not(:disabled),
 .ui-menubar__menu[data-open="true"] .ui-menubar__trigger,
 .ui-menubar__menu[data-state="open"] .ui-menubar__trigger {
-  border-color: color-mix(in oklab, var(--ui-border) 80%, var(--ui-accent) 20%);
-  background: color-mix(in oklab, var(--ui-bg-muted) 78%, var(--ui-accent) 22%);
+  border-color: color-mix(
+    in oklab,
+    var(--ui-border, var(--ui-fallback-border)) 80%,
+    var(--ui-accent, var(--ui-fallback-accent)) 20%
+  );
+  background: color-mix(
+    in oklab,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted)) 78%,
+    var(--ui-accent, var(--ui-fallback-accent)) 22%
+  );
 }
 
 .ui-menubar__trigger:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width))
+    solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(
+    --ui-button-focus-outline-offset,
+    var(--ui-fallback-button-focus-outline-offset)
+  );
 }
 
 .ui-menubar__trigger:disabled,
 .ui-menubar__menu[data-disabled="true"] .ui-menubar__trigger,
 .ui-menubar__menu[data-state="disabled"] .ui-menubar__trigger {
-  opacity: 0.56;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
   cursor: not-allowed;
 }
 "#;

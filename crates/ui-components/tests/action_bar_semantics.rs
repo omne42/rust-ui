@@ -189,11 +189,18 @@ fn action_bar_spec_boundary_reuses_button_spec_without_local_spec_file() {
     let workspace_dir = workspace_root(manifest_dir);
     let button_spec_in_ui_components = manifest_dir.join("src/button/spec.rs");
     let button_spec_in_components = workspace_dir.join("components/button/src/spec.rs");
+    let button_spec_path = if button_spec_in_ui_components.exists() {
+        button_spec_in_ui_components.clone()
+    } else {
+        button_spec_in_components.clone()
+    };
 
     assert!(
         button_spec_in_ui_components.exists() || button_spec_in_components.exists(),
         "button should keep canonical spec.rs boundary for complex schema contract."
     );
+    let button_spec_source = fs::read_to_string(&button_spec_path)
+        .unwrap_or_else(|e| panic!("read_to_string failed for {button_spec_path:?}: {e}"));
     assert!(
         !manifest_dir.join("src/action_bar/spec.rs").exists(),
         "ActionBar should not introduce a local spec.rs file."
@@ -209,6 +216,18 @@ fn action_bar_spec_boundary_reuses_button_spec_without_local_spec_file() {
         );
     }
 
+    for needle in [
+        "pub struct ButtonSpec",
+        "impl ButtonSpec {",
+        "pub fn new() -> Self",
+        "pub fn render(self) -> impl IntoView",
+    ] {
+        assert!(
+            button_spec_source.contains(needle),
+            "complex-component builder contract should remain in button spec via `{needle}`."
+        );
+    }
+
     for forbidden in [
         "mod spec;",
         "pub mod spec;",
@@ -218,6 +237,88 @@ fn action_bar_spec_boundary_reuses_button_spec_without_local_spec_file() {
         assert!(
             !action_bar_mod_source.contains(forbidden),
             "ActionBar module should stay lightweight and avoid local spec boundary token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_file_placement_discipline_is_enforced() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = workspace_root(manifest_dir);
+    let action_bar_src_dir = workspace_dir.join("components/action-bar/src");
+
+    for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
+        let path = action_bar_src_dir.join(required);
+        assert!(
+            path.exists(),
+            "ActionBar component directory should contain required file `{required}`."
+        );
+    }
+
+    let forbidden = "render.rs";
+    let path = action_bar_src_dir.join(forbidden);
+    assert!(
+        !path.exists(),
+        "ActionBar component directory should forbid legacy file `{forbidden}`."
+    );
+
+    let spec_path = action_bar_src_dir.join("spec.rs");
+    assert!(
+        !spec_path.exists(),
+        "ActionBar should keep lightweight boundary and avoid local `spec.rs`."
+    );
+}
+
+#[test]
+fn action_bar_manifest_and_rbi_projection_are_present_and_in_sync() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = workspace_root(manifest_dir);
+    let action_bar_src_dir = workspace_dir.join("components/action-bar/src");
+
+    let manifest_path = action_bar_src_dir.join("Component.toml");
+    let rbi_path = action_bar_src_dir.join("action_bar.rbi");
+
+    assert!(
+        manifest_path.exists(),
+        "ActionBar context manifest should exist at {:?}.",
+        manifest_path
+    );
+    assert!(
+        rbi_path.exists(),
+        "ActionBar RBI projection should exist at {:?}.",
+        rbi_path
+    );
+
+    let manifest_source = load_source("src/action_bar/Component.toml");
+    let rbi_source = load_source("src/action_bar/action_bar.rbi");
+
+    for needle in [
+        "name = \"ActionBar\"",
+        "name = \"selected_count\"",
+        "name = \"default_selected_count\"",
+        "name = \"on_selected_count_change\"",
+        "name = \"is_force_visible\"",
+        "name = \"data-state\"",
+        "name = \"data-selection\"",
+    ] {
+        assert!(
+            manifest_source.contains(needle),
+            "ActionBar Component.toml should keep capability/signature token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub enum ActionBarPosition",
+        "pub enum ActionBarPhase",
+        "pub enum ActionBarSelectionKind",
+        "pub struct ActionBarMotion",
+        "pub fn ActionBar(",
+        "is_force_visible: bool",
+        "selected_count: Option<leptos::prelude::Signal<usize>>",
+    ] {
+        assert!(
+            rbi_source.contains(needle),
+            "ActionBar RBI projection should keep interface token `{needle}`."
         );
     }
 }
@@ -599,6 +700,78 @@ fn action_bar_machine_readable_contract_uses_typed_inputs_and_semantic_markers()
 }
 
 #[test]
+fn action_bar_agent_contract_schema_is_typed_and_whitelisted() {
+    let protocol_source = load_source("src/action_bar/protocol.rs");
+    let view_source = load_source("src/action_bar/view.rs");
+    let manifest_source = load_source("src/action_bar/Component.toml");
+
+    for needle in [
+        "#[serde(deny_unknown_fields)]",
+        "pub enum ActionBarRenderCapability",
+        "pub struct ActionBarRenderPolicy",
+        "pub fn render_policy(&self) -> ActionBarRenderPolicy",
+        "pub enum ActionBarAgentIntent",
+        "pub enum ActionBarAgentAction",
+        "pub struct ActionBarAgentDataAttrs",
+        "pub const ACTION_BAR_AGENT_SCHEMA: &str = \"ui.action-bar.contract.v1\";",
+        "pub fn agent_data_attrs(state: ActionBarState) -> ActionBarAgentDataAttrs",
+        "ActionBarAgentIntent::BulkSelection.as_attr()",
+        "ActionBarAgentAction::ClearSelection.as_attr()",
+    ] {
+        assert!(
+            protocol_source.contains(needle),
+            "ActionBar protocol schema should keep typed contract token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let render_policy = protocol::ActionBarComponentSpec::default().render_policy();",
+        "let on_clear_selection = if allow_clear_action {",
+        "let children = if allow_children_slot { children } else { None };",
+        "let agent_attrs = Signal::derive(move || protocol::agent_data_attrs(state.get()));",
+        "data-ui-schema=move || agent_attrs.get().schema",
+        "data-ui-intent=move || agent_attrs.get().intent",
+        "data-ui-action=move || agent_attrs.get().action",
+        "data-ui-state-phase=move || agent_attrs.get().state_phase",
+        "data-ui-state-position=move || agent_attrs.get().state_position",
+        "data-ui-state-selection=move || agent_attrs.get().state_selection",
+        "data-ui-source-selected-count=move || agent_attrs.get().source_selected_count",
+        "data-ui-source-clear-action=move || agent_attrs.get().source_clear_action",
+        "data-ui-source-motion=move || agent_attrs.get().source_motion",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionBar view should mount typed agent-contract marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "format!(\"data-ui-",
+        "inner_html=",
+        "dangerously_set_inner_html",
+        "eval(",
+        "new Function(",
+    ] {
+        assert!(
+            !view_source.contains(forbidden) && !protocol_source.contains(forbidden),
+            "ActionBar agent-contract path should forbid unsafe/script-like injection token `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "name = \"data-ui-schema\"",
+        "name = \"data-ui-intent\"",
+        "name = \"data-ui-action\"",
+        "name = \"agent_contract_schema_v1_with_typed_state_source_markers\"",
+    ] {
+        assert!(
+            manifest_source.contains(needle),
+            "ActionBar manifest should keep traceable agent-contract declaration `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn action_bar_default_values_have_single_logic_source() {
     let logic_source = load_source("src/action_bar/logic.rs");
     let view_source = load_source("src/action_bar/view.rs");
@@ -744,6 +917,275 @@ fn action_bar_docs_expose_hello_world_path_without_state_machine_wiring() {
         assert!(
             !source.contains(forbidden),
             "ActionBar docs minimal usage should not require internal wiring token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_documentation_as_product_keeps_readme_and_beginner_first_flow() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = workspace_root(manifest_dir);
+    let readme_path = workspace_dir.join("components/action-bar/src/README.md");
+    let readme_source = fs::read_to_string(&readme_path)
+        .unwrap_or_else(|e| panic!("read_to_string failed for {readme_path:?}: {e}"));
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "# ActionBar",
+        "## Start Here (Hello World)",
+        "<ActionBar default_selected_count=1>",
+        "## Common Usage",
+        "### 1) Controlled",
+        "### 2) Uncontrolled",
+        "## Learn In Order",
+        "default_selected_count",
+        "selected_count + on_selected_count_change",
+        "advanced props",
+        "## Docs Entry",
+        "#/components/action-bar",
+    ] {
+        assert!(
+            readme_source.contains(needle),
+            "ActionBar README should keep beginner-first documentation token `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "ui-state-primitives",
+        "ui-headless",
+        "must wire state primitive first",
+    ] {
+        assert!(
+            !readme_source.contains(forbidden),
+            "ActionBar beginner docs should avoid internal-first onboarding token `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "Playground title=\"Hello World\"",
+        "title=\"Controlled vs Uncontrolled\"",
+        "title=\"Top placement + custom text + reduced motion\"",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "ActionBar docs-app page should keep beginner->advanced progression token `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_is_not_llm_output_surface_and_has_no_streaming_snapshot_modes() {
+    let view_source = load_source("src/action_bar/view.rs");
+    let protocol_source = load_source("src/action_bar/protocol.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for forbidden in [
+        "#[prop(optional)] is_streaming: bool",
+        "#[prop(optional)] streaming: bool",
+        "#[prop(optional)] mode: OutputMode",
+        "OutputMode::Streaming",
+        "token_chunk",
+        "on_chunk",
+        "data-stream-state",
+    ] {
+        assert!(
+            !view_source.contains(forbidden)
+                && !protocol_source.contains(forbidden)
+                && !docs_source.contains(forbidden),
+            "ActionBar should not expose LLM output rendering mode token `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "#[prop(optional)] selected_count: Option<Signal<usize>>",
+        "#[prop(optional)] default_selected_count: Option<usize>",
+        "#[prop(optional)] selection_text: Option<String>",
+        "data-selected-count=move || state.get().selected_count.to_string()",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionBar should keep full-state snapshot-style input contract `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_streaming_is_optional_with_snapshot_fallback_and_status_markers() {
+    let protocol_source = load_source("src/action_bar/protocol.rs");
+    let view_source = load_source("src/action_bar/view.rs");
+    let manifest_source = load_source("src/action_bar/Component.toml");
+
+    for needle in [
+        "pub enum ActionBarStreamingPolicy",
+        "ActionBarStreamingPolicy::Optional => \"optional\"",
+        "pub enum ActionBarStreamingFallback",
+        "ActionBarStreamingFallback::Snapshot => \"snapshot\"",
+        "pub enum ActionBarOutputMode",
+        "ActionBarOutputMode::Snapshot => \"snapshot\"",
+        "pub enum ActionBarOutputStatus",
+        "ActionBarOutputStatus::Validated => \"validated\"",
+        "streaming_policy: ActionBarStreamingPolicy::Optional.as_attr()",
+        "streaming_fallback: ActionBarStreamingFallback::Snapshot.as_attr()",
+        "output_mode: ActionBarOutputMode::Snapshot.as_attr()",
+        "output_status: ActionBarOutputStatus::Validated.as_attr()",
+    ] {
+        assert!(
+            protocol_source.contains(needle),
+            "ActionBar protocol should keep streaming-optional contract token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "data-ui-streaming-policy=move || agent_attrs.get().streaming_policy",
+        "data-ui-streaming-fallback=move || agent_attrs.get().streaming_fallback",
+        "data-ui-output-mode=move || agent_attrs.get().output_mode",
+        "data-ui-output-status=move || agent_attrs.get().output_status",
+        "role=\"toolbar\"",
+        "aria-hidden=move || state.get().is_hidden.then_some(\"true\")",
+        "data-state=move || state.get().phase_attr",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionBar view should expose streaming optional/snapshot status marker `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "ActionBarStreamingPolicy::Required",
+        "streaming_policy: ActionBarStreamingPolicy::Required",
+        "ActionBarOutputMode::Streaming",
+    ] {
+        assert!(
+            !protocol_source.contains(forbidden),
+            "ActionBar should not claim streaming-required contract token `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "name = \"data-ui-streaming-policy\"",
+        "name = \"data-ui-streaming-fallback\"",
+        "name = \"data-ui-output-mode\"",
+        "name = \"data-ui-output-status\"",
+        "name = \"streaming_optional_with_snapshot_fallback_and_output_status_markers\"",
+    ] {
+        assert!(
+            manifest_source.contains(needle),
+            "ActionBar manifest should declare streaming optional capability token `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_rust_hygiene_avoids_unwrap_expect_let_underscore_and_string_clone_churn() {
+    let logic_source = load_source("src/action_bar/logic.rs");
+    let view_source = load_source("src/action_bar/view.rs");
+    let motion_source = load_source("src/action_bar/motion.rs");
+    let i18n_source = load_source("src/action_bar/i18n.rs");
+    let protocol_source = load_source("src/action_bar/protocol.rs");
+
+    for source in [
+        &logic_source,
+        &view_source,
+        &motion_source,
+        &i18n_source,
+        &protocol_source,
+    ] {
+        for forbidden in [".unwrap(", ".expect(", ".unwrap_err(", "let _ ="] {
+            assert!(
+                !source.contains(forbidden),
+                "ActionBar non-test source must not contain forbidden hygiene token `{forbidden}`."
+            );
+        }
+    }
+
+    for needle in [
+        "use std::borrow::Cow;",
+        "Cow::Borrowed(\"ui-action-bar\")",
+        "Cow::Borrowed(\"ui-action-bar--clearable\")",
+        "Cow::Owned(base_class_name)",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ActionBar class assembly should keep Cow-based string hygiene token `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "\"ui-action-bar\".to_string()",
+        "\"ui-action-bar--clearable\".to_string()",
+        "\"ui-action-bar--label-custom\".to_string()",
+        "\"ui-action-bar--selection-custom\".to_string()",
+        "\"ui-action-bar--clear-label-custom\".to_string()",
+        "\"ui-action-bar--motion-custom\".to_string()",
+        "\"ui-action-bar--custom-class\".to_string()",
+    ] {
+        assert!(
+            !logic_source.contains(forbidden),
+            "ActionBar logic should avoid avoidable string clone hotspot `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_snapshot_mode_can_consume_complete_input_and_render_stably() {
+    let view_source = load_source("src/action_bar/view.rs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "#[prop(optional)] selected_count: Option<Signal<usize>>",
+        "#[prop(optional)] default_selected_count: Option<usize>",
+        "#[prop(optional)] on_selected_count_change: Option<Callback<usize>>",
+        "#[prop(optional)] on_clear_selection: Option<Callback<()>>",
+        "#[prop(optional)] position: ActionBarPosition,",
+        "#[prop(optional)] is_force_visible: bool",
+        "#[prop(optional, into)] aria_label: Option<String>",
+        "#[prop(optional, into)] clear_label: Option<String>",
+        "#[prop(optional, into)] selection_text: Option<String>",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "#[prop(optional)] motion: ActionBarMotion",
+        "#[prop(optional, into)] class_name: Option<String>",
+        "#[prop(optional)] children: Option<Children>",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionBar snapshot baseline should accept complete config field `{needle}`."
+        );
+    }
+
+    for needle in [
+        "data-state=move || state.get().phase_attr",
+        "data-position=move || state.get().position_attr",
+        "data-selection=move || state.get().selection_attr",
+        "data-control-mode=move || state.get().control_mode_attr",
+        "data-selected-count-source=move || state.get().selected_count_source_attr",
+        "data-ui-schema=move || agent_attrs.get().schema",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionBar snapshot baseline should emit stable semantic marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "selected_count=selected_count_signal",
+        "on_selected_count_change=on_selected_count_change",
+        "on_clear_selection=clear_selection",
+        "aria_label=\"Bulk actions\".to_string()",
+        "class_name=\"docs-action-bar\".to_string()",
+        "default_selected_count=5",
+        "position=ActionBarPosition::Top",
+        "is_force_visible=true",
+        "selection_text=\"Rows selected\".to_string()",
+        "clear_label=\"Clear all\".to_string()",
+        "motion=ActionBarMotion::disabled()",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "ActionBar docs should provide complete snapshot-style config example `{needle}`."
         );
     }
 }
@@ -1065,8 +1507,13 @@ fn action_bar_token_first_styles_are_static_and_aggregated_via_ui_root() {
         !view_source.contains(" style="),
         "ActionBar view should avoid inline business style logic and rely on static styles.rs contracts.",
     );
+    assert!(
+        !view_source.contains("style:"),
+        "ActionBar view should avoid inline style directives and keep runtime numeric updates in motion CSS custom properties.",
+    );
 
     for needle in [
+        "@layer ui {",
         "#[cfg(feature = \"component-action_bar\")]",
         "out.push_str(crate::action_bar::styles::CSS);",
     ] {
@@ -1282,6 +1729,22 @@ fn action_bar_theme_contract_is_token_first_and_ui_theme_owned() {
         );
     }
 
+    for fallback_chain in [
+        "var(--ui-space-sm, var(--ui-fallback-space-sm))",
+        "var(--ui-space-xl, var(--ui-fallback-space-xl))",
+        "var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-bg-muted, var(--ui-fallback-bg-muted))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-shadow-md, var(--ui-fallback-shadow-md))",
+        "var(--ui-focus-ring, var(--ui-fallback-focus-ring))",
+        "var(--ui-radius-sm, var(--ui-fallback-radius-sm))",
+    ] {
+        assert!(
+            styles_source.contains(fallback_chain),
+            "ActionBar styles should keep defensive fallback chains via `{fallback_chain}`."
+        );
+    }
+
     for needle in [
         "pub enum ThemeSystem",
         "pub enum ThemeColor",
@@ -1313,6 +1776,11 @@ fn action_bar_theme_contract_is_token_first_and_ui_theme_owned() {
         "--ui-space-md:",
         "--ui-radius-lg:",
         "--ui-shadow-md:",
+        "--ui-space-xl:",
+        "--ui-fallback-space-xl:",
+        "--ui-fallback-bg:",
+        "--ui-fallback-shadow-md:",
+        "--ui-fallback-focus-ring:",
     ] {
         assert!(
             css_source.contains(needle),
@@ -1437,6 +1905,54 @@ fn action_bar_visual_desire_heroui_alignment_targets_experience_not_api_copy() {
 }
 
 #[test]
+fn action_bar_heroui_strategy_and_component_docs_stay_in_sync_for_parameter_changes() {
+    let strategy_source = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
+    let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
+    let action_bar_docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "### ActionBar 同步记录（2026-02-20）",
+        "selected_count + on_selected_count_change + default_selected_count",
+        "on_clear_selection",
+        "position",
+        "is_force_visible",
+        "selection_text",
+        "clear_label",
+        "component_doc!(\"ActionBar\", \"action-bar\", \"Actions\", ax::action_bar)",
+        "#/components/action-bar",
+        "参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选",
+        "仅代码更新无文档更新在接口变更场景下不允许合入",
+    ] {
+        assert!(
+            strategy_source.contains(needle),
+            "ActionBar HeroUI strategy sync record should contain `{needle}`."
+        );
+    }
+
+    for needle in [
+        "component_doc!(\"ActionBar\", \"action-bar\", \"Actions\", ax::action_bar)",
+        "component_doc!(\"ActionButton\", \"action-button\", \"Actions\", a::action_button)",
+    ] {
+        assert!(
+            pages_source.contains(needle),
+            "components catalog should keep indexable ActionBar docs entry token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub(super) fn action_bar() -> AnyView",
+        "title=\"ActionBar\"",
+        "slug=\"action-bar\"",
+    ] {
+        assert!(
+            action_bar_docs_source.contains(needle),
+            "ActionBar docs page should remain accessible and indexable via `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn action_bar_tree_shaking_keeps_component_feature_and_css_boundaries() {
     let ui_components_cargo = load_source("Cargo.toml");
     let lib_source = load_source("src/lib.rs");
@@ -1518,6 +2034,110 @@ fn action_bar_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
         assert!(
             budget_source.contains(needle),
             "tree-shaking budget file should define `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_entrypoint_files_and_headless_boundaries_are_stable() {
+    let lib_source = load_source("src/lib.rs");
+    let css_source = load_source("src/css.rs");
+    let root_source = load_source("src/root.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
+
+    for needle in [
+        "mod css;",
+        "pub mod root;",
+        "#[cfg(feature = \"component-action_bar\")]",
+        "pub use ui_action_bar as action_bar;",
+        "pub use root::UiRoot;",
+        "pub use action_bar::{ActionBar, ActionBarMotion, ActionBarPosition};",
+    ] {
+        assert!(
+            lib_source.contains(needle),
+            "ui-components lib entry should keep stable boundary token `{needle}`."
+        );
+    }
+
+    for forbidden in ["web_sys::", "HtmlElement", "JsCast"] {
+        assert!(
+            !lib_source.contains(forbidden),
+            "ui-components public lib boundary should not expose platform detail `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "#[cfg(feature = \"inject-css\")]",
+        "pub fn push_components_css(out: &mut String)",
+        "@layer ui {",
+        "#[cfg(feature = \"component-action_bar\")]",
+        "out.push_str(crate::action_bar::styles::CSS);",
+        "#[cfg(not(feature = \"inject-css\"))]",
+        "pub fn push_components_css(_out: &mut String) {}",
+    ] {
+        assert!(
+            css_source.contains(needle),
+            "ui-components css entry should keep feature-gated aggregation token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "use ui_theme::{SemanticOverrides, Theme, css};",
+        "use ui_headless::{UiI18n, provide_ui_i18n, provide_ui_id_provider};",
+        "pub fn UiRoot(",
+        "provide_ui_i18n(i18n);",
+        "provide_ui_id_provider(id_seed);",
+        "out.push_str(css::BASE_CSS);",
+        "out.push_str(&theme.get().to_css_variables());",
+        "crate::css::push_components_css(&mut out);",
+    ] {
+        assert!(
+            root_source.contains(needle),
+            "UiRoot entry should centralize theme/css/i18n injection via `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub struct ActiveHighlightMotion",
+        "pub fn attach_active_highlight_motion(",
+        "ui_motion::spring::SpringAnimator::new",
+    ] {
+        assert!(
+            active_highlight_source.contains(needle),
+            "active_highlight shared primitive should keep generic motion capability token `{needle}`."
+        );
+    }
+
+    for forbidden in ["ActionBar", "role=", "aria-", "on_press"] {
+        assert!(
+            !active_highlight_source.contains(forbidden),
+            "active_highlight shared primitive should not include component business semantics `{forbidden}`."
+        );
+    }
+
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace = workspace_root(manifest_dir);
+    for forbidden_path in [
+        "crates/ui-components/src/overlay_open.rs",
+        "crates/ui-components/src/presence.rs",
+        "crates/ui-components/src/a11y.rs",
+    ] {
+        let path = workspace.join(forbidden_path);
+        assert!(
+            !path.exists(),
+            "ui-components should not host deprecated/shared primitive file `{forbidden_path}`."
+        );
+    }
+
+    for expected_path in [
+        "crates/ui-headless/src/controllable_state.rs",
+        "crates/ui-headless/src/presence.rs",
+        "crates/ui-headless/src/a11y.rs",
+    ] {
+        let path = workspace.join(expected_path);
+        assert!(
+            path.exists(),
+            "headless shared primitive file should exist at `{expected_path}`."
         );
     }
 }
@@ -1851,6 +2471,128 @@ fn action_bar_performance_governance_budget_is_defined_and_blocking() {
 }
 
 #[test]
+fn action_bar_semantic_and_performance_regression_gates_cover_aria_data_focus_and_render_count_path()
+ {
+    let suite_source = load_source("tests/action_bar_semantics.rs");
+    let view_source = load_source("src/action_bar/view.rs");
+    let button_semantics_source = load_source("../../components/button/test/semantics.rs");
+    let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
+    let todo_source = load_source("../../docs/plan/TODO.md");
+    let check2_source = load_source("src/action_bar/check2.md");
+
+    for needle in [
+        "fn action_bar_emits_toolbar_semantics_and_state_attributes()",
+        "fn action_bar_semantics_cover_data_aria_and_interaction_matrix()",
+        "fn action_bar_mounts_headless_contract_in_view_not_logic_layer()",
+        "fn action_bar_performance_governance_budget_is_defined_and_blocking()",
+    ] {
+        assert!(
+            suite_source.contains(needle),
+            "semantic/perf gate should keep coverage test `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "role=\"toolbar\"",
+        "aria-label=aria_label",
+        "aria-hidden=move || state.get().is_hidden.then_some(\"true\")",
+        "data-state=move || state.get().phase_attr",
+        "data-selection=move || state.get().selection_attr",
+        "data-control-mode=move || state.get().control_mode_attr",
+        "data-selected-count-source=move || state.get().selected_count_source_attr",
+        "<Button",
+        "on_press=on_press",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionBar view should expose semantic contract marker `{needle}`.",
+        );
+    }
+
+    for needle in ["use_focus_ring", "data-focus-visible"] {
+        assert!(
+            button_semantics_source.contains(needle),
+            "clear-action focus flow should stay delegated to Button semantics contract `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "cargo test -p ui-components --test action_bar_semantics --no-default-features --features component-action_bar,inject-css action_bar_performance_governance_budget_is_defined_and_blocking",
+        "perf_render_count_follow_up_is_tracked_in_plan",
+    ] {
+        assert!(
+            perf_script_source.contains(needle),
+            "performance gate script should keep `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "render_count",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "渲染次数预算为 `1`",
+    ] {
+        assert!(
+            todo_source.contains(needle) || check2_source.contains(needle),
+            "render-count regression evidence should keep marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn action_bar_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
+    let protocol_source = load_source("src/action_bar/protocol.rs");
+    let manifest_source = load_source("src/action_bar/Component.toml");
+    let rbi_source = load_source("src/action_bar/action_bar.rbi");
+    let mod_source = load_source("src/action_bar/mod.rs");
+
+    for needle in [
+        "pub const ACTION_BAR_AGENT_SCHEMA: &str = \"ui.action-bar.contract.v1\";",
+        "pub enum ActionBarComponentSchemaVersion",
+        "V1",
+        "schema_version = \"1\"",
+        "ty = \"ui.action-bar.contract.v1\"",
+    ] {
+        assert!(
+            protocol_source.contains(needle) || manifest_source.contains(needle),
+            "ActionBar protocol/manifest should keep stable v1 contract token `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "pub fn ActionBar(",
+        "selected_count: Option<leptos::prelude::Signal<usize>>",
+        "default_selected_count: Option<usize>",
+        "on_selected_count_change: Option<leptos::prelude::Callback<usize>>",
+        "on_clear_selection: Option<leptos::prelude::Callback<()>>",
+        "is_force_visible: bool",
+        "aria_label: Option<String>",
+        "clear_label: Option<String>",
+    ] {
+        assert!(
+            rbi_source.contains(needle),
+            "ActionBar RBI should keep stable public API token `{needle}`.",
+        );
+    }
+
+    for forbidden in [
+        "migrate_v1_to_v2",
+        "deprecated",
+        "deprecation_window",
+        "schema_version = \"2\"",
+        "contract.v2",
+        "V2",
+    ] {
+        assert!(
+            !protocol_source.contains(forbidden)
+                && !manifest_source.contains(forbidden)
+                && !rbi_source.contains(forbidden)
+                && !mod_source.contains(forbidden),
+            "ActionBar should not introduce breaking-upgrade migration token `{forbidden}` in this change.",
+        );
+    }
+}
+
+#[test]
 fn action_bar_motion_contract_defaults_and_disabled_path_are_locked() {
     let source = load_source("src/action_bar/motion.rs");
 
@@ -2062,6 +2804,351 @@ fn action_bar_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "action-bar docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn action_bar_docs_copy_paste_ready_contract_covers_playgrounds_matrix_control_and_snapshot_modes()
+{
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+    let playground_source = load_source("../../apps/docs-app/src/playground.rs");
+
+    for needle in [
+        "Playground title=\"Hello World\"",
+        "title=\"Controlled vs Uncontrolled\"",
+        "title=\"State Matrix (selection + placement + visibility)\"",
+        "title=\"Snapshot baseline + Streaming optional fallback\"",
+        "selected_count=selected_count_signal",
+        "default_selected_count=2",
+        "Streaming policy: optional; fallback: snapshot.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionBar docs should contain copy-ready playground contract token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let action_bar_code_imports =",
+        "use leptos::prelude::*;\\nuse ui_components::{ActionBar, ActionBarMotion, ActionBarPosition, ActionButton};",
+        "code_imports=action_bar_code_imports.clone()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionBar docs should wire import-complete copy contract token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
+        "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
+        "format!(\"{}\\n\\n{raw}\", missing_imports.join(\"\\n\"))",
+        "code_imports: Option<String>",
+    ] {
+        assert!(
+            playground_source.contains(needle),
+            "docs playground infrastructure should keep copy-paste import completion token `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_docs_api_and_state_matrix_track_logic_defaults_and_contract_axes() {
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+    let logic_source = load_source("src/action_bar/logic.rs");
+
+    for needle in [
+        "data-slot=\"action-bar-api-matrix\"",
+        "<h3>\"API Matrix\"</h3>",
+        "selected_count: Option&lt;Signal&lt;usize&gt;&gt;",
+        "default_selected_count: Option&lt;usize&gt;",
+        "default = implicit 0 via logic::normalize_default_selected_count",
+        "default = ActionBarPosition::",
+        "ui_components::action_bar::DEFAULT_ARIA_LABEL",
+        "ui_components::action_bar::DEFAULT_CLEAR_LABEL",
+        "data-slot=\"action-bar-state-matrix\"",
+        "<h3>\"State Matrix\"</h3>",
+        "control mode",
+        "controlled | uncontrolled",
+        "data-state",
+        "visible | hidden",
+        "data-position",
+        "top | bottom",
+        "data-selection",
+        "empty | single | multiple",
+        "disabled / size / variant",
+        "N/A on ActionBar root",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "ActionBar docs API/State matrix should contain `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub const DEFAULT_ARIA_LABEL: &str = \"Actions\";",
+        "pub const DEFAULT_CLEAR_LABEL: &str = \"Clear selection\";",
+        "pub fn normalize_default_selected_count(value: Option<usize>) -> usize",
+        "value.unwrap_or_default()",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ActionBar logic defaults should keep `{needle}` for docs parity."
+        );
+    }
+}
+
+#[test]
+fn action_bar_docs_interactive_playground_supports_props_state_and_repeatable_flow() {
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Interactive Playground (Props + State + Spec Preview)\"",
+        "controls=move || view! {",
+        "data-slot=\"action-bar-interactive-controls\"",
+        "data-slot=\"action-bar-interactive-preview\"",
+        "data-slot=\"action-bar-interactive-actions\"",
+        "test_config_signal=interactive_spec_preview",
+        "ActionBarInteractiveSpec {",
+        "SegmentedControl",
+        "id_base=\"docs-action-bar-interactive-position\".to_string()",
+        "Switch checked=interactive_force_visible",
+        "Switch checked=interactive_with_clear_action",
+        "Switch checked=interactive_custom_labels",
+        "Switch checked=interactive_reduced_motion",
+        "aria_label=\"Interactive select +1\".to_string()",
+        "aria_label=\"Interactive select -1\".to_string()",
+        "aria_label=\"Interactive reset count\".to_string()",
+        "Repeatable flow: Select +1 -> Clear selection -> Select +1.",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "ActionBar interactive playground contract should contain `{needle}`."
+        );
+    }
+
+    for needle in [
+        "selected_count=interactive_selected_count_signal",
+        "on_selected_count_change=interactive_on_selected_count_change",
+        "on_clear_selection=interactive_on_clear_selection",
+        "position=position",
+        "is_force_visible=is_force_visible",
+        "selection_text=selection_text",
+        "clear_label=clear_label",
+        "motion=motion",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "ActionBar interactive preview should map controls to props via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_source_first_docs_are_copy_paste_ready_with_real_paths_and_dependencies() {
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+    let playground_source = load_source("../../apps/docs-app/src/playground.rs");
+    let code_block_view_source = load_source("../../components/code-block/src/view.rs");
+
+    for needle in [
+        "data-slot=\"action-bar-source-first\"",
+        "<h3>\"Source-first Copy-Paste\"</h3>",
+        "Show code",
+        "components/action-bar/src/mod.rs",
+        "components/action-bar/src/view.rs",
+        "components/action-bar/src/logic.rs",
+        "components/action-bar/src/styles.rs",
+        "components/action-bar/src/motion.rs",
+        "Dependency prerequisites",
+        "ui-components = { workspace = true, default-features = false, features = [\"component-action_bar\", \"inject-css\"] }",
+        "code_imports=action_bar_code_imports.clone()",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "ActionBar source-first docs should contain `{needle}`."
+        );
+    }
+
+    for needle in [
+        "fn compose_copy_ready_code(raw: &str, imports: &str) -> String",
+        "<CodeBlock code=resolved_code.get() />",
+        "code_imports: Option<String>",
+    ] {
+        assert!(
+            playground_source.contains(needle),
+            "docs playground copy-ready pipeline should contain `{needle}`."
+        );
+    }
+
+    for needle in [
+        "class_name=\"ui-code-block__copy-button\".to_string()",
+        "copy_to_clipboard_aria_label",
+    ] {
+        assert!(
+            code_block_view_source.contains(needle),
+            "CodeBlock should keep one-click copy affordance token `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_check2_documents_e2e_selector_and_stable_wait_rules() {
+    let checklist_source = load_source("src/action_bar/check2.md");
+
+    for required in [
+        "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。",
+        "E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。",
+        "WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。",
+        "若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "ActionBar checklist should keep e2e selector/stable-wait rule `{required}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_e2e_selector_contract_uses_semantic_markers_and_settled_waits() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_action_bar.spec.mjs");
+
+    for needle in [
+        "/#/components/action-bar",
+        "body:not(:has(#boot))",
+        "[data-component=\"action-bar\"]",
+        "[data-slot=\"action-bar\"][data-control-mode=\"controlled\"][data-has-clear=\"true\"]",
+        "[data-slot=\"action-bar-selection-count\"]",
+        "[data-slot=\"action-bar-clear\"] [data-slot=\"button\"]",
+        "[data-slot=\"button\"][aria-label=\"Increase selected count\"]",
+        "toHaveAttribute(\"role\", \"toolbar\")",
+        "toHaveAttribute(\"data-state\", \"visible\")",
+        "toHaveAttribute(\"data-state\", \"hidden\")",
+        "toHaveAttribute(\"aria-hidden\", \"true\")",
+        "toHaveAttribute(\"data-selected-count\", \"0\")",
+        "toHaveAttribute(\"data-selected-count\", \"1\")",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "ActionBar e2e selector/stable-wait contract should include `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "waitForTimeout(",
+        "setTimeout(",
+        "sleep(",
+        "getByText(",
+        "locator(\"text=",
+    ] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "ActionBar e2e selector contract should avoid unstable/non-semantic token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_e2e_animation_path_covers_ready_and_settled_semantic_breakpoints() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_action_bar.spec.mjs");
+
+    for needle in [
+        "docs-app action-bar motion path uses semantic ready and settled breakpoints",
+        "clearButton.focus();",
+        "page.keyboard.press(\"Space\")",
+        "toHaveAttribute(\"data-selected-count\", \"0\")",
+        "toHaveAttribute(\"data-state\", \"hidden\")",
+        "toHaveAttribute(\"aria-hidden\", \"true\")",
+        "await incrementButton.click();",
+        "toHaveAttribute(\"data-selected-count\", \"1\")",
+        "toHaveAttribute(\"data-state\", \"visible\")",
+        "not.toHaveAttribute(\"aria-hidden\", \"true\")",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "ActionBar e2e ready/settled semantic breakpoint contract should include `{needle}`."
+        );
+    }
+
+    for forbidden in ["waitForTimeout(", "setTimeout(", "sleep("] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "ActionBar e2e animation path should avoid unstable fixed-delay wait `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_check2_documents_e2e_repeatable_key_flow_rules() {
+    let checklist_source = load_source("src/action_bar/check2.md");
+
+    for required in [
+        "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
+        "至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。",
+        "回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。",
+        "高风险路径（overlay、focus、keyboard、async）优先进入回归集合。",
+    ] {
+        assert!(
+            checklist_source.contains(required),
+            "ActionBar checklist should keep repeatable-key-flow rule `{required}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_action_bar.spec.mjs");
+
+    for needle in [
+        "docs-app action-bar key flow is repeatable with semantic breakpoints",
+        "await runActionBarCriticalFlow(page, docsRoot);",
+        "await page.reload();",
+        "const reloadedDocsRoot = await openActionBarDocs(page);",
+        "toHaveAttribute(\"data-selected-count\", \"2\")",
+        "await runActionBarCriticalFlow(page, reloadedDocsRoot);",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "ActionBar e2e repeatable-flow contract should include `{needle}`."
+        );
+    }
+
+    for forbidden in ["toHaveScreenshot(", "toMatchSnapshot(", "waitForTimeout("] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "ActionBar e2e key flow should avoid non-semantic/flaky token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_action_bar.spec.mjs");
+
+    for needle in [
+        "runActionBarCriticalFlow",
+        "clearButton.focus();",
+        "page.keyboard.press(\"Space\")",
+        "toHaveAttribute(\"data-selected-count\", \"0\")",
+        "toHaveAttribute(\"data-state\", \"hidden\")",
+        "toHaveAttribute(\"aria-hidden\", \"true\")",
+        "await incrementButton.click();",
+        "toHaveAttribute(\"data-selected-count\", \"1\")",
+        "toHaveAttribute(\"data-state\", \"visible\")",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "ActionBar e2e high-risk focus/keyboard semantic path should include `{needle}`."
+        );
+    }
+
+    for forbidden in ["waitForTimeout(", "setTimeout(", "sleep("] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "ActionBar high-risk e2e path should avoid unstable fixed-delay wait `{forbidden}`."
         );
     }
 }

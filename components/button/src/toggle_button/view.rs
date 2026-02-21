@@ -1,56 +1,59 @@
 use super::{ToggleButtonMotion, ToggleButtonSize, ToggleButtonVariant, logic, motion};
 use leptos::{html, prelude::*};
+use ui_headless as overlay_open;
+#[cfg(feature = "component-toggle_button_group")]
+use ui_headless::{A11yDirection, labeled_group_attrs};
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, use_button, use_focus_ring, use_hover,
 };
 
 #[component]
 pub fn ToggleButton(
-    selected: ReadSignal<bool>,
-    set_selected: WriteSignal<bool>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_pressed: Option<Signal<bool>>,
+    #[prop(optional)] default_pressed: Option<bool>,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] variant: ToggleButtonVariant,
     #[prop(optional)] size: ToggleButtonSize,
     #[prop(optional)] motion: ToggleButtonMotion,
-    #[prop(optional)] on_change: Option<Callback<bool>>,
+    #[prop(optional)] on_pressed_change: Option<Callback<bool>>,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional)] node_ref: NodeRef<html::Button>,
     children: Children,
 ) -> impl IntoView {
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let pressed_state =
+        overlay_open::use_controllable_state(is_pressed, default_pressed, on_pressed_change);
+    let pressed = pressed_state.value;
+    let request_pressed_change = pressed_state.request_change;
+
     let on_press = Callback::new(move |_| {
-        let next = !selected.get_untracked();
-        set_selected.set(next);
-        if let Some(on_change) = on_change {
-            on_change.run(next);
-        }
+        let next = !pressed.get_untracked();
+        request_pressed_change.run(next);
     });
 
     let aria = use_button(ButtonOptions {
-        is_disabled: disabled,
+        is_disabled,
         on_press: Some(on_press),
         ..Default::default()
     });
 
-    let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: disabled,
-    });
-    let hover = use_hover(HoverOptions {
-        is_disabled: disabled,
-    });
+    let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
+    let hover = use_hover(HoverOptions { is_disabled });
 
     motion::attach_motion(
         node_ref,
         hover.is_hovered,
         aria.is_pressed,
-        disabled,
+        is_disabled,
         motion,
     );
 
     let state = Memo::new(move |_| {
         logic::resolve_state(
-            selected.get(),
-            disabled,
+            pressed.get(),
+            is_disabled,
             aria.is_pressed.get(),
             hover.is_hovered.get(),
             focus_ring.is_focused.get(),
@@ -58,15 +61,7 @@ pub fn ToggleButton(
         )
     });
 
-    let base_class = format!(
-        "ui-toggle-button {} {}",
-        variant.class_name(),
-        size.class_name()
-    );
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class = logic::compose_class_name(class_name, variant, size);
 
     let motion_source = if motion == ToggleButtonMotion::default() {
         "default"
@@ -81,7 +76,7 @@ pub fn ToggleButton(
             node_ref=node_ref
             class=class
             class:ui-toggle-button--focus-visible=move || state.get().is_focus_visible
-            disabled=disabled
+            disabled=is_disabled
             data-slot="toggle-button"
             data-state=move || state.get().data_state()
             data-selected=move || state.get().is_selected.then_some("true")
@@ -134,33 +129,27 @@ pub fn ToggleButton(
 #[component]
 pub fn ToggleButtonGroup(
     #[prop(optional)] orientation: logic::ToggleButtonGroupOrientation,
-    #[prop(optional)] attached: bool,
+    #[prop(optional)] is_attached: bool,
     #[prop(optional)] motion: motion::ToggleButtonGroupMotion,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
     let (aria_label, has_explicit_label) =
         logic::normalize_toggle_button_group_aria_label(aria_label);
+    let group_a11y = labeled_group_attrs(aria_label, lang, dir);
+    let class_name = logic::normalize_optional_text(class_name);
 
     let state = Memo::new(move |_| {
-        logic::resolve_toggle_button_group_state(orientation, attached, has_explicit_label)
+        logic::resolve_toggle_button_group_state(orientation, is_attached, has_explicit_label)
     });
     let motion = motion::sanitize_toggle_button_group_motion(motion);
     let has_custom_motion = motion != motion::ToggleButtonGroupMotion::default();
     let style_vars = motion::attach_toggle_button_group_motion(motion);
 
-    let base_class = format!("ui-toggle-button-group {}", orientation.class_name());
-    let base_class = if attached {
-        format!("{base_class} ui-toggle-button-group--attached")
-    } else {
-        base_class
-    };
-
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class = logic::compose_toggle_button_group_class_name(class_name, orientation, is_attached);
 
     view! {
         <div
@@ -176,8 +165,10 @@ pub fn ToggleButtonGroup(
             data-detached=move || state.get().is_detached.then_some("true")
             data-has-explicit-label=move || state.get().has_explicit_label.then_some("true")
             data-has-fallback-label=move || state.get().has_fallback_label.then_some("true")
-            role="group"
-            aria-label=aria_label
+            role=group_a11y.role
+            aria-label=group_a11y.aria_label.clone()
+            lang=group_a11y.lang.clone()
+            dir=group_a11y.dir
         >
             {children()}
         </div>

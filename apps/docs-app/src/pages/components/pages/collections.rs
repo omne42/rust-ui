@@ -6,9 +6,9 @@ use std::sync::Arc;
 use ui_components::{
     Accordion, AccordionItem, AccordionSelectionMode, AccordionStreamingProjection,
     AccordionVariant, AiOutputStatus, AiRenderMode, AiSpace, Autocomplete, ComboBox, Disclosure,
-    DropdownMenu, DropdownMenuMotion, List, Menu, MenuItemKind, MenuTrigger, Pagination,
-    SegmentedControl, SegmentedControlSize, Select, Switch, Tabs, TabsKeyboardActivation, Tag,
-    TagGroup, open_set, project_streaming_accordion_markup,
+    DropdownMenu, DropdownMenuMotion, List, Menu, MenuItemKind, MenuItemSpec, MenuTrigger,
+    Pagination, SegmentedControl, SegmentedControlSize, Select, Snippet, Switch, Tabs,
+    TabsKeyboardActivation, Tag, TagGroup, open_set, project_streaming_accordion_markup,
 };
 use ui_headless::PopoverPlacement;
 
@@ -112,6 +112,92 @@ fn clear_tabs_workbench_selected() {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn clear_tabs_workbench_selected() {}
+
+#[cfg(target_arch = "wasm32")]
+const COMBO_BOX_WORKBENCH_STORAGE_KEY: &str = "docs:combo-box:workbench:selected";
+
+#[cfg(target_arch = "wasm32")]
+fn load_combo_box_workbench_selected() -> Option<usize> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(COMBO_BOX_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    raw.parse::<usize>().ok()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_combo_box_workbench_selected() -> Option<usize> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_combo_box_workbench_selected(selected_index: usize) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        let selected_index_attr = selected_index.to_string();
+        drop(storage.set_item(COMBO_BOX_WORKBENCH_STORAGE_KEY, &selected_index_attr));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_combo_box_workbench_selected(_selected_index: usize) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_combo_box_workbench_selected() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.remove_item(COMBO_BOX_WORKBENCH_STORAGE_KEY));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_combo_box_workbench_selected() {}
+
+#[cfg(target_arch = "wasm32")]
+const AUTOCOMPLETE_WORKBENCH_STORAGE_KEY: &str = "docs:autocomplete:workbench:selected";
+
+#[cfg(target_arch = "wasm32")]
+fn load_autocomplete_workbench_selected() -> Option<usize> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(AUTOCOMPLETE_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    raw.parse::<usize>().ok()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_autocomplete_workbench_selected() -> Option<usize> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_autocomplete_workbench_selected(selected_index: usize) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        let selected_index_attr = selected_index.to_string();
+        drop(storage.set_item(AUTOCOMPLETE_WORKBENCH_STORAGE_KEY, &selected_index_attr));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_autocomplete_workbench_selected(_selected_index: usize) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_autocomplete_workbench_selected() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.remove_item(AUTOCOMPLETE_WORKBENCH_STORAGE_KEY));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_autocomplete_workbench_selected() {}
 
 const ACCORDION_STREAMING_ITEM_LABELS: [&str; 3] = ["Chunk #1", "Chunk #2", "Chunk #3"];
 const ACCORDION_STREAMING_TOTAL_ITEMS: usize = ACCORDION_STREAMING_ITEM_LABELS.len();
@@ -1370,6 +1456,7 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
 }
 
 pub(super) fn list() -> AnyView {
+    let hello_items: Arc<[String]> = vec!["Overview".to_string(), "Billing".to_string()].into();
     let showcase_items: Arc<[String]> = vec![
         "Overview".to_string(),
         "Billing".to_string(),
@@ -1377,6 +1464,10 @@ pub(super) fn list() -> AnyView {
         "Audit Logs".to_string(),
     ]
     .into();
+    let showcase_items_for_showcase = showcase_items.clone();
+    let showcase_items_for_matrix = showcase_items.clone();
+    let showcase_items_for_stream_snapshot = showcase_items.clone();
+    let showcase_items_for_stream_streaming = showcase_items.clone();
     let disabled_items: Arc<[String]> = vec![
         "Overview".to_string(),
         "Billing".to_string(),
@@ -1403,6 +1494,22 @@ pub(super) fn list() -> AnyView {
     let (workbench_disable_last, set_workbench_disable_last) = signal(true);
     let (workbench_root_disabled, set_workbench_root_disabled) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let list_code_imports =
+        "use leptos::prelude::*;\nuse std::sync::Arc;\nuse ui_components::{AiOutputStatus, AiRenderMode, AiSpace, List};".to_string();
+    let list_snapshot_mode = Signal::derive(|| AiRenderMode::Snapshot);
+    let list_streaming_mode = Signal::derive(|| AiRenderMode::Streaming);
+    let list_draft_output = Signal::derive(|| AiOutputStatus::Draft);
+    let list_verified_output = Signal::derive(|| AiOutputStatus::Verified);
+    let (state_matrix_controlled_selected, set_state_matrix_controlled_selected) =
+        signal(Some(1_usize));
+    let (snapshot_selected, set_snapshot_selected) = signal(Some(0_usize));
+    let (streaming_selected, set_streaming_selected) = signal(Some(2_usize));
+
+    let hello_code = Signal::derive(move || {
+        r#"let items: Arc<[String]> = vec!["Overview".to_string(), "Billing".to_string()].into();
+<List id_base="list-hello".to_string() items=items aria_label="Settings navigation".to_string() />"#
+            .to_string()
+    });
 
     let showcase_code = Signal::derive(move || {
         r#"let items: Arc<[String]> = vec![
@@ -1420,35 +1527,88 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
 <List
   id_base="list-default".to_string()
   items=items.clone()
-  selected_index=selected_a
-  set_selected_index=set_selected_a
+  selected_index=selected_a.into()
+  on_selected_index_change=Callback::new(move |next| set_selected_a.set(next))
   aria_label="Default list".to_string()
   disabled_indices=vec![2]
 />
 <List
   id_base="list-unsynced".to_string()
   items=items
-  selected_index=selected_b
-  set_selected_index=set_selected_b
+  selected_index=selected_b.into()
+  on_selected_index_change=Callback::new(move |next| set_selected_b.set(next))
   aria_label="Unsynced list".to_string()
-  sync_active_index_to_selected=false
+  is_active_index_synced_to_selected=false
 />
 <List
   id_base="list-disabled".to_string()
   items=vec!["Overview".to_string(), "Billing".to_string(), "Integrations".to_string()].into()
-  selected_index=selected_c
-  set_selected_index=set_selected_c
+  selected_index=selected_c.into()
+  on_selected_index_change=Callback::new(move |next| set_selected_c.set(next))
   aria_label="Disabled list".to_string()
-  disabled=true
+  is_disabled=true
 />
 <List
   id_base="list-empty".to_string()
   items=Vec::<String>::new().into()
-  selected_index=selected_empty
-  set_selected_index=set_selected_empty
+  selected_index=selected_empty.into()
+  on_selected_index_change=Callback::new(move |next| set_selected_empty.set(next))
   aria_label="Empty list".to_string()
 />"#
         .to_string()
+    });
+
+    let state_matrix_code = Signal::derive(move || {
+        r#"let items: Arc<[String]> = vec![
+  "Overview".to_string(),
+  "Billing".to_string(),
+  "Integrations".to_string(),
+  "Audit Logs".to_string(),
+].into();
+
+let (controlled_selected, set_controlled_selected) = signal(Some(1_usize));
+
+<List
+  id_base="list-matrix-uncontrolled".to_string()
+  items=items.clone()
+  aria_label="Matrix uncontrolled list".to_string()
+/>
+<List
+  id_base="list-matrix-controlled".to_string()
+  items=items.clone()
+  selected_index=controlled_selected.into()
+  on_selected_index_change=Callback::new(move |next| set_controlled_selected.set(next))
+  aria_label="Matrix controlled list".to_string()
+/>
+<List
+  id_base="list-matrix-disabled".to_string()
+  items=items
+  selected_index=controlled_selected.into()
+  on_selected_index_change=Callback::new(move |next| set_controlled_selected.set(next))
+  aria_label="Matrix disabled list".to_string()
+  is_disabled=true
+/>"#
+        .to_string()
+    });
+
+    let output_mode_code = Signal::derive(move || {
+        r#"let items: Arc<[String]> = vec![
+  "Overview".to_string(),
+  "Billing".to_string(),
+  "Integrations".to_string(),
+  "Audit Logs".to_string(),
+].into();
+
+// List is Streaming Optional; fallback remains snapshot.
+<div data-ui-streaming="optional" data-ui-fallback="snapshot">
+  <AiSpace mode=Signal::derive(|| AiRenderMode::Snapshot) output_status=Signal::derive(|| AiOutputStatus::Verified)>
+    <List id_base="docs-list-snapshot".to_string() items=items.clone() selected_index=snapshot_selected.into() on_selected_index_change=on_snapshot_change aria_label="Snapshot list".to_string() />
+  </AiSpace>
+  <AiSpace mode=Signal::derive(|| AiRenderMode::Streaming) output_status=Signal::derive(|| AiOutputStatus::Draft)>
+    <List id_base="docs-list-streaming".to_string() items=items selected_index=streaming_selected.into() on_selected_index_change=on_streaming_change aria_label="Streaming list".to_string() />
+  </AiSpace>
+</div>"#
+            .to_string()
     });
 
     let workbench_code = Signal::derive(move || {
@@ -1468,16 +1628,17 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
             "    \"Audit Logs\".into(),".to_string(),
             "    \"Security\".into(),".to_string(),
             "  ].into()".to_string(),
-            "  selected_index=selected".to_string(),
-            "  set_selected_index=set_selected".to_string(),
+            "  selected_index=selected.into()".to_string(),
+            "  on_selected_index_change=Callback::new(move |next| set_selected.set(next))"
+                .to_string(),
             "  aria_label=\"List workbench\".into()".to_string(),
         ];
 
         if !sync_active {
-            lines.push("  sync_active_index_to_selected=false".to_string());
+            lines.push("  is_active_index_synced_to_selected=false".to_string());
         }
         if root_disabled {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
         if disable_last {
             lines.push("  disabled_indices=vec![4]".to_string());
@@ -1518,7 +1679,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
         }
 
         format!(
-            "ListWorkbenchConfig {{\n  selected_index: {selected:?},\n  sync_active_index_to_selected: {sync_active},\n  disabled_root: {root_disabled},\n  disabled_indices: {},\n  custom_class: {custom_class},\n  class: \"{}\",\n}}",
+            "ListWorkbenchConfig {{\n  selected_index: {selected:?},\n  is_active_index_synced_to_selected: {sync_active},\n  is_disabled: {root_disabled},\n  disabled_indices: {},\n  custom_class: {custom_class},\n  class: \"{}\",\n}}",
             if disable_last { "vec![4]" } else { "vec![]" },
             class.join(" ")
         )
@@ -1532,18 +1693,33 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
             description="List primitive with centralized root-state markers and optional active-index sync controls."
         >
             <Playground
+                title="Hello World (Uncontrolled)"
+                description="默认路径：不接受控状态轴，仅传 `id_base + items + aria_label` 即可运行。"
+                code_signal=hello_code
+            >
+                <div class="docs-stack" data-slot="list-hello" style="width: min(100%, 320px);">
+                    <List
+                        id_base="docs-list-hello".to_string()
+                        items=hello_items
+                        aria_label="Settings navigation".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
                 title="展示：多场景对比"
                 description="同一套 List 在默认、unsynced、disabled root、empty 四种状态下的行为对比。"
                 code_signal=showcase_code
+                code_imports=list_code_imports.clone()
             >
                 <div class="docs-row" data-slot="list-showcase">
                     <div class="docs-stack" style="min-width: 220px;">
                         <span class="ui-muted">"default + disabled option"</span>
                         <List
                             id_base="docs-list-default".to_string()
-                            items=showcase_items.clone()
-                            selected_index=showcase_selected_default
-                            set_selected_index=set_showcase_selected_default
+                            items=showcase_items_for_showcase.clone()
+                            selected_index=showcase_selected_default.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_default.set(next))
                             aria_label="Default list".to_string()
                             disabled_indices=vec![2]
                         />
@@ -1557,11 +1733,11 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                         <span class="ui-muted">"unsynced active index"</span>
                         <List
                             id_base="docs-list-unsynced".to_string()
-                            items=showcase_items.clone()
-                            selected_index=showcase_selected_unsynced
-                            set_selected_index=set_showcase_selected_unsynced
+                            items=showcase_items_for_showcase.clone()
+                            selected_index=showcase_selected_unsynced.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_unsynced.set(next))
                             aria_label="Unsynced list".to_string()
-                            sync_active_index_to_selected=false
+                            is_active_index_synced_to_selected=false
                         />
                         <span class="ui-muted">
                             "selected: "
@@ -1574,10 +1750,10 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                         <List
                             id_base="docs-list-disabled".to_string()
                             items=disabled_items
-                            selected_index=showcase_selected_disabled
-                            set_selected_index=set_showcase_selected_disabled
+                            selected_index=showcase_selected_disabled.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_disabled.set(next))
                             aria_label="Disabled list".to_string()
-                            disabled=true
+                            is_disabled=true
                         />
                         <span class="ui-muted">
                             "selected: "
@@ -1590,8 +1766,8 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                         <List
                             id_base="docs-list-empty".to_string()
                             items=empty_items
-                            selected_index=showcase_selected_empty
-                            set_selected_index=set_showcase_selected_empty
+                            selected_index=showcase_selected_empty.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_empty.set(next))
                             aria_label="Empty list".to_string()
                         />
                         <span class="ui-muted">
@@ -1603,9 +1779,55 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
             </Playground>
 
             <Playground
+                title="状态矩阵 State Matrix（受控 / 非受控）"
+                description="同一组数据对照 uncontrolled / controlled / disabled 三种语义状态。"
+                code_signal=state_matrix_code
+                code_imports=list_code_imports.clone()
+            >
+                <div class="docs-row" data-slot="list-state-matrix">
+                    <div class="docs-stack">
+                        <span class="ui-muted">"uncontrolled"</span>
+                        <List
+                            id_base="docs-list-matrix-uncontrolled".to_string()
+                            items=showcase_items_for_matrix.clone()
+                            aria_label="Matrix uncontrolled list".to_string()
+                        />
+                    </div>
+
+                    <div class="docs-stack">
+                        <span class="ui-muted">"controlled"</span>
+                        <List
+                            id_base="docs-list-matrix-controlled".to_string()
+                            items=showcase_items_for_matrix.clone()
+                            selected_index=state_matrix_controlled_selected.into()
+                            on_selected_index_change=Callback::new(move |next| set_state_matrix_controlled_selected.set(next))
+                            aria_label="Matrix controlled list".to_string()
+                        />
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || state_matrix_controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <span class="ui-muted">"disabled"</span>
+                        <List
+                            id_base="docs-list-matrix-disabled".to_string()
+                            items=showcase_items_for_matrix.clone()
+                            selected_index=state_matrix_controlled_selected.into()
+                            on_selected_index_change=Callback::new(move |next| set_state_matrix_controlled_selected.set(next))
+                            aria_label="Matrix disabled list".to_string()
+                            is_disabled=true
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
                 title="Workbench（展示 + Config + Code + CSS Test）"
                 description="按钮式 workbench：单画布调参，支持 settings / code / css-test 面板联动。"
                 code_signal=workbench_code
+                code_imports=list_code_imports.clone()
                 test_css_source=workbench_test_css
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/list/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -1671,11 +1893,11 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                                 <List
                                     id_base="docs-list-workbench".to_string()
                                     items=workbench_items.clone()
-                                    selected_index=workbench_selected
-                                    set_selected_index=set_workbench_selected
+                                    selected_index=workbench_selected.into()
+                                    on_selected_index_change=Callback::new(move |next| set_workbench_selected.set(next))
                                     aria_label="List workbench".to_string()
-                                    sync_active_index_to_selected=sync_active
-                                    disabled=root_disabled
+                                    is_active_index_synced_to_selected=sync_active
+                                    is_disabled=root_disabled
                                     disabled_indices=disabled_indices
                                     class_name=class_name
                                 />
@@ -1685,12 +1907,91 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                     }}
                 </div>
             </Playground>
+
+            <Playground
+                title="Streaming/Snapshot Display"
+                description="List 非正文阅读面：Streaming Optional，fallback=snapshot。"
+                code_signal=output_mode_code
+                code_imports=list_code_imports
+            >
+                <div class="docs-row" data-slot="list-streaming-snapshot">
+                    <div
+                        class="docs-stack"
+                        data-ui-streaming="optional"
+                        data-ui-fallback="snapshot"
+                        data-ui-output-state="snapshot"
+                    >
+                        <AiSpace mode=list_snapshot_mode output_status=list_verified_output>
+                            <List
+                                id_base="docs-list-snapshot".to_string()
+                                items=showcase_items_for_stream_snapshot
+                                selected_index=snapshot_selected.into()
+                                on_selected_index_change=Callback::new(move |next| set_snapshot_selected.set(next))
+                                aria_label="Snapshot list".to_string()
+                            />
+                        </AiSpace>
+                        <span class="ui-muted">"Snapshot baseline: verified + copy-ready."</span>
+                    </div>
+
+                    <div
+                        class="docs-stack"
+                        data-ui-streaming="optional"
+                        data-ui-fallback="snapshot"
+                        data-ui-output-state="streaming"
+                    >
+                        <AiSpace mode=list_streaming_mode output_status=list_draft_output>
+                            <List
+                                id_base="docs-list-streaming".to_string()
+                                items=showcase_items_for_stream_streaming
+                                selected_index=streaming_selected.into()
+                                on_selected_index_change=Callback::new(move |next| set_streaming_selected.set(next))
+                                aria_label="Streaming list".to_string()
+                            />
+                        </AiSpace>
+                        <span class="ui-muted">
+                            "Streaming preview keeps fallback=snapshot contract explicit."
+                        </span>
+                    </div>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="list-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground supports "
+                    <code>"Show code"</code>
+                    " with one-click copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse std::sync::Arc;\nuse ui_components::List;\n\nlet items: Arc<[String]> = vec![\"Overview\".to_string(), \"Billing\".to_string()].into();\n<List id_base=\"docs-list\".to_string() items=items aria_label=\"Settings navigation\".to_string() />".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-list-source-copy".to_string()
+                />
+                <ul data-slot="list-source-paths">
+                    <li><code>"components/list/src/mod.rs"</code></li>
+                    <li><code>"components/list/src/logic.rs"</code></li>
+                    <li><code>"components/list/src/view.rs"</code></li>
+                    <li><code>"components/list/src/styles.rs"</code></li>
+                    <li><code>"components/list/src/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="list-source-prerequisites">
+                    <li><code>"component-list"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn menu() -> AnyView {
+    let hello_item_specs = vec![
+        MenuItemSpec::action("New file"),
+        MenuItemSpec::action("Share with team"),
+    ];
     let items: Arc<[String]> = vec![
         "New file".to_string(),
         "Share with team".to_string(),
@@ -1719,6 +2020,15 @@ pub(super) fn menu() -> AnyView {
     });
 
     let noop_action = Callback::new(|_: usize| {});
+
+    let hello_code = Signal::derive(move || {
+        r#"<Menu
+  id_base="menu-hello".to_string()
+  item_specs=vec![MenuItemSpec::action("New file"), MenuItemSpec::action("Share with team")]
+  on_action=Callback::new(move |_: usize| {})
+/>"#
+        .to_string()
+    });
 
     let code = Signal::derive(move || {
         r#"let on_action = Callback::new(move |_: usize| {});
@@ -1762,6 +2072,23 @@ pub(super) fn menu() -> AnyView {
             group="Collections"
             description="ARIA menu with action / checkbox / radio roles, active-highlight motion, and baseline-style root state attrs."
         >
+            <Playground
+                title="Hello World (Default Path)"
+                description="最小默认路径：仅 `id_base + item_specs + on_action`，无需接线 `ui-state-primitives` / `ui-headless` 状态机。"
+                code_signal=hello_code
+            >
+                <div class="docs-stack">
+                    <Menu
+                        id_base="docs-menu-hello".to_string()
+                        item_specs=hello_item_specs
+                        on_action=noop_action
+                    />
+                    <span class="ui-muted">
+                        "Beginner path first; advanced item_kinds and state control are optional."
+                    </span>
+                </div>
+            </Playground>
+
             <Playground title="Kinds + Selection" code_signal=code>
                 <div class="docs-stack">
                     <Menu
@@ -2380,9 +2707,20 @@ pub(super) fn combo_box() -> AnyView {
         "Python".to_string(),
         "Zig".to_string(),
     ];
+    let showcase_items_for_hello = showcase_items.clone();
+    let showcase_items_for_showcase = showcase_items.clone();
+    let showcase_items_for_stream_snapshot = showcase_items.clone();
+    let showcase_items_for_stream_streaming = showcase_items.clone();
     let disabled_items = vec!["Alpha".to_string(), "Beta".to_string(), "Gamma".to_string()];
     let empty_items: Vec<String> = Vec::new();
+    let snapshot_mode = Signal::derive(|| AiRenderMode::Snapshot);
+    let streaming_mode = Signal::derive(|| AiRenderMode::Streaming);
+    let verified_output = Signal::derive(|| AiOutputStatus::Verified);
+    let draft_output = Signal::derive(|| AiOutputStatus::Draft);
+    let combo_box_code_imports =
+        "use leptos::prelude::*;\nuse ui_components::ComboBox;".to_string();
 
+    let (hello_selected, set_hello_selected) = signal(Some(1_usize));
     let (selected, set_selected) = signal(Some(1_usize));
     let (invalid, set_invalid) = signal(false);
 
@@ -2393,6 +2731,8 @@ pub(super) fn combo_box() -> AnyView {
 
     let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
+    let (snapshot_selected, set_snapshot_selected) = signal(Some(1_usize));
+    let (streaming_selected, set_streaming_selected) = signal(Some(2_usize));
 
     let workbench_items = vec![
         "Rust".to_string(),
@@ -2401,13 +2741,49 @@ pub(super) fn combo_box() -> AnyView {
         "Python".to_string(),
         "Zig".to_string(),
     ];
-    let (workbench_selected, set_workbench_selected) = signal(Some(1_usize));
+    let persisted_combo_box_workbench_selected = load_combo_box_workbench_selected();
+    let (workbench_selected, set_workbench_selected) =
+        signal(persisted_combo_box_workbench_selected.or(Some(1_usize)));
     let (workbench_invalid, set_workbench_invalid) = signal(false);
     let (workbench_disabled, set_workbench_disabled) = signal(false);
     let (workbench_disable_last, set_workbench_disable_last) = signal(true);
     let (workbench_controlled_open, set_workbench_controlled_open) = signal(false);
     let (workbench_use_controlled_open, set_workbench_use_controlled_open) = signal(true);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(persisted_combo_box_workbench_selected.is_some());
+
+    Effect::new(move |_| {
+        let selected = workbench_selected.get();
+
+        if workbench_persist_state.get() {
+            if let Some(selected_index) = selected {
+                save_combo_box_workbench_selected(selected_index);
+            } else {
+                clear_combo_box_workbench_selected();
+            }
+        } else {
+            clear_combo_box_workbench_selected();
+        }
+    });
+
+    let hello_code = Signal::derive(move || {
+        r#"let items = vec![
+  "Rust".to_string(),
+  "TypeScript".to_string(),
+  "Go".to_string(),
+];
+let (selected, set_selected) = signal(Some(1_usize));
+
+<ComboBox
+  id_base="docs-combo-box-hello".to_string()
+  label="Language".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+/>"#
+        .to_string()
+    });
 
     let showcase_code = Signal::derive(move || {
         r#"let items = vec![
@@ -2519,6 +2895,19 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
         )
     });
 
+    let output_mode_code = Signal::derive(move || {
+        r#"// Streaming is optional for ComboBox; fallback is snapshot.
+<div data-ui-streaming="optional" data-ui-fallback="snapshot">
+  <AiSpace mode=AiRenderMode::Snapshot output_status=AiOutputStatus::Verified>
+    <ComboBox id_base="docs-combo-box-snapshot".to_string() ... />
+  </AiSpace>
+  <AiSpace mode=AiRenderMode::Streaming output_status=AiOutputStatus::Draft>
+    <ComboBox id_base="docs-combo-box-streaming".to_string() ... />
+  </AiSpace>
+</div>"#
+            .to_string()
+    });
+
     let workbench_actual_config = Signal::derive(move || {
         let selected = workbench_selected.get();
         let invalid = workbench_invalid.get();
@@ -2554,9 +2943,33 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
             description="Combobox with input + listbox + popover, baseline-style root attrs, and baseline-level panel/highlight motion."
         >
             <Playground
+                title="Hello World (Uncontrolled)"
+                description="最小路径：默认 API 即可运行，保留输入筛选 + 列表选择语义。"
+                code_signal=hello_code
+                code_imports=combo_box_code_imports.clone()
+            >
+                <AiSpace mode=snapshot_mode output_status=verified_output>
+                    <div class="docs-stack" style="width: min(100%, 320px);">
+                        <ComboBox
+                            id_base="docs-combo-box-hello".to_string()
+                            label="Language".to_string()
+                            items=showcase_items_for_hello.clone()
+                            selected_index=hello_selected
+                            set_selected_index=set_hello_selected
+                        />
+                        <span class="ui-muted">
+                            "hello selected: "
+                            {move || hello_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+                </AiSpace>
+            </Playground>
+
+            <Playground
                 title="展示：多场景对比"
                 description="同一套 ComboBox 在校验、受控 open、禁用、空数据四种状态下的对比展示。"
                 code_signal=showcase_code
+                code_imports=combo_box_code_imports.clone()
             >
                 <div class="docs-row" data-slot="combo-box-showcase">
                     <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
@@ -2564,7 +2977,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                         <ComboBox
                             id_base="docs-combo-box".to_string()
                             label="Language".to_string()
-                            items=showcase_items.clone()
+                            items=showcase_items_for_showcase.clone()
                             selected_index=selected
                             set_selected_index=set_selected
                             disabled_indices=vec![4]
@@ -2591,7 +3004,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                         <ComboBox
                             id_base="docs-combo-box-controlled".to_string()
                             label="Controlled language".to_string()
-                            items=showcase_items.clone()
+                            items=showcase_items_for_showcase.clone()
                             selected_index=controlled_selected
                             set_selected_index=set_controlled_selected
                             is_open=controlled_open
@@ -2651,10 +3064,37 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                 </div>
             </Playground>
 
+            <section class="docs-card docs-prose" data-slot="combo-box-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="combo-box-state-rows">
+                    <li>
+                        <code>"open mode"</code>
+                        " = controlled | uncontrolled"
+                    </li>
+                    <li>
+                        <code>"disabled"</code>
+                        " = root disabled | enabled with disabled options"
+                    </li>
+                    <li>
+                        <code>"item set"</code>
+                        " = has items | empty"
+                    </li>
+                    <li>
+                        <code>"validation"</code>
+                        " = valid | invalid"
+                    </li>
+                    <li>
+                        <code>"selection"</code>
+                        " = selected | none"
+                    </li>
+                </ul>
+            </section>
+
             <Playground
                 title="Workbench（展示 + Config + Code + CSS Test）"
-                description="按钮式 workbench：单画布调参，支持 settings / code / css-test 面板联动。"
+                description="按钮式 workbench：单画布调参，支持 settings / code / css-test 面板联动，并可选持久化 selected index。"
                 code_signal=workbench_code
+                code_imports=combo_box_code_imports.clone()
                 test_css_source=workbench_test_css
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/combo-box/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -2700,6 +3140,14 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                             />
                             " Custom class marker"
                         </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_persist_state.get()
+                                on:change=move |ev| set_workbench_persist_state.set(event_target_checked(&ev))
+                            />
+                            " Persist selected index (optional)"
+                        </label>
                     </div>
                 }
             >
@@ -2718,6 +3166,8 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                             {move || workbench_controlled_open.get()}
                             " · selected: "
                             {move || workbench_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                            " · persist selected: "
+                            {move || if workbench_persist_state.get() { "on" } else { "off" }}
                         </span>
                     </div>
 
@@ -2783,6 +3233,81 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                     }}
                 </div>
             </Playground>
+
+            <Playground
+                title="Streaming/Snapshot Display"
+                description="ComboBox 不是正文阅读面：Streaming Optional，fallback=snapshot。"
+                code_signal=output_mode_code
+                code_imports=combo_box_code_imports
+            >
+                <div class="docs-row" data-slot="combo-box-streaming-snapshot">
+                    <div
+                        class="docs-stack"
+                        style="min-width: 260px; width: min(100%, 320px);"
+                        data-ui-streaming="optional"
+                        data-ui-fallback="snapshot"
+                        data-ui-output-state="snapshot"
+                    >
+                        <AiSpace mode=snapshot_mode output_status=verified_output>
+                            <ComboBox
+                                id_base="docs-combo-box-snapshot".to_string()
+                                label="Snapshot mode".to_string()
+                                items=showcase_items_for_stream_snapshot
+                                selected_index=snapshot_selected
+                                set_selected_index=set_snapshot_selected
+                            />
+                        </AiSpace>
+                        <div class="ui-muted">"Snapshot baseline: verified + copy-ready."</div>
+                    </div>
+
+                    <div
+                        class="docs-stack"
+                        style="min-width: 260px; width: min(100%, 320px);"
+                        data-ui-streaming="optional"
+                        data-ui-fallback="snapshot"
+                        data-ui-output-state="streaming"
+                    >
+                        <AiSpace mode=streaming_mode output_status=draft_output>
+                            <ComboBox
+                                id_base="docs-combo-box-streaming".to_string()
+                                label="Streaming preview".to_string()
+                                items=showcase_items_for_stream_streaming
+                                selected_index=streaming_selected
+                                set_selected_index=set_streaming_selected
+                            />
+                        </AiSpace>
+                        <div class="ui-muted">"Streaming preview keeps fallback=snapshot contract explicit."</div>
+                    </div>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="combo-box-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground supports "
+                    <code>"Show code"</code>
+                    " with one-click copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::ComboBox;\n\nlet (selected, set_selected) = signal(Some(1_usize));\n<ComboBox id_base=\"docs-combo-box\".to_string() label=\"Language\".to_string() items=vec![\"Rust\".to_string(), \"TypeScript\".to_string()] selected_index=selected set_selected_index=set_selected />".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-combo-box-source-copy".to_string()
+                />
+                <ul data-slot="combo-box-source-paths">
+                    <li><code>"components/combo-box/src/mod.rs"</code></li>
+                    <li><code>"components/combo-box/src/logic.rs"</code></li>
+                    <li><code>"components/combo-box/src/view.rs"</code></li>
+                    <li><code>"components/combo-box/src/styles.rs"</code></li>
+                    <li><code>"components/combo-box/src/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="combo-box-source-prerequisites">
+                    <li><code>"component-combo_box"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -2794,7 +3319,6 @@ pub(super) fn autocomplete() -> AnyView {
         "Seattle".to_string(),
         "Shanghai".to_string(),
     ];
-    let (hello_selected, set_hello_selected) = signal(None::<usize>);
     let items = vec![
         "San Francisco".to_string(),
         "Seattle".to_string(),
@@ -2802,6 +3326,9 @@ pub(super) fn autocomplete() -> AnyView {
         "Shenzhen".to_string(),
         "Singapore".to_string(),
     ];
+    let items_for_validation = items.clone();
+    let items_for_stream_snapshot = items.clone();
+    let items_for_stream_streaming = items.clone();
     let controlled_items = vec![
         "San Francisco".to_string(),
         "Seattle".to_string(),
@@ -2816,6 +3343,12 @@ pub(super) fn autocomplete() -> AnyView {
     let (controlled_open_raw, set_controlled_open_raw) = signal(false);
     let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
     let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
+    let snapshot_mode = Signal::derive(|| AiRenderMode::Snapshot);
+    let streaming_mode = Signal::derive(|| AiRenderMode::Streaming);
+    let verified_output = Signal::derive(|| AiOutputStatus::Verified);
+    let draft_output = Signal::derive(|| AiOutputStatus::Draft);
+    let (snapshot_selected, set_snapshot_selected) = signal(Some(1_usize));
+    let (streaming_selected, set_streaming_selected) = signal(Some(2_usize));
 
     let disabled_items = vec![
         "Berlin".to_string(),
@@ -2828,14 +3361,10 @@ pub(super) fn autocomplete() -> AnyView {
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
 
     let hello_code = Signal::derive(move || {
-        r#"let (selected, set_selected) = signal(None::<usize>);
-
-<Autocomplete
+        r#"<Autocomplete
   id_base="city".to_string()
   label="City".to_string()
   items=vec!["Sydney".to_string(), "Melbourne".to_string()]
-  selected_index=selected
-  set_selected_index=set_selected
 />"#
         .to_string()
     });
@@ -2908,6 +3437,137 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
         .to_string()
     });
 
+    let output_mode_code = Signal::derive(move || {
+        r#"// Streaming is optional for Autocomplete; fallback is snapshot.
+<div data-ui-streaming="optional" data-ui-fallback="snapshot">
+  <AiSpace mode=AiRenderMode::Snapshot output_status=AiOutputStatus::Verified>
+    <Autocomplete id_base="docs-autocomplete-snapshot".to_string() ... />
+  </AiSpace>
+  <AiSpace mode=AiRenderMode::Streaming output_status=AiOutputStatus::Draft>
+    <Autocomplete id_base="docs-autocomplete-streaming".to_string() ... />
+  </AiSpace>
+</div>"#
+            .to_string()
+    });
+
+    let autocomplete_code_imports =
+        "use leptos::prelude::*;\nuse ui_components::Autocomplete;".to_string();
+
+    let persisted_autocomplete_workbench_selected = load_autocomplete_workbench_selected();
+    let (workbench_selected, set_workbench_selected) =
+        signal(persisted_autocomplete_workbench_selected.or(Some(2_usize)));
+    let (workbench_invalid, set_workbench_invalid) = signal(false);
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_disable_last, set_workbench_disable_last) = signal(true);
+    let (workbench_controlled_open, set_workbench_controlled_open) = signal(false);
+    let (workbench_use_controlled_open, set_workbench_use_controlled_open) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(persisted_autocomplete_workbench_selected.is_some());
+    let workbench_items = vec![
+        "San Francisco".to_string(),
+        "Seattle".to_string(),
+        "Shanghai".to_string(),
+        "Shenzhen".to_string(),
+        "Singapore".to_string(),
+    ];
+
+    Effect::new(move |_| {
+        let selected = workbench_selected.get();
+
+        if workbench_persist_state.get() {
+            if let Some(selected_index) = selected {
+                save_autocomplete_workbench_selected(selected_index);
+            } else {
+                clear_autocomplete_workbench_selected();
+            }
+        } else {
+            clear_autocomplete_workbench_selected();
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let invalid = workbench_invalid.get();
+        let disabled = workbench_disabled.get();
+        let disable_last = workbench_disable_last.get();
+        let use_controlled_open = workbench_use_controlled_open.get();
+        let custom_class = workbench_custom_class.get();
+
+        let mut lines = vec![
+            "let (selected, set_selected) = signal(Some(2_usize));".to_string(),
+            "let (open, set_open) = signal(false);".to_string(),
+            "<Autocomplete".to_string(),
+            "  id_base=\"docs-autocomplete-workbench\".into()".to_string(),
+            "  label=\"City\".into()".to_string(),
+            "  items=vec![".to_string(),
+            "    \"San Francisco\".into(),".to_string(),
+            "    \"Seattle\".into(),".to_string(),
+            "    \"Shanghai\".into(),".to_string(),
+            "    \"Shenzhen\".into(),".to_string(),
+            "    \"Singapore\".into(),".to_string(),
+            "  ]".to_string(),
+            "  selected_index=selected".to_string(),
+            "  set_selected_index=set_selected".to_string(),
+            "  description=\"Search and pick one city\".into()".to_string(),
+            "  error=\"City is required\".into()".to_string(),
+        ];
+
+        if invalid {
+            lines.push("  is_invalid=Signal::derive(move || true)".to_string());
+        }
+        if disabled {
+            lines.push("  is_disabled=true".to_string());
+        }
+        if disable_last {
+            lines.push("  disabled_indices=vec![4]".to_string());
+        }
+        if use_controlled_open {
+            lines.push("  is_open=Signal::derive(move || open.get())".to_string());
+            lines
+                .push("  on_open_change=Callback::new(move |next| set_open.set(next))".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-autocomplete-workbench--custom\".into()".to_string());
+        }
+
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        format!(
+            "/* components/autocomplete/src/styles.rs */\n{}",
+            ui_components::autocomplete::styles::CSS,
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let selected = workbench_selected.get();
+        let invalid = workbench_invalid.get();
+        let disabled = workbench_disabled.get();
+        let disable_last = workbench_disable_last.get();
+        let open = workbench_controlled_open.get();
+        let use_controlled_open = workbench_use_controlled_open.get();
+        let custom_class = workbench_custom_class.get();
+
+        let mut class = vec!["ui-autocomplete".to_string()];
+        if custom_class {
+            class.push("docs-autocomplete-workbench--custom".to_string());
+        }
+        if invalid {
+            class.push("ui-autocomplete--invalid".to_string());
+        }
+        if use_controlled_open {
+            class.push("ui-autocomplete--controlled".to_string());
+        }
+
+        format!(
+            "AutocompleteWorkbenchConfig {{\n  selected_index: {selected:?},\n  is_invalid: {invalid},\n  is_disabled: {disabled},\n  disabled_indices: {},\n  controlled_open_enabled: {use_controlled_open},\n  controlled_open_state: {open},\n  custom_class: {custom_class},\n  class: \"{}\",\n}}",
+            if disable_last { "vec![4]" } else { "vec![]" },
+            class.join(" ")
+        )
+    });
+
     view! {
         <ComponentPage
             title="Autocomplete"
@@ -2915,28 +3575,32 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             group="Collections"
             description="Combobox-like autocomplete with baseline-style root attrs, controlled/uncontrolled open state, and baseline-level active highlight motion."
         >
-            <Playground title="Hello World" code_signal=hello_code>
-                <div class="docs-stack" data-slot="autocomplete-hello-world">
-                    <Autocomplete
-                        id_base="docs-autocomplete-hello".to_string()
-                        label="City".to_string()
-                        items=hello_items
-                        selected_index=hello_selected
-                        set_selected_index=set_hello_selected
-                    />
-                    <span class="ui-muted" data-slot="autocomplete-hello-selected">
-                        "selected: "
-                        {move || hello_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                    </span>
-                </div>
+            <Playground
+                title="Hello World"
+                code_signal=hello_code
+                code_imports=autocomplete_code_imports.clone()
+            >
+                <AiSpace mode=snapshot_mode output_status=verified_output>
+                    <div class="docs-stack" data-slot="autocomplete-hello-world">
+                        <Autocomplete
+                            id_base="docs-autocomplete-hello".to_string()
+                            label="City".to_string()
+                            items=hello_items
+                        />
+                    </div>
+                </AiSpace>
             </Playground>
 
-            <Playground title="Selection + Validation" code_signal=code>
+            <Playground
+                title="Selection + Validation"
+                code_signal=code
+                code_imports=autocomplete_code_imports.clone()
+            >
                 <div class="docs-stack" data-slot="autocomplete-validation-playground">
                     <Autocomplete
                         id_base="docs-autocomplete".to_string()
                         label="City".to_string()
-                        items=items
+                        items=items_for_validation
                         selected_index=selected
                         set_selected_index=set_selected
                         disabled_indices=vec![3]
@@ -2960,7 +3624,11 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                 </div>
             </Playground>
 
-            <Playground title="Controlled Open State" code_signal=controlled_code>
+            <Playground
+                title="Controlled Open State"
+                code_signal=controlled_code
+                code_imports=autocomplete_code_imports.clone()
+            >
                 <div class="docs-stack" data-slot="autocomplete-controlled-playground">
                     <Autocomplete
                         id_base="docs-autocomplete-controlled".to_string()
@@ -2984,7 +3652,11 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Empty" code_signal=states_code>
+            <Playground
+                title="Disabled + Empty"
+                code_signal=states_code
+                code_imports=autocomplete_code_imports.clone()
+            >
                 <div class="docs-row" data-slot="autocomplete-states-playground">
                     <div class="docs-stack" data-slot="autocomplete-disabled-playground">
                         <Autocomplete
@@ -3017,6 +3689,276 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                     </div>
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="autocomplete-state-matrix">
+                <h3>"状态矩阵 State Matrix（受控 / 非受控）"</h3>
+                <ul data-slot="autocomplete-state-rows">
+                    <li>
+                        <code>"open mode"</code>
+                        " = controlled | uncontrolled"
+                    </li>
+                    <li>
+                        <code>"disabled"</code>
+                        " = root disabled | enabled with disabled options"
+                    </li>
+                    <li>
+                        <code>"validation"</code>
+                        " = valid | invalid"
+                    </li>
+                    <li>
+                        <code>"item set"</code>
+                        " = has items | empty"
+                    </li>
+                    <li>
+                        <code>"selection"</code>
+                        " = selected | none"
+                    </li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="autocomplete-parameter-matrix">
+                <h3>"参数矩阵 Parameter Matrix（API / 默认值）"</h3>
+                <ul data-slot="autocomplete-parameter-rows">
+                    <li>
+                        <code>"is_open + on_open_change + default_open"</code>
+                        " = open 受控/非受控轴（default_open 默认 false）"
+                    </li>
+                    <li>
+                        <code>"selected_index + on_selected_index_change + default_selected_index"</code>
+                        " = selection 受控/非受控轴（default_selected_index 默认 none，越界值自动忽略）"
+                    </li>
+                    <li>
+                        <code>"set_selected_index"</code>
+                        " = 迁移期兼容别名（桥接到 on_selected_index_change）"
+                    </li>
+                    <li>
+                        <code>"is_disabled / is_required / is_invalid"</code>
+                        " = 布尔轴，默认 false（兼容别名：disabled / required / invalid）"
+                    </li>
+                    <li>
+                        <code>"label / id_base / placeholder / empty_message"</code>
+                        " = 默认值来自 ui-state-primitives（Options / autocomplete / Type… / No matches）"
+                    </li>
+                </ul>
+            </section>
+
+            <Playground
+                title="Workbench（展示 + Config + Code + CSS Test）"
+                description="Autocomplete 单画布调参：支持 settings / code / css-test 联动，并可选持久化 selected index。"
+                code_signal=workbench_code
+                code_imports=autocomplete_code_imports.clone()
+                test_css_source=workbench_test_css
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/autocomplete/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="autocomplete-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_invalid.get()
+                                on:change=move |ev| set_workbench_invalid.set(event_target_checked(&ev))
+                            />
+                            " Invalid"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_disabled.get()
+                                on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
+                            />
+                            " Disabled root"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_disable_last.get()
+                                on:change=move |ev| set_workbench_disable_last.set(event_target_checked(&ev))
+                            />
+                            " Disable last option"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_use_controlled_open.get()
+                                on:change=move |ev| set_workbench_use_controlled_open.set(event_target_checked(&ev))
+                            />
+                            " Controlled open"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " Custom class marker"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_persist_state.get()
+                                on:change=move |ev| set_workbench_persist_state.set(event_target_checked(&ev))
+                            />
+                            " Persist selected index (optional)"
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="autocomplete-workbench" style="width: min(100%, 420px);">
+                    <div class="docs-row">
+                        <ui_components::Button
+                            variant=ui_components::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| {
+                                set_workbench_controlled_open.update(|value| *value = !*value)
+                            })
+                        >
+                            "Toggle open"
+                        </ui_components::Button>
+                        <span class="ui-muted">
+                            "open: "
+                            {move || workbench_controlled_open.get()}
+                            " · selected: "
+                            {move || workbench_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                            " · persist selected: "
+                            {move || if workbench_persist_state.get() { "on" } else { "off" }}
+                        </span>
+                    </div>
+
+                    {move || {
+                        let invalid = workbench_invalid.get();
+                        let disabled = workbench_disabled.get();
+                        let disable_last = workbench_disable_last.get();
+                        let use_controlled_open = workbench_use_controlled_open.get();
+                        let custom_class = workbench_custom_class.get();
+                        let controlled_open =
+                            Signal::derive(move || workbench_controlled_open.get());
+                        let on_workbench_open_change =
+                            Callback::new(move |next: bool| set_workbench_controlled_open.set(next));
+                        let class_name = if custom_class {
+                            "docs-autocomplete-workbench--custom".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let disabled_indices = if disable_last { vec![4] } else { vec![] };
+
+                        if use_controlled_open {
+                            view! {
+                                <div class="docs-card" data-slot="autocomplete-workbench-canvas">
+                                    <Autocomplete
+                                        id_base="docs-autocomplete-workbench".to_string()
+                                        label="City".to_string()
+                                        items=workbench_items.clone()
+                                        selected_index=workbench_selected
+                                        set_selected_index=set_workbench_selected
+                                        is_open=controlled_open
+                                        on_open_change=on_workbench_open_change
+                                        is_invalid=Signal::derive(move || invalid)
+                                        is_disabled=disabled
+                                        disabled_indices=disabled_indices.clone()
+                                        description="Search and pick one city".to_string()
+                                        error="City is required".to_string()
+                                        class_name=class_name.clone()
+                                    />
+                                </div>
+                            }
+                            .into_any()
+                        } else {
+                            view! {
+                                <div class="docs-card" data-slot="autocomplete-workbench-canvas">
+                                    <Autocomplete
+                                        id_base="docs-autocomplete-workbench".to_string()
+                                        label="City".to_string()
+                                        items=workbench_items.clone()
+                                        selected_index=workbench_selected
+                                        set_selected_index=set_workbench_selected
+                                        is_invalid=Signal::derive(move || invalid)
+                                        is_disabled=disabled
+                                        disabled_indices=disabled_indices
+                                        description="Search and pick one city".to_string()
+                                        error="City is required".to_string()
+                                        class_name=class_name
+                                    />
+                                </div>
+                            }
+                            .into_any()
+                        }
+                    }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming/Snapshot Display"
+                description="Autocomplete 不是正文阅读面：Streaming Optional，fallback=snapshot。"
+                code_signal=output_mode_code
+                code_imports=autocomplete_code_imports.clone()
+            >
+                <div class="docs-row" data-slot="autocomplete-streaming-snapshot">
+                    <div
+                        class="docs-stack"
+                        style="min-width: 260px; width: min(100%, 320px);"
+                        data-ui-streaming="optional"
+                        data-ui-fallback="snapshot"
+                        data-ui-output-state="snapshot"
+                    >
+                        <AiSpace mode=snapshot_mode output_status=verified_output>
+                            <Autocomplete
+                                id_base="docs-autocomplete-snapshot".to_string()
+                                label="Snapshot mode".to_string()
+                                items=items_for_stream_snapshot
+                                selected_index=snapshot_selected
+                                set_selected_index=set_snapshot_selected
+                            />
+                        </AiSpace>
+                        <div class="ui-muted">"Snapshot baseline: verified + copy-ready."</div>
+                    </div>
+
+                    <div
+                        class="docs-stack"
+                        style="min-width: 260px; width: min(100%, 320px);"
+                        data-ui-streaming="optional"
+                        data-ui-fallback="snapshot"
+                        data-ui-output-state="streaming"
+                    >
+                        <AiSpace mode=streaming_mode output_status=draft_output>
+                            <Autocomplete
+                                id_base="docs-autocomplete-streaming".to_string()
+                                label="Streaming preview".to_string()
+                                items=items_for_stream_streaming
+                                selected_index=streaming_selected
+                                set_selected_index=set_streaming_selected
+                            />
+                        </AiSpace>
+                        <div class="ui-muted">"Streaming preview keeps fallback=snapshot contract explicit."</div>
+                    </div>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="autocomplete-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground supports "
+                    <code>"Show code"</code>
+                    " with one-click copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::Autocomplete;\n\nlet (selected, set_selected) = signal(Some(1_usize));\n<Autocomplete id_base=\"docs-autocomplete\".to_string() label=\"City\".to_string() items=vec![\"Tokyo\".to_string(), \"Osaka\".to_string()] selected_index=selected set_selected_index=set_selected />".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-autocomplete-source-copy".to_string()
+                />
+                <ul data-slot="autocomplete-source-paths">
+                    <li><code>"components/autocomplete/src/mod.rs"</code></li>
+                    <li><code>"components/autocomplete/src/logic.rs"</code></li>
+                    <li><code>"components/autocomplete/src/view.rs"</code></li>
+                    <li><code>"components/autocomplete/src/styles.rs"</code></li>
+                    <li><code>"components/autocomplete/src/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="autocomplete-source-prerequisites">
+                    <li><code>"component-autocomplete"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()

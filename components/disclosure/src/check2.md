@@ -97,6 +97,26 @@
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A：`Disclosure`/`DisclosureGroup` 当前不包含拖拽或指针连续帧驱动交互，不存在 `Dragging` 态与 `DragEnd` 回流链路；交互仅为离散的 open/close 切换与语义挂载。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A：`Disclosure`/`DisclosureGroup` 不承担 overlay 几何定位语义（无浮层锚点与位置纠偏状态机）；当前 DOM 测量仅用于 `motion.rs` 内部的面板高度同步，不涉及 `logic.rs` 的几何 rectification 循环。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A：`Disclosure`/`DisclosureGroup` 当前未暴露基于 `RegistrationContext` 的动态注册导航语义；组内展开状态以显式索引与 `BTreeSet` 归一化处理，不依赖 `HashSet` 迭代顺序。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A：`Disclosure`/`DisclosureGroup` 当前未提供 `Lazy/KeepAlive/Eager` 投影策略开关，面板内容按组件组合语义直接渲染；无独立 `KeepAlive` 生命周期通知协议与轮询副作用暂停路径。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A：`Disclosure`/`DisclosureGroup` 当前无断点/可视区域驱动的业务语义状态机，不存在 `view -> Action -> logic` 的环境流回路；现有 `ResizeObserver` 仅用于 `motion.rs` 内部面板高度同步，不向 `logic.rs` 推送环境动作。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A：`Disclosure`/`DisclosureGroup` 不属于大型集合批量操作组件，不存在 `SelectionState::All` 类状态压缩与 `Context Bus` 广播链路；当前实现范围内无 O(N) 级批量分发压力路径。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A：`Disclosure`/`DisclosureGroup` 当前无跨组件派生总线广播模型，交互链路限定在组件本地 open/expanded 状态切换；不存在需要跨订阅者透传 `TraceId` 的复杂因果链。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - N/A：`Disclosure`/`DisclosureGroup` 非层叠 `Overlay` 组件，不实现浮层焦点陷阱与关闭后焦点恢复栈；当前交互不持有私有 `NodeRef` 作为全局焦点恢复目标。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - N/A：`Disclosure`/`DisclosureGroup` 当前未集成命令式第三方实例（如 ECharts/Map），无 `Foreign Zone` 生命周期托管需求；组件公共 API 未暴露外部实例句柄，状态机不受第三方回调反向驱动。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - 通过：`Disclosure` 的语义 ID 由 `id_base` 显式输入构造（`DisclosureIds::new -> {id_base}-trigger/{id_base}-panel`），组件内未使用 `now()`/`rand`/随机 UUID 生成 ID，SSR 与 Hydration 可保持稳定对齐。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
 - [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
@@ -204,6 +224,17 @@
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
+  - N/A：本轮 `Disclosure`/`DisclosureGroup` 未引入跨大版本 API 破坏升级，未触发 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层门禁。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - 已执行：`bash ./scripts/check-rust-hygiene.sh`；当前在仓库级 `check-api-contracts` 基线漂移处失败（非 `Disclosure` 组件引入）。
+  - `Disclosure` 范围复核通过：`components/disclosure/src/*.rs` 非测试代码未发现 `unwrap/expect`、`let _ =`、`.to_owned()`、`String::from()` 热点；当前无需新增 `Cow<'static, str>`。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - 通过：`components/disclosure/src/styles.rs` 已统一改为 `var(--ui-*, var(--ui-fallback-*))` 读取主题变量（space/radius/border/bg/fg/shadow/focus/icon/typography），不再在组件样式中写入 Hex 或像素终值。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。
+  - 通过：`crates/ui-components/src/css.rs` 在 `push_components_css` 中以 `@layer ui` 包裹组件样式聚合；`Disclosure` 运行时动效仅写入 `--ui-disclosure-*` 变量（`components/disclosure/src/motion.rs`），组件视图未使用普通 `style="..."` 内联样式。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - 通过：`components/disclosure/src/motion.rs` 定义 `DisclosureMotion`（含 `SpringConfig` 与参数清洗 `sanitize_spring`），并通过 `attach_indicator_motion` / `attach_panel_motion` 挂载；`crates/ui-motion/src/spring.rs` 在 `set_target` 中显式走 `prefers_reduced_motion()` 立即收敛；`#[cfg(not(target_arch = "wasm32"))]` 路径提供安全降级实现，SSR/non-wasm 不触发浏览器依赖。
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui-components` 固定入口文件落点正确。
@@ -221,6 +252,12 @@
   - `<component>/view.rs`：纯 Leptos 结构渲染 + headless 语义挂载；禁止 `render.rs` 漂移；不隐藏关键状态决策。
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
+  - 通过：`components/disclosure/src/` 下核心五件套均存在（`mod.rs`/`logic.rs`/`styles.rs`/`view.rs`/`motion.rs`）；未发现 `render.rs`，且当前未新增 `spec.rs`。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - N/A：`Disclosure`/`DisclosureGroup` 当前不属于稳定外部 Schema 驱动的复杂配置组件，按仓库约定不新增 `spec.rs`；基础与组合 API 已由 `view.rs + logic.rs` 提供且语义契约可测。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - N/A：本轮针对 `Disclosure` 的变更不属于“新增组件/大改组件 API”范围，未触发 `Component.toml` 与 `.rbi` 同步门禁；后续若进入新增或大改阶段需按协议补齐。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。

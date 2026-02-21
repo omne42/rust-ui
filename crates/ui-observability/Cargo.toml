@@ -1,0 +1,11 @@
+[package]
+name = "ui-observability"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }

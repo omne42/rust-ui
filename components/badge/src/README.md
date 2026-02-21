@@ -2,6 +2,48 @@
 
 `Badge` 是一个状态展示组件，组合了 `ui-state-primitives` + `ui-headless` 的语义契约，并输出稳定 `data-*` 标记。
 
+## 先用起来（Quick Start）
+
+零门槛最小示例（Hello World）：
+
+```rust
+<Badge>"New"</Badge>
+```
+
+默认路径只需要一个组件标签，不要求先理解分层架构。
+
+## 常见用法
+
+常见变体（对应 docs 的 `Variant Matrix`）：
+
+```rust
+<Badge variant=BadgeVariant::Default>"Default"</Badge>
+<Badge variant=BadgeVariant::Accent>"Accent"</Badge>
+<Badge variant=BadgeVariant::Danger>"Danger"</Badge>
+<Badge variant=BadgeVariant::Outline>"Outline"</Badge>
+```
+
+常见扩展（自定义 class + 语言方向）：
+
+```rust
+<Badge
+  variant=BadgeVariant::Outline
+  class_name="docs-badge-custom".to_string()
+  lang="ar".to_string()
+  dir=ui_headless::A11yDirection::Rtl
+>
+  "جديد"
+</Badge>
+```
+
+## 进阶（Workbench）
+
+当默认 API 路径满足不了需求，再进入 docs-app 的工作台：
+
+- `Badge Workbench (Display + Config + Code + CSS Test)`
+- 可调 `variant / locale / custom class / rtl`
+- 支持 Baseline vs Configured 对照、Scenario compare、copy-ready 代码与 CSS test
+
 ## 目标 / 非目标 / 风险边界
 
 - 目标：提供可访问、可语义检索、可稳定测试的状态标签。
@@ -65,6 +107,21 @@ Workbench 会实时生成 copy-ready 代码（含导入自动补齐）。示例�
 
 - 面板内默认加载：`components/badge/src/styles.rs`
 - 支持 scoped CSS 热编辑与回滚，验证 `data-variant/data-fill/data-class-source` 契约是否稳定。
+
+## Source-first（Copy-Paste Ready）
+
+复制代码默认依赖（由 docs-app Playground 自动补齐）：
+
+```rust
+use leptos::prelude::*;
+use ui_components::*;
+```
+
+源码落点：
+
+- 组件渲染：`components/badge/src/view.rs`
+- 逻辑归一：`components/badge/src/logic.rs`
+- 样式契约：`components/badge/src/styles.rs`
 
 ## docs-app 入口
 

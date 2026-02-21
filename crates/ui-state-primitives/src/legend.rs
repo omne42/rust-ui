@@ -28,6 +28,85 @@ impl LegendTone {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LegendRequiredSource {
+    IsRequired,
+    Required,
+    Default,
+}
+
+impl LegendRequiredSource {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::IsRequired => "is_required",
+            Self::Required => "required",
+            Self::Default => "default",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LegendDisabledSource {
+    IsDisabled,
+    Disabled,
+    Default,
+}
+
+impl LegendDisabledSource {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::IsDisabled => "is_disabled",
+            Self::Disabled => "disabled",
+            Self::Default => "default",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RequiredState {
+    pub is_required: bool,
+    pub required_source_attr: &'static str,
+}
+
+pub fn normalize_required_state(is_required: Option<bool>, required: bool) -> RequiredState {
+    let source = if is_required.is_some() {
+        LegendRequiredSource::IsRequired
+    } else if required {
+        LegendRequiredSource::Required
+    } else {
+        LegendRequiredSource::Default
+    };
+
+    RequiredState {
+        is_required: is_required.unwrap_or(required),
+        required_source_attr: source.as_attr(),
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AccessibilityState {
+    pub is_disabled: bool,
+    pub disabled_source_attr: &'static str,
+}
+
+pub fn normalize_accessibility_state(
+    is_disabled: Option<bool>,
+    disabled: bool,
+) -> AccessibilityState {
+    let source = if is_disabled.is_some() {
+        LegendDisabledSource::IsDisabled
+    } else if disabled {
+        LegendDisabledSource::Disabled
+    } else {
+        LegendDisabledSource::Default
+    };
+
+    AccessibilityState {
+        is_disabled: is_disabled.unwrap_or(disabled),
+        disabled_source_attr: source.as_attr(),
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct LegendStateInput {
     pub tone: LegendTone,
     pub is_required: bool,

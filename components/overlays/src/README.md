@@ -24,8 +24,11 @@
 | --- | --- | --- |
 | `children` | `Children` | required |
 | `id_base` | `Option<String>` | `None`（归一到 `"overlays-root"`） |
-| `open` | `bool` | `false` |
-| `modal` | `bool` | `false` |
+| `is_open` | `bool` | `false` |
+| `is_modal` | `bool` | `false` |
+| `aria_label` | `Option<String>` | `None`（回退到 `"Overlays"`） |
+| `lang` | `Option<String>` | `None` |
+| `dir` | `Option<A11yDirection>` | `None`（LTR/RTL） |
 | `class_name` | `Option<String>` | `None` |
 
 ### Re-exports
@@ -38,28 +41,21 @@
 
 ## Hello World（最小可用）
 
+基础路径无需手动接线 `ui-state-primitives` / `ui-headless` 状态机，直接使用默认 props。
+
 ```rust
-use leptos::prelude::*;
-use ui_components::{Overlay, OverlaysRoot};
-
-let (open, set_open) = signal(true);
-let open_signal = Signal::derive(move || open.get());
-let on_close = Callback::new(move |_| set_open.set(false));
-
 view! {
-  <OverlaysRoot open=open_signal.get() modal=true>
-    <Overlay open=open_signal on_close=on_close>
-      <div>"Overlay content"</div>
-    </Overlay>
-  </OverlaysRoot>
+  <Modal default_open=true id_base="m".to_string() title="Hello".to_string() on_close=Callback::new(|_| {})>
+    <div>"Hello overlays"</div>
+  </Modal>
 }
 ```
 
 ## Semantics and Accessibility
 
-- `OverlaysRoot` 根节点固定输出 `role="group"`、`aria-label="Overlays"`。
+- `OverlaysRoot` 通过 `ui_headless::labeled_group_attrs` 输出 `role/aria-label/lang/dir`，`aria_label` 支持 props 覆盖并回退默认值。
 - 暴露稳定语义标记：`data-slot="overlays"`、`data-state`、`data-layer`、`data-id-source`、`data-class-source`。
-- 额外来源位通过布尔标记输出：`data-custom-id`、`data-custom-class`。
+- 额外来源位通过布尔标记输出：`data-custom-id`、`data-custom-class`、`data-custom-aria-label`，并输出 `data-aria-label-source`。
 
 ## Motion and Fallback
 

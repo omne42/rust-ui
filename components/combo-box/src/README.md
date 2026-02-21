@@ -2,6 +2,34 @@
 
 `ComboBox` 是一个基于 `ui-state-primitives` + `ui-headless` + `ui-motion` 组合出来的输入筛选 + 列表选择组件。
 
+## Quick Start (Hello World)
+
+先跑默认路径，不需要先理解分层细节。
+
+```rust
+use leptos::prelude::*;
+use ui_components::ComboBox;
+
+let (selected, set_selected) = signal(None::<usize>);
+
+view! {
+    <ComboBox
+        id_base="city".to_string()
+        label="City".to_string()
+        items=vec!["Tokyo".to_string(), "Osaka".to_string()]
+        selected_index=selected
+        set_selected_index=set_selected
+    />
+}
+```
+
+## 常见用法
+
+- 受控 open：`is_open + on_open_change`
+- 非受控 open：`default_open`
+- 禁用：`is_disabled` / `disabled_indices`
+- 校验：`is_required` / `is_invalid` + `description` / `error`
+
 ## 目标 / 非目标 / 风险边界
 
 - 目标：提供可访问、可受控/非受控 open、可观测、可测试的组合输入交互基元。
@@ -29,12 +57,9 @@
 | `selected_index` | `ReadSignal<Option<usize>>` | required |
 | `set_selected_index` | `WriteSignal<Option<usize>>` | required |
 | `is_disabled` | `Option<bool>` | `None` |
-| `disabled` | `bool` (legacy alias) | `false` |
 | `disabled_indices` | `Vec<usize>` | `[]` |
 | `is_required` | `Option<Signal<bool>>` | `None` |
-| `required` | `Option<Signal<bool>>` (legacy alias) | `None` |
 | `is_invalid` | `Option<Signal<bool>>` | `None` |
-| `invalid` | `Option<Signal<bool>>` (legacy alias) | `None` |
 | `aria_describedby` | `Signal<Option<String>>` | `None` |
 | `description` | `Option<String>` | `None` |
 | `error` | `Option<String>` | `None` |
@@ -42,7 +67,6 @@
 | `empty_message` | `Option<String>` | `None` |
 | `toggle_button_aria_label` | `Option<String>` | `None` |
 | `is_open` | `Option<Signal<bool>>` | `None` |
-| `open` | `Option<Signal<bool>>` (legacy alias) | `None` |
 | `default_open` | `Option<bool>` | `None` |
 | `on_open_change` | `Option<Callback<bool>>` | `None` |
 | `lang` | `Option<String>` | `None` |
@@ -52,33 +76,20 @@
 
 ## Controlled / Uncontrolled 契约
 
-- open 轴遵循 triplet：`is_open/open` + `on_open_change` + `default_open`。
-- `is_open` 与 `open` 同时提供时优先 `is_open`。
+- open 轴遵循 triplet：`is_open` + `on_open_change` + `default_open`。
 - 组件通过 `ui_headless::use_controllable_open_state_traced("combo-box", ...)` 统一受控/非受控行为。
+
+## Migration
+
+- `disabled` -> `is_disabled`
+- `required` -> `is_required`
+- `invalid` -> `is_invalid`
+- `open` -> `is_open`
 
 ## Streaming 策略
 
 - `Snapshot`：默认路径，组件稳定消费完整配置并渲染。
 - `Streaming Optional`：`ComboBox` 不是 LLM 正文阅读面；若上层为流式容器，本组件按 `fallback=snapshot` 消费稳定配置。
-
-## Hello World
-
-```rust
-use leptos::prelude::*;
-use ui_components::ComboBox;
-
-let (selected, set_selected) = signal(None::<usize>);
-
-view! {
-    <ComboBox
-        id_base="city".to_string()
-        label="City".to_string()
-        items=vec!["Tokyo".to_string(), "Osaka".to_string()]
-        selected_index=selected
-        set_selected_index=set_selected
-    />
-}
-```
 
 ## 展示 (Display)
 

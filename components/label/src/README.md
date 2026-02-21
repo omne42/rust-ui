@@ -24,13 +24,21 @@
 | --- | --- | --- |
 | `text` | `Option<String>` | `None`（回退到 `DEFAULT_ARIA_LABEL`） |
 | `for_id` | `Option<String>` | `None` |
-| `required` | `bool` | `false` |
-| `disabled` | `bool` | `false` |
+| `is_required` | `bool` | `false` |
+| `is_disabled` | `bool` | `false` |
 | `emphasis` | `LabelEmphasis` (`Default` / `Subtle` / `Strong`) | `Default` |
 | `required_indicator` | `Option<String>` | `None`（回退到 `DEFAULT_REQUIRED_INDICATOR`） |
 | `class_name` | `Option<String>` | `None` |
+| `motion` | `LabelMotion` | `LabelMotion::default()` |
 | `lang` | `Option<String>` | `None` |
 | `dir` | `Option<A11yDirection>` | `None` |
+
+### API 命名迁移
+
+- `required` -> `is_required`
+- `disabled` -> `is_disabled`
+- 为避免同义别名漂移，旧命名不保留别名；docs 与示例统一使用新命名。
+- `Label` 不维护内部可变状态轴，因此无 `value/on_value_change/default_value` 三元 API。
 
 ### Label Events
 
@@ -41,7 +49,7 @@
 ## Hello World（最小可用）
 
 ```rust
-<Label text="Name".to_string() for_id="name".to_string() required=true />
+<Label text="Name".to_string() />
 ```
 
 - 默认路径无需手动接线 `ui-state-primitives` / `ui-headless`。
@@ -60,15 +68,17 @@
 
 ## Motion and Fallback
 
-- `LabelMotion` 为组件导出的轻量参数契约：
+- `LabelMotion` 为组件导出的轻量参数契约（默认值来自 `ui-theme::label_motion_tokens`）：
   - `color_transition_ms`
   - `weight_transition_ms`
-- 当前 `Label` 不执行独立 wasm 动效驱动；该契约用于与组件库其它成员保持一致的动效配置接口。
+- `view.rs` 通过 `motion::attach_motion` 输出 CSS 变量契约并挂载 `data-motion-source`。
+- non-wasm 路径通过 `ui_motion::web::prefers_reduced_motion()` 降级为 1ms，可预测且不阻塞 SSR/tooling 编译。
 
 ## Docs Playground（展示 / Config / Code / CSS Test）
 
 - docs 页入口：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 中 `label()`。
 - Workbench Playground 提供四个面板能力：
+  - Hello World：默认调用路径，单行最小示例，无需手动接线 primitives/headless。
   - 展示（Preview）：实时渲染当前配置的 Label，并同时展示对照态（强强调 + 必填 + 自定义指示）。
   - Config：`test_config_signal` 输出 emphasis/state/source 标记与 class 组合。
   - Code：`code_signal` 输出可复制的当前配置示例。
@@ -76,6 +86,14 @@
 - 额外对比展示：
   - `Emphasis + Required`
   - `Custom Indicator + Class`
+
+## Visual Desire Baseline（Label 范围）
+
+- 视觉层级：通过 `LabelEmphasis::{Default, Subtle, Strong}` 的字重与前景色层级区分信息优先级，避免“只有可用、没有层次”的粗糙观感。
+- 对比与节奏：基于 `var(--ui-*)` / `var(--ui-fallback-*)` 变量保持主题对比一致性，`required/disabled/custom` 通过稳定状态标记驱动视觉反馈。
+- 交互反馈：当 `for_id` 可用且未禁用时，Label 提供 hover/active 色彩反馈（accent/accent-soft）以提升可感知性；该组件为原生 `<label>` 语义，不额外引入伪交互状态机。
+- HeroUI 对标原则：对齐的是视觉语言与体验质量，不复制 API 表层。
+- 边界说明：`Button/Input/Overlay` 的默认主题截图基线与视觉回归矩阵属于仓库级任务，不在 `Label` 单组件清单内完成，应在 docs-app 全局基线页统一维护。
 
 ## Source-first
 

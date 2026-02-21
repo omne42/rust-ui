@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::BTreeMap;
 
 #[test]
 fn resolve_id_base_prefers_user_value_and_falls_back_to_generated() {
@@ -108,6 +109,86 @@ fn plan_open_commit_returns_none_when_normalized_state_is_unchanged() {
 fn assign_item_keys_enforces_unique_numeric_keys() {
     let keys = assign_item_keys(&[Some(3), None, Some(3), None, Some(0)]);
     assert_eq!(keys, vec![3, 0, 1, 2, 4]);
+}
+
+#[test]
+fn slot_projection_values_are_closed_set() {
+    assert_eq!(AccordionSlotProjection::Lazy.as_str(), "lazy");
+    assert_eq!(AccordionSlotProjection::KeepAlive.as_str(), "keep-alive");
+    assert_eq!(AccordionSlotProjection::Eager.as_str(), "eager");
+    assert_eq!(
+        AccordionSlotProjection::default(),
+        AccordionSlotProjection::KeepAlive
+    );
+}
+
+#[test]
+fn panel_lifecycle_values_are_closed_set() {
+    assert_eq!(
+        AccordionPanelLifecycleEvent::NotifyShown.as_str(),
+        "notify-shown"
+    );
+    assert_eq!(
+        AccordionPanelLifecycleEvent::NotifyHidden.as_str(),
+        "notify-hidden"
+    );
+}
+
+#[test]
+fn panel_surface_render_strategy_respects_slot_projection() {
+    assert!(!should_render_panel_surface(
+        AccordionSlotProjection::Lazy,
+        false,
+        false
+    ));
+    assert!(should_render_panel_surface(
+        AccordionSlotProjection::Lazy,
+        true,
+        false
+    ));
+
+    assert!(!should_render_panel_surface(
+        AccordionSlotProjection::KeepAlive,
+        false,
+        false
+    ));
+    assert!(should_render_panel_surface(
+        AccordionSlotProjection::KeepAlive,
+        false,
+        true
+    ));
+
+    assert!(should_render_panel_surface(
+        AccordionSlotProjection::Eager,
+        false,
+        false
+    ));
+}
+
+#[test]
+fn registration_actions_maintain_items_order_with_unregister_compaction() {
+    let state = reduce_registration_actions(&[
+        AccordionRegistrationAction::Register { registration_id: 4 },
+        AccordionRegistrationAction::Register { registration_id: 2 },
+        AccordionRegistrationAction::Register { registration_id: 4 },
+        AccordionRegistrationAction::Unregister { registration_id: 4 },
+        AccordionRegistrationAction::Register { registration_id: 7 },
+    ]);
+    assert_eq!(state.items_order, vec![2, 7]);
+}
+
+#[test]
+fn resolve_registered_item_keys_follows_registration_order() {
+    let keys = resolve_registered_item_keys(
+        &[
+            AccordionRegistrationAction::Register { registration_id: 9 },
+            AccordionRegistrationAction::Register { registration_id: 3 },
+            AccordionRegistrationAction::Unregister { registration_id: 9 },
+            AccordionRegistrationAction::Register { registration_id: 5 },
+        ],
+        &[(3, 11), (5, 13), (9, 17)],
+    );
+    assert_eq!(keys, vec![11, 13, 17]);
 }
 
 #[test]

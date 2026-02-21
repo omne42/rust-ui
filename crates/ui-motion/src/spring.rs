@@ -232,6 +232,41 @@ impl SpringAnimator {
     }
 }
 
+#[derive(Clone)]
+pub struct SpringAnimatorTriplet {
+    first: SpringAnimator,
+    second: SpringAnimator,
+    third: SpringAnimator,
+}
+
+impl SpringAnimatorTriplet {
+    pub fn new(
+        initial: [f64; 3],
+        config: SpringConfig,
+        apply_first: impl FnMut(f64) + 'static,
+        apply_second: impl FnMut(f64) + 'static,
+        apply_third: impl FnMut(f64) + 'static,
+    ) -> Self {
+        Self {
+            first: SpringAnimator::new(initial[0], config, apply_first),
+            second: SpringAnimator::new(initial[1], config, apply_second),
+            third: SpringAnimator::new(initial[2], config, apply_third),
+        }
+    }
+
+    pub fn set_targets(&self, targets: [f64; 3]) {
+        self.first.set_target(targets[0]);
+        self.second.set_target(targets[1]);
+        self.third.set_target(targets[2]);
+    }
+
+    pub fn stop(&self) {
+        self.first.stop();
+        self.second.stop();
+        self.third.stop();
+    }
+}
+
 #[cfg(test)]
 #[path = "test/spring.rs"]
 mod tests;

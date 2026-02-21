@@ -6,7 +6,170 @@ use ui_components::{
     SegmentedControl, SegmentedControlSize, Switch,
 };
 
+const DIALOG_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant, Dialog, DialogMotion, DialogSize, OverlayMotion};";
+
 pub(super) fn dialog() -> AnyView {
+    let (hello_open_raw, set_hello_open_raw) = signal(false);
+    let hello_open: Signal<bool> = Signal::derive(move || hello_open_raw.get());
+    let open_hello_dialog: OnPress = Callback::new(move |_| set_hello_open_raw.set(true));
+    let close_hello_dialog: OnPress = Callback::new(move |_| set_hello_open_raw.set(false));
+
+    let hello_code = Signal::derive(move || {
+        r#"<Dialog id_base="docs-dialog-hello".to_string() title="Hello dialog".to_string() default_open=true>
+  <div>"Hello dialog body"</div>
+</Dialog>"#
+            .to_string()
+    });
+
+    let state_matrix_options = vec![
+        "Uncontrolled + default_open=true".to_string(),
+        "Uncontrolled + default_open=false + no close".to_string(),
+        "Controlled + on_open_change".to_string(),
+    ];
+    let (state_matrix_index, set_state_matrix_index) = signal(Some(1_usize));
+    let state_matrix_is_controlled =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(1) == 2);
+    let state_matrix_default_open =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(1) == 0);
+    let state_matrix_show_close =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(1) != 1);
+    let state_matrix_with_description =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(1) != 1);
+    let state_matrix_size = Signal::derive(move || match state_matrix_index.get().unwrap_or(1) {
+        1 => DialogSize::Sm,
+        2 => DialogSize::Lg,
+        _ => DialogSize::Md,
+    });
+    let (state_matrix_open_raw, set_state_matrix_open_raw) = signal(false);
+    let state_matrix_open: Signal<bool> = Signal::derive(move || state_matrix_open_raw.get());
+    let on_state_matrix_open_change =
+        Callback::new(move |next: bool| set_state_matrix_open_raw.set(next));
+    let state_matrix_code = Signal::derive(move || {
+        let scenario = state_matrix_index.get().unwrap_or(1);
+        let mut lines = vec![
+            "<Dialog".to_string(),
+            "  id_base=\"docs-dialog-state-matrix\".to_string()".to_string(),
+            "  title=\"State Matrix\".to_string()".to_string(),
+        ];
+        match scenario {
+            0 => {
+                lines.push("  default_open=true".to_string());
+                lines.push("  is_close_button_visible=true".to_string());
+                lines.push("  size=DialogSize::Md".to_string());
+            }
+            1 => {
+                lines.push("  default_open=false".to_string());
+                lines.push("  is_close_button_visible=false".to_string());
+                lines.push("  size=DialogSize::Sm".to_string());
+            }
+            _ => {
+                lines.push("  is_open=Signal::derive(move || open_raw.get())".to_string());
+                lines.push(
+                    "  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))"
+                        .to_string(),
+                );
+                lines.push("  is_close_button_visible=true".to_string());
+                lines.push("  size=DialogSize::Lg".to_string());
+            }
+        }
+        lines.push(">".to_string());
+        lines.push("  <div>\"State matrix body\"</div>".to_string());
+        lines.push("</Dialog>".to_string());
+        lines.join("\n")
+    });
+
+    let (compare_controlled_open_raw, set_compare_controlled_open_raw) = signal(false);
+    let compare_controlled_open: Signal<bool> =
+        Signal::derive(move || compare_controlled_open_raw.get());
+    let on_compare_controlled_open_change =
+        Callback::new(move |next: bool| set_compare_controlled_open_raw.set(next));
+    let (compare_controlled_close_count, set_compare_controlled_close_count) = signal(0_u32);
+    let on_compare_controlled_close: OnPress =
+        Callback::new(move |_| set_compare_controlled_close_count.update(|value| *value += 1));
+
+    let (compare_uncontrolled_mounted, set_compare_uncontrolled_mounted) = signal(false);
+    let mount_uncontrolled_dialog: OnPress =
+        Callback::new(move |_| set_compare_uncontrolled_mounted.set(true));
+    let unmount_uncontrolled_dialog: OnPress =
+        Callback::new(move |_| set_compare_uncontrolled_mounted.set(false));
+    let (compare_uncontrolled_close_count, set_compare_uncontrolled_close_count) = signal(0_u32);
+    let set_compare_uncontrolled_mounted_on_close = set_compare_uncontrolled_mounted;
+    let on_compare_uncontrolled_close: OnPress = Callback::new(move |_| {
+        set_compare_uncontrolled_close_count.update(|value| *value += 1);
+        set_compare_uncontrolled_mounted_on_close.set(false);
+    });
+    let compare_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(false);
+
+<Dialog
+  id_base="docs-dialog-compare-controlled".to_string()
+  title="Controlled dialog".to_string()
+  is_open=Signal::derive(move || open_raw.get())
+  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))
+>
+  <div>"Controlled body"</div>
+</Dialog>
+
+<Dialog
+  id_base="docs-dialog-compare-uncontrolled".to_string()
+  title="Uncontrolled dialog".to_string()
+  default_open=true
+>
+  <div>"Uncontrolled body"</div>
+</Dialog>"#
+            .to_string()
+    });
+
+    let stream_mode_options = vec![
+        "Snapshot".to_string(),
+        "Streaming (fallback=snapshot)".to_string(),
+    ];
+    let (stream_mode_index, set_stream_mode_index) = signal(Some(0_usize));
+    let stream_requested_mode = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "snapshot"
+        } else {
+            "streaming"
+        }
+    });
+    let stream_output_status_options = vec![
+        "Verified".to_string(),
+        "Draft".to_string(),
+        "Commit Ready".to_string(),
+    ];
+    let (stream_output_status_index, set_stream_output_status_index) = signal(Some(0_usize));
+    let stream_requested_output_status =
+        Signal::derive(
+            move || match stream_output_status_index.get().unwrap_or(0) {
+                1 => "draft",
+                2 => "commit-ready",
+                _ => "verified",
+            },
+        );
+    let (stream_open_raw, set_stream_open_raw) = signal(false);
+    let stream_open: Signal<bool> = Signal::derive(move || stream_open_raw.get());
+    let (stream_present, set_stream_present) = signal(stream_open.get_untracked());
+    Effect::new(move |_| {
+        if stream_open.get() {
+            set_stream_present.set(true);
+        }
+    });
+    let open_stream_dialog: OnPress = Callback::new(move |_| set_stream_open_raw.set(true));
+    let close_stream_dialog: OnPress = Callback::new(move |_| set_stream_open_raw.set(false));
+    let on_stream_exit_complete = Callback::new(move |_| set_stream_present.set(false));
+    let streaming_snapshot_code = Signal::derive(move || {
+        r#"// Dialog is not an LLM body reader surface.
+// Streaming is optional; fallback stays snapshot.
+<Dialog
+  id_base="docs-dialog-stream".to_string()
+  title="Streaming optional contract".to_string()
+  default_open=false
+>
+  <div>"Dialog content"</div>
+</Dialog>"#
+            .to_string()
+    });
+
     let (open_raw, set_open_raw) = signal(false);
     let open: Signal<bool> = Signal::derive(move || open_raw.get());
     let (present, set_present) = signal(open.get_untracked());
@@ -194,9 +357,37 @@ let on_exit_complete = Callback::new(move |_| {});
             group="Overlays"
             description="Dialog panel with header/body/footer structure on top of Overlay."
         >
-            <Playground title="Dialog" code_signal=code>
+            <Playground
+                title="Hello World"
+                description="最小可用默认路径：不需要手动接线 primitives/headless 状态机。"
+                code_signal=hello_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+            >
                 <div class="docs-row">
-                    <Button on_press=open_dialog>"Open dialog"</Button>
+                    <Button on_press=open_hello_dialog>"Open hello dialog"</Button>
+                </div>
+
+                <Show when=move || hello_open_raw.get()>
+                    <Dialog
+                        open=hello_open
+                        on_close=close_hello_dialog
+                        id_base="docs-dialog-hello".to_string()
+                        title="Hello dialog".to_string()
+                    >
+                        <div>"Hello dialog body"</div>
+                    </Dialog>
+                </Show>
+            </Playground>
+
+            <Playground
+                title="Dialog"
+                code_signal=code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-row">
+                    <Button attr:data-slot="dialog-e2e-open-default" on_press=open_dialog>
+                        "Open dialog"
+                    </Button>
                 </div>
 
                 <Show when=move || present.get()>
@@ -222,10 +413,114 @@ let on_exit_complete = Callback::new(move |_| {});
                 </Show>
             </Playground>
 
-            <Playground title="State + Source Markers" code_signal=marker_code>
+            <Playground
+                title="State Matrix"
+                description="受控/非受控、default_open 与 close-button 可见性的状态矩阵切换。"
+                code_signal=state_matrix_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="dialog-state-matrix">
+                    <SegmentedControl
+                        id_base="docs-dialog-state-matrix-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Dialog state matrix scenario".to_string()
+                    />
+                    <div class="docs-row">
+                        <Button
+                            variant=ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_state_matrix_open_raw.set(true))
+                        >
+                            "Open controlled scenario"
+                        </Button>
+                        <Button
+                            variant=ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_state_matrix_open_raw.set(false))
+                        >
+                            "Close controlled scenario"
+                        </Button>
+                    </div>
+                    {move || {
+                        if state_matrix_is_controlled.get() {
+                            view! {
+                                <Dialog
+                                    is_open=state_matrix_open
+                                    on_open_change=on_state_matrix_open_change
+                                    id_base="docs-dialog-state-matrix".to_string()
+                                    title="State Matrix".to_string()
+                                    description=if state_matrix_with_description.get() {
+                                        "Switch scenario to inspect controlled/uncontrolled and source markers."
+                                            .to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    size=state_matrix_size.get()
+                                    is_close_button_visible=state_matrix_show_close.get()
+                                >
+                                    <div class="docs-stack">
+                                        <div>"State matrix body"</div>
+                                        <div class="ui-muted">
+                                            "Inspect data-open-mode/data-open-source/data-close-source."
+                                        </div>
+                                    </div>
+                                </Dialog>
+                            }
+                                .into_any()
+                        } else {
+                            view! {
+                                <Dialog
+                                    default_open=state_matrix_default_open.get()
+                                    id_base="docs-dialog-state-matrix".to_string()
+                                    title="State Matrix".to_string()
+                                    description=if state_matrix_with_description.get() {
+                                        "Switch scenario to inspect controlled/uncontrolled and source markers."
+                                            .to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    size=state_matrix_size.get()
+                                    is_close_button_visible=state_matrix_show_close.get()
+                                >
+                                    <div class="docs-stack">
+                                        <div>"State matrix body"</div>
+                                        <div class="ui-muted">
+                                            "Inspect data-open-mode/data-open-source/data-close-source."
+                                        </div>
+                                    </div>
+                                </Dialog>
+                            }
+                                .into_any()
+                        }
+                    }}
+                    <span class="ui-muted">
+                        "open_mode: "
+                        {move || if state_matrix_is_controlled.get() { "controlled" } else { "uncontrolled" }}
+                    </span>
+                    <span class="ui-muted">
+                        "default_open: "
+                        {move || state_matrix_default_open.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "close_button_visible: "
+                        {move || state_matrix_show_close.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                code_signal=marker_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
-                        <Button on_press=open_dialog variant=ButtonVariant::Secondary>
+                        <Button
+                            attr:data-slot="dialog-e2e-open-marker"
+                            on_press=open_dialog
+                            variant=ButtonVariant::Secondary
+                        >
                             "Open marker dialog"
                         </Button>
                         <span class="ui-muted">"open: " {move || open_raw.get()}</span>
@@ -260,7 +555,11 @@ let on_exit_complete = Callback::new(move |_| {});
                                 "Includes size/id/title/description/close/class/motion source contracts."
                             </div>
                             <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=on_close>
+                                <Button
+                                    attr:data-slot="dialog-e2e-close-marker"
+                                    variant=ButtonVariant::Secondary
+                                    on_press=on_close
+                                >
                                     "Close"
                                 </Button>
                             </div>
@@ -270,9 +569,157 @@ let on_exit_complete = Callback::new(move |_| {});
             </Playground>
 
             <Playground
+                title="Controlled vs Uncontrolled"
+                description="显式对照 value+on_change 受控路径与 default_open 非受控路径。"
+                code_signal=compare_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="dialog-controlled-uncontrolled">
+                    <div class="docs-row">
+                        <Button
+                            variant=ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_compare_controlled_open_raw.set(true))
+                        >
+                            "Open controlled dialog"
+                        </Button>
+                        <Button
+                            variant=ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_compare_controlled_open_raw.set(false))
+                        >
+                            "Close controlled dialog"
+                        </Button>
+                        <Button variant=ButtonVariant::Secondary on_press=mount_uncontrolled_dialog>
+                            "Mount uncontrolled dialog"
+                        </Button>
+                        <Button variant=ButtonVariant::Secondary on_press=unmount_uncontrolled_dialog>
+                            "Unmount uncontrolled dialog"
+                        </Button>
+                    </div>
+                    <div class="docs-row">
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Controlled"</strong>
+                            <Show when=move || compare_controlled_open_raw.get()>
+                                <Dialog
+                                    is_open=compare_controlled_open
+                                    on_open_change=on_compare_controlled_open_change
+                                    on_close=on_compare_controlled_close
+                                    id_base="docs-dialog-compare-controlled".to_string()
+                                    title="Controlled dialog".to_string()
+                                    description="open + on_open_change are driven by parent state."
+                                >
+                                    <div>"Controlled body"</div>
+                                </Dialog>
+                            </Show>
+                            <span class="ui-muted">
+                                "open: "
+                                {move || if compare_controlled_open_raw.get() { "true" } else { "false" }}
+                            </span>
+                            <span class="ui-muted">
+                                "close events: "
+                                {move || compare_controlled_close_count.get()}
+                            </span>
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Uncontrolled"</strong>
+                            <Show when=move || compare_uncontrolled_mounted.get()>
+                                <Dialog
+                                    id_base="docs-dialog-compare-uncontrolled".to_string()
+                                    title="Uncontrolled dialog".to_string()
+                                    description="default_open initializes once; subsequent transitions stay internal."
+                                    default_open=true
+                                    on_close=on_compare_uncontrolled_close
+                                >
+                                    <div>"Uncontrolled body"</div>
+                                </Dialog>
+                            </Show>
+                            <span class="ui-muted">
+                                "mounted: "
+                                {move || if compare_uncontrolled_mounted.get() { "true" } else { "false" }}
+                            </span>
+                            <span class="ui-muted">
+                                "close events: "
+                                {move || compare_uncontrolled_close_count.get()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Dialog 非正文阅读面：Streaming optional，fallback 固定 snapshot。"
+                code_signal=streaming_snapshot_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    attr:data-slot="dialog-streaming-contract"
+                    data-requested-stream-mode=move || stream_requested_mode.get()
+                    data-requested-output-status=move || stream_requested_output_status.get()
+                >
+                    <div class="docs-row">
+                        <Button variant=ButtonVariant::Secondary on_press=open_stream_dialog>
+                            "Open stream contract dialog"
+                        </Button>
+                        <span class="ui-muted">"Streaming is optional; fallback stays snapshot."</span>
+                    </div>
+                    <div class="docs-row">
+                        <SegmentedControl
+                            id_base="docs-dialog-stream-mode".to_string()
+                            options=stream_mode_options.clone()
+                            selected_index=stream_mode_index
+                            set_selected_index=set_stream_mode_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Dialog requested stream mode".to_string()
+                        />
+                        <SegmentedControl
+                            id_base="docs-dialog-stream-output-status".to_string()
+                            options=stream_output_status_options.clone()
+                            selected_index=stream_output_status_index
+                            set_selected_index=set_stream_output_status_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Dialog requested output status".to_string()
+                        />
+                    </div>
+                    <Show when=move || stream_present.get()>
+                        <Dialog
+                            is_open=stream_open
+                            on_open_change=Callback::new(move |next: bool| {
+                                set_stream_open_raw.set(next);
+                            })
+                            on_close=close_stream_dialog
+                            id_base="docs-dialog-stream".to_string()
+                            title="Streaming optional contract".to_string()
+                            description="Effective markers should stay stream_mode=snapshot and stream_fallback=snapshot."
+                            on_exit_complete=on_stream_exit_complete
+                        >
+                            <div class="docs-stack">
+                                <div>"Dialog content"</div>
+                                <div class="ui-muted">
+                                    "Inspect data-stream-mode/data-stream-fallback/data-output-status."
+                                </div>
+                            </div>
+                        </Dialog>
+                    </Show>
+                    <span class="ui-muted">
+                        "requested mode: "
+                        {move || stream_requested_mode.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "requested output status: "
+                        {move || stream_requested_output_status.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "effective component markers: data-stream-mode=snapshot data-stream-fallback=snapshot data-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
                 test_css_source=workbench_test_css_source
                 test_source_path="components/dialog/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -305,9 +752,11 @@ let on_exit_complete = Callback::new(move |_| {});
                     </div>
                 }
             >
-                <div class="docs-stack docs-stack--tight" data-slot="dialog-workbench">
+                <div class="docs-stack docs-stack--tight" attr:data-slot="dialog-workbench">
                     <div class="docs-row">
-                        <Button on_press=open_workbench_dialog>"Open workbench dialog"</Button>
+                        <Button attr:data-slot="dialog-e2e-open-workbench" on_press=open_workbench_dialog>
+                            "Open workbench dialog"
+                        </Button>
                         <span class="ui-muted">
                             "size: "
                             {move || workbench_size.get().as_attr()}
@@ -352,7 +801,11 @@ let on_exit_complete = Callback::new(move |_| {});
                         on_exit_complete=on_workbench_exit_complete
                         footer=move || view! {
                             <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=close_workbench_dialog>
+                                <Button
+                                    attr:data-slot="dialog-e2e-close-workbench"
+                                    variant=ButtonVariant::Secondary
+                                    on_press=close_workbench_dialog
+                                >
                                     "Cancel"
                                 </Button>
                                 <Button on_press=close_workbench_dialog>"Confirm"</Button>
@@ -369,16 +822,32 @@ let on_exit_complete = Callback::new(move |_| {});
                 </Show>
             </Playground>
 
-            <Playground title="Scenario Comparison" code_signal=scenario_code>
-                <div class="docs-stack docs-stack--tight" data-slot="dialog-scenario-compare">
+            <Playground
+                title="Scenario Comparison"
+                code_signal=scenario_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="dialog-scenario-compare">
                     <div class="docs-row">
-                        <Button variant=ButtonVariant::Secondary on_press=open_default_scenario>
+                        <Button
+                            attr:data-slot="dialog-e2e-open-compare-default"
+                            variant=ButtonVariant::Secondary
+                            on_press=open_default_scenario
+                        >
                             "Open default comparison"
                         </Button>
-                        <Button variant=ButtonVariant::Secondary on_press=open_compact_scenario>
+                        <Button
+                            attr:data-slot="dialog-e2e-open-compare-compact"
+                            variant=ButtonVariant::Secondary
+                            on_press=open_compact_scenario
+                        >
                             "Open compact comparison"
                         </Button>
-                        <Button variant=ButtonVariant::Secondary on_press=open_motion_scenario>
+                        <Button
+                            attr:data-slot="dialog-e2e-open-compare-motion"
+                            variant=ButtonVariant::Secondary
+                            on_press=open_motion_scenario
+                        >
                             "Open motion comparison"
                         </Button>
                     </div>
@@ -402,7 +871,11 @@ let on_exit_complete = Callback::new(move |_| {});
                                     <div class="docs-stack">
                                         <div>"Default state contract."</div>
                                         <div class="docs-row docs-row--end">
-                                            <Button variant=ButtonVariant::Secondary on_press=close_scenario_dialog>
+                                            <Button
+                                                attr:data-slot="dialog-e2e-close-compare-default"
+                                                variant=ButtonVariant::Secondary
+                                                on_press=close_scenario_dialog
+                                            >
                                                 "Close"
                                             </Button>
                                         </div>
@@ -425,7 +898,11 @@ let on_exit_complete = Callback::new(move |_| {});
                                     <div class="docs-stack">
                                         <div>"Compact: no description, no close icon."</div>
                                         <div class="docs-row docs-row--end">
-                                            <Button variant=ButtonVariant::Secondary on_press=close_scenario_dialog>
+                                            <Button
+                                                attr:data-slot="dialog-e2e-close-compare-compact"
+                                                variant=ButtonVariant::Secondary
+                                                on_press=close_scenario_dialog
+                                            >
                                                 "Dismiss"
                                             </Button>
                                         </div>
@@ -457,7 +934,11 @@ let on_exit_complete = Callback::new(move |_| {});
                                     <div class="docs-stack">
                                         <div>"Custom motion source marker should be `custom`."</div>
                                         <div class="docs-row docs-row--end">
-                                            <Button variant=ButtonVariant::Secondary on_press=close_scenario_dialog>
+                                            <Button
+                                                attr:data-slot="dialog-e2e-close-compare-motion"
+                                                variant=ButtonVariant::Secondary
+                                                on_press=close_scenario_dialog
+                                            >
                                                 "Close"
                                             </Button>
                                         </div>
@@ -469,6 +950,37 @@ let on_exit_complete = Callback::new(move |_| {});
                     }}
                 </Show>
             </Playground>
+
+            <div class="docs-stack docs-stack--tight" attr:data-slot="dialog-source-first">
+                <h3>"Source-first Copy-Paste"</h3>
+                <p class="ui-muted">
+                    "Use "
+                    <code>"Show code"</code>
+                    " in any playground and the CodeBlock "
+                    <code>"Copy"</code>
+                    " action to copy import-ready snippets."
+                </p>
+                <p class="ui-muted">
+                    "Imports are auto-completed via "
+                    <code>"DIALOG_DOC_IMPORTS"</code>
+                    " + "
+                    <code>"compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p class="ui-muted">
+                    "Dependency prerequisites: "
+                    <code>
+                        "ui-components = { workspace = true, default-features = false, features = [\"component-dialog\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <ul class="docs-stack docs-stack--tight" attr:data-slot="dialog-source-paths">
+                    <li><code>"components/dialog/src/mod.rs"</code></li>
+                    <li><code>"components/dialog/src/logic.rs"</code></li>
+                    <li><code>"components/dialog/src/view.rs"</code></li>
+                    <li><code>"components/dialog/src/styles.rs"</code></li>
+                    <li><code>"components/dialog/src/motion.rs"</code></li>
+                </ul>
+            </div>
         </ComponentPage>
     }
     .into_any()

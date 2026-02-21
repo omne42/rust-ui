@@ -12,7 +12,7 @@ default = []
 button-wasm-debug = []
 component-action_button_group = []
 component-action_group = []
-component-button_copy = []
+component-button_copy = ["dep:ui-snippet"]
 component-button_flip = []
 component-button_group = []
 component-button_search_input = []
@@ -27,6 +27,8 @@ component-toggle_group = []
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../../crates/ui-headless" }
 ui-motion = { path = "../../crates/ui-motion" }
+ui-observability = { path = "../../crates/ui-observability" }
+ui-snippet = { path = "../../components/snippet", optional = true }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
 ui-theme = { path = "../../crates/ui-theme" }
 serde = { version = "1.0", features = ["derive"] }

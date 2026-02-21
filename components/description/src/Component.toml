@@ -1,0 +1,164 @@
+schema_version = "1"
+
+[component]
+name = "Description"
+crate = "ui-description"
+
+[[inputs]]
+name = "text"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "tone"
+ty = "DescriptionTone"
+default = "DescriptionTone::default()"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_truncated"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "element"
+ty = "DescriptionElement"
+default = "DescriptionElement::default()"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-tone + data-state + data-disabled + data-truncate + data-aria-source + data-custom-class + data-class-source + aria-label + lang + dir"
+
+[[outputs]]
+name = "agent-contract-schema"
+ty = "data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-stream-support + data-ui-stream-fallback + data-ui-output-status"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "structured_state_markers"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-contract"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[agent_contract]
+schema = "ui.description.agent-contract.v1"
+intent = "text-assistance"
+output_mode_axis = ["snapshot"]
+action_axis = ["render-snapshot"]
+state_axes = ["data_state"]
+source_axes = ["source"]
+
+[[agent_contract_markers]]
+name = "schema"
+attr = "data-ui-schema"
+values = ["ui.description.agent-contract.v1"]
+
+[[agent_contract_markers]]
+name = "schema_version"
+attr = "data-ui-schema-version"
+values = ["v1"]
+
+[[agent_contract_markers]]
+name = "intent"
+attr = "data-ui-intent"
+values = ["text-assistance"]
+
+[[agent_contract_markers]]
+name = "action"
+attr = "data-ui-action"
+values = ["render-snapshot"]
+
+[[agent_contract_markers]]
+name = "stream_support"
+attr = "data-ui-stream-support"
+values = ["optional"]
+
+[[agent_contract_markers]]
+name = "stream_fallback"
+attr = "data-ui-stream-fallback"
+values = ["snapshot"]
+
+[[agent_contract_markers]]
+name = "output_status"
+attr = "data-ui-output-status"
+values = ["verified"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "typed_state_from_ui_state_primitives::description::resolve_state",
+  "typed_agent_contract_from_logic::resolve_agent_contract_attrs",
+  "typed_render_mount_from_view",
+]
+blocked = [
+  "inner_html",
+  "dangerously_set_inner_html",
+  "<script",
+  "javascript:",
+]

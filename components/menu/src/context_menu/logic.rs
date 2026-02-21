@@ -1,9 +1,9 @@
-use std::collections::BTreeSet;
-
 use crate::context_menu::{
     ContextMenuIds, ContextMenuPartState, ContextMenuPartStateInput, ContextMenuSlot,
 };
+use leptos::prelude::*;
 use ui_headless::PopoverPlacement;
+use ui_state_primitives::menu as menu_state;
 
 pub const DEFAULT_ID_BASE: &str = "context-menu";
 pub const DEFAULT_ARIA_LABEL: &str = "Open context menu";
@@ -11,82 +11,170 @@ pub const DEFAULT_DISABLED: bool = false;
 pub const DEFAULT_CLOSE_ON_ACTION: bool = true;
 pub const DEFAULT_PLACEMENT: PopoverPlacement = PopoverPlacement::BottomStart;
 
-pub fn state_attr(is_open: bool, trigger_disabled: bool) -> &'static str {
-    if is_open {
-        "open"
-    } else if trigger_disabled {
-        "disabled"
-    } else {
-        "closed"
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ContextMenuDiscreteInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
+    pub is_close_on_action: Option<bool>,
+    pub close_on_action: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ContextMenuDiscreteProps {
+    pub disabled_state: ContextMenuDisabledState,
+    pub action_mode: ContextMenuActionMode,
+}
+
+#[derive(Clone)]
+pub struct ContextMenuOpenStateInput {
+    pub is_open: Option<Signal<bool>>,
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+}
+
+#[derive(Clone)]
+pub struct ContextMenuOpenState {
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+    pub is_controlled: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum ContextMenuDisabledState {
+    #[default]
+    Enabled,
+    Disabled,
+}
+
+impl ContextMenuDisabledState {
+    pub fn from_bool(disabled: bool) -> Self {
+        if disabled {
+            Self::Disabled
+        } else {
+            Self::Enabled
+        }
     }
+
+    pub fn is_disabled(self) -> bool {
+        matches!(self, Self::Disabled)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum ContextMenuActionMode {
+    #[default]
+    CloseOnAction,
+    KeepOpenOnAction,
+}
+
+impl ContextMenuActionMode {
+    pub fn from_bool(close_on_action: bool) -> Self {
+        if close_on_action {
+            Self::CloseOnAction
+        } else {
+            Self::KeepOpenOnAction
+        }
+    }
+
+    pub fn is_close_on_action(self) -> bool {
+        matches!(self, Self::CloseOnAction)
+    }
+}
+
+pub fn state_attr(is_open: bool, trigger_disabled: bool) -> &'static str {
+    menu_state::context_state_attr(is_open, trigger_disabled)
 }
 
 pub fn item_attr(item_count: usize) -> &'static str {
-    if item_count == 0 {
-        "empty"
-    } else {
-        "populated"
-    }
+    menu_state::item_attr(item_count)
 }
 
 pub fn disabled_attr(trigger_disabled: bool) -> &'static str {
-    if trigger_disabled { "true" } else { "false" }
+    menu_state::disabled_attr(trigger_disabled)
 }
 
 pub fn action_attr(close_on_action: bool) -> &'static str {
-    if close_on_action {
-        "close"
-    } else {
-        "keep-open"
-    }
+    menu_state::action_attr(close_on_action)
 }
 
 pub fn open_mode_attr(is_controlled: bool) -> &'static str {
-    if is_controlled {
-        "controlled"
-    } else {
-        "uncontrolled"
+    menu_state::open_mode_attr(is_controlled)
+}
+
+pub fn normalize_discrete_props(input: ContextMenuDiscreteInput) -> ContextMenuDiscreteProps {
+    ContextMenuDiscreteProps {
+        disabled_state: ContextMenuDisabledState::from_bool(
+            input.is_disabled.unwrap_or(input.disabled),
+        ),
+        action_mode: ContextMenuActionMode::from_bool(
+            input.is_close_on_action.unwrap_or(input.close_on_action),
+        ),
+    }
+}
+
+pub fn resolve_open_focus_strategy(
+    key: &str,
+    shift_key: bool,
+    trigger_disabled: bool,
+    current_open: bool,
+) -> Option<ui_headless::MenuOpenFocusStrategy> {
+    ui_headless::context_menu_open_focus_strategy(key, shift_key, trigger_disabled, current_open)
+}
+
+pub fn should_open_from_context_menu(trigger_disabled: bool) -> bool {
+    !trigger_disabled
+}
+
+pub fn resolve_ui_action(is_open: bool) -> &'static str {
+    if is_open { "open" } else { "idle" }
+}
+
+pub fn resolve_ui_output_status(is_open: bool) -> &'static str {
+    if is_open { "draft" } else { "submittable" }
+}
+
+pub fn resolve_aria_expanded(is_open: bool) -> &'static str {
+    if is_open { "true" } else { "false" }
+}
+
+pub fn normalize_open_state(input: ContextMenuOpenStateInput) -> ContextMenuOpenState {
+    let open = menu_state::normalize_controlled_prop_alias(input.is_open, input.open);
+    ContextMenuOpenState {
+        is_controlled: menu_state::is_controlled_prop(&open),
+        open,
+        default_open: input.default_open,
+        on_open_change: input.on_open_change,
     }
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    menu_state::normalize_optional_text(value)
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
+    menu_state::normalize_id_base(id_base, DEFAULT_ID_BASE)
 }
 
 pub fn resolve_ids(id_base: &str) -> ContextMenuIds {
+    let (trigger_id, menu_id) = menu_state::resolve_id_pair(id_base);
     ContextMenuIds {
-        trigger_id: format!("{id_base}-trigger"),
-        menu_id: format!("{id_base}-menu"),
+        trigger_id,
+        menu_id,
     }
 }
 
 pub fn normalize_disabled_indices(disabled_indices: Vec<usize>, item_count: usize) -> Vec<usize> {
-    let mut unique = BTreeSet::new();
-    for index in disabled_indices {
-        if index < item_count {
-            unique.insert(index);
-        }
-    }
-    unique.into_iter().collect()
+    menu_state::normalize_disabled_indices(disabled_indices, item_count)
 }
 
 pub fn resolve_trigger_disabled(disabled: bool, item_count: usize) -> bool {
-    disabled || item_count == 0
+    menu_state::resolve_trigger_disabled(disabled, item_count)
 }
 
 pub fn resolve_trigger_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.into(), false)
+    menu_state::resolve_aria_label_with_fallback(value, DEFAULT_ARIA_LABEL, DEFAULT_ARIA_LABEL)
 }
 
 fn source_attr(is_custom: bool) -> &'static str {

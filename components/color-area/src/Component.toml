@@ -1,0 +1,167 @@
+schema_version = "1"
+
+[component]
+name = "ColorArea"
+crate = "ui-color-area"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "value"
+ty = "Option<Signal<(f32, f32)>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_value"
+ty = "Option<(f32, f32)>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_value_change"
+ty = "Option<Callback<(f32, f32)>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "step"
+ty = "Option<f32>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "grid_size"
+ty = "Option<usize>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "preview_color"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ColorAreaMotion"
+default = "ColorAreaMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "x_axis_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "y_axis_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "on_value_change"
+ty = "Callback<(f32, f32)>"
+scope = "component-event"
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-disabled + data-step + data-grid-size + data-value-x + data-value-y + data-selected-col + data-selected-row + data-has-preview + data-label-source + data-aria-source + data-class-source + data-x-axis-source + data-y-axis-source + data-value-control-mode + data-value-source + role + aria-* + lang + dir"
+
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-stream-support + data-ui-stream-fallback + data-ui-stream-mode + data-ui-output-status + data-ui-intent + data-ui-action + data-ui-state + data-ui-source"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_value"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_attach"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[agent_contract]]
+schema = "ui.color-area.agent-contract.v1"
+intent = "select-color-point"
+action = "select|disabled"
+state_axes = ["active", "disabled"]
+source_axes = ["external", "default"]
+stream_support = "optional"
+stream_fallback = "snapshot"
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"

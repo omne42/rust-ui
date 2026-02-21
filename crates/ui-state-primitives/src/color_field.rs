@@ -17,16 +17,47 @@ pub struct ColorFieldStateInput {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorFieldVisualState {
+    Disabled,
+    Empty,
+    Valid,
+    Invalid,
+}
+
+impl ColorFieldVisualState {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Disabled => "disabled",
+            Self::Empty => "empty",
+            Self::Valid => "valid",
+            Self::Invalid => "invalid",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ColorFieldState {
     pub is_disabled: bool,
     pub has_value: bool,
     pub has_valid_value: bool,
     pub has_preview: bool,
-    pub data_state_attr: &'static str,
+    pub visual_state: ColorFieldVisualState,
     pub label_source_attr: &'static str,
     pub placeholder_source_attr: &'static str,
     pub aria_source_attr: &'static str,
     pub class_source_attr: &'static str,
+    pub has_custom_class_name: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ColorFieldDerivedStateInput {
+    pub is_disabled: bool,
+    pub is_preview_visible: bool,
+    pub value: Option<String>,
+    pub preview_color: Option<String>,
+    pub has_custom_label: bool,
+    pub has_custom_placeholder: bool,
+    pub has_custom_aria_label: bool,
     pub has_custom_class_name: bool,
 }
 
@@ -66,23 +97,27 @@ pub fn sanitize_preview_color(value: Option<String>) -> Option<String> {
     crate::swatch::sanitize_color_value(normalize_color_value(value))
 }
 
-pub fn resolve_state(input: ColorFieldStateInput) -> ColorFieldState {
-    let data_state_attr = if input.disabled {
-        "disabled"
+pub fn resolve_visual_state(input: ColorFieldStateInput) -> ColorFieldVisualState {
+    if input.disabled {
+        ColorFieldVisualState::Disabled
     } else if !input.has_value {
-        "empty"
+        ColorFieldVisualState::Empty
     } else if input.has_valid_value {
-        "valid"
+        ColorFieldVisualState::Valid
     } else {
-        "invalid"
-    };
+        ColorFieldVisualState::Invalid
+    }
+}
+
+pub fn resolve_state(input: ColorFieldStateInput) -> ColorFieldState {
+    let visual_state = resolve_visual_state(input);
 
     ColorFieldState {
         is_disabled: input.disabled,
         has_value: input.has_value,
         has_valid_value: input.has_valid_value,
         has_preview: input.has_preview,
-        data_state_attr,
+        visual_state,
         label_source_attr: if input.has_custom_label {
             "custom"
         } else {
@@ -105,6 +140,26 @@ pub fn resolve_state(input: ColorFieldStateInput) -> ColorFieldState {
         },
         has_custom_class_name: input.has_custom_class_name,
     }
+}
+
+pub fn resolve_derived_state(input: ColorFieldDerivedStateInput) -> ColorFieldState {
+    let has_value = input.value.is_some();
+    let has_valid_value = input.preview_color.is_some();
+
+    resolve_state(ColorFieldStateInput {
+        disabled: input.is_disabled,
+        has_value,
+        has_valid_value,
+        has_preview: input.is_preview_visible && has_valid_value,
+        has_custom_label: input.has_custom_label,
+        has_custom_placeholder: input.has_custom_placeholder,
+        has_custom_aria_label: input.has_custom_aria_label,
+        has_custom_class_name: input.has_custom_class_name,
+    })
+}
+
+pub fn is_invalid_state(state: ColorFieldState) -> bool {
+    matches!(state.visual_state, ColorFieldVisualState::Invalid)
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ColorFieldState) -> String {

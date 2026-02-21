@@ -1,11 +1,20 @@
 use ui_theme::{
     Theme, ThemeColor, ThemeContext, ThemeScale, ThemeSystem, accordion_motion_tokens,
-    button_layout_tokens, button_motion_tokens, default_accordion_motion_tokens,
-    default_button_layout_tokens, default_button_motion_tokens, default_overlay_layout_tokens,
-    default_slider_layout_tokens, default_slider_motion_tokens, default_swatch_motion_tokens,
-    default_switch_motion_tokens, default_text_field_motion_tokens, default_textarea_motion_tokens,
-    overlay_layout_tokens, slider_layout_tokens, slider_motion_tokens, swatch_motion_tokens,
-    switch_motion_tokens, text_field_motion_tokens, textarea_motion_tokens,
+    button_layout_tokens, button_motion_tokens, checkbox_group_layout_tokens,
+    checkbox_group_motion_tokens, checkbox_layout_tokens, color_swatch_layout_tokens,
+    color_wheel_hue_tokens, color_wheel_layout_tokens, command_layout_tokens,
+    default_accordion_motion_tokens, default_button_layout_tokens, default_button_motion_tokens,
+    default_checkbox_group_layout_tokens, default_checkbox_group_motion_tokens,
+    default_checkbox_layout_tokens, default_color_swatch_layout_tokens,
+    default_color_wheel_hue_tokens, default_color_wheel_layout_tokens,
+    default_command_layout_tokens, default_drop_zone_layout_tokens,
+    default_drop_zone_motion_tokens, default_flip_card_layout_tokens, default_label_motion_tokens,
+    default_overlay_layout_tokens, default_slider_layout_tokens, default_slider_motion_tokens,
+    default_swatch_motion_tokens, default_switch_motion_tokens, default_text_field_motion_tokens,
+    default_textarea_motion_tokens, drop_zone_layout_tokens, drop_zone_motion_tokens,
+    flip_card_layout_tokens, label_motion_tokens, overlay_layout_tokens, slider_layout_tokens,
+    slider_motion_tokens, swatch_motion_tokens, switch_motion_tokens, text_field_motion_tokens,
+    textarea_motion_tokens,
 };
 
 #[test]
@@ -36,12 +45,65 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(medium.tokens.slider_layout.max_width_px, 352);
     assert_eq!(medium.tokens.slider_layout.thumb_border_width_px, 2);
     assert_eq!(medium.tokens.slider_layout.focus_ring_width_px, 2);
+    assert_eq!(medium.tokens.color_swatch_layout.size_xs_px, 14);
+    assert_eq!(medium.tokens.color_swatch_layout.size_sm_px, 16);
+    assert_eq!(medium.tokens.color_swatch_layout.size_md_px, 20);
+    assert_eq!(medium.tokens.color_swatch_layout.size_lg_px, 24);
+    assert_eq!(medium.tokens.color_swatch_layout.radius_default_px, 4);
+    assert_eq!(medium.tokens.color_swatch_layout.radius_none_px, 0);
+    assert_eq!(medium.tokens.color_swatch_layout.radius_full_px, 9999);
+    assert_eq!(medium.tokens.color_swatch_layout.shape_wide_multiplier, 2.5);
+    assert_eq!(medium.tokens.color_swatch_layout.checker_size_px, 8);
+    assert_eq!(medium.tokens.color_swatch_layout.slash_width_px, 1);
+    assert_eq!(medium.tokens.color_swatch_layout.border_width_px, 1);
+    assert_eq!(medium.tokens.color_wheel_layout.size_px, 176);
+    assert_eq!(medium.tokens.color_wheel_layout.track_thickness_px, 16);
+    assert_eq!(medium.tokens.color_wheel_layout.thumb_size_px, 16);
+    assert_eq!(medium.tokens.color_wheel_hue.red, "#ff0000");
+    assert_eq!(medium.tokens.color_wheel_hue.magenta, "#ff00ff");
     assert_eq!(medium.tokens.underlay_motion.transition_duration_ms, 220);
     assert_eq!(medium.tokens.underlay_motion.visibility_duration_ms, 220);
     assert_eq!(medium.tokens.underlay_motion.backdrop_blur_px, 1);
     assert_eq!(medium.tokens.underlay_motion.scrim_alpha_percent, 56);
+    let medium_label_motion = label_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    assert_eq!(medium_label_motion.color_duration_ms, 180);
+    assert_eq!(medium_label_motion.weight_duration_ms, 180);
+    assert_eq!(medium_label_motion.easing, "cubic-bezier(0.2, 0, 0, 1)");
     assert_eq!(medium.tokens.icons.size_100_px, 20);
     assert_eq!(medium.tokens.icons.size_200_px, 22);
+    assert_eq!(medium.tokens.checkbox_group_layout.gap_px, 4);
+    assert_eq!(
+        medium.tokens.checkbox_group_layout.required_marker_gap_px,
+        4
+    );
+    assert_eq!(
+        medium.tokens.checkbox_group_layout.disabled_opacity_percent,
+        60
+    );
+    assert_eq!(medium.tokens.command_layout.panel_max_width_px, 480);
+    assert_eq!(medium.tokens.command_layout.list_max_height_px, 336);
+    assert_eq!(medium.tokens.command_layout.disabled_opacity_percent, 64);
+    assert_eq!(medium.tokens.command_layout.group_spacing_px, 6);
+    assert_eq!(medium.tokens.command_layout.option_gap_px, 12);
+    assert_eq!(
+        medium.tokens.command_layout.option_disabled_opacity_percent,
+        52
+    );
+    assert_eq!(medium.tokens.flip_card_layout.max_inline_size_px, 336);
+    assert_eq!(
+        medium.tokens.flip_card_layout.max_inline_viewport_percent,
+        92
+    );
+    assert_eq!(medium.tokens.flip_card_layout.aspect_ratio_width, 4);
+    assert_eq!(medium.tokens.flip_card_layout.aspect_ratio_height, 3);
+    assert_eq!(medium.tokens.flip_card_layout.perspective_px, 1200);
+    assert_eq!(medium.tokens.flip_card_layout.disabled_opacity_percent, 60);
+    assert_eq!(medium.tokens.flip_card_layout.focus_outline_width_px, 3);
+    assert_eq!(medium.tokens.flip_card_layout.title_font_weight, 650);
 
     let large = Theme::baseline_two(ThemeColor::Light, ThemeScale::Large);
     assert_eq!(large.tokens.typography.font_size_100_px, 14);
@@ -69,12 +131,62 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(large.tokens.slider_layout.max_width_px, 400);
     assert_eq!(large.tokens.slider_layout.thumb_border_width_px, 2);
     assert_eq!(large.tokens.slider_layout.focus_ring_width_px, 2);
+    assert_eq!(large.tokens.color_swatch_layout.size_xs_px, 16);
+    assert_eq!(large.tokens.color_swatch_layout.size_sm_px, 18);
+    assert_eq!(large.tokens.color_swatch_layout.size_md_px, 22);
+    assert_eq!(large.tokens.color_swatch_layout.size_lg_px, 28);
+    assert_eq!(large.tokens.color_swatch_layout.radius_default_px, 4);
+    assert_eq!(large.tokens.color_swatch_layout.radius_none_px, 0);
+    assert_eq!(large.tokens.color_swatch_layout.radius_full_px, 9999);
+    assert_eq!(large.tokens.color_swatch_layout.shape_wide_multiplier, 2.5);
+    assert_eq!(large.tokens.color_swatch_layout.checker_size_px, 10);
+    assert_eq!(large.tokens.color_swatch_layout.slash_width_px, 1);
+    assert_eq!(large.tokens.color_swatch_layout.border_width_px, 1);
+    assert_eq!(large.tokens.color_wheel_layout.size_px, 192);
+    assert_eq!(large.tokens.color_wheel_layout.track_thickness_px, 18);
+    assert_eq!(large.tokens.color_wheel_layout.thumb_size_px, 18);
+    assert_eq!(large.tokens.color_wheel_hue.red, "#ff0000");
+    assert_eq!(large.tokens.color_wheel_hue.magenta, "#ff00ff");
     assert_eq!(large.tokens.underlay_motion.transition_duration_ms, 240);
     assert_eq!(large.tokens.underlay_motion.visibility_duration_ms, 240);
     assert_eq!(large.tokens.underlay_motion.backdrop_blur_px, 1);
     assert_eq!(large.tokens.underlay_motion.scrim_alpha_percent, 56);
+    let large_label_motion = label_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+    assert_eq!(large_label_motion.color_duration_ms, 200);
+    assert_eq!(large_label_motion.weight_duration_ms, 200);
+    assert_eq!(large_label_motion.easing, "cubic-bezier(0.2, 0, 0, 1)");
     assert_eq!(large.tokens.icons.size_100_px, 24);
     assert_eq!(large.tokens.icons.size_200_px, 28);
+    assert_eq!(large.tokens.checkbox_group_layout.gap_px, 4);
+    assert_eq!(large.tokens.checkbox_group_layout.required_marker_gap_px, 4);
+    assert_eq!(
+        large.tokens.checkbox_group_layout.disabled_opacity_percent,
+        60
+    );
+    assert_eq!(large.tokens.command_layout.panel_max_width_px, 480);
+    assert_eq!(large.tokens.command_layout.list_max_height_px, 336);
+    assert_eq!(large.tokens.command_layout.disabled_opacity_percent, 64);
+    assert_eq!(large.tokens.command_layout.group_spacing_px, 6);
+    assert_eq!(large.tokens.command_layout.option_gap_px, 12);
+    assert_eq!(
+        large.tokens.command_layout.option_disabled_opacity_percent,
+        52
+    );
+    assert_eq!(large.tokens.flip_card_layout.max_inline_size_px, 384);
+    assert_eq!(
+        large.tokens.flip_card_layout.max_inline_viewport_percent,
+        92
+    );
+    assert_eq!(large.tokens.flip_card_layout.aspect_ratio_width, 4);
+    assert_eq!(large.tokens.flip_card_layout.aspect_ratio_height, 3);
+    assert_eq!(large.tokens.flip_card_layout.perspective_px, 1320);
+    assert_eq!(large.tokens.flip_card_layout.disabled_opacity_percent, 60);
+    assert_eq!(large.tokens.flip_card_layout.focus_outline_width_px, 3);
+    assert_eq!(large.tokens.flip_card_layout.title_font_weight, 650);
 }
 
 #[test]
@@ -96,9 +208,51 @@ fn css_variables_emit_theme_axes() {
     assert!(css.contains("--ui-slider-max-width:"));
     assert!(css.contains("--ui-slider-thumb-border-width:"));
     assert!(css.contains("--ui-slider-focus-ring-width:"));
+    assert!(css.contains("--ui-color-swatch-size-xs:"));
+    assert!(css.contains("--ui-color-swatch-size-md:"));
+    assert!(css.contains("--ui-color-swatch-radius-full:"));
+    assert!(css.contains("--ui-color-swatch-wide-multiplier:"));
+    assert!(css.contains("--ui-color-swatch-checker-size:"));
+    assert!(css.contains("--ui-color-swatch-slash-width:"));
+    assert!(css.contains("--ui-color-swatch-border-width:"));
+    assert!(css.contains("--ui-color-wheel-size:"));
+    assert!(css.contains("--ui-color-wheel-track-thickness:"));
+    assert!(css.contains("--ui-color-wheel-thumb-size:"));
+    assert!(css.contains("--ui-color-wheel-hue-red:"));
+    assert!(css.contains("--ui-color-wheel-hue-magenta:"));
     assert!(css.contains("--ui-underlay-transition-duration:"));
     assert!(css.contains("--ui-underlay-transition-easing:"));
+    assert!(css.contains("--ui-label-motion-color-duration:"));
+    assert!(css.contains("--ui-label-motion-weight-duration:"));
+    assert!(css.contains("--ui-label-motion-easing:"));
     assert!(css.contains("--ui-separator-decorative-opacity:"));
+    assert!(css.contains("--ui-checkbox-gap:"));
+    assert!(css.contains("--ui-checkbox-disabled-opacity:"));
+    assert!(css.contains("--ui-checkbox-size-default:"));
+    assert!(css.contains("--ui-checkbox-indicator-size-default:"));
+    assert!(css.contains("--ui-checkbox-group-gap:"));
+    assert!(css.contains("--ui-checkbox-group-required-marker-gap:"));
+    assert!(css.contains("--ui-checkbox-group-disabled-opacity:"));
+    assert!(css.contains("--ui-checkbox-group-motion-duration:"));
+    assert!(css.contains("--ui-checkbox-group-motion-easing:"));
+    assert!(css.contains("--ui-checkbox-group-motion-stiffness:"));
+    assert!(css.contains("--ui-checkbox-group-motion-damping:"));
+    assert!(css.contains("--ui-checkbox-group-motion-mass:"));
+    assert!(css.contains("--ui-checkbox-group-motion-precision:"));
+    assert!(css.contains("--ui-command-panel-max-width:"));
+    assert!(css.contains("--ui-command-list-max-height:"));
+    assert!(css.contains("--ui-command-disabled-opacity:"));
+    assert!(css.contains("--ui-command-group-gap:"));
+    assert!(css.contains("--ui-command-option-gap:"));
+    assert!(css.contains("--ui-command-option-disabled-opacity:"));
+    assert!(css.contains("--ui-flip-card-max-inline-size:"));
+    assert!(css.contains("--ui-flip-card-max-inline-viewport:"));
+    assert!(css.contains("--ui-flip-card-aspect-ratio-width:"));
+    assert!(css.contains("--ui-flip-card-aspect-ratio-height:"));
+    assert!(css.contains("--ui-flip-card-perspective:"));
+    assert!(css.contains("--ui-flip-card-disabled-opacity:"));
+    assert!(css.contains("--ui-flip-card-focus-outline-width:"));
+    assert!(css.contains("--ui-flip-card-title-font-weight:"));
 }
 
 #[test]
@@ -244,6 +398,115 @@ fn button_layout_tokens_follow_theme_token_baseline() {
 }
 
 #[test]
+fn checkbox_layout_tokens_follow_theme_token_baseline() {
+    let medium = checkbox_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = checkbox_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.gap_px, 10);
+    assert_eq!(medium.disabled_opacity_percent, 50);
+    assert_eq!(medium.focus_outline_width_px, 3);
+    assert_eq!(medium.focus_outline_offset_px, 2);
+    assert_eq!(medium.box_size_default_px, 20);
+    assert_eq!(medium.box_size_sm_px, 18);
+    assert_eq!(medium.box_size_lg_px, 24);
+    assert_eq!(medium.box_radius_default_px, 4);
+    assert_eq!(medium.box_radius_sm_px, 5);
+    assert_eq!(medium.box_radius_lg_px, 7);
+    assert_eq!(medium.indicator_size_default_px, 14);
+    assert_eq!(medium.indicator_size_sm_px, 12);
+    assert_eq!(medium.indicator_size_lg_px, 16);
+    assert_eq!(large, medium);
+    assert_eq!(default_checkbox_layout_tokens(), medium);
+}
+
+#[test]
+fn checkbox_group_layout_tokens_follow_theme_token_baseline() {
+    let medium = checkbox_group_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = checkbox_group_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.gap_px, 4);
+    assert_eq!(medium.required_marker_gap_px, 4);
+    assert_eq!(medium.disabled_opacity_percent, 60);
+    assert_eq!(large, medium);
+    assert_eq!(default_checkbox_group_layout_tokens(), medium);
+}
+
+#[test]
+fn command_layout_tokens_follow_theme_token_baseline() {
+    let medium = command_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = command_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.panel_max_width_px, 480);
+    assert_eq!(medium.list_max_height_px, 336);
+    assert_eq!(medium.disabled_opacity_percent, 64);
+    assert_eq!(medium.input_wrap_padding_px, 8);
+    assert_eq!(medium.input_wrap_border_mix_percent, 86);
+    assert_eq!(medium.input_wrap_bg_mix_percent, 94);
+    assert_eq!(medium.option_gap_px, 12);
+    assert_eq!(medium.option_disabled_opacity_percent, 52);
+    assert_eq!(large, medium);
+    assert_eq!(default_command_layout_tokens(), medium);
+}
+
+#[test]
+fn flip_card_layout_tokens_follow_theme_token_baseline() {
+    let medium = flip_card_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = flip_card_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.max_inline_size_px, 336);
+    assert_eq!(medium.max_inline_viewport_percent, 92);
+    assert_eq!(medium.aspect_ratio_width, 4);
+    assert_eq!(medium.aspect_ratio_height, 3);
+    assert_eq!(medium.perspective_px, 1200);
+    assert_eq!(medium.disabled_opacity_percent, 60);
+    assert_eq!(medium.focus_outline_width_px, 3);
+    assert_eq!(medium.title_font_weight, 650);
+
+    assert_eq!(large.max_inline_size_px, 384);
+    assert_eq!(large.max_inline_viewport_percent, 92);
+    assert_eq!(large.aspect_ratio_width, 4);
+    assert_eq!(large.aspect_ratio_height, 3);
+    assert_eq!(large.perspective_px, 1320);
+    assert_eq!(large.disabled_opacity_percent, 60);
+    assert_eq!(large.focus_outline_width_px, 3);
+    assert_eq!(large.title_font_weight, 650);
+
+    assert_eq!(default_flip_card_layout_tokens(), medium);
+}
+
+#[test]
 fn switch_motion_tokens_follow_scale_baseline() {
     let medium = switch_motion_tokens(ThemeContext {
         system: ThemeSystem::BaselineTwo,
@@ -287,6 +550,53 @@ fn slider_motion_tokens_follow_scale_baseline() {
 }
 
 #[test]
+fn drop_zone_motion_tokens_follow_scale_baseline() {
+    let medium = drop_zone_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = drop_zone_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.spring.stiffness, 260.0);
+    assert_eq!(medium.spring.damping, 18.0);
+    assert_eq!(medium.spring.mass, 1.0);
+    assert_eq!(medium.spring.precision, 0.001);
+    assert_eq!(medium.hover_scale, 1.01);
+    assert_eq!(medium.drop_scale, 1.02);
+    assert_eq!(medium.hover_highlight, 0.35);
+    assert_eq!(large, medium);
+    assert_eq!(default_drop_zone_motion_tokens(), medium);
+}
+
+#[test]
+fn drop_zone_layout_tokens_follow_scale_baseline() {
+    let medium = drop_zone_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = drop_zone_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.min_height_px, 120);
+    assert_eq!(medium.border_width_px, 1);
+    assert_eq!(medium.disabled_opacity_percent, 50);
+    assert_eq!(medium.focus_outline_width_px, 3);
+    assert_eq!(medium.focus_outline_offset_px, 2);
+    assert_eq!(medium.sr_only_size_px, 1);
+    assert_eq!(large.min_height_px, 136);
+    assert_eq!(default_drop_zone_layout_tokens(), medium);
+}
+
+#[test]
 fn slider_layout_tokens_follow_scale_baseline() {
     let medium = slider_layout_tokens(ThemeContext {
         system: ThemeSystem::BaselineTwo,
@@ -306,6 +616,89 @@ fn slider_layout_tokens_follow_scale_baseline() {
     assert_eq!(large.thumb_border_width_px, 2);
     assert_eq!(large.focus_ring_width_px, 2);
     assert_eq!(default_slider_layout_tokens(), medium);
+}
+
+#[test]
+fn color_swatch_layout_tokens_follow_scale_baseline() {
+    let medium = color_swatch_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = color_swatch_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.size_xs_px, 14);
+    assert_eq!(medium.size_sm_px, 16);
+    assert_eq!(medium.size_md_px, 20);
+    assert_eq!(medium.size_lg_px, 24);
+    assert_eq!(medium.radius_default_px, 4);
+    assert_eq!(medium.radius_none_px, 0);
+    assert_eq!(medium.radius_full_px, 9999);
+    assert_eq!(medium.shape_wide_multiplier, 2.5);
+    assert_eq!(medium.checker_size_px, 8);
+    assert_eq!(medium.slash_width_px, 1);
+    assert_eq!(medium.border_width_px, 1);
+    assert_eq!(large.size_xs_px, 16);
+    assert_eq!(large.size_sm_px, 18);
+    assert_eq!(large.size_md_px, 22);
+    assert_eq!(large.size_lg_px, 28);
+    assert_eq!(large.radius_default_px, 4);
+    assert_eq!(large.radius_none_px, 0);
+    assert_eq!(large.radius_full_px, 9999);
+    assert_eq!(large.shape_wide_multiplier, 2.5);
+    assert_eq!(large.checker_size_px, 10);
+    assert_eq!(large.slash_width_px, 1);
+    assert_eq!(large.border_width_px, 1);
+    assert_eq!(default_color_swatch_layout_tokens(), medium);
+}
+
+#[test]
+fn color_wheel_layout_tokens_follow_scale_baseline() {
+    let medium = color_wheel_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = color_wheel_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.size_px, 176);
+    assert_eq!(medium.track_thickness_px, 16);
+    assert_eq!(medium.thumb_size_px, 16);
+    assert_eq!(large.size_px, 192);
+    assert_eq!(large.track_thickness_px, 18);
+    assert_eq!(large.thumb_size_px, 18);
+    assert_eq!(default_color_wheel_layout_tokens(), medium);
+}
+
+#[test]
+fn color_wheel_hue_tokens_are_scale_invariant() {
+    let medium = color_wheel_hue_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = color_wheel_hue_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Dark,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.red, "#ff0000");
+    assert_eq!(medium.yellow, "#ffff00");
+    assert_eq!(medium.green, "#00ff00");
+    assert_eq!(medium.cyan, "#00ffff");
+    assert_eq!(medium.blue, "#0000ff");
+    assert_eq!(medium.magenta, "#ff00ff");
+    assert_eq!(large, medium);
+    assert_eq!(default_color_wheel_hue_tokens(), medium);
 }
 
 #[test]
@@ -344,6 +737,52 @@ fn text_field_motion_tokens_follow_scale_baseline() {
     assert_eq!(large.duration_ms, 200);
     assert_eq!(large.easing, "cubic-bezier(0.2, 0, 0, 1)");
     assert_eq!(default_text_field_motion_tokens(), medium);
+}
+
+#[test]
+fn label_motion_tokens_follow_scale_baseline() {
+    let medium = label_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = label_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.color_duration_ms, 180);
+    assert_eq!(medium.weight_duration_ms, 180);
+    assert_eq!(medium.easing, "cubic-bezier(0.2, 0, 0, 1)");
+    assert_eq!(large.color_duration_ms, 200);
+    assert_eq!(large.weight_duration_ms, 200);
+    assert_eq!(large.easing, "cubic-bezier(0.2, 0, 0, 1)");
+    assert_eq!(default_label_motion_tokens(), medium);
+}
+
+#[test]
+fn checkbox_group_motion_tokens_follow_scale_baseline() {
+    let medium = checkbox_group_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = checkbox_group_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.duration_ms, 180);
+    assert_eq!(medium.easing, "cubic-bezier(0.2, 0, 0, 1)");
+    assert_eq!(medium.spring.stiffness, 260.0);
+    assert_eq!(medium.spring.damping, 16.0);
+    assert_eq!(large.duration_ms, 200);
+    assert_eq!(large.easing, "cubic-bezier(0.2, 0, 0, 1)");
+    assert_eq!(large.spring.stiffness, 260.0);
+    assert_eq!(large.spring.damping, 16.0);
+    assert_eq!(default_checkbox_group_motion_tokens(), medium);
 }
 
 #[test]

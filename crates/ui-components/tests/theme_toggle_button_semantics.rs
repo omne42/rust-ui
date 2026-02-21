@@ -113,6 +113,7 @@ fn theme_toggle_button_uses_logic_state_model() {
     for needle in [
         "pub struct ThemeToggleState",
         "pub fn normalize_optional_text(",
+        "pub fn normalize_aria_label(",
         "pub fn normalize_modes(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
@@ -127,7 +128,7 @@ fn theme_toggle_button_uses_logic_state_model() {
     for needle in [
         "let modes = logic::normalize_modes(modes);",
         "let class_name = logic::normalize_optional_text(class_name);",
-        "let aria_label = logic::normalize_optional_text(aria_label);",
+        "let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);",
         "let has_custom_motion = motion != ThemeToggleMotion::default();",
         "let motion_source_attr = if has_custom_motion {",
         "let class = logic::compose_class_name(",
@@ -312,7 +313,7 @@ fn theme_toggle_button_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Custom modes + disabled\"",
         "modes=custom_modes.clone()",
         "aria_label=\"Switch UI mode\".to_string()",
-        "<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />",
+        "<ThemeToggleButton mode=mode set_mode=set_mode is_disabled=true />",
         "\"disabled toggle should remain inert\"",
     ] {
         assert!(

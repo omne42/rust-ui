@@ -8,6 +8,12 @@ use ui_components::{
     SegmentedControl, SegmentedControlSize, Switch,
 };
 
+const COMMAND_DIALOG_DOC_IMPORTS: &str =
+    "use leptos::prelude::*;\nuse ui_components::{CommandDialog, CommandGroup, CommandItem};";
+const COMMAND_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse std::sync::Arc;\nuse ui_components::{Command, CommandGroup, CommandItem};";
+const CAROUSEL_DOC_IMPORTS: &str =
+    "use leptos::prelude::*;\nuse ui_components::{Carousel, CarouselItem, CarouselOrientation};";
+
 pub(super) fn command() -> AnyView {
     let groups: Arc<[CommandGroup]> = Arc::from(vec![
         CommandGroup::new(
@@ -85,6 +91,127 @@ pub(super) fn command() -> AnyView {
 
     let (last_marker_action, set_last_marker_action) = signal("none".to_string());
     let on_marker_action = Callback::new(move |id: String| set_last_marker_action.set(id));
+
+    let hello_groups: Arc<[CommandGroup]> = Arc::from(vec![CommandGroup::new(
+        "Quick Start",
+        vec![CommandItem::new("open-dashboard", "Open Dashboard")],
+    )]);
+
+    let hello_code = Signal::derive(move || {
+        r#"<Command
+  id_base="docs-command-hello".to_string()
+  groups=Arc::from(vec![CommandGroup::new("Quick Start", vec![CommandItem::new("open-dashboard", "Open Dashboard")])])
+/>"#
+            .to_string()
+    });
+
+    let state_matrix_groups = groups.clone();
+    let state_matrix_options = vec![
+        "Idle (default)".to_string(),
+        "Query with results".to_string(),
+        "Query empty".to_string(),
+        "Disabled".to_string(),
+    ];
+    let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
+    let state_matrix_selected = Signal::derive(move || state_matrix_index.get().unwrap_or(0));
+    let state_matrix_default_query = Signal::derive(move || match state_matrix_selected.get() {
+        1 => "cal".to_string(),
+        2 => "no-match".to_string(),
+        _ => String::new(),
+    });
+    let state_matrix_disabled = Signal::derive(move || state_matrix_selected.get() == 3);
+
+    let state_matrix_code = Signal::derive(move || {
+        let mut lines = vec![
+            "let groups = vec![CommandGroup::new(\"Suggestions\", vec![CommandItem::new(\"calendar\", \"Calendar\")])];".to_string(),
+            String::new(),
+            "<Command".to_string(),
+            "  id_base=\"docs-command-state-matrix\".to_string()".to_string(),
+            "  groups=groups.clone()".to_string(),
+        ];
+
+        let query = state_matrix_default_query.get();
+        if !query.is_empty() {
+            lines.push(format!("  default_query=\"{query}\".to_string()"));
+        }
+        if state_matrix_disabled.get() {
+            lines.push("  is_disabled=true".to_string());
+        }
+        lines.push("/>".to_string());
+
+        lines.join("\n")
+    });
+
+    let compare_groups = groups.clone();
+    let (controlled_query_raw, set_controlled_query_raw) = signal("cal".to_string());
+    let controlled_query: Signal<String> = Signal::derive(move || controlled_query_raw.get());
+    let on_controlled_query_change =
+        Callback::new(move |next: String| set_controlled_query_raw.set(next));
+    let (last_controlled_query_action, set_last_controlled_query_action) =
+        signal("none".to_string());
+    let on_controlled_query_action =
+        Callback::new(move |id: String| set_last_controlled_query_action.set(id));
+    let (last_uncontrolled_query_action, set_last_uncontrolled_query_action) =
+        signal("none".to_string());
+    let on_uncontrolled_query_action =
+        Callback::new(move |id: String| set_last_uncontrolled_query_action.set(id));
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"let (query, set_query) = signal("cal".to_string());
+let groups = vec![
+  CommandGroup::new("Suggestions", vec![CommandItem::new("calendar", "Calendar")]),
+  CommandGroup::new("Settings", vec![CommandItem::new("profile", "Profile")]),
+];
+
+<div class="docs-stack docs-stack--tight">
+  <Command
+    id_base="docs-command-controlled".to_string()
+    groups=groups.clone()
+    query=Signal::derive(move || query.get())
+    on_query_change=Callback::new(move |next: String| set_query.set(next))
+  />
+  <Command
+    id_base="docs-command-uncontrolled".to_string()
+    groups=groups.clone()
+    default_query="cal".to_string()
+  />
+</div>"#
+            .to_string()
+    });
+
+    let stream_mode_options = vec![
+        "Snapshot".to_string(),
+        "Streaming (fallback=snapshot)".to_string(),
+    ];
+    let (stream_mode_index, set_stream_mode_index) = signal(Some(0_usize));
+    let stream_requested_mode = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "snapshot".to_string()
+        } else {
+            "streaming".to_string()
+        }
+    });
+    let stream_requested_output_status = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "verified".to_string()
+        } else {
+            "draft".to_string()
+        }
+    });
+    let stream_groups = groups.clone();
+    let streaming_snapshot_code = Signal::derive(move || {
+        r#"// Streaming is optional; fallback stays snapshot.
+let groups = vec![
+  CommandGroup::new("Suggestions", vec![CommandItem::new("calendar", "Calendar")]),
+];
+
+<Command
+  id_base="docs-command-stream".to_string()
+  groups=groups.clone()
+  default_query="cal".to_string()
+/>"#
+        .to_string()
+    });
 
     let code = Signal::derive(move || {
         r#"let (last_action, set_last_action) = signal("none".to_string());
@@ -189,6 +316,8 @@ let (last_action, set_last_action) = signal("none".to_string());
         let is_disabled = workbench_disabled.get();
 
         let mut lines = vec![
+            "let groups = vec![CommandGroup::new(\"Suggestions\", vec![CommandItem::new(\"calendar\", \"Calendar\")])];".to_string(),
+            String::new(),
             "<Command".to_string(),
             "  id_base=\"docs-command-workbench\".into()".to_string(),
             "  groups=groups.clone()".to_string(),
@@ -203,7 +332,7 @@ let (last_action, set_last_action) = signal("none".to_string());
         }
 
         if is_disabled {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
 
         if use_motion {
@@ -249,21 +378,161 @@ let (last_action, set_last_action) = signal("none".to_string());
             group="Collections"
             description="baseline-compatible command palette with grouped filtering, listbox keyboard semantics, baseline data contracts, and baseline-level spring active-highlight motion."
         >
-            <Playground title="Grouped Search + Keyboard Action" code_signal=code>
-                <div class="docs-stack docs-stack--tight">
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+            >
+                <Command id_base="docs-command-hello".to_string() groups=hello_groups />
+            </Playground>
+
+            <Playground
+                title="Grouped Search + Keyboard Action"
+                code_signal=code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="command-e2e-default">
                     <Command
                         id_base="docs-command-default".to_string()
                         groups=groups.clone()
                         on_action=on_action
                     />
-                    <span class="ui-muted">
+                    <span
+                        class="ui-muted"
+                        data-slot="command-last-action"
+                        data-scenario="default"
+                        data-last-action=move || last_action.get()
+                    >
                         "last action: "
                         {move || last_action.get()}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="Custom Placeholder + Empty Label + Disabled Items" code_signal=states_code>
+            <Playground
+                title="State Matrix"
+                description="Switch between idle/query-results/query-empty/disabled branches and verify state markers."
+                code_signal=state_matrix_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="command-state-matrix">
+                    <SegmentedControl
+                        id_base="docs-command-state-matrix-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Command state matrix scenario".to_string()
+                    />
+
+                    <Command
+                        id_base="docs-command-state-matrix".to_string()
+                        groups=state_matrix_groups.clone()
+                        default_query=state_matrix_default_query.get()
+                        is_disabled=state_matrix_disabled.get()
+                    />
+
+                    <span class="ui-muted">
+                        "state mode: "
+                        {move || match state_matrix_selected.get() {
+                            0 => "idle",
+                            1 => "query-results",
+                            2 => "query-empty",
+                            _ => "disabled",
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled"
+                description="Side-by-side comparison of query+on_query_change control versus default_query-driven uncontrolled behavior."
+                code_signal=controlled_uncontrolled_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="command-controlled-uncontrolled">
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Controlled"</strong>
+                        <Command
+                            id_base="docs-command-controlled".to_string()
+                            groups=compare_groups.clone()
+                            query=controlled_query
+                            on_query_change=on_controlled_query_change
+                            on_action=on_controlled_query_action
+                        />
+                        <span class="ui-muted">
+                            "controlled query: "
+                            {move || controlled_query_raw.get()}
+                        </span>
+                        <span class="ui-muted">
+                            "last action: "
+                            {move || last_controlled_query_action.get()}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Uncontrolled"</strong>
+                        <Command
+                            id_base="docs-command-uncontrolled".to_string()
+                            groups=compare_groups.clone()
+                            default_query="cal".to_string()
+                            on_action=on_uncontrolled_query_action
+                        />
+                        <span class="ui-muted">
+                            "default query: cal"
+                        </span>
+                        <span class="ui-muted">
+                            "last action: "
+                            {move || last_uncontrolled_query_action.get()}
+                        </span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Command is streaming-optional and snapshot-first (`fallback=snapshot`)."
+                code_signal=streaming_snapshot_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="command-streaming-contract"
+                    data-requested-stream-mode=move || stream_requested_mode.get()
+                    data-requested-output-status=move || stream_requested_output_status.get()
+                >
+                    <SegmentedControl
+                        id_base="docs-command-stream-mode".to_string()
+                        options=stream_mode_options.clone()
+                        selected_index=stream_mode_index
+                        set_selected_index=set_stream_mode_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Command requested stream mode".to_string()
+                    />
+                    <Command
+                        id_base="docs-command-stream".to_string()
+                        groups=stream_groups.clone()
+                        default_query="cal".to_string()
+                    />
+                    <span class="ui-muted">
+                        "requested mode: "
+                        {move || stream_requested_mode.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "requested output status: "
+                        {move || stream_requested_output_status.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "effective component markers: data-stream-mode=snapshot data-stream-fallback=snapshot data-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Custom Placeholder + Empty Label + Disabled Items"
+                code_signal=states_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <Command
                         id_base="docs-command-custom".to_string()
@@ -280,8 +549,12 @@ let (last_action, set_last_action) = signal("none".to_string());
                 </div>
             </Playground>
 
-            <Playground title="State + Source Markers" code_signal=marker_code>
-                <div class="docs-stack docs-stack--tight">
+            <Playground
+                title="State + Source Markers"
+                code_signal=marker_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="command-e2e-markers">
                     <div class="ui-muted">
                         "Inspect data-id-source / data-placeholder-source / data-empty-label-source / data-aria-label-source / data-action-source / data-motion-source in DevTools."
                     </div>
@@ -295,7 +568,12 @@ let (last_action, set_last_action) = signal("none".to_string());
                         class_name="docs-command-custom".to_string()
                         motion=marker_motion
                     />
-                    <span class="ui-muted">
+                    <span
+                        class="ui-muted"
+                        data-slot="command-last-action"
+                        data-scenario="markers"
+                        data-last-action=move || last_marker_action.get()
+                    >
                         "last action: "
                         {move || last_marker_action.get()}
                     </span>
@@ -306,8 +584,9 @@ let (last_action, set_last_action) = signal("none".to_string());
                 title="Interactive Playground"
                 description="Display + Config + Code + CSS Test workbench for command state/source contract tuning."
                 code_signal=workbench_code
+                code_imports=COMMAND_DOC_IMPORTS.to_string()
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/command/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/command/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="command-workbench-controls">
@@ -336,12 +615,12 @@ let (last_action, set_last_action) = signal("none".to_string());
                     </div>
                 }
             >
-                <div class="docs-stack docs-stack--tight">
+                <div class="docs-stack docs-stack--tight" data-slot="command-workbench">
                     <Command
                         id_base="docs-command-workbench".to_string()
                         groups=groups_for_workbench.clone()
                         on_action=on_workbench_action
-                        disabled=workbench_disabled.get()
+                        is_disabled=workbench_disabled.get()
                         motion=workbench_motion.get()
                         placeholder=if workbench_custom_text.get() {
                             "Search docs actions...".to_string()
@@ -364,12 +643,47 @@ let (last_action, set_last_action) = signal("none".to_string());
                             String::new()
                         }
                     />
-                    <span class="ui-muted">
+                    <span
+                        class="ui-muted"
+                        data-slot="command-workbench-last-action"
+                        data-last-action=move || last_workbench_action.get()
+                    >
                         "last action: "
                         {move || last_workbench_action.get()}
                     </span>
                 </div>
             </Playground>
+
+            <div class="docs-stack docs-stack--tight" data-slot="command-source-first">
+                <h3>"Source-first Copy-Paste"</h3>
+                <p class="ui-muted">
+                    "Use "
+                    <code>"Show code"</code>
+                    " in any playground and the CodeBlock "
+                    <code>"Copy"</code>
+                    " action to copy import-ready snippets."
+                </p>
+                <p class="ui-muted">
+                    "Imports are auto-completed via "
+                    <code>"COMMAND_DOC_IMPORTS"</code>
+                    " + "
+                    <code>"compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p class="ui-muted">
+                    "Dependency prerequisites: "
+                    <code>
+                        "ui-components = { workspace = true, default-features = false, features = [\"component-command\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <ul class="docs-stack docs-stack--tight" data-slot="command-source-paths">
+                    <li><code>"components/command/src/mod.rs"</code></li>
+                    <li><code>"components/command/src/logic.rs"</code></li>
+                    <li><code>"components/command/src/view.rs"</code></li>
+                    <li><code>"components/command/src/styles.rs"</code></li>
+                    <li><code>"components/command/src/motion.rs"</code></li>
+                </ul>
+            </div>
         </ComponentPage>
     }
     .into_any()
@@ -1725,6 +2039,8 @@ custom_motion.spring.damping = 24.0;
 }
 
 pub(super) fn carousel() -> AnyView {
+    let carousel_imports = CAROUSEL_DOC_IMPORTS.to_string();
+
     let base_items = vec![
         CarouselItem::new("welcome", "Welcome")
             .description("Build baseline-compatible surfaces with production-grade motion."),
@@ -1733,6 +2049,8 @@ pub(super) fn carousel() -> AnyView {
         CarouselItem::new("shipping", "Shipping")
             .description("Run format + check + pre-commit and ship with confidence."),
     ];
+    let base_items_for_default = base_items.clone();
+    let base_items_for_stream = base_items.clone();
 
     let vertical_items = vec![
         CarouselItem::new("a", "Alpha").description("Vertical orientation demo."),
@@ -1768,6 +2086,134 @@ pub(super) fn carousel() -> AnyView {
         set_marker_selected_raw.set(next);
     });
 
+    let state_matrix_options = vec![
+        "Default".to_string(),
+        "Empty".to_string(),
+        "Disabled Middle".to_string(),
+        "Vertical + No Loop".to_string(),
+    ];
+    let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
+    let state_matrix_selected = Signal::derive(move || state_matrix_index.get().unwrap_or(0));
+    let state_matrix_items = Signal::derive(move || match state_matrix_selected.get() {
+        1 => Vec::<CarouselItem>::new(),
+        2 => vec![
+            CarouselItem::new("matrix-1", "Alpha").description("Default entry."),
+            CarouselItem::new("matrix-2", "Beta")
+                .description("Disabled item in this branch.")
+                .disabled(true),
+            CarouselItem::new("matrix-3", "Gamma").description("Remaining selectable entry."),
+        ],
+        3 => vec![
+            CarouselItem::new("matrix-v1", "North").description("Vertical axis branch."),
+            CarouselItem::new("matrix-v2", "South").description("Loop disabled branch."),
+            CarouselItem::new("matrix-v3", "West").description("State matrix coverage."),
+        ],
+        _ => vec![
+            CarouselItem::new("matrix-d1", "Overview").description("Default matrix branch."),
+            CarouselItem::new("matrix-d2", "Metrics").description("Second matrix branch."),
+            CarouselItem::new("matrix-d3", "Release").description("Third matrix branch."),
+        ],
+    });
+    let state_matrix_orientation = Signal::derive(move || {
+        if state_matrix_selected.get() == 3 {
+            CarouselOrientation::Vertical
+        } else {
+            CarouselOrientation::Horizontal
+        }
+    });
+    let state_matrix_is_loop = Signal::derive(move || state_matrix_selected.get() != 3);
+    let state_matrix_code = Signal::derive(move || {
+        r#"let (scenario, set_scenario) = signal(Some(0_usize));
+
+<SegmentedControl
+  id_base="docs-carousel-state-matrix-scenario".to_string()
+  options=vec!["Default".to_string(), "Empty".to_string(), "Disabled Middle".to_string(), "Vertical + No Loop".to_string()]
+  selected_index=scenario
+  set_selected_index=set_scenario
+/>
+
+<Carousel
+  id_base="docs-carousel-state-matrix".to_string()
+  items=state_matrix_items.get()
+  orientation=state_matrix_orientation.get()
+  is_loop_navigation=state_matrix_is_loop.get()
+/>"#
+            .to_string()
+    });
+
+    let controlled_uncontrolled_items = vec![
+        CarouselItem::new("cu-1", "Intro").description("Shared items for compare lane."),
+        CarouselItem::new("cu-2", "Middle").description("Shared items for compare lane."),
+        CarouselItem::new("cu-3", "Finish").description("Shared items for compare lane."),
+    ];
+    let (uncontrolled_last_selected, set_uncontrolled_last_selected) = signal(None::<usize>);
+    let on_uncontrolled_selected_change =
+        Callback::new(move |next: Option<usize>| set_uncontrolled_last_selected.set(next));
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"let items = vec![
+  CarouselItem::new("cu-1", "Intro"),
+  CarouselItem::new("cu-2", "Middle"),
+  CarouselItem::new("cu-3", "Finish"),
+];
+let (selected, set_selected) = signal(Some(0_usize));
+
+<div class="docs-stack docs-stack--tight">
+  <Carousel
+    id_base="docs-carousel-controlled".to_string()
+    items=items.clone()
+    selected_index=Signal::derive(move || selected.get())
+    on_selected_index_change=Callback::new(move |next| set_selected.set(next))
+  />
+
+  <Carousel
+    id_base="docs-carousel-uncontrolled".to_string()
+    items=items.clone()
+    default_selected_index=1
+    on_selected_index_change=Callback::new(move |_| {})
+  />
+</div>"#
+            .to_string()
+    });
+
+    let stream_mode_options = vec![
+        "Snapshot".to_string(),
+        "Streaming (fallback=snapshot)".to_string(),
+    ];
+    let (stream_mode_index, set_stream_mode_index) = signal(Some(0_usize));
+    let stream_requested_mode = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "snapshot".to_string()
+        } else {
+            "streaming".to_string()
+        }
+    });
+    let stream_requested_output_status = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "verified".to_string()
+        } else {
+            "draft".to_string()
+        }
+    });
+    let streaming_snapshot_code = Signal::derive(move || {
+        r#"// Streaming is optional for Carousel; fallback stays snapshot.
+<Carousel
+  id_base="docs-carousel-stream".to_string()
+  items=vec![
+    CarouselItem::new("stream-1", "Snapshot"),
+    CarouselItem::new("stream-2", "Fallback"),
+  ]
+/>"#
+        .to_string()
+    });
+
+    let minimal_code = Signal::derive(move || {
+        r#"<Carousel
+  id_base="docs-carousel".to_string()
+  items=vec![CarouselItem::new("welcome", "Welcome")]
+/>"#
+        .to_string()
+    });
+
     let code = Signal::derive(move || {
         r#"let (last_selected, set_last_selected) = signal(None::<usize>);
 
@@ -1799,7 +2245,7 @@ pub(super) fn carousel() -> AnyView {
   selected_index=Signal::derive(move || selected.get())
   on_selected_index_change=Callback::new(move |next| set_selected.set(next))
   orientation=CarouselOrientation::Vertical
-  loop_navigation=false
+  is_loop_navigation=false
 />"#
         .to_string()
     });
@@ -1821,7 +2267,7 @@ custom_motion.spring.damping = 22.0;
   default_selected_index=0
   on_selected_index_change=Callback::new(move |next| set_selected.set(next))
   orientation=CarouselOrientation::Vertical
-  loop_navigation=false
+  is_loop_navigation=false
   aria_label="Workspace spotlight".to_string()
   class_name="docs-carousel-custom".to_string()
   motion=custom_motion
@@ -1833,6 +2279,136 @@ custom_motion.spring.damping = 22.0;
     marker_motion.spring.stiffness = 250.0;
     marker_motion.spring.damping = 22.0;
 
+    let workbench_options = vec![
+        "Baseline".to_string(),
+        "Vertical + Custom Label".to_string(),
+        "Disabled + Custom Motion".to_string(),
+    ];
+    let (workbench_index, set_workbench_index) = signal(Some(0_usize));
+    let workbench_vertical = Signal::derive(move || workbench_index.get().unwrap_or(0) >= 1);
+    let workbench_disabled = Signal::derive(move || workbench_index.get().unwrap_or(0) == 2);
+    let workbench_custom_text = Signal::derive(move || workbench_index.get().unwrap_or(0) >= 1);
+    let workbench_custom_motion = Signal::derive(move || workbench_index.get().unwrap_or(0) == 2);
+    let (workbench_preserve_context, set_workbench_preserve_context) = signal(true);
+
+    let (workbench_selected_raw, set_workbench_selected_raw) = signal(Some(0_usize));
+    let workbench_selected: Signal<Option<usize>> =
+        Signal::derive(move || workbench_selected_raw.get());
+    let (workbench_last_selected, set_workbench_last_selected) = signal("none".to_string());
+    let on_workbench_selected_change = Callback::new(move |next: Option<usize>| {
+        set_workbench_selected_raw.set(next);
+        set_workbench_last_selected.set(
+            next.map(|index| index.to_string())
+                .unwrap_or_else(|| "none".to_string()),
+        );
+    });
+
+    let reset_workbench_selected = set_workbench_selected_raw;
+    let reset_workbench_last_selected = set_workbench_last_selected;
+    Effect::new(move |_| {
+        workbench_index.with(|_| ());
+        if !workbench_preserve_context.get() {
+            reset_workbench_selected.set(Some(0));
+            reset_workbench_last_selected.set("none".to_string());
+        }
+    });
+
+    let workbench_items = Signal::derive(move || {
+        vec![
+            CarouselItem::new(
+                "workbench-overview",
+                if workbench_custom_text.get() {
+                    "Overview"
+                } else {
+                    "Welcome"
+                },
+            )
+            .description("Inspect state/source markers under scenario toggles."),
+            CarouselItem::new(
+                "workbench-metrics",
+                if workbench_custom_text.get() {
+                    "Metrics"
+                } else {
+                    "Theme Tokens"
+                },
+            )
+            .description("Middle item toggles disabled state in scenario #3.")
+            .disabled(workbench_disabled.get()),
+            CarouselItem::new(
+                "workbench-release",
+                if workbench_custom_text.get() {
+                    "Release"
+                } else {
+                    "Shipping"
+                },
+            )
+            .description("Verify keyboard + pointer flow in isolated canvas."),
+        ]
+    });
+
+    let workbench_motion = Signal::derive(move || {
+        let mut motion = ui_components::CarouselMotion::default();
+        if workbench_custom_motion.get() {
+            motion.spring.stiffness = 280.0;
+            motion.spring.damping = 24.0;
+        }
+        motion
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let scenario = workbench_index.get().unwrap_or(0);
+        let preserve = workbench_preserve_context.get();
+        let selected = workbench_selected_raw.get();
+        let orientation_line = if workbench_vertical.get() {
+            "  orientation=CarouselOrientation::Vertical\n"
+        } else {
+            ""
+        };
+        let class_line = if workbench_custom_text.get() {
+            "  class_name=\"docs-carousel-custom\".to_string()\n"
+        } else {
+            ""
+        };
+        let motion_line = if workbench_custom_motion.get() {
+            "  motion={ let mut motion = ui_components::CarouselMotion::default(); motion.spring.stiffness = 280.0; motion.spring.damping = 24.0; motion }\n"
+        } else {
+            ""
+        };
+        format!(
+            "let (selected, set_selected) = signal({selected:?});\n\
+let preserve_context = {preserve}; // optional\n\
+// scenario: {scenario}\n\
+<Carousel\n\
+  id_base=\"docs-carousel-workbench\".to_string()\n\
+  items=workbench_items\n\
+  selected_index=Signal::derive(move || selected.get())\n\
+  on_selected_index_change=Callback::new(move |next| set_selected.set(next))\n\
+  is_loop_navigation={}\n\
+{orientation_line}{class_line}{motion_line}/>",
+            !workbench_disabled.get(),
+        )
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* components/carousel/src/styles.rs */\n{}",
+            ui_components::carousel::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let scenario = workbench_index.get().unwrap_or(0);
+        format!(
+            "CarouselWorkbenchConfig {{\n  scenario: {scenario},\n  preserve_context: {},\n  selected_index: {:?},\n  vertical: {},\n  disabled_middle_item: {},\n  custom_text: {},\n  custom_motion: {},\n}}",
+            workbench_preserve_context.get(),
+            workbench_selected_raw.get(),
+            workbench_vertical.get(),
+            workbench_disabled.get(),
+            workbench_custom_text.get(),
+            workbench_custom_motion.get(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="Carousel"
@@ -1840,11 +2416,18 @@ custom_motion.spring.damping = 22.0;
             group="Collections"
             description="baseline-compatible carousel with controllable slide index, orientation-aware keyboard navigation, baseline data contracts, and baseline-level spring indicator-highlight motion reuse."
         >
+            <Playground title="Hello World (Minimal)" code_signal=minimal_code>
+                <Carousel
+                    id_base="docs-carousel-minimal".to_string()
+                    items=vec![CarouselItem::new("welcome", "Welcome")]
+                />
+            </Playground>
+
             <Playground title="Default + Indicator Motion" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
                     <Carousel
                         id_base="docs-carousel-default".to_string()
-                        items=base_items
+                        items=base_items_for_default
                         default_selected_index=1
                         on_selected_index_change=on_selected_change
                     />
@@ -1860,6 +2443,91 @@ custom_motion.spring.damping = 22.0;
                 </div>
             </Playground>
 
+            <Playground
+                title="State Matrix"
+                description="Switch between default/empty/disabled/vertical branches and verify state markers."
+                code_signal=state_matrix_code
+                code_imports=carousel_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="carousel-state-matrix">
+                    <SegmentedControl
+                        id_base="docs-carousel-state-matrix-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Carousel state matrix scenario".to_string()
+                    />
+
+                    <Carousel
+                        id_base="docs-carousel-state-matrix".to_string()
+                        items=state_matrix_items.get()
+                        orientation=state_matrix_orientation.get()
+                        is_loop_navigation=state_matrix_is_loop.get()
+                    />
+
+                    <span class="ui-muted">
+                        "state mode: "
+                        {move || match state_matrix_selected.get() {
+                            0 => "default",
+                            1 => "empty",
+                            2 => "disabled-middle",
+                            _ => "vertical-no-loop",
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled"
+                description="Side-by-side compare `selected_index + on_selected_index_change` versus `default_selected_index` paths."
+                code_signal=controlled_uncontrolled_code
+                code_imports=carousel_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="carousel-controlled-uncontrolled">
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Controlled"</strong>
+                        <Carousel
+                            id_base="docs-carousel-controlled".to_string()
+                            items=controlled_uncontrolled_items.clone()
+                            selected_index=controlled_selected
+                            on_selected_index_change=on_controlled_selected_change
+                        />
+                        <span class="ui-muted">
+                            "controlled selected: "
+                            {move || {
+                                controlled_selected_raw
+                                    .get()
+                                    .map(|index| index.to_string())
+                                    .unwrap_or_else(|| "None".to_string())
+                            }}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Uncontrolled"</strong>
+                        <Carousel
+                            id_base="docs-carousel-uncontrolled".to_string()
+                            items=controlled_uncontrolled_items.clone()
+                            default_selected_index=1
+                            on_selected_index_change=on_uncontrolled_selected_change
+                        />
+                        <span class="ui-muted">
+                            "default selected: 1"
+                        </span>
+                        <span class="ui-muted">
+                            "last selected: "
+                            {move || {
+                                uncontrolled_last_selected
+                                    .get()
+                                    .map(|index| index.to_string())
+                                    .unwrap_or_else(|| "None".to_string())
+                            }}
+                        </span>
+                    </div>
+                </div>
+            </Playground>
+
             <Playground title="Controlled + Vertical + No Loop" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <Carousel
@@ -1868,7 +2536,7 @@ custom_motion.spring.damping = 22.0;
                         selected_index=controlled_selected
                         on_selected_index_change=on_controlled_selected_change
                         orientation=CarouselOrientation::Vertical
-                        loop_navigation=false
+                        is_loop_navigation=false
                         aria_label="Feature carousel".to_string()
                         class_name="docs-carousel-custom".to_string()
                     />
@@ -1885,15 +2553,27 @@ custom_motion.spring.damping = 22.0;
             </Playground>
 
             <Playground title="State + Source Markers" code_signal=marker_code>
-                <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <button type="button" on:click=move |_| set_marker_selected_raw.set(Some(0))>
+                <div class="docs-stack docs-stack--tight" data-slot="carousel-e2e-markers">
+                    <div class="docs-row" data-slot="carousel-e2e-marker-actions">
+                        <button
+                            type="button"
+                            data-slot="carousel-e2e-select-overview"
+                            on:click=move |_| set_marker_selected_raw.set(Some(0))
+                        >
                             "Select Overview"
                         </button>
-                        <button type="button" on:click=move |_| set_marker_selected_raw.set(Some(1))>
+                        <button
+                            type="button"
+                            data-slot="carousel-e2e-select-analytics"
+                            on:click=move |_| set_marker_selected_raw.set(Some(1))
+                        >
                             "Select Analytics"
                         </button>
-                        <button type="button" on:click=move |_| set_marker_selected_raw.set(None)>
+                        <button
+                            type="button"
+                            data-slot="carousel-e2e-clear"
+                            on:click=move |_| set_marker_selected_raw.set(None)
+                        >
                             "Clear"
                         </button>
                     </div>
@@ -1907,7 +2587,7 @@ custom_motion.spring.damping = 22.0;
                         default_selected_index=0
                         on_selected_index_change=on_marker_selected_change
                         orientation=CarouselOrientation::Vertical
-                        loop_navigation=false
+                        is_loop_navigation=false
                         aria_label="Workspace spotlight".to_string()
                         class_name="docs-carousel-custom".to_string()
                         motion=marker_motion
@@ -1923,6 +2603,192 @@ custom_motion.spring.damping = 22.0;
                     </span>
                 </div>
             </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Carousel is streaming-optional and snapshot-first (`fallback=snapshot`)."
+                code_signal=streaming_snapshot_code
+                code_imports=carousel_imports.clone()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="carousel-streaming-policy"
+                    data-requested-stream-mode=move || stream_requested_mode.get()
+                    data-requested-output-status=move || stream_requested_output_status.get()
+                >
+                    <SegmentedControl
+                        id_base="docs-carousel-stream-mode".to_string()
+                        options=stream_mode_options.clone()
+                        selected_index=stream_mode_index
+                        set_selected_index=set_stream_mode_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Carousel requested stream mode".to_string()
+                    />
+                    <Carousel
+                        id_base="docs-carousel-stream".to_string()
+                        items=base_items_for_stream
+                        default_selected_index=0
+                    />
+                    <span class="ui-muted">
+                        "requested mode: "
+                        {move || stream_requested_mode.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "requested output status: "
+                        {move || stream_requested_output_status.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "Streaming Optional; fallback=snapshot."
+                    </span>
+                    <span class="ui-muted">
+                        "effective component markers: data-ui-stream-mode=snapshot data-ui-stream-fallback=snapshot data-ui-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground"
+                description="Workbench canvas: scoped CSS live-edit + optional selected-index context persistence across scenario switches."
+                code_signal=workbench_code
+                code_imports=carousel_imports.clone()
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/carousel/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="carousel-workbench-controls">
+                        <div class="docs-search__label">"Scenario"</div>
+                        <SegmentedControl
+                            id_base="docs-carousel-workbench-scenario".to_string()
+                            options=workbench_options.clone()
+                            selected_index=workbench_index
+                            set_selected_index=set_workbench_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Carousel workbench scenario".to_string()
+                        />
+                        <Switch
+                            checked=workbench_preserve_context
+                            set_checked=set_workbench_preserve_context
+                        >
+                            " Preserve selected index context (optional)"
+                        </Switch>
+                        <div class="ui-muted">
+                            "vertical: "
+                            {move || workbench_vertical.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "disabled_middle_item: "
+                            {move || workbench_disabled.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "custom_text: "
+                            {move || workbench_custom_text.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "custom_motion: "
+                            {move || workbench_custom_motion.get()}
+                        </div>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="carousel-workbench">
+                    <div class="docs-row" data-slot="carousel-workbench-actions">
+                        <button
+                            type="button"
+                            data-slot="carousel-workbench-select-0"
+                            on:click=move |_| set_workbench_selected_raw.set(Some(0))
+                        >
+                            "Select #0"
+                        </button>
+                        <button
+                            type="button"
+                            data-slot="carousel-workbench-select-1"
+                            on:click=move |_| set_workbench_selected_raw.set(Some(1))
+                        >
+                            "Select #1"
+                        </button>
+                        <button
+                            type="button"
+                            data-slot="carousel-workbench-clear"
+                            on:click=move |_| set_workbench_selected_raw.set(None)
+                        >
+                            "Clear"
+                        </button>
+                    </div>
+                    <div data-slot="carousel-workbench-canvas">
+                        <Carousel
+                            id_base="docs-carousel-workbench".to_string()
+                            items=workbench_items.get()
+                            selected_index=workbench_selected
+                            on_selected_index_change=on_workbench_selected_change
+                            orientation=if workbench_vertical.get() {
+                                CarouselOrientation::Vertical
+                            } else {
+                                CarouselOrientation::Horizontal
+                            }
+                            is_loop_navigation=!workbench_disabled.get()
+                            aria_label=if workbench_custom_text.get() {
+                                "Workbench carousel".to_string()
+                            } else {
+                                String::new()
+                            }
+                            class_name=if workbench_custom_text.get() {
+                                "docs-carousel-custom".to_string()
+                            } else {
+                                String::new()
+                            }
+                            motion=workbench_motion.get()
+                        />
+                    </div>
+                    <span class="ui-muted">
+                        "selected index: "
+                        {move || {
+                            workbench_selected_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                    <span class="ui-muted" data-slot="carousel-workbench-last-selected">
+                        "last selected: "
+                        {move || workbench_last_selected.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "persist_context: "
+                        {move || workbench_preserve_context.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <div class="docs-stack docs-stack--tight" data-slot="carousel-source-first">
+                <h3>"Source-first Copy-Paste"</h3>
+                <p class="ui-muted" data-slot="carousel-copy-ready-hint">
+                    "Use "
+                    <code>"Show code"</code>
+                    " in any playground and the CodeBlock "
+                    <code>"Copy"</code>
+                    " action to copy import-ready snippets."
+                </p>
+                <p class="ui-muted">
+                    "Imports are auto-completed via "
+                    <code>"CAROUSEL_DOC_IMPORTS"</code>
+                    " + "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p class="ui-muted">
+                    "Dependency prerequisites: "
+                    <code>
+                        "ui-components = { workspace = true, default-features = false, features = [\"component-carousel\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <ul class="docs-stack docs-stack--tight" data-slot="carousel-source-paths">
+                    <li><code>"components/carousel/src/mod.rs"</code></li>
+                    <li><code>"components/carousel/src/logic.rs"</code></li>
+                    <li><code>"components/carousel/src/view.rs"</code></li>
+                    <li><code>"components/carousel/src/styles.rs"</code></li>
+                    <li><code>"components/carousel/src/motion.rs"</code></li>
+                </ul>
+            </div>
         </ComponentPage>
     }
     .into_any()
@@ -1952,6 +2818,10 @@ pub(super) fn command_dialog() -> AnyView {
             ],
         ),
     ]);
+    let groups_for_state_matrix = groups.clone();
+    let groups_for_controlled = groups.clone();
+    let groups_for_compare = groups.clone();
+    let groups_for_stream = groups.clone();
 
     let marker_groups: Arc<[CommandGroup]> = Arc::from(vec![
         CommandGroup::new(
@@ -1974,6 +2844,140 @@ pub(super) fn command_dialog() -> AnyView {
             ],
         ),
     ]);
+
+    let hello_groups: Arc<[CommandGroup]> = Arc::from(vec![CommandGroup::new(
+        "Quick Start",
+        vec![CommandItem::new("open-dashboard", "Open Dashboard").shortcut("⌘D")],
+    )]);
+    let hello_world_code = Signal::derive(move || {
+        r#"<CommandDialog
+  groups=vec![CommandGroup::new("Quick Start", vec![
+    CommandItem::new("open-dashboard", "Open Dashboard").shortcut("⌘D"),
+  ])]
+  default_open=true
+/>"#
+        .to_string()
+    });
+
+    let state_matrix_options = vec![
+        "Uncontrolled + close_on_action=true".to_string(),
+        "Uncontrolled + close_on_action=false".to_string(),
+        "Controlled + disabled".to_string(),
+    ];
+    let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
+    let state_matrix_is_controlled =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 2);
+    let state_matrix_close_on_action =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) != 1);
+    let state_matrix_disabled = Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 2);
+    let state_matrix_default_open = Signal::derive(move || {
+        !state_matrix_is_controlled.get() && state_matrix_index.get().unwrap_or(0) != 2
+    });
+    let (state_matrix_open_raw, set_state_matrix_open_raw) = signal(false);
+    let state_matrix_open: Signal<bool> = Signal::derive(move || state_matrix_open_raw.get());
+    let on_state_matrix_open_change =
+        Callback::new(move |next: bool| set_state_matrix_open_raw.set(next));
+
+    let state_matrix_code = Signal::derive(move || {
+        let scenario = state_matrix_index.get().unwrap_or(0);
+        let mut lines = vec![
+            "let groups = vec![CommandGroup::new(\"Suggestions\", vec![CommandItem::new(\"calendar\", \"Calendar\")])];".to_string(),
+            String::new(),
+            "<CommandDialog".to_string(),
+            "  id_base=\"docs-command-dialog-state-matrix\".into()".to_string(),
+            "  title=\"State Matrix\".into()".to_string(),
+            "  groups=groups.clone()".to_string(),
+        ];
+        match scenario {
+            0 => {
+                lines.push("  default_open=true".to_string());
+                lines.push("  close_on_action=true".to_string());
+            }
+            1 => {
+                lines.push("  default_open=true".to_string());
+                lines.push("  close_on_action=false".to_string());
+            }
+            _ => {
+                lines.push("  open=Signal::derive(move || open_raw.get())".to_string());
+                lines.push(
+                    "  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))"
+                        .to_string(),
+                );
+                lines.push("  is_disabled=true".to_string());
+            }
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let (compare_controlled_open_raw, set_compare_controlled_open_raw) = signal(false);
+    let compare_controlled_open: Signal<bool> =
+        Signal::derive(move || compare_controlled_open_raw.get());
+    let on_compare_controlled_open_change =
+        Callback::new(move |next: bool| set_compare_controlled_open_raw.set(next));
+    let (compare_controlled_last_action, set_compare_controlled_last_action) =
+        signal("none".to_string());
+    let on_compare_controlled_action =
+        Callback::new(move |id: String| set_compare_controlled_last_action.set(id));
+    let (compare_uncontrolled_last_action, set_compare_uncontrolled_last_action) =
+        signal("none".to_string());
+    let on_compare_uncontrolled_action =
+        Callback::new(move |id: String| set_compare_uncontrolled_last_action.set(id));
+    let compare_code = Signal::derive(move || {
+        r#"let groups = vec![
+  CommandGroup::new("Suggestions", vec![CommandItem::new("calendar", "Calendar")]),
+];
+let (open_raw, set_open_raw) = signal(false);
+
+<CommandDialog
+  id_base="docs-command-dialog-compare-controlled".into()
+  groups=groups.clone()
+  open=Signal::derive(move || open_raw.get())
+  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))
+/>
+
+<CommandDialog
+  id_base="docs-command-dialog-compare-uncontrolled".into()
+  groups=groups.clone()
+  default_open=true
+/>"#
+        .to_string()
+    });
+
+    let stream_mode_options = vec![
+        "Snapshot".to_string(),
+        "Streaming (fallback=snapshot)".to_string(),
+    ];
+    let (stream_mode_index, set_stream_mode_index) = signal(Some(0_usize));
+    let stream_requested_mode = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "snapshot"
+        } else {
+            "streaming"
+        }
+    });
+    let stream_requested_output_status = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "verified"
+        } else {
+            "draft"
+        }
+    });
+    let streaming_snapshot_code = Signal::derive(move || {
+        r#"// CommandDialog is not an LLM body reader surface.
+// Streaming is optional; fallback stays snapshot.
+let groups = vec![
+  CommandGroup::new("Suggestions", vec![CommandItem::new("calendar", "Calendar")]),
+];
+
+<CommandDialog
+  id_base="docs-command-dialog-stream".into()
+  groups=groups.clone()
+  default_open=true
+  close_on_action=false
+/>"#
+        .to_string()
+    });
 
     let (open_raw, set_open_raw) = signal(false);
     let open: Signal<bool> = Signal::derive(move || open_raw.get());
@@ -2044,6 +3048,129 @@ let (last_action, set_last_action) = signal("none".to_string());
         ..ui_components::OverlayMotion::default()
     };
 
+    let workbench_options = vec![
+        "Default".to_string(),
+        "Persistent keep-open".to_string(),
+        "Disabled + custom labels/motion".to_string(),
+    ];
+    let (workbench_index, set_workbench_index) = signal(Some(0_usize));
+    let workbench_close_on_action = Signal::derive(move || workbench_index.get().unwrap_or(0) == 0);
+    let workbench_disabled = Signal::derive(move || workbench_index.get().unwrap_or(0) == 2);
+    let workbench_custom_text = Signal::derive(move || workbench_index.get().unwrap_or(0) == 2);
+    let workbench_custom_motion = Signal::derive(move || workbench_index.get().unwrap_or(0) == 2);
+    let (workbench_preserve_context, set_workbench_preserve_context) = signal(true);
+
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let on_workbench_open_change =
+        Callback::new(move |next: bool| set_workbench_open_raw.set(next));
+    let (last_workbench_action, set_last_workbench_action) = signal("none".to_string());
+    let on_workbench_action = Callback::new(move |id: String| set_last_workbench_action.set(id));
+    let workbench_groups = groups.clone();
+
+    let workbench_command_motion = Signal::derive(move || {
+        let mut motion = ui_components::CommandMotion::default();
+        if workbench_custom_motion.get() {
+            motion.spring.stiffness = 260.0;
+            motion.spring.damping = 22.0;
+        }
+        motion
+    });
+
+    let workbench_overlay_motion = Signal::derive(move || {
+        let mut motion = ui_components::OverlayMotion::default();
+        if workbench_custom_motion.get() {
+            motion.initial_scale = 0.96;
+            motion.initial_y_px = 8.0;
+        }
+        motion
+    });
+
+    let reset_workbench_open = set_workbench_open_raw;
+    let reset_workbench_action = set_last_workbench_action;
+    Effect::new(move |_| {
+        workbench_index.with(|_| ());
+        if !workbench_preserve_context.get() {
+            reset_workbench_open.set(false);
+            reset_workbench_action.set("none".to_string());
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let mut lines = vec![
+            "let (open_raw, set_open_raw) = signal(false);".to_string(),
+            "let (last_action, set_last_action) = signal(\"none\".to_string());".to_string(),
+            "let groups = vec![CommandGroup::new(\"Suggestions\", vec![CommandItem::new(\"calendar\", \"Calendar\")])];".to_string(),
+            "<CommandDialog".to_string(),
+            "  id_base=\"docs-command-dialog-workbench\".into()".to_string(),
+            "  title=\"Docs Command Center\".into()".to_string(),
+            "  groups=groups.clone()".to_string(),
+            "  open=Signal::derive(move || open_raw.get())".to_string(),
+            "  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))".to_string(),
+            "  on_action=Callback::new(move |id: String| set_last_action.set(id))".to_string(),
+        ];
+
+        if !workbench_close_on_action.get() {
+            lines.push("  close_on_action=false".to_string());
+        }
+        if workbench_disabled.get() {
+            lines.push("  is_disabled=true".to_string());
+        }
+        if workbench_custom_text.get() {
+            lines.push(
+                "  description=\"Try command search with marker-rich contracts.\".into()"
+                    .to_string(),
+            );
+            lines.push("  placeholder=\"Search docs commands...\".into()".to_string());
+            lines.push("  empty_label=\"No docs command found.\".into()".to_string());
+            lines.push("  aria_label=\"Docs command dialog\".into()".to_string());
+            lines.push("  class_name=\"docs-command-dialog-custom\".into()".to_string());
+        }
+        if workbench_custom_motion.get() {
+            lines.push("  command_motion=ui_components::CommandMotion {".to_string());
+            lines.push("    spring: ui_motion::spring::SpringConfig {".to_string());
+            lines.push("      stiffness: 260.0,".to_string());
+            lines.push("      damping: 22.0,".to_string());
+            lines.push("      ..ui_motion::presets::spring_slide()".to_string());
+            lines.push("    },".to_string());
+            lines.push("  }".to_string());
+            lines.push("  overlay_motion=ui_components::OverlayMotion {".to_string());
+            lines.push("    initial_scale: 0.96,".to_string());
+            lines.push("    initial_y_px: 8.0,".to_string());
+            lines.push("    ..ui_components::OverlayMotion::default()".to_string());
+            lines.push("  }".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.push("<span class=\"ui-muted\">\"open: \" {move || if open_raw.get() { \"true\" } else { \"false\" }}</span>".to_string());
+        lines.push(
+            "<span class=\"ui-muted\">\"last action: \" {move || last_action.get()}</span>"
+                .to_string(),
+        );
+
+        lines.join("\n")
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* components/command-dialog/src/styles.rs */\n{}",
+            ui_components::command_dialog::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let scenario = workbench_index.get().unwrap_or(0);
+        format!(
+            "CommandDialogWorkbenchConfig {{\n  scenario: {scenario},\n  close_on_action: {},\n  disabled: {},\n  custom_text: {},\n  custom_motion: {},\n  preserve_context: {},\n  open: {},\n  last_action: {:?},\n}}",
+            workbench_close_on_action.get(),
+            workbench_disabled.get(),
+            workbench_custom_text.get(),
+            workbench_custom_motion.get(),
+            workbench_preserve_context.get(),
+            workbench_open_raw.get(),
+            last_workbench_action.get(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="CommandDialog"
@@ -2051,7 +3178,106 @@ let (last_action, set_last_action) = signal("none".to_string());
             group="Collections"
             description="baseline-compatible command dialog that composes Modal + Command, supports controlled/uncontrolled open state, emits baseline data contracts, and reuses baseline-level overlay/active-highlight spring motion."
         >
-            <Playground title="Controlled Open + Action Close" code_signal=code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_world_code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <CommandDialog
+                        id_base="docs-command-dialog-hello".to_string()
+                        title="Quick Start".to_string()
+                        description="Minimal starter that opens by default.".to_string()
+                        groups=hello_groups
+                        default_open=true
+                    />
+                    <p class="ui-muted">
+                        "Hello World path: drop in one group and rely on default snapshot rendering."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="State matrix over open-mode/close-on-action/disabled. Use Scenario to switch one canonical branch at a time."
+                code_signal=state_matrix_code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="command-dialog-state-matrix">
+                    <SegmentedControl
+                        id_base="docs-command-dialog-state-matrix-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Command dialog state matrix scenario".to_string()
+                    />
+                    <div class="docs-row">
+                        <button
+                            type="button"
+                            on:click=move |_| set_state_matrix_open_raw.set(true)
+                            disabled=move || !state_matrix_is_controlled.get()
+                        >
+                            "Open controlled scenario"
+                        </button>
+                        <button
+                            type="button"
+                            on:click=move |_| set_state_matrix_open_raw.set(false)
+                            disabled=move || !state_matrix_is_controlled.get()
+                        >
+                            "Close controlled scenario"
+                        </button>
+                    </div>
+                    {move || {
+                        if state_matrix_is_controlled.get() {
+                            view! {
+                                <CommandDialog
+                                    id_base="docs-command-dialog-state-matrix".to_string()
+                                    title="State Matrix".to_string()
+                                    description="Switch scenario to inspect data-open-mode/data-close-on-action/data-disabled markers.".to_string()
+                                    groups=groups_for_state_matrix.clone()
+                                    open=state_matrix_open
+                                    on_open_change=on_state_matrix_open_change
+                                    close_on_action=state_matrix_close_on_action.get()
+                                    is_disabled=state_matrix_disabled.get()
+                                />
+                            }
+                                .into_any()
+                        } else {
+                            view! {
+                                <CommandDialog
+                                    id_base="docs-command-dialog-state-matrix".to_string()
+                                    title="State Matrix".to_string()
+                                    description="Switch scenario to inspect data-open-mode/data-close-on-action/data-disabled markers.".to_string()
+                                    groups=groups_for_state_matrix.clone()
+                                    default_open=state_matrix_default_open.get()
+                                    close_on_action=state_matrix_close_on_action.get()
+                                    is_disabled=state_matrix_disabled.get()
+                                />
+                            }
+                                .into_any()
+                        }
+                    }}
+                    <span class="ui-muted">
+                        "open_mode: "
+                        {move || if state_matrix_is_controlled.get() { "controlled" } else { "uncontrolled" }}
+                    </span>
+                    <span class="ui-muted">
+                        "close_on_action: "
+                        {move || state_matrix_close_on_action.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "is_disabled: "
+                        {move || state_matrix_disabled.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled Open + Action Close"
+                code_signal=code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <button type="button" on:click=move |_| set_open_raw.set(true)>
@@ -2065,7 +3291,7 @@ let (last_action, set_last_action) = signal("none".to_string());
                         id_base="docs-command-dialog-controlled".to_string()
                         title="Quick Actions".to_string()
                         description="Press ⌘K-style filtering and Enter to run actions.".to_string()
-                        groups=groups.clone()
+                        groups=groups_for_controlled.clone()
                         open=open
                         on_open_change=on_open_change
                         on_action=on_action
@@ -2074,14 +3300,23 @@ let (last_action, set_last_action) = signal("none".to_string());
                         "open: "
                         {move || if open_raw.get() { "true" } else { "false" }}
                     </span>
-                    <span class="ui-muted">
+                    <span
+                        class="ui-muted"
+                        data-slot="command-dialog-last-action"
+                        data-open-mode="controlled"
+                        data-last-action=move || last_action.get()
+                    >
                         "last action: "
                         {move || last_action.get()}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="State + Source Markers" code_signal=marker_code>
+            <Playground
+                title="State + Source Markers"
+                code_signal=marker_code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <div class="ui-muted">
                         "Inspect data-id-source / data-title-source / data-description-source / data-placeholder-source / data-action-source / data-overlay-motion-source in DevTools."
@@ -2100,13 +3335,265 @@ let (last_action, set_last_action) = signal("none".to_string());
                         class_name="docs-command-dialog-custom".to_string()
                         overlay_motion=marker_overlay_motion
                     />
-                    <span class="ui-muted">
+                    <span
+                        class="ui-muted"
+                        data-slot="command-dialog-last-action"
+                        data-open-mode="uncontrolled"
+                        data-last-action=move || last_marker_action.get()
+                    >
                         "last action: "
                         {move || last_marker_action.get()}
                     </span>
                     <span class="ui-muted">"close_on_action: false (dialog stays open)"</span>
                 </div>
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled"
+                description="Side-by-side contrast of value+on_change control versus default-driven uncontrolled state."
+                code_signal=compare_code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="command-dialog-controlled-uncontrolled">
+                    <div class="docs-row">
+                        <button
+                            type="button"
+                            on:click=move |_| set_compare_controlled_open_raw.set(true)
+                        >
+                            "Open controlled dialog"
+                        </button>
+                        <button
+                            type="button"
+                            on:click=move |_| set_compare_controlled_open_raw.set(false)
+                        >
+                            "Close controlled dialog"
+                        </button>
+                    </div>
+                    <div class="docs-row">
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Controlled"</strong>
+                            <CommandDialog
+                                id_base="docs-command-dialog-compare-controlled".to_string()
+                                title="Controlled Dialog".to_string()
+                                description="open + on_open_change are driven by parent signals.".to_string()
+                                groups=groups_for_compare.clone()
+                                open=compare_controlled_open
+                                on_open_change=on_compare_controlled_open_change
+                                on_action=on_compare_controlled_action
+                            />
+                            <span class="ui-muted">
+                                "open: "
+                                {move || if compare_controlled_open_raw.get() { "true" } else { "false" }}
+                            </span>
+                            <span class="ui-muted">
+                                "last action: "
+                                {move || compare_controlled_last_action.get()}
+                            </span>
+                        </div>
+
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Uncontrolled"</strong>
+                            <CommandDialog
+                                id_base="docs-command-dialog-compare-uncontrolled".to_string()
+                                title="Uncontrolled Dialog".to_string()
+                                description="default_open initializes once; primitive owns later transitions.".to_string()
+                                groups=groups_for_compare.clone()
+                                default_open=true
+                                close_on_action=false
+                                on_action=on_compare_uncontrolled_action
+                            />
+                            <span class="ui-muted">
+                                "last action: "
+                                {move || compare_uncontrolled_last_action.get()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="CommandDialog is streaming-optional and snapshot-first (`fallback=snapshot`)."
+                code_signal=streaming_snapshot_code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="command-dialog-streaming-contract"
+                    data-requested-stream-mode=move || stream_requested_mode.get()
+                    data-requested-output-status=move || stream_requested_output_status.get()
+                >
+                    <SegmentedControl
+                        id_base="docs-command-dialog-stream-mode".to_string()
+                        options=stream_mode_options.clone()
+                        selected_index=stream_mode_index
+                        set_selected_index=set_stream_mode_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Command dialog stream mode".to_string()
+                    />
+                    <CommandDialog
+                        id_base="docs-command-dialog-stream".to_string()
+                        title="Streaming Optional Contract".to_string()
+                        description="Component output stays snapshot while exposing stream markers for agent consumers.".to_string()
+                        groups=groups_for_stream
+                        default_open=true
+                        close_on_action=false
+                    />
+                    <span class="ui-muted">
+                        "requested mode: "
+                        {move || stream_requested_mode.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "requested output status: "
+                        {move || stream_requested_output_status.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "effective component markers: data-stream-mode=snapshot data-stream-fallback=snapshot data-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="Tune close-on-action/disabled/motion while optionally preserving open+action context in an isolated command-dialog canvas."
+                code_signal=workbench_code
+                code_imports=COMMAND_DIALOG_DOC_IMPORTS.to_string()
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/command-dialog/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div
+                        class="docs-stack docs-stack--tight"
+                        data-slot="command-dialog-workbench-controls"
+                    >
+                        <div class="docs-search__label">"Scenario"</div>
+                        <SegmentedControl
+                            id_base="docs-command-dialog-workbench-scenario".to_string()
+                            options=workbench_options.clone()
+                            selected_index=workbench_index
+                            set_selected_index=set_workbench_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Command dialog scenario".to_string()
+                        />
+                        <Switch
+                            checked=workbench_preserve_context
+                            set_checked=set_workbench_preserve_context
+                        >
+                            " Preserve open/action context (optional)"
+                        </Switch>
+                        <div class="ui-muted">
+                            "close_on_action: "
+                            {move || workbench_close_on_action.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "is_disabled: "
+                            {move || workbench_disabled.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "custom_text: "
+                            {move || workbench_custom_text.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "custom_motion: "
+                            {move || workbench_custom_motion.get()}
+                        </div>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="command-dialog-workbench">
+                    <div class="docs-row" data-slot="command-dialog-workbench-actions">
+                        <button type="button" on:click=move |_| set_workbench_open_raw.set(true)>
+                            "Open Workbench Dialog"
+                        </button>
+                        <button type="button" on:click=move |_| set_workbench_open_raw.set(false)>
+                            "Close"
+                        </button>
+                        <button type="button" on:click=move |_| set_last_workbench_action.set("none".to_string())>
+                            "Clear Last Action"
+                        </button>
+                    </div>
+                    <div data-slot="command-dialog-workbench-canvas">
+                        <CommandDialog
+                            id_base="docs-command-dialog-workbench".to_string()
+                            title="Docs Command Center".to_string()
+                            description=if workbench_custom_text.get() {
+                                "Try command search with marker-rich contracts.".to_string()
+                            } else {
+                                String::new()
+                            }
+                            groups=workbench_groups.clone()
+                            open=workbench_open
+                            on_open_change=on_workbench_open_change
+                            on_action=on_workbench_action
+                            close_on_action=workbench_close_on_action.get()
+                            is_disabled=workbench_disabled.get()
+                            placeholder=if workbench_custom_text.get() {
+                                "Search docs commands...".to_string()
+                            } else {
+                                String::new()
+                            }
+                            empty_label=if workbench_custom_text.get() {
+                                "No docs command found.".to_string()
+                            } else {
+                                String::new()
+                            }
+                            aria_label=if workbench_custom_text.get() {
+                                "Docs command dialog".to_string()
+                            } else {
+                                String::new()
+                            }
+                            class_name=if workbench_custom_text.get() {
+                                "docs-command-dialog-custom".to_string()
+                            } else {
+                                String::new()
+                            }
+                            command_motion=workbench_command_motion.get()
+                            overlay_motion=workbench_overlay_motion.get()
+                        />
+                    </div>
+                    <span class="ui-muted">
+                        "open: "
+                        {move || if workbench_open_raw.get() { "true" } else { "false" }}
+                    </span>
+                    <span class="ui-muted">
+                        "last action: "
+                        {move || last_workbench_action.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "persist_context: "
+                        {move || workbench_preserve_context.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <div class="docs-stack docs-stack--tight" data-slot="command-dialog-source-first">
+                <h3>"Source-first Copy-Paste"</h3>
+                <p class="ui-muted">
+                    "Use "
+                    <code>"Show code"</code>
+                    " in any playground to copy import-ready snippets."
+                </p>
+                <p class="ui-muted">
+                    "Imports are auto-completed via "
+                    <code>"COMMAND_DIALOG_DOC_IMPORTS"</code>
+                    " + "
+                    <code>"compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p class="ui-muted">
+                    "Dependency prerequisites: "
+                    <code>
+                        "ui-components = { workspace = true, default-features = false, features = [\"component-command_dialog\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <ul class="docs-stack docs-stack--tight" data-slot="command-dialog-source-paths">
+                    <li><code>"components/command-dialog/src/mod.rs"</code></li>
+                    <li><code>"components/command-dialog/src/logic.rs"</code></li>
+                    <li><code>"components/command-dialog/src/view.rs"</code></li>
+                    <li><code>"components/command-dialog/src/styles.rs"</code></li>
+                    <li><code>"components/command-dialog/src/motion.rs"</code></li>
+                </ul>
+            </div>
         </ComponentPage>
     }
     .into_any()

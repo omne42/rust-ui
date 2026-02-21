@@ -1,3 +1,5 @@
+mod semantics;
+
 use super::*;
 
 #[test]

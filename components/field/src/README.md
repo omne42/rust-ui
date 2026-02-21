@@ -2,16 +2,29 @@
 
 `Field` 是表单字段容器组件，用于统一组织 label/control/description/error，并暴露稳定语义契约。
 
+## 快速开始（先用起来）
+
+```rust
+<Field label="Email".to_string() is_required=true>
+  <input type="email" />
+</Field>
+```
+
+常见用法建议顺序：
+- 先用默认 API（`label + children`）完成基础渲染。
+- 再按需开启 `is_required/is_disabled/is_invalid`。
+- 最后再接入 `orientation/tone/motion/class_name` 等进阶能力。
+
 ## 目标 / 非目标 / 风险边界
 
-- 目标：集中管理字段级状态（`required/disabled/invalid`）与文案来源标记（aria/error/class source）。
+- 目标：集中管理字段级状态（`is_required/is_disabled/is_invalid`）与文案来源标记（aria/error/class source）。
 - 非目标：不承载受控 value 状态机，不直接处理业务异步提交流程。
 - 风险边界：不要在 `view.rs` 拼业务状态分支；所有归一化应通过 `logic.rs` 完成。
 
 ## Architecture Layers
 
-- `logic.rs`：`FieldOrientation/FieldTone`、文案归一化、状态派生与 source marker。
-- `view.rs`：结构渲染（label/control/messages）与 `aria/data-*` 契约挂载。
+- `logic.rs`：消费 `ui-state-primitives::field` / `field_group`，并集中完成默认值/优先级归一（`resolve_content`）。
+- `view.rs`：结构渲染（label/control/messages）与 `ui-headless` 输出的 `aria/data-*` 契约挂载。
 - `motion.rs`：`FieldMotion` 契约与 CSS 变量 attach（`--ui-field-motion-duration`）。
 - `styles.rs`：token-first 静态 CSS。
 - `mod.rs`：公开 API（`Field`、`FieldOrientation`、`FieldTone`、`FieldMotion`）。
@@ -23,23 +36,39 @@
 | `children` | `Children` | required |
 | `orientation` | `FieldOrientation` (`Vertical` / `Horizontal`) | `Vertical` |
 | `tone` | `FieldTone` (`Default` / `Muted`) | `Default` |
-| `required` | `bool` | `false` |
-| `disabled` | `bool` | `false` |
-| `invalid` | `bool` | `false` |
+| `is_required` | `Option<bool>` | `None`（回落到 `required` 别名，再回落 `false`） |
+| `required` | `Option<bool>` | `None`（兼容别名） |
+| `is_disabled` | `Option<bool>` | `None`（回落到 `disabled` 别名，再回落 `false`） |
+| `disabled` | `Option<bool>` | `None`（兼容别名） |
+| `is_invalid` | `Option<bool>` | `None`（回落到 `invalid` 别名，再回落 `false`） |
+| `invalid` | `Option<bool>` | `None`（兼容别名） |
 | `label` | `Option<String>` | `None` |
 | `description` | `Option<String>` | `None` |
 | `error_message` | `Option<String>` | `None`（`invalid=true` 时回落到默认错误文案） |
 | `motion` | `FieldMotion` | `FieldMotion::default()` |
 | `aria_label` | `Option<String>` | `None`（回落 `DEFAULT_ARIA_LABEL`） |
+| `lang` | `Option<String>` | `None` |
+| `dir` | `Option<A11yDirection>` (`Ltr` / `Rtl`) | `None` |
 | `class_name` | `Option<String>` | `None` |
 
 ## Hello World（最小可用）
 
 ```rust
-<Field label="Email".to_string()>
+<Field label="Email".to_string() is_required=true>
   <input type="email" />
 </Field>
 ```
+
+## Controlled / Uncontrolled
+
+- N/A-by-design：`Field/FieldGroup` 不管理 `value/open/checked/selected` 一类本地状态轴。
+- 组件只消费外部语义输入并映射为 `aria-*`/`data-*` 标记，不提供 `default_*` 或 `on_*_change` 状态机 API。
+
+## 命名迁移（兼容策略）
+
+- 新命名：布尔状态统一使用 `is_*`（`is_required` / `is_disabled` / `is_invalid`）。
+- 兼容别名：保留 `required` / `disabled` / `invalid` 作为旧名输入，避免现有调用立即破坏。
+- 优先级：当新旧命名同时传入时，始终以 `is_*` 为准；旧名仅作为回退路径。
 
 ## Semantics and Accessibility
 
@@ -50,9 +79,9 @@
 
 ## Motion and Fallback
 
-- motion 仅映射到 CSS 变量（`--ui-field-motion-duration`）。
-- `sanitize_motion` 对非法值做回落与 clamp（`1..=800ms`）。
-- `@media (prefers-reduced-motion: reduce)` 下样式退化为最小过渡。
+- `FieldMotion` 默认值来自 `ui-theme`（`default_text_field_motion_tokens`），组件不硬编码默认时长。
+- `attach_motion` 仅挂载 CSS 变量（`--ui-field-motion-duration`），并通过 `ui_motion::web::prefers_reduced_motion` 在非 wasm/减弱动效场景降级。
+- 样式侧消费 token 变量（`--ui-text-field-motion-duration/easing`）并保留 `@media (prefers-reduced-motion: reduce)` 最小过渡兜底。
 
 ## docs-app 入口
 

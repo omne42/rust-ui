@@ -178,3 +178,58 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn active_index_and_option_id_fallbacks_are_centralized() {
+    let items = resolve_items(
+        "docs-nav",
+        vec![NavigationMenuItem::new("docs", "Docs", "/docs")],
+    );
+
+    assert_eq!(resolve_active_index(&items, None, None), 0);
+    assert_eq!(resolve_option_id(&items, 0), "docs-nav-docs".to_string());
+    assert_eq!(resolve_option_id(&items, 9), String::new());
+}
+
+#[test]
+fn navigation_item_runtime_decisions_are_centralized() {
+    let items = resolve_items(
+        "docs-nav",
+        vec![
+            NavigationMenuItem::new("home", "Home", "/").disabled(true),
+            NavigationMenuItem::new("docs", "Docs", "/docs"),
+        ],
+    );
+
+    assert_eq!(resolve_item_tabindex(false, true), "0");
+    assert_eq!(resolve_item_tabindex(true, true), "-1");
+    assert_eq!(resolve_item_state_attr(true, false, false), "disabled");
+    assert_eq!(resolve_item_state_attr(false, true, false), "selected");
+    assert_eq!(resolve_item_state_attr(false, false, true), "focused");
+    assert_eq!(resolve_item_state_attr(false, false, false), "idle");
+    assert!(should_ignore_item_interaction(true));
+
+    assert_eq!(
+        resolve_selected_id_for_target(&items, 1, NavigationSelectionTarget::Current),
+        Some("docs".to_string())
+    );
+    assert_eq!(
+        resolve_selected_id_for_target(&items, 0, NavigationSelectionTarget::Index(1)),
+        Some("docs".to_string())
+    );
+
+    assert_eq!(
+        resolve_key_decision("ArrowRight", false, 1, &items, true),
+        Some(NavigationKeyDecision {
+            next_focus_index: Some(1),
+            selection_target: Some(NavigationSelectionTarget::Index(1))
+        })
+    );
+    assert_eq!(
+        resolve_key_decision("Enter", false, 1, &items, true),
+        Some(NavigationKeyDecision {
+            next_focus_index: None,
+            selection_target: Some(NavigationSelectionTarget::Current)
+        })
+    );
+}

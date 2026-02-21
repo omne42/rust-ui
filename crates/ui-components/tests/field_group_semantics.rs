@@ -111,39 +111,31 @@ fn field_group_uses_logic_state_model() {
     let logic_source = load_source("src/field_form/field/group/logic.rs");
     let view_source = load_source("src/field_form/field/group/view.rs");
 
-    for needle in [
-        "pub struct FieldGroupStateInput",
-        "pub struct FieldGroupState",
-    ] {
+    for needle in ["FieldGroupStateInput", "FieldGroupState"] {
         assert!(
             mod_source.contains(needle),
             "FieldGroup module should include `{needle}` state contracts."
         );
     }
 
-    for needle in [
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_id_base(",
-        "pub fn normalize_aria_label(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-    ] {
-        assert!(
-            logic_source.contains(needle),
-            "FieldGroup logic should include `{needle}` for centralized state derivation."
-        );
-    }
+    let needle = "pub use ui_state_primitives::field_group::*;";
+    assert!(
+        logic_source.contains(needle),
+        "FieldGroup logic should consume shared state primitives; missing `{needle}`."
+    );
 
     for needle in [
+        "use ui_headless::{A11yDirection, FieldGroupOptions, use_field_group};",
         "logic::normalize_id_base(id_base)",
         "logic::normalize_optional_text(label)",
         "logic::normalize_aria_label(aria_label)",
         "logic::resolve_state(FieldGroupStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
+        "use_field_group(FieldGroupOptions {",
     ] {
         assert!(
             view_source.contains(needle),
-            "FieldGroup view should derive state via logic helpers; missing `{needle}`."
+            "FieldGroup view should derive state via logic/helpers + headless contract; missing `{needle}`."
         );
     }
 }
@@ -154,13 +146,14 @@ fn field_group_emits_baseline_style_state_data_attributes() {
 
     for attr in [
         "data-slot=\"field-group\"",
-        "data-orientation=move || state.get().orientation_attr",
-        "data-density=move || state.get().density_attr",
-        "data-state=move || state.get().state_attr",
-        "data-label=move || state.get().label_attr",
-        "data-description=move || state.get().description_attr",
-        "data-aria-source=move || state.get().aria_source_attr",
-        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
+        "data-orientation=move || headless.get().attrs.data_orientation",
+        "data-density=move || headless.get().attrs.data_density",
+        "data-state=move || headless.get().attrs.data_state",
+        "data-label=move || headless.get().attrs.data_label",
+        "data-description=move || headless.get().attrs.data_description",
+        "data-aria-source=move || headless.get().attrs.data_aria_source",
+        "data-custom-class=move || headless.get().attrs.data_custom_class",
+        "data-class-source=move || headless.get().attrs.data_class_source",
         "data-slot=\"field-group-label\"",
         "data-slot=\"field-group-content\"",
         "data-slot=\"field-group-description\"",
@@ -177,9 +170,12 @@ fn field_group_aria_contracts_are_preserved() {
     let source = load_source("src/field_form/field/group/view.rs");
 
     for needle in [
+        "role=move || headless.get().attrs.role",
         "aria-label=move || aria_label_value.get()",
         "aria-labelledby=move || aria_labelledby.get()",
         "aria-describedby=move || aria_describedby.get()",
+        "lang=move || headless.get().attrs.lang",
+        "dir=move || headless.get().attrs.dir",
     ] {
         assert!(
             source.contains(needle),

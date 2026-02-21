@@ -105,11 +105,19 @@ pub fn attach_motion(
             1.0
         };
 
-        drop(style.set_property("--ui-snippet-scale", &format!("{initial}")));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-snippet-scale",
+            &format!("{initial}")
+        );
         let style_for_animator = style.clone();
         let spring = ui_motion::spring::SpringAnimator::new(initial, motion.spring, move |next| {
             let next = next.clamp(0.94, 1.22);
-            drop(style_for_animator.set_property("--ui-snippet-scale", &format!("{next}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_animator),
+                "--ui-snippet-scale",
+                &format!("{next}")
+            );
         });
 
         animator.set_value(Some(spring));

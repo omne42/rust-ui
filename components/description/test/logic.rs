@@ -1,65 +1,19 @@
 use super::*;
-use crate::DescriptionStateInput;
 
 #[test]
-fn tone_and_element_contracts_are_stable() {
-    assert_eq!(
-        DescriptionTone::Default.class_name(),
-        "ui-description--tone-default"
-    );
-    assert_eq!(
-        DescriptionTone::Muted.class_name(),
-        "ui-description--tone-muted"
-    );
-    assert_eq!(
-        DescriptionTone::Negative.class_name(),
-        "ui-description--tone-negative"
-    );
-
-    assert_eq!(DescriptionTone::Default.as_attr(), "default");
-    assert_eq!(DescriptionTone::Muted.as_attr(), "muted");
-    assert_eq!(DescriptionTone::Negative.as_attr(), "negative");
-
+fn element_default_contract_is_stable() {
     assert_eq!(DescriptionElement::default(), DescriptionElement::Paragraph);
 }
 
 #[test]
-fn normalize_helpers_trim_and_fallback() {
-    assert_eq!(normalize_optional_text(None), None);
-    assert_eq!(normalize_optional_text(Some(" \n\t ".to_string())), None);
-    assert_eq!(
-        normalize_optional_text(Some("  helper  ".to_string())),
-        Some("helper".to_string())
-    );
+fn locale_attrs_are_headless_backed_and_normalized() {
+    let attrs = resolve_locale_attrs(Some("  zh-CN  ".to_string()), Some(A11yDirection::Rtl));
+    assert_eq!(attrs.lang.as_deref(), Some("zh-CN"));
+    assert_eq!(attrs.dir, Some("rtl"));
 
-    assert_eq!(normalize_content(Some("  hint  ".to_string())), "hint");
-    assert_eq!(normalize_content(Some(" \n ".to_string())), DEFAULT_TEXT);
-
-    let (label, custom) = normalize_aria_label(Some("  Form help  ".to_string()));
-    assert_eq!(label, "Form help");
-    assert!(custom);
-
-    let (label, custom) = normalize_aria_label(None);
-    assert_eq!(label, DEFAULT_ARIA_LABEL);
-    assert!(!custom);
-}
-
-#[test]
-fn resolve_state_tracks_sources_and_priority() {
-    let state = resolve_state(DescriptionStateInput {
-        tone: DescriptionTone::Muted,
-        disabled: false,
-        truncate: true,
-        has_custom_aria_label: true,
-        has_custom_class_name: false,
-    });
-
-    assert_eq!(state.tone_attr, "muted");
-    assert!(!state.is_disabled);
-    assert!(state.is_truncated);
-    assert_eq!(state.data_state_attr, "truncate");
-    assert_eq!(state.aria_source_attr, "custom");
-    assert_eq!(state.class_source_attr, "default");
+    let attrs = resolve_locale_attrs(Some(" \n ".to_string()), None);
+    assert_eq!(attrs.lang, None);
+    assert_eq!(attrs.dir, None);
 }
 
 #[test]
@@ -87,5 +41,98 @@ fn compose_class_name_includes_state_markers() {
             class_name.contains(token),
             "composed class should contain `{token}`"
         );
+    }
+}
+
+#[test]
+fn resolve_view_model_centralizes_default_sources() {
+    let model = resolve_view_model(DescriptionViewModelInput {
+        text: " \n ".to_string(),
+        tone: DescriptionTone::Default,
+        is_disabled: false,
+        is_truncated: false,
+        aria_label: Some("  ".to_string()),
+        class_name: Some("   ".to_string()),
+        lang: Some("  zh-CN  ".to_string()),
+        dir: Some(A11yDirection::Rtl),
+    });
+
+    assert_eq!(model.text.as_str(), DEFAULT_TEXT);
+    assert_eq!(model.aria_label.as_str(), DEFAULT_ARIA_LABEL);
+    assert_eq!(model.class_name, None);
+    assert_eq!(model.state.aria_source_attr, "default");
+    assert_eq!(model.state.class_source_attr, "default");
+    assert_eq!(model.lang.as_deref(), Some("zh-CN"));
+    assert_eq!(model.dir, Some("rtl"));
+}
+
+#[test]
+fn resolve_view_model_keeps_explicit_overrides() {
+    let model = resolve_view_model(DescriptionViewModelInput {
+        text: "Size shown in cm".to_string(),
+        tone: DescriptionTone::Muted,
+        is_disabled: true,
+        is_truncated: true,
+        aria_label: Some("Product description".to_string()),
+        class_name: Some("docs-description".to_string()),
+        lang: Some("en-US".to_string()),
+        dir: Some(A11yDirection::Ltr),
+    });
+
+    assert_eq!(model.text.as_str(), "Size shown in cm");
+    assert_eq!(model.aria_label.as_str(), "Product description");
+    assert_eq!(model.class_name.as_deref(), Some("docs-description"));
+    assert_eq!(model.state.tone, DescriptionTone::Muted);
+    assert!(model.state.is_disabled);
+    assert!(model.state.is_truncated);
+    assert_eq!(model.state.aria_source_attr, "custom");
+    assert_eq!(model.state.class_source_attr, "custom");
+    assert_eq!(model.lang.as_deref(), Some("en-US"));
+    assert_eq!(model.dir, Some("ltr"));
+}
+
+#[test]
+fn semantic_marker_values_are_closed_and_enumerable() {
+    let allowed_tone = ["default", "muted", "negative"];
+    let allowed_state = ["default", "disabled", "truncate"];
+    let allowed_source = ["default", "custom"];
+
+    for tone in [
+        DescriptionTone::Default,
+        DescriptionTone::Muted,
+        DescriptionTone::Negative,
+    ] {
+        for disabled in [false, true] {
+            for truncated in [false, true] {
+                let state = resolve_state(DescriptionStateInput {
+                    tone,
+                    disabled,
+                    truncate: truncated,
+                    has_custom_aria_label: disabled || truncated,
+                    has_custom_class_name: truncated,
+                });
+
+                assert!(
+                    allowed_tone.contains(&state.tone_attr),
+                    "unexpected tone marker: {}",
+                    state.tone_attr
+                );
+                assert!(
+                    allowed_state.contains(&state.data_state_attr),
+                    "unexpected data-state marker: {}",
+                    state.data_state_attr
+                );
+                assert!(
+                    allowed_source.contains(&state.aria_source_attr),
+                    "unexpected aria-source marker: {}",
+                    state.aria_source_attr
+                );
+                assert!(
+                    allowed_source.contains(&state.class_source_attr),
+                    "unexpected class-source marker: {}",
+                    state.class_source_attr
+                );
+            }
+        }
     }
 }

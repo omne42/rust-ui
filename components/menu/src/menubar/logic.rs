@@ -1,166 +1,178 @@
-use std::collections::BTreeSet;
 use std::sync::Arc;
 
+#[cfg(test)]
+use crate::menubar::MenubarMenuIds;
 use crate::menubar::{
-    MenubarMenu, MenubarMenuIds, MenubarMenuResolved, MenubarPartState, MenubarPartStateInput,
-    MenubarSlot,
+    MenuOpenFocusStrategy, MenubarMenu, MenubarMenuResolved, MenubarPartState,
+    MenubarPartStateInput, MenubarSlot,
 };
 use ui_headless::PopoverPlacement;
+use ui_state_primitives::menu as menu_state;
 
 pub const DEFAULT_ID_BASE: &str = "menubar";
 pub const DEFAULT_CLOSE_ON_ACTION: bool = true;
 pub const DEFAULT_PLACEMENT: PopoverPlacement = PopoverPlacement::BottomStart;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MenubarActionModeInput {
+    pub is_close_on_action: Option<bool>,
+    pub close_on_action: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum MenubarActionMode {
+    #[default]
+    CloseOnAction,
+    KeepOpenOnAction,
+}
+
+impl MenubarActionMode {
+    pub fn from_bool(close_on_action: bool) -> Self {
+        if close_on_action {
+            Self::CloseOnAction
+        } else {
+            Self::KeepOpenOnAction
+        }
+    }
+
+    pub fn is_close_on_action(self) -> bool {
+        matches!(self, Self::CloseOnAction)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MenubarKeyDecision {
+    OpenCurrent {
+        focus: MenuOpenFocusStrategy,
+    },
+    MoveTo {
+        index: usize,
+        focus: MenuOpenFocusStrategy,
+        focus_trigger: bool,
+    },
+    Close,
+}
+
 pub fn state_attr(menu_count: usize, has_open_menu: bool) -> &'static str {
-    if menu_count == 0 {
-        "empty"
-    } else if has_open_menu {
+    menu_state::menubar_state_attr(menu_count, has_open_menu)
+}
+
+pub fn menu_attr(menu_count: usize) -> &'static str {
+    menu_state::menubar_menu_attr(menu_count)
+}
+
+pub fn action_attr(close_on_action: bool) -> &'static str {
+    menu_state::action_attr(close_on_action)
+}
+
+pub fn normalize_close_on_action(input: MenubarActionModeInput) -> MenubarActionMode {
+    MenubarActionMode::from_bool(input.is_close_on_action.unwrap_or(input.close_on_action))
+}
+
+pub fn resolve_menu_state_attr(is_open: bool, is_trigger_disabled: bool) -> &'static str {
+    if is_open {
         "open"
+    } else if is_trigger_disabled {
+        "disabled"
     } else {
         "closed"
     }
 }
 
-pub fn menu_attr(menu_count: usize) -> &'static str {
-    if menu_count == 0 {
-        "empty"
-    } else {
-        "populated"
-    }
-}
-
-pub fn action_attr(close_on_action: bool) -> &'static str {
-    if close_on_action {
-        "close"
-    } else {
-        "keep-open"
-    }
+pub fn resolve_aria_expanded(is_open: bool) -> &'static str {
+    if is_open { "true" } else { "false" }
 }
 
 pub fn open_mode_attr(is_controlled: bool) -> &'static str {
-    if is_controlled {
-        "controlled"
-    } else {
-        "uncontrolled"
-    }
+    menu_state::open_mode_attr(is_controlled)
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    menu_state::normalize_optional_text(value)
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
+    menu_state::normalize_id_base(id_base, DEFAULT_ID_BASE)
 }
 
-fn sanitize_token(value: &str, fallback: &str) -> String {
-    let mut out = String::new();
-    let mut last_dash = false;
-
-    for ch in value.chars() {
-        if ch.is_ascii_alphanumeric() {
-            out.push(ch.to_ascii_lowercase());
-            last_dash = false;
-            continue;
-        }
-
-        if (ch == '-' || ch == '_' || ch == ' ') && !last_dash {
-            out.push('-');
-            last_dash = true;
-        }
-    }
-
-    while out.ends_with('-') {
-        out.pop();
-    }
-
-    if out.is_empty() {
-        return fallback.into();
-    }
-
-    out
-}
-
+#[cfg(test)]
 pub fn resolve_menu_ids(id_base: &str, menu_id: &str) -> MenubarMenuIds {
+    let (trigger_id, menu_id) = menu_state::resolve_menubar_menu_ids(id_base, menu_id);
     MenubarMenuIds {
-        trigger_id: format!("{id_base}-{menu_id}-trigger"),
-        menu_id: format!("{id_base}-{menu_id}-menu"),
+        trigger_id,
+        menu_id,
     }
 }
 
 pub fn normalize_open_index(open_index: Option<usize>, menu_count: usize) -> Option<usize> {
-    open_index.filter(|index| *index < menu_count)
+    menu_state::normalize_index(open_index, menu_count)
 }
 
+#[cfg(test)]
 pub fn normalize_disabled_indices(disabled_indices: Vec<usize>, item_count: usize) -> Vec<usize> {
-    let mut unique = BTreeSet::new();
-    for index in disabled_indices {
-        if index < item_count {
-            unique.insert(index);
-        }
-    }
-
-    unique.into_iter().collect()
+    menu_state::normalize_disabled_indices(disabled_indices, item_count)
 }
+#[cfg(test)]
+const _: fn(&str, &str) -> MenubarMenuIds = resolve_menu_ids;
+#[cfg(test)]
+const _: fn(Vec<usize>, usize) -> Vec<usize> = normalize_disabled_indices;
 
 pub fn resolve_menus(id_base: &str, menus: Vec<MenubarMenu>) -> Vec<MenubarMenuResolved> {
-    let mut seen_ids = BTreeSet::new();
-    let mut resolved = Vec::new();
+    let mut item_kinds_by_index = Vec::with_capacity(menus.len());
+    let mut primitive_inputs = Vec::with_capacity(menus.len());
 
-    for (index, menu) in menus.into_iter().enumerate() {
-        let fallback_id = format!("menu-{}", index + 1);
-        let raw_id = normalize_optional_text(Some(menu.id)).unwrap_or_else(|| fallback_id.clone());
-        let base_id = sanitize_token(&raw_id, &fallback_id);
-
-        let mut unique_id = base_id.clone();
-        let mut suffix = 2;
-        while seen_ids.contains(&unique_id) {
-            unique_id = format!("{base_id}-{suffix}");
-            suffix += 1;
-        }
-        seen_ids.insert(unique_id.clone());
-
-        let label = normalize_optional_text(Some(menu.label))
-            .unwrap_or_else(|| format!("Menu {}", index + 1));
-
-        let items: Vec<String> = menu
-            .items
-            .into_iter()
-            .filter_map(|item| normalize_optional_text(Some(item)))
-            .collect();
-
-        let item_count = items.len();
-        let disabled_indices = normalize_disabled_indices(menu.disabled_indices, item_count);
-        let item_kinds = menu.item_kinds.into_iter().take(item_count).collect();
-
-        let is_trigger_disabled = menu.disabled || item_count == 0;
-        let ids = resolve_menu_ids(id_base, &unique_id);
-
-        resolved.push(MenubarMenuResolved {
-            id: unique_id,
-            label,
-            items: Arc::<[String]>::from(items),
-            disabled_indices,
-            item_kinds,
-            is_trigger_disabled,
-            has_items: item_count > 0,
-            trigger_id: ids.trigger_id,
-            menu_id: ids.menu_id,
+    for menu in menus {
+        item_kinds_by_index.push(menu.item_kinds);
+        primitive_inputs.push(menu_state::MenubarMenuInput {
+            id: menu.id,
+            label: menu.label,
+            items: menu.items,
+            disabled_indices: menu.disabled_indices,
+            disabled: menu.disabled,
         });
     }
 
-    resolved
+    menu_state::resolve_menubar_menus(id_base, primitive_inputs)
+        .into_iter()
+        .enumerate()
+        .map(|(index, resolved)| {
+            let item_kinds = item_kinds_by_index
+                .get(index)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .take(resolved.items.len())
+                .collect();
+
+            MenubarMenuResolved {
+                id: resolved.id,
+                label: resolved.label,
+                items: Arc::<[String]>::from(resolved.items),
+                disabled_indices: resolved.disabled_indices,
+                item_kinds,
+                is_trigger_disabled: resolved.is_trigger_disabled,
+                has_items: resolved.has_items,
+                trigger_id: resolved.trigger_id,
+                menu_id: resolved.menu_id,
+            }
+        })
+        .collect()
 }
 
 pub fn sanitize_open_index_for_menus(
     open_index: Option<usize>,
     menus: &[MenubarMenuResolved],
 ) -> Option<usize> {
-    let index = normalize_open_index(open_index, menus.len())?;
-    (!menus[index].is_trigger_disabled).then_some(index)
+    let trigger_disabled: Vec<bool> = menus.iter().map(|menu| menu.is_trigger_disabled).collect();
+    menu_state::sanitize_open_index_for_trigger_disabled(open_index, &trigger_disabled)
+}
+
+pub fn normalize_default_open_index(
+    default_open_index: Option<usize>,
+    menu_count: usize,
+    menus: &[MenubarMenuResolved],
+) -> Option<usize> {
+    sanitize_open_index_for_menus(normalize_open_index(default_open_index, menu_count), menus)
 }
 
 pub fn next_enabled_menu_index(
@@ -168,22 +180,76 @@ pub fn next_enabled_menu_index(
     current_index: usize,
     step: isize,
 ) -> Option<usize> {
-    if menus.is_empty() || step == 0 {
+    let trigger_disabled: Vec<bool> = menus.iter().map(|menu| menu.is_trigger_disabled).collect();
+    menu_state::next_enabled_index(&trigger_disabled, current_index, step)
+}
+
+pub fn resolve_next_open_index_on_trigger_press(
+    is_trigger_disabled: bool,
+    active_open: Option<usize>,
+    index: usize,
+) -> Option<Option<usize>> {
+    if is_trigger_disabled {
         return None;
     }
 
-    let len = menus.len() as isize;
-    let mut cursor = current_index as isize;
+    Some(if active_open == Some(index) {
+        None
+    } else {
+        Some(index)
+    })
+}
 
-    for _ in 0..menus.len().saturating_sub(1) {
-        cursor = (cursor + step).rem_euclid(len);
-        let index = cursor as usize;
-        if !menus[index].is_trigger_disabled {
-            return Some(index);
-        }
+pub fn resolve_next_open_index_on_pointer_enter(
+    is_trigger_disabled: bool,
+    active_open: Option<usize>,
+    index: usize,
+) -> Option<Option<usize>> {
+    if is_trigger_disabled {
+        return None;
+    }
+
+    if active_open.is_some() && active_open != Some(index) {
+        return Some(Some(index));
     }
 
     None
+}
+
+pub fn resolve_key_decision(
+    key: &str,
+    is_trigger_disabled: bool,
+    current_index: usize,
+    menus: &[MenubarMenuResolved],
+) -> Option<MenubarKeyDecision> {
+    let command = ui_headless::menubar_key_command(key, is_trigger_disabled)?;
+    match command {
+        ui_headless::MenubarKeyCommand::OpenFirst => Some(MenubarKeyDecision::OpenCurrent {
+            focus: MenuOpenFocusStrategy::First,
+        }),
+        ui_headless::MenubarKeyCommand::OpenLast => Some(MenubarKeyDecision::OpenCurrent {
+            focus: MenuOpenFocusStrategy::Last,
+        }),
+        ui_headless::MenubarKeyCommand::MoveNext => {
+            next_enabled_menu_index(menus, current_index, 1).map(|index| {
+                MenubarKeyDecision::MoveTo {
+                    index,
+                    focus: MenuOpenFocusStrategy::First,
+                    focus_trigger: true,
+                }
+            })
+        }
+        ui_headless::MenubarKeyCommand::MovePrevious => {
+            next_enabled_menu_index(menus, current_index, -1).map(|index| {
+                MenubarKeyDecision::MoveTo {
+                    index,
+                    focus: MenuOpenFocusStrategy::First,
+                    focus_trigger: true,
+                }
+            })
+        }
+        ui_headless::MenubarKeyCommand::Close => Some(MenubarKeyDecision::Close),
+    }
 }
 
 fn source_attr(is_custom: bool) -> &'static str {

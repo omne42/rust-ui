@@ -74,28 +74,10 @@ impl MenubarSlot {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum MenuOpenFocusStrategy {
-    #[default]
-    First,
-    Last,
-}
-
-impl MenuOpenFocusStrategy {
-    pub fn default_index(self, item_count: usize) -> usize {
-        match self {
-            Self::First => 0,
-            Self::Last => item_count.saturating_sub(1),
-        }
-    }
-}
+pub type MenuOpenFocusStrategy = ui_headless::MenuOpenFocusStrategy;
 
 pub fn focus_strategy_for_open_key(key: &str) -> Option<MenuOpenFocusStrategy> {
-    match key {
-        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
-        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
-        _ => None,
-    }
+    ui_headless::menu_trigger_open_focus_strategy_for_key(key)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -1,23 +1,37 @@
 pub const CSS: &str = r#"
 .ui-chip {
-  --ui-chip-font-size: var(--ui-button-size-s-font-size, 13px);
-  --ui-chip-line-height: var(--ui-button-size-s-line-height, 18px);
+  --ui-chip-font-size: var(--ui-button-size-s-font-size, var(--ui-fallback-button-size-s-font-size));
+  --ui-chip-line-height: var(--ui-button-size-s-line-height, var(--ui-fallback-button-size-s-line-height));
+  --ui-chip-gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  --ui-chip-padding-inline-static: var(--ui-space-md, var(--ui-fallback-space-md));
+  --ui-chip-padding-inline-removable: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  --ui-chip-radius: var(--ui-button-radius-full, var(--ui-fallback-radius-lg));
+  --ui-chip-dismiss-size: calc(
+    var(--ui-space-sm, var(--ui-fallback-space-sm)) * 2 +
+      var(--ui-space-xs, var(--ui-fallback-space-xs)) / 2
+  );
+  --ui-chip-focus-ring-color: var(--ui-focus-ring, var(--ui-fallback-accent));
+  --ui-chip-focus-offset: calc(var(--ui-space-xs, var(--ui-fallback-space-xs)) / 2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--ui-chip-gap);
   white-space: nowrap;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  border-radius: 9999px;
-  border: 1px solid transparent;
+  border-radius: var(--ui-chip-radius);
+  border: solid transparent;
+  border-width: thin;
   box-sizing: border-box;
   font-size: var(--ui-chip-font-size);
   font-weight: 500;
   line-height: var(--ui-chip-line-height);
-  color: var(--ui-fg);
-  background: var(--ui-bg-muted);
-  border-color: var(--ui-border);
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
+  border-color: var(--ui-border, var(--ui-fallback-border));
+  opacity: var(--ui-chip-opacity, 1);
+  transform: translateY(var(--ui-chip-translate-y, 0px)) scale(var(--ui-chip-scale, 1));
+  transform-origin: center;
 }
 
 .ui-chip__content {
@@ -26,54 +40,72 @@ pub const CSS: &str = r#"
 
 .ui-chip--size-sm,
 .ui-chip[data-size="sm"] {
-  height: 24px;
-  padding: 0 10px;
-  --ui-chip-font-size: var(--ui-button-size-xs-font-size, 12px);
-  --ui-chip-line-height: var(--ui-button-size-xs-line-height, 16px);
+  height: calc(var(--ui-space-md, var(--ui-fallback-space-md)) * 2);
+  padding: 0 calc(var(--ui-space-sm, var(--ui-fallback-space-sm)) * 1.25);
+  --ui-chip-font-size: var(--ui-button-size-xs-font-size, var(--ui-fallback-font-size-100));
+  --ui-chip-line-height: var(--ui-button-size-xs-line-height, var(--ui-fallback-line-height-100));
 }
 
 .ui-chip--size-md,
 .ui-chip[data-size="md"] {
-  height: 28px;
-  padding: 0 12px;
-  --ui-chip-font-size: var(--ui-button-size-s-font-size, 13px);
-  --ui-chip-line-height: var(--ui-button-size-s-line-height, 18px);
+  height: calc(
+    var(--ui-space-md, var(--ui-fallback-space-md)) * 2 +
+      var(--ui-space-sm, var(--ui-fallback-space-sm)) / 2
+  );
+  padding: 0 var(--ui-space-md, var(--ui-fallback-space-md));
+  --ui-chip-font-size: var(--ui-button-size-s-font-size, var(--ui-fallback-button-size-s-font-size));
+  --ui-chip-line-height: var(--ui-button-size-s-line-height, var(--ui-fallback-button-size-s-line-height));
 }
 
 .ui-chip--size-lg,
 .ui-chip[data-size="lg"] {
-  height: 32px;
-  padding: 0 14px;
-  --ui-chip-font-size: var(--ui-button-size-m-font-size, 14px);
-  --ui-chip-line-height: var(--ui-button-size-m-line-height, 20px);
+  height: calc(
+    var(--ui-space-md, var(--ui-fallback-space-md)) * 2 +
+      var(--ui-space-sm, var(--ui-fallback-space-sm))
+  );
+  padding: 0 calc(var(--ui-space-sm, var(--ui-fallback-space-sm)) * 1.75);
+  --ui-chip-font-size: var(--ui-button-size-m-font-size, var(--ui-fallback-font-size-150));
+  --ui-chip-line-height: var(--ui-button-size-m-line-height, var(--ui-fallback-line-height-150));
 }
 
 .ui-chip--variant-default,
 .ui-chip[data-variant="default"] {
-  background: var(--ui-bg-muted);
-  border-color: var(--ui-border);
-  color: var(--ui-fg);
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
+  border-color: var(--ui-border, var(--ui-fallback-border));
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-chip--variant-accent,
 .ui-chip[data-variant="accent"] {
-  background: var(--ui-accent-soft);
-  border-color: color-mix(in oklch, var(--ui-accent) 24%, var(--ui-border));
-  color: var(--ui-fg);
+  background: var(--ui-accent-soft, var(--ui-fallback-accent));
+  border-color: color-mix(
+    in oklch,
+    var(--ui-accent, var(--ui-fallback-accent)) 24%,
+    var(--ui-border, var(--ui-fallback-border))
+  );
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-chip--variant-danger,
 .ui-chip[data-variant="danger"] {
-  background: color-mix(in oklch, var(--ui-danger) 12%, var(--ui-bg-muted));
-  border-color: color-mix(in oklch, var(--ui-danger) 35%, var(--ui-border));
-  color: var(--ui-fg);
+  background: color-mix(
+    in oklch,
+    var(--ui-danger, var(--ui-fallback-danger)) 12%,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted))
+  );
+  border-color: color-mix(
+    in oklch,
+    var(--ui-danger, var(--ui-fallback-danger)) 35%,
+    var(--ui-border, var(--ui-fallback-border))
+  );
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-chip--variant-outline,
 .ui-chip[data-variant="outline"] {
   background: transparent;
-  border-color: var(--ui-border);
-  color: var(--ui-fg);
+  border-color: var(--ui-border, var(--ui-fallback-border));
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-chip--enabled,
@@ -91,13 +123,13 @@ pub const CSS: &str = r#"
 .ui-chip--static,
 .ui-chip[data-state="static"],
 .ui-chip[data-static="true"] {
-  padding-inline-end: 12px;
+  padding-inline-end: var(--ui-chip-padding-inline-static);
 }
 
 .ui-chip--removable,
 .ui-chip[data-state="removable"],
 .ui-chip[data-removable="true"] {
-  padding-inline-end: 8px;
+  padding-inline-end: var(--ui-chip-padding-inline-removable);
 }
 
 .ui-chip--dismiss-label-default,
@@ -117,9 +149,9 @@ pub const CSS: &str = r#"
 }
 
 .ui-chip__dismiss {
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
+  width: var(--ui-chip-dismiss-size);
+  height: var(--ui-chip-dismiss-size);
+  border-radius: var(--ui-chip-radius);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -134,12 +166,12 @@ pub const CSS: &str = r#"
 
 .ui-chip__dismiss:hover {
   opacity: 1;
-  background: color-mix(in oklch, var(--ui-fg) 8%, transparent);
+  background: color-mix(in oklch, var(--ui-fg, var(--ui-fallback-fg)) 8%, transparent);
 }
 
 .ui-chip__dismiss:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: medium solid var(--ui-chip-focus-ring-color);
+  outline-offset: var(--ui-chip-focus-offset);
 }
 
 .ui-chip__dismiss[data-disabled="true"] {

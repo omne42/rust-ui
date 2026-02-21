@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-sheet {
   position: fixed;
   inset: 0;
-  z-index: var(--ui-overlay-z-index);
+  z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index));
 }
 
 .ui-sheet[data-motion-source="custom"],
@@ -59,13 +59,22 @@ pub const CSS: &str = r#"
 }
 
 .ui-sheet[data-keyboard-dismiss-disabled="true"] .ui-sheet__panel {
-  outline: 1px dashed color-mix(in oklab, var(--ui-border) 72%, transparent);
+  outline: var(--ui-border-width, var(--ui-fallback-border-width)) dashed
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border)) 72%,
+      transparent
+    );
 }
 
 .ui-sheet__backdrop {
   position: absolute;
   inset: 0;
-  background: color-mix(in oklch, var(--ui-fg) 24%, transparent);
+  background: color-mix(
+    in oklch,
+    var(--ui-fg, var(--ui-fallback-fg)) 24%,
+    transparent
+  );
   opacity: var(--ui-sheet-backdrop-opacity, 0);
 }
 
@@ -75,12 +84,17 @@ pub const CSS: &str = r#"
 
 .ui-sheet__panel {
   position: absolute;
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  border: 1px solid var(--ui-border);
-  box-shadow: var(--ui-shadow-lg, var(--ui-shadow-sm));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  box-shadow: var(--ui-shadow-lg, var(--ui-fallback-shadow-sm));
   opacity: var(--ui-sheet-panel-opacity, 0);
-  transform: translate3d(var(--ui-sheet-panel-x, 0px), var(--ui-sheet-panel-y, 0px), 0);
+  transform: translate3d(
+    var(--ui-sheet-panel-x, var(--ui-fallback-min-inline-size-none)),
+    var(--ui-sheet-panel-y, var(--ui-fallback-min-inline-size-none)),
+    0
+  );
   will-change: transform, opacity;
 }
 
@@ -89,35 +103,46 @@ pub const CSS: &str = r#"
 }
 
 .ui-sheet--placement-bottom .ui-sheet__panel {
-  left: var(--ui-overlay-viewport-inset);
-  right: var(--ui-overlay-viewport-inset);
-  bottom: var(--ui-overlay-viewport-inset);
-  max-height: calc(100vh - var(--ui-overlay-viewport-inset) * 2);
-  border-top-left-radius: var(--ui-radius-lg);
-  border-top-right-radius: var(--ui-radius-lg);
-  padding: var(--ui-space-lg);
+  left: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));
+  right: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));
+  bottom: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));
+  max-height: calc(
+    100vh
+      - var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset))
+      * 2
+  );
+  border-top-left-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  border-top-right-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  padding: var(--ui-space-lg, var(--ui-fallback-space-lg));
 }
 
 .ui-sheet--placement-left .ui-sheet__panel,
 .ui-sheet--placement-right .ui-sheet__panel {
-  top: var(--ui-overlay-viewport-inset);
-  bottom: var(--ui-overlay-viewport-inset);
+  top: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));
+  bottom: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));
   width: min(
-    calc(var(--ui-overlay-panel-min-width) + var(--ui-space-lg) * 8),
-    calc(100vw - var(--ui-overlay-viewport-inset) * 2)
+    calc(
+      var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))
+        + var(--ui-space-lg, var(--ui-fallback-space-lg)) * 8
+    ),
+    calc(
+      100vw
+        - var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset))
+        * 2
+    )
   );
-  padding: var(--ui-space-lg);
+  padding: var(--ui-space-lg, var(--ui-fallback-space-lg));
 }
 
 .ui-sheet--placement-left .ui-sheet__panel {
   left: 0;
-  border-top-right-radius: var(--ui-radius-lg);
-  border-bottom-right-radius: var(--ui-radius-lg);
+  border-top-right-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  border-bottom-right-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
 }
 
 .ui-sheet--placement-right .ui-sheet__panel {
   right: 0;
-  border-top-left-radius: var(--ui-radius-lg);
-  border-bottom-left-radius: var(--ui-radius-lg);
+  border-top-left-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  border-bottom-left-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
 }
 "#;

@@ -210,6 +210,8 @@ fn button_copy_uses_logic_state_model() {
         "pub has_custom_label: bool",
         "pub fn normalize_optional_text(",
         "pub fn resolve_text_contract(",
+        "pub fn resolve_text_contract_with_defaults(",
+        "pub fn resolve_copy_failed_status_text(",
         "pub fn resolve_view_state(",
         "pub fn compose_class_name(",
     ] {
@@ -223,9 +225,8 @@ fn button_copy_uses_logic_state_model() {
         "#[prop(optional, default = logic::ButtonCopyMode::default())] mode: logic::ButtonCopyMode",
         "let label = logic::normalize_optional_text(label);",
         "let copied_label = logic::normalize_optional_text(copied_label);",
-        "logic::resolve_text_contract(",
-        "label.or(default_label)",
-        "copied_label.or(default_copied_label)",
+        "let copy_failed_status_text = logic::resolve_copy_failed_status_text(",
+        "logic::resolve_text_contract_with_defaults(",
         "let view_state = logic::resolve_view_state(",
         "let class = logic::compose_class_name(class_name, view_state);",
     ] {

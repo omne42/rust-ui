@@ -22,16 +22,23 @@ pub struct AvatarGroupState {
     pub max_visible: usize,
     pub size: AvatarSize,
     pub size_attr: &'static str,
-    pub state_class: &'static str,
-    pub state_attr: &'static str,
-    pub is_empty: bool,
-    pub has_items: bool,
-    pub has_overflow: bool,
-    pub has_custom_aria_label: bool,
-    pub aria_label_source_class: &'static str,
-    pub aria_label_source_attr: &'static str,
-    pub has_custom_class_name: bool,
-    pub class_source_attr: &'static str,
+    pub visual_state: AvatarGroupVisualState,
+    pub aria_label_source: AvatarGroupAriaLabelSource,
+    pub class_source: AvatarGroupClassSource,
+}
+
+impl AvatarGroupState {
+    pub fn is_empty(self) -> bool {
+        self.visual_state.is_empty()
+    }
+
+    pub fn has_items(self) -> bool {
+        self.total_count > 0
+    }
+
+    pub fn has_overflow(self) -> bool {
+        self.visual_state.has_overflow()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -47,14 +54,6 @@ impl AvatarGroupVisualState {
             Self::Stable => "stable",
             Self::Overflow => "overflow",
             Self::Empty => "empty",
-        }
-    }
-
-    pub fn class_name(self) -> &'static str {
-        match self {
-            Self::Stable => "ui-avatar-group--stable",
-            Self::Overflow => "ui-avatar-group--overflow",
-            Self::Empty => "ui-avatar-group--empty",
         }
     }
 
@@ -78,13 +77,6 @@ impl AvatarGroupAriaLabelSource {
         match self {
             Self::Default => "default",
             Self::Custom => "custom",
-        }
-    }
-
-    pub fn class_name(self) -> &'static str {
-        match self {
-            Self::Default => "ui-avatar-group--label-source-default",
-            Self::Custom => "ui-avatar-group--label-source-custom",
         }
     }
 
@@ -146,27 +138,24 @@ pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
 pub fn resolve_state(input: AvatarGroupStateInput) -> AvatarGroupState {
     let visible_count = input.total_count.min(input.max_visible);
     let overflow_count = input.total_count.saturating_sub(visible_count);
-    let is_empty = input.total_count == 0;
-    let has_overflow = overflow_count > 0;
-
-    let (state_class, state_attr) = if has_overflow {
-        ("ui-avatar-group--overflow", "overflow")
-    } else if is_empty {
-        ("ui-avatar-group--empty", "empty")
+    let visual_state = if overflow_count > 0 {
+        AvatarGroupVisualState::Overflow
+    } else if input.total_count == 0 {
+        AvatarGroupVisualState::Empty
     } else {
-        ("ui-avatar-group--stable", "stable")
+        AvatarGroupVisualState::Stable
     };
 
-    let (aria_label_source_class, aria_label_source_attr) = if input.has_custom_aria_label {
-        ("ui-avatar-group--label-source-custom", "custom")
+    let aria_label_source = if input.has_custom_aria_label {
+        AvatarGroupAriaLabelSource::Custom
     } else {
-        ("ui-avatar-group--label-source-default", "default")
+        AvatarGroupAriaLabelSource::Default
     };
 
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
+    let class_source = if input.has_custom_class_name {
+        AvatarGroupClassSource::Custom
     } else {
-        "default"
+        AvatarGroupClassSource::Default
     };
 
     AvatarGroupState {
@@ -176,39 +165,14 @@ pub fn resolve_state(input: AvatarGroupStateInput) -> AvatarGroupState {
         max_visible: input.max_visible,
         size: input.size,
         size_attr: input.size.as_str(),
-        state_class,
-        state_attr,
-        is_empty,
-        has_items: input.total_count > 0,
-        has_overflow,
-        has_custom_aria_label: input.has_custom_aria_label,
-        aria_label_source_class,
-        aria_label_source_attr,
-        has_custom_class_name: input.has_custom_class_name,
-        class_source_attr,
+        visual_state,
+        aria_label_source,
+        class_source,
     }
 }
 
 pub fn resolve_render_state(input: AvatarGroupStateInput) -> AvatarGroupRenderState {
     let state = resolve_state(input);
-
-    let visual_state = if state.has_overflow {
-        AvatarGroupVisualState::Overflow
-    } else if state.is_empty {
-        AvatarGroupVisualState::Empty
-    } else {
-        AvatarGroupVisualState::Stable
-    };
-    let aria_label_source = if state.has_custom_aria_label {
-        AvatarGroupAriaLabelSource::Custom
-    } else {
-        AvatarGroupAriaLabelSource::Default
-    };
-    let class_source = if state.has_custom_class_name {
-        AvatarGroupClassSource::Custom
-    } else {
-        AvatarGroupClassSource::Default
-    };
 
     AvatarGroupRenderState {
         total_count: state.total_count,
@@ -217,9 +181,9 @@ pub fn resolve_render_state(input: AvatarGroupStateInput) -> AvatarGroupRenderSt
         max_visible: state.max_visible,
         size: state.size,
         size_attr: state.size_attr,
-        visual_state,
-        aria_label_source,
-        class_source,
+        visual_state: state.visual_state,
+        aria_label_source: state.aria_label_source,
+        class_source: state.class_source,
     }
 }
 

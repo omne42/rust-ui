@@ -30,11 +30,18 @@ pub enum ChartKeyAction {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub struct ChartHandlers;
 
+fn clamp_index(index: usize, count: usize) -> Option<usize> {
+    (count > 0).then_some(index.min(count.saturating_sub(1)))
+}
+
 impl ChartHandlers {
-    pub fn on_key_down(
+    pub fn on_focus(self, index: usize, point_count: usize, disabled: bool) -> ChartKeyAction {
+        self.on_pointer_enter(index, point_count, disabled)
+    }
+
+    pub fn on_pointer_enter(
         self,
-        key: &str,
-        current_index: usize,
+        index: usize,
         point_count: usize,
         disabled: bool,
     ) -> ChartKeyAction {
@@ -42,8 +49,34 @@ impl ChartHandlers {
             return ChartKeyAction::Noop;
         }
 
+        clamp_index(index, point_count)
+            .map(ChartKeyAction::MoveTo)
+            .unwrap_or(ChartKeyAction::Noop)
+    }
+
+    pub fn on_click(self, index: usize, point_count: usize, disabled: bool) -> ChartKeyAction {
+        if disabled {
+            return ChartKeyAction::Noop;
+        }
+
+        clamp_index(index, point_count)
+            .map(ChartKeyAction::Activate)
+            .unwrap_or(ChartKeyAction::Noop)
+    }
+
+    pub fn on_key_down(
+        self,
+        key: &str,
+        current_index: usize,
+        point_count: usize,
+        disabled: bool,
+    ) -> ChartKeyAction {
+        if disabled || point_count == 0 {
+            return ChartKeyAction::Noop;
+        }
+
         if key == "Enter" || key == " " {
-            return ChartKeyAction::Activate(current_index);
+            return ChartKeyAction::Activate(current_index.min(point_count.saturating_sub(1)));
         }
 
         if let Some(next) = next_index_for_key(key, current_index, point_count) {
@@ -51,6 +84,10 @@ impl ChartHandlers {
         }
 
         ChartKeyAction::Noop
+    }
+
+    pub fn point_aria_label(self, label: &str, value: f64) -> String {
+        format!("{label} {value:.2}")
     }
 }
 

@@ -196,9 +196,13 @@ pub fn DatePicker(
                                     month=normalized_month
                                     tone=calendar_tone
                                     first_weekday=first_weekday
-                                        show_outside_days=show_outside_days
+                                        is_show_outside_days=show_outside_days
                                         selected_day=selected_day
-                                        on_day_press=Some(on_day_press.get_value())
+                                        on_selected_day_change=Some(Callback::new(move |next| {
+                                            if let Some(day) = next {
+                                                on_day_press.get_value().run(day);
+                                            }
+                                        }))
                                         aria_label=calendar_aria_label
                                             .with_value(|label| label.clone())
                                         class_name="ui-date-picker__calendar".to_string()

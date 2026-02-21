@@ -84,4 +84,18 @@ test("docs-app form-field playground source is copy-paste ready", async ({ page 
 
   const copyButton = codeBlock.first().locator('[data-slot="button"]').first();
   await expect(copyButton).toHaveAttribute("aria-label", /Copy to clipboard/i);
+
+  const copyReady = page.locator('[data-slot="form-field-copy-ready"]').first();
+  await expect(copyReady).toContainText("use leptos::prelude::*;");
+  await expect(copyReady).toContainText("use ui_components::*;");
+
+  const sourcePaths = page.locator('[data-slot="form-field-source-paths"]').first();
+  await expect(sourcePaths).toContainText("components/form-field/src/mod.rs");
+  await expect(sourcePaths).toContainText("components/form-field/src/logic.rs");
+  await expect(sourcePaths).toContainText("components/form-field/src/view.rs");
+  await expect(sourcePaths).toContainText("components/form-field/src/styles.rs");
+
+  const sourcePrereq = page.locator('[data-slot="form-field-source-prerequisites"]').first();
+  await expect(sourcePrereq).toContainText("component-form_field");
+  await expect(sourcePrereq).toContainText("inject-css");
 });

@@ -1,0 +1,104 @@
+schema_version = "1"
+
+[component]
+name = "Code"
+crate = "ui-code"
+
+[[inputs]]
+name = "variant"
+ty = "Option<CodeVariant>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::a11y::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-*"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[agent_contract]]
+schema = "code.v1"
+intent = "display"
+action = "snapshot_render"
+state_axes = ["variant", "state", "custom_class"]
+source_axes = [
+  "props.variant",
+  "props.class_name",
+  "ui_state_primitives::code::resolve_state",
+]
+
+[[agent_contract_markers]]
+name = "variant"
+attr = "data-variant"
+values = ["inline", "block"]
+
+[[agent_contract_markers]]
+name = "state"
+attr = "data-state"
+values = ["inline", "block"]
+
+[[agent_contract_markers]]
+name = "custom_class"
+attr = "data-custom-class"
+values = ["true", "none"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = ["children()"]
+blocked = ["inner_html", "<script"]
+
+[[schema_registry]]
+schema = "code.v1"
+status = "deprecated"
+successor = "code.v2"
+migration = "migrate_v1_to_v2"
+deprecation_start = "2026-02-20"
+deprecation_end = "2026-08-31"
+
+[[schema_registry]]
+schema = "code.v2"
+status = "active"

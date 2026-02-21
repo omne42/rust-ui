@@ -17,7 +17,7 @@ fn focus_item(item_refs: &Arc<Vec<NodeRef<html::A>>>, index: usize) {
     let Some(el) = node_ref.get_untracked() else {
         return;
     };
-    drop(el.focus());
+    ui_observability::observe_js_result!(el.focus());
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -120,29 +120,23 @@ pub fn NavigationMenu(
     let list_ref: NodeRef<html::Div> = NodeRef::new();
     let highlight_ref: NodeRef<html::Div> = NodeRef::new();
 
-    let (active_index, set_active_index) = signal(
-        selected_index
-            .get_untracked()
-            .or(focused_index.get_untracked())
-            .or_else(|| logic::first_enabled_index(items.get_value().as_ref()))
-            .unwrap_or(0),
-    );
+    let (active_index, set_active_index) = signal(logic::resolve_active_index(
+        items.get_value().as_ref(),
+        selected_index.get_untracked(),
+        focused_index.get_untracked(),
+    ));
 
     Effect::new(move |_| {
-        let next = selected_index
-            .get()
-            .or(focused_index.get())
-            .or_else(|| logic::first_enabled_index(items.get_value().as_ref()))
-            .unwrap_or(0);
+        let next = logic::resolve_active_index(
+            items.get_value().as_ref(),
+            selected_index.get(),
+            focused_index.get(),
+        );
         set_active_index.set(next);
     });
 
     let option_id = Callback::new(move |index: usize| {
-        items
-            .get_value()
-            .get(index)
-            .map(|item| item.dom_id.clone())
-            .unwrap_or_default()
+        logic::resolve_option_id(items.get_value().as_ref(), index)
     });
 
     attach_active_highlight_motion(list_ref, highlight_ref, active_index, option_id, motion);
@@ -151,7 +145,6 @@ pub fn NavigationMenu(
 
     let render_item = move |index: usize| {
         let item = items.get_value()[index].clone();
-        let item_id = StoredValue::new(item.id);
         let item_dom_id = StoredValue::new(item.dom_id);
         let item_label = StoredValue::new(item.label);
         let item_href = StoredValue::new(item.href);
@@ -159,117 +152,81 @@ pub fn NavigationMenu(
         let item_ref = item_refs[index];
 
         let on_focus = move |_| {
-            if item_disabled {
+            if logic::should_ignore_item_interaction(item_disabled) {
                 return;
             }
 
             set_focused_index.set(Some(index));
-            if activate_on_focus {
-                selected_state.request_change.run(Some(item_id.get_value()));
+            if activate_on_focus
+                && let Some(next_id) = logic::resolve_selected_id_for_target(
+                    items.get_value().as_ref(),
+                    index,
+                    logic::NavigationSelectionTarget::Current,
+                )
+            {
+                selected_state.request_change.run(Some(next_id));
             }
         };
 
         let on_pointer_enter = move |_| {
-            if item_disabled {
+            if logic::should_ignore_item_interaction(item_disabled) {
                 return;
             }
 
             set_focused_index.set(Some(index));
-            if activate_on_focus {
-                selected_state.request_change.run(Some(item_id.get_value()));
+            if activate_on_focus
+                && let Some(next_id) = logic::resolve_selected_id_for_target(
+                    items.get_value().as_ref(),
+                    index,
+                    logic::NavigationSelectionTarget::Current,
+                )
+            {
+                selected_state.request_change.run(Some(next_id));
             }
         };
 
         let on_key_down = {
             let item_refs = item_refs.clone();
             move |ev: ev::KeyboardEvent| {
-                if item_disabled {
-                    return;
-                }
-
-                let key = ev.key();
-                match key.as_str() {
-                    "ArrowRight" => {
-                        if let Some(next_index) =
-                            logic::next_enabled_index(items.get_value().as_ref(), index, 1)
-                        {
-                            set_focused_index.set(Some(next_index));
-                            if activate_on_focus
-                                && let Some(next_item) = items.get_value().get(next_index)
-                            {
-                                selected_state
-                                    .request_change
-                                    .run(Some(next_item.id.clone()));
-                            }
-                            focus_item(&item_refs, next_index);
-                            ev.prevent_default();
-                        }
+                if let Some(decision) = logic::resolve_key_decision(
+                    &ev.key(),
+                    item_disabled,
+                    index,
+                    items.get_value().as_ref(),
+                    activate_on_focus,
+                ) {
+                    if let Some(next_index) = decision.next_focus_index {
+                        set_focused_index.set(Some(next_index));
+                        focus_item(&item_refs, next_index);
                     }
-                    "ArrowLeft" => {
-                        if let Some(next_index) =
-                            logic::next_enabled_index(items.get_value().as_ref(), index, -1)
-                        {
-                            set_focused_index.set(Some(next_index));
-                            if activate_on_focus
-                                && let Some(next_item) = items.get_value().get(next_index)
-                            {
-                                selected_state
-                                    .request_change
-                                    .run(Some(next_item.id.clone()));
-                            }
-                            focus_item(&item_refs, next_index);
-                            ev.prevent_default();
-                        }
+                    if let Some(target) = decision.selection_target
+                        && let Some(next_id) = logic::resolve_selected_id_for_target(
+                            items.get_value().as_ref(),
+                            index,
+                            target,
+                        )
+                    {
+                        selected_state.request_change.run(Some(next_id));
                     }
-                    "Home" => {
-                        if let Some(next_index) =
-                            logic::first_enabled_index(items.get_value().as_ref())
-                        {
-                            set_focused_index.set(Some(next_index));
-                            if activate_on_focus
-                                && let Some(next_item) = items.get_value().get(next_index)
-                            {
-                                selected_state
-                                    .request_change
-                                    .run(Some(next_item.id.clone()));
-                            }
-                            focus_item(&item_refs, next_index);
-                            ev.prevent_default();
-                        }
-                    }
-                    "End" => {
-                        if let Some(next_index) =
-                            logic::last_enabled_index(items.get_value().as_ref())
-                        {
-                            set_focused_index.set(Some(next_index));
-                            if activate_on_focus
-                                && let Some(next_item) = items.get_value().get(next_index)
-                            {
-                                selected_state
-                                    .request_change
-                                    .run(Some(next_item.id.clone()));
-                            }
-                            focus_item(&item_refs, next_index);
-                            ev.prevent_default();
-                        }
-                    }
-                    "Enter" | " " => {
-                        selected_state.request_change.run(Some(item_id.get_value()));
-                        ev.prevent_default();
-                    }
-                    _ => {}
+                    ev.prevent_default();
                 }
             }
         };
 
         let on_click = move |ev: ev::MouseEvent| {
-            if item_disabled {
+            if logic::should_ignore_item_interaction(item_disabled) {
                 ev.prevent_default();
                 return;
             }
 
             set_focused_index.set(Some(index));
-            selected_state.request_change.run(Some(item_id.get_value()));
+            if let Some(next_id) = logic::resolve_selected_id_for_target(
+                items.get_value().as_ref(),
+                index,
+                logic::NavigationSelectionTarget::Current,
+            ) {
+                selected_state.request_change.run(Some(next_id));
+            }
         };
 
         let item_slot = NavigationMenuSlot::Item;
@@ -281,28 +238,18 @@ pub fn NavigationMenu(
                 node_ref=item_ref
                 href=item_href.get_value()
                 tabindex=move || {
-                    if item_disabled {
-                        "-1"
-                    } else if focused_index.get() == Some(index) {
-                        "0"
-                    } else {
-                        "-1"
-                    }
+                    logic::resolve_item_tabindex(item_disabled, focused_index.get() == Some(index))
                 }
                 aria-current=move || (selected_index.get() == Some(index)).then_some("page")
                 aria-disabled=item_disabled.then_some("true")
                 data-slot=item_slot.as_attr()
                 data-index=index
                 data-state=move || {
-                    if item_disabled {
-                        "disabled"
-                    } else if selected_index.get() == Some(index) {
-                        "selected"
-                    } else if focused_index.get() == Some(index) {
-                        "focused"
-                    } else {
-                        "idle"
-                    }
+                    logic::resolve_item_state_attr(
+                        item_disabled,
+                        selected_index.get() == Some(index),
+                        focused_index.get() == Some(index),
+                    )
                 }
                 data-selected=move || (selected_index.get() == Some(index)).then_some("true")
                 data-focused=move || (focused_index.get() == Some(index)).then_some("true")

@@ -1,4 +1,5 @@
 use crate::clear_button::{ClearButtonState, ClearButtonStateInput};
+use leptos::prelude::Signal;
 
 pub const DEFAULT_ARIA_LABEL: &str = "Clear";
 
@@ -25,11 +26,34 @@ impl ClearButtonVariant {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum ClearButtonFocusMode {
+    #[default]
+    Default,
+    Prevent,
+    ExcludeTab,
+}
+
+impl ClearButtonFocusMode {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            ClearButtonFocusMode::Default => "default",
+            ClearButtonFocusMode::Prevent => "prevent",
+            ClearButtonFocusMode::ExcludeTab => "exclude-tab",
+        }
+    }
+
+    pub fn prevents_focus(self) -> bool {
+        matches!(self, ClearButtonFocusMode::Prevent)
+    }
+
+    pub fn excludes_from_tab_order(self) -> bool {
+        matches!(self, ClearButtonFocusMode::ExcludeTab)
+    }
+}
+
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    ui_state_primitives::button::normalize_optional_text(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>, default: &str) -> (String, bool) {
@@ -41,13 +65,16 @@ pub fn normalize_aria_label(value: Option<String>, default: &str) -> (String, bo
 }
 
 pub fn resolve_state(input: ClearButtonStateInput) -> ClearButtonState {
+    let prevent_focus = input.focus_mode.prevents_focus();
+    let exclude_from_tab_order = input.focus_mode.excludes_from_tab_order();
+
     let data_state_attr = if input.disabled && input.inset {
         "disabled-inset"
     } else if input.disabled {
         "disabled"
-    } else if input.prevent_focus {
+    } else if prevent_focus {
         "prevent-focus"
-    } else if input.exclude_from_tab_order {
+    } else if exclude_from_tab_order {
         "exclude-tab"
     } else if input.inset {
         "inset"
@@ -61,19 +88,14 @@ pub fn resolve_state(input: ClearButtonStateInput) -> ClearButtonState {
         variant_attr: input.variant.as_attr(),
         is_inset: input.inset,
         is_disabled: input.disabled,
-        prevent_focus: input.prevent_focus,
-        exclude_from_tab_order: input.exclude_from_tab_order,
+        focus_mode: input.focus_mode,
+        prevent_focus,
+        exclude_from_tab_order,
         has_custom_aria_label: input.has_custom_aria_label,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_press_handler: input.has_custom_press_handler,
         data_state_attr,
-        focus_mode_attr: if input.prevent_focus {
-            "prevent"
-        } else if input.exclude_from_tab_order {
-            "exclude-tab"
-        } else {
-            "default"
-        },
+        focus_mode_attr: input.focus_mode.as_attr(),
         aria_source_attr: if input.has_custom_aria_label {
             "custom"
         } else {
@@ -122,6 +144,16 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ClearButtonSta
     }
 
     classes.join(" ")
+}
+
+pub fn resolve_visibility_signals(
+    is_visible: Option<Signal<bool>>,
+    is_disabled_signal: Option<Signal<bool>>,
+) -> (Signal<bool>, Signal<bool>) {
+    (
+        is_visible.unwrap_or_else(|| Signal::derive(|| true)),
+        is_disabled_signal.unwrap_or_else(|| Signal::derive(|| false)),
+    )
 }
 
 #[cfg(test)]

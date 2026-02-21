@@ -1,0 +1,144 @@
+schema_version = "1"
+
+[component]
+name = "ColorHandle"
+crate = "ui-color-handle"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "color"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_focused"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_dragging"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_loupe_visible"
+ty = "bool"
+default = "true"
+controlled = false
+
+[[inputs]]
+name = "x_percent"
+ty = "f32"
+default = "50.0"
+controlled = false
+
+[[inputs]]
+name = "y_percent"
+ty = "f32"
+default = "50.0"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ColorHandleMotion"
+default = "ColorHandleMotion::default()"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-disabled + data-focused + data-dragging + data-loupe-visible + data-has-color + data-aria-source + data-class-source + data-motion-source + role + aria-* + lang + dir"
+
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-stream-support + data-ui-stream-fallback + data-ui-stream-mode + data-ui-output-status + data-ui-capability-*"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_attach"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[agent_contract]]
+schema = "ui.color-handle.agent-contract.v1"
+intent = "color-selection"
+action = "initialize|focus|drag-update"
+state_axes = ["disabled", "dragging", "focused", "color", "idle"]
+source_axes = ["default-config", "customized-props", "drag-interaction"]
+stream_support = "optional"
+stream_fallback = "snapshot"
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[[dependencies]]
+name = "ui-color-thumb"
+kind = "composed-control"

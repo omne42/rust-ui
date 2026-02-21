@@ -5,6 +5,14 @@ use crate::{
 use leptos::{html, prelude::*};
 use ui_headless::{A11yDirection, LabeledValueOptions, use_labeled_value};
 
+fn render_description(description: String) -> impl IntoView {
+    view! {
+        <span class="ui-labeled-value__description" data-slot="labeled-value-description">
+            {description}
+        </span>
+    }
+}
+
 #[component]
 pub fn LabeledValue(
     #[prop(optional, into)] label: Option<String>,
@@ -69,6 +77,9 @@ pub fn LabeledValue(
             class=move || class.get()
             node_ref=node_ref
             data-slot="labeled-value"
+            data-ui-schema="labeled_value.v1"
+            data-output-mode="snapshot"
+            data-output-status="validated"
             data-orientation=move || semantics.get().attrs.data_orientation
             data-tone=move || semantics.get().attrs.data_tone
             data-state=move || semantics.get().attrs.data_state
@@ -91,13 +102,7 @@ pub fn LabeledValue(
             <span class="ui-labeled-value__value" data-slot="labeled-value-value">
                 {value}
             </span>
-            {description.map(|description| {
-                view! {
-                    <span class="ui-labeled-value__description" data-slot="labeled-value-description">
-                        {description}
-                    </span>
-                }
-            })}
+            {description.map(render_description)}
         </div>
     }
 }

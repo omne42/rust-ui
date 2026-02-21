@@ -1,345 +1,221 @@
-use crate::color::swatch::{ColorSwatchState, ColorSwatchStateInput};
+use std::borrow::Cow;
 
-pub const DEFAULT_ARIA_LABEL: &str = "No color selected";
+pub use ui_state_primitives::color_swatch::{
+    ColorSwatchAlpha, ColorSwatchBoolSource, ColorSwatchRounding, ColorSwatchShape,
+    ColorSwatchSize, ColorSwatchState, ColorSwatchStateInput, DEFAULT_ARIA_LABEL,
+    normalize_aria_label, normalize_is_bordered, normalize_is_decorative, normalize_optional_text,
+    resolve_alpha, resolve_state, sanitize_color_value,
+};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ColorSwatchSize {
-    Xs,
-    Sm,
-    #[default]
-    Md,
-    Lg,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ColorSwatchRenderInput {
+    pub color: Option<String>,
+    pub color_name: Option<String>,
+    pub size: ColorSwatchSize,
+    pub rounding: ColorSwatchRounding,
+    pub shape: ColorSwatchShape,
+    pub is_bordered: Option<bool>,
+    pub is_decorative: Option<bool>,
+    pub aria_label: Option<String>,
+    pub class_name: Option<String>,
 }
 
-impl ColorSwatchSize {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ColorSwatchSize::Xs => "ui-color-swatch--size-xs",
-            ColorSwatchSize::Sm => "ui-color-swatch--size-sm",
-            ColorSwatchSize::Md => "ui-color-swatch--size-md",
-            ColorSwatchSize::Lg => "ui-color-swatch--size-lg",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            ColorSwatchSize::Xs => "xs",
-            ColorSwatchSize::Sm => "sm",
-            ColorSwatchSize::Md => "md",
-            ColorSwatchSize::Lg => "lg",
-        }
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ColorSwatchRenderState {
+    pub color: Option<String>,
+    pub aria_label: String,
+    pub is_decorative: bool,
+    pub bordered_source: ColorSwatchBoolSource,
+    pub decorative_source: ColorSwatchBoolSource,
+    pub state: ColorSwatchState,
+    pub class_name: String,
+    pub inline_style: String,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ColorSwatchRounding {
-    #[default]
-    Default,
-    None,
-    Full,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchAgentSchema {
+    V1,
 }
 
-impl ColorSwatchRounding {
-    pub fn class_name(self) -> &'static str {
+impl ColorSwatchAgentSchema {
+    pub const fn as_attr(self) -> &'static str {
         match self {
-            ColorSwatchRounding::Default => "ui-color-swatch--rounding-default",
-            ColorSwatchRounding::None => "ui-color-swatch--rounding-none",
-            ColorSwatchRounding::Full => "ui-color-swatch--rounding-full",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            ColorSwatchRounding::Default => "default",
-            ColorSwatchRounding::None => "none",
-            ColorSwatchRounding::Full => "full",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ColorSwatchShape {
-    #[default]
-    Square,
-    Wide,
-}
-
-impl ColorSwatchShape {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ColorSwatchShape::Square => "ui-color-swatch--shape-square",
-            ColorSwatchShape::Wide => "ui-color-swatch--shape-wide",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            ColorSwatchShape::Square => "square",
-            ColorSwatchShape::Wide => "wide",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ColorSwatchAlpha {
-    #[default]
-    None,
-    Opaque,
-    Translucent,
-    Transparent,
-}
-
-impl ColorSwatchAlpha {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ColorSwatchAlpha::None => "ui-color-swatch--alpha-none",
-            ColorSwatchAlpha::Opaque => "ui-color-swatch--alpha-opaque",
-            ColorSwatchAlpha::Translucent => "ui-color-swatch--alpha-translucent",
-            ColorSwatchAlpha::Transparent => "ui-color-swatch--alpha-transparent",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            ColorSwatchAlpha::None => "none",
-            ColorSwatchAlpha::Opaque => "opaque",
-            ColorSwatchAlpha::Translucent => "translucent",
-            ColorSwatchAlpha::Transparent => "transparent",
+            Self::V1 => "ui.color-swatch.agent-contract.v1",
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ColorSwatchBoolSource {
-    IsProp,
-    Default,
+pub enum ColorSwatchAgentSchemaVersion {
+    V1,
 }
 
-impl ColorSwatchBoolSource {
+impl ColorSwatchAgentSchemaVersion {
     pub const fn as_attr(self) -> &'static str {
         match self {
-            Self::IsProp => "is-prop",
-            Self::Default => "default",
+            Self::V1 => "1",
         }
     }
 }
 
-pub fn normalize_is_bordered(is_bordered: Option<bool>) -> (bool, ColorSwatchBoolSource) {
-    if let Some(value) = is_bordered {
-        return (value, ColorSwatchBoolSource::IsProp);
-    }
-
-    (true, ColorSwatchBoolSource::Default)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchStreamSupport {
+    Optional,
 }
 
-pub fn normalize_is_decorative(is_decorative: Option<bool>) -> (bool, ColorSwatchBoolSource) {
-    if let Some(value) = is_decorative {
-        return (value, ColorSwatchBoolSource::IsProp);
-    }
-
-    (false, ColorSwatchBoolSource::Default)
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    ui_state_primitives::swatch::normalize_optional_text(value)
-}
-
-pub fn sanitize_color_value(value: Option<String>) -> Option<String> {
-    ui_state_primitives::swatch::sanitize_color_value(value)
-}
-
-fn parse_hex_alpha(value: &str) -> Option<f32> {
-    let text = value.trim();
-    let hex = text.strip_prefix('#')?;
-
-    match hex.len() {
-        4 => {
-            let a = hex.chars().nth(3)?.to_digit(16)? as u8;
-            Some((a as f32 * 17.0) / 255.0)
-        }
-        8 => {
-            let a = u8::from_str_radix(&hex[6..8], 16).ok()?;
-            Some(a as f32 / 255.0)
-        }
-        _ => None,
-    }
-}
-
-fn parse_alpha_token(token: &str) -> Option<f32> {
-    let token = token.trim().trim_end_matches(')').trim();
-    if token.is_empty() {
-        return None;
-    }
-
-    if let Some(percent) = token.strip_suffix('%') {
-        let value = percent.trim().parse::<f32>().ok()?;
-        return Some((value / 100.0).clamp(0.0, 1.0));
-    }
-
-    token.parse::<f32>().ok().map(|value| value.clamp(0.0, 1.0))
-}
-
-fn parse_function_alpha(value: &str) -> Option<f32> {
-    let text = value.trim().to_ascii_lowercase();
-    if !(text.starts_with("rgba(")
-        || text.starts_with("hsla(")
-        || text.starts_with("hwb(")
-        || text.starts_with("rgb(")
-        || text.starts_with("hsl("))
-    {
-        return None;
-    }
-
-    if let Some((_, tail)) = text.rsplit_once('/') {
-        return parse_alpha_token(tail);
-    }
-
-    let (_, args) = text.split_once('(')?;
-    let parts: Vec<&str> = args.split(',').collect();
-    if parts.len() < 4 {
-        return None;
-    }
-
-    parse_alpha_token(parts[3])
-}
-
-fn alpha_from_value(alpha: f32) -> ColorSwatchAlpha {
-    if alpha <= 0.0 {
-        ColorSwatchAlpha::Transparent
-    } else if alpha >= 1.0 {
-        ColorSwatchAlpha::Opaque
-    } else {
-        ColorSwatchAlpha::Translucent
-    }
-}
-
-pub fn resolve_alpha(color: Option<&str>) -> ColorSwatchAlpha {
-    let Some(color) = color.map(str::trim).filter(|value| !value.is_empty()) else {
-        return ColorSwatchAlpha::None;
-    };
-
-    if let Some(alpha) = parse_hex_alpha(color) {
-        return alpha_from_value(alpha);
-    }
-
-    if let Some(alpha) = parse_function_alpha(color) {
-        return alpha_from_value(alpha);
-    }
-
-    ColorSwatchAlpha::Opaque
-}
-
-fn default_color_name(color: Option<&str>, alpha: ColorSwatchAlpha) -> String {
-    match alpha {
-        ColorSwatchAlpha::None => DEFAULT_ARIA_LABEL.into(),
-        ColorSwatchAlpha::Transparent => "Transparent color".to_string(),
-        ColorSwatchAlpha::Translucent => {
-            if let Some(color) = color {
-                format!("Translucent {color}")
-            } else {
-                "Translucent color".to_string()
-            }
-        }
-        ColorSwatchAlpha::Opaque => {
-            if let Some(color) = color {
-                format!("Color {color}")
-            } else {
-                "Color swatch".to_string()
-            }
+impl ColorSwatchStreamSupport {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Optional => "optional",
         }
     }
 }
 
-pub fn normalize_aria_label(
-    aria_label: Option<String>,
-    color_name: Option<String>,
-    color: Option<&str>,
-    alpha: ColorSwatchAlpha,
-) -> (String, bool) {
-    let context_label = normalize_optional_text(aria_label);
-    let custom_color_name = normalize_optional_text(color_name);
-
-    let name = custom_color_name
-        .clone()
-        .unwrap_or_else(|| default_color_name(color, alpha));
-
-    let has_custom_context = context_label.is_some();
-
-    let label = if let Some(context_label) = context_label {
-        format!("{name}, {context_label}")
-    } else {
-        name
-    };
-
-    let has_custom_aria_label = custom_color_name.is_some();
-
-    (label, has_custom_aria_label || has_custom_context)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchStreamFallback {
+    Snapshot,
 }
 
-pub fn resolve_state(input: ColorSwatchStateInput) -> ColorSwatchState {
-    let data_state_attr = match input.alpha {
-        ColorSwatchAlpha::None => "empty",
-        ColorSwatchAlpha::Transparent => "transparent",
-        ColorSwatchAlpha::Translucent => "translucent",
-        ColorSwatchAlpha::Opaque if input.bordered => "framed",
-        ColorSwatchAlpha::Opaque => "default",
-    };
+impl ColorSwatchStreamFallback {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
 
-    ColorSwatchState {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchOutputStatus {
+    Verified,
+}
+
+impl ColorSwatchOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchIntent {
+    ColorPreview,
+}
+
+impl ColorSwatchIntent {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::ColorPreview => "color-preview",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchUiAction {
+    Render,
+}
+
+impl ColorSwatchUiAction {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Render => "render",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ColorSwatchAgentContract {
+    pub schema_attr: &'static str,
+    pub schema_version_attr: &'static str,
+    pub stream_support_attr: &'static str,
+    pub stream_fallback_attr: &'static str,
+    pub output_status_attr: &'static str,
+    pub intent_attr: &'static str,
+    pub action_attr: &'static str,
+}
+
+pub fn resolve_agent_contract() -> ColorSwatchAgentContract {
+    ColorSwatchAgentContract {
+        schema_attr: ColorSwatchAgentSchema::V1.as_attr(),
+        schema_version_attr: ColorSwatchAgentSchemaVersion::V1.as_attr(),
+        stream_support_attr: ColorSwatchStreamSupport::Optional.as_attr(),
+        stream_fallback_attr: ColorSwatchStreamFallback::Snapshot.as_attr(),
+        output_status_attr: ColorSwatchOutputStatus::Verified.as_attr(),
+        intent_attr: ColorSwatchIntent::ColorPreview.as_attr(),
+        action_attr: ColorSwatchUiAction::Render.as_attr(),
+    }
+}
+
+pub fn resolve_render_state(input: ColorSwatchRenderInput) -> ColorSwatchRenderState {
+    let color = sanitize_color_value(input.color);
+    let alpha = resolve_alpha(color.as_deref());
+    let (aria_label, has_custom_aria_label) =
+        normalize_aria_label(input.aria_label, input.color_name, color.as_deref(), alpha);
+    let (is_bordered, bordered_source) = normalize_is_bordered(input.is_bordered);
+    let (is_decorative, decorative_source) = normalize_is_decorative(input.is_decorative);
+
+    let class_name = normalize_optional_text(input.class_name);
+    let has_custom_class_name = class_name.is_some();
+
+    let state = resolve_state(ColorSwatchStateInput {
         size: input.size,
-        size_class: input.size.class_name(),
-        size_attr: input.size.as_attr(),
         rounding: input.rounding,
-        rounding_class: input.rounding.class_name(),
-        rounding_attr: input.rounding.as_attr(),
         shape: input.shape,
-        shape_class: input.shape.class_name(),
-        shape_attr: input.shape.as_attr(),
-        alpha: input.alpha,
-        alpha_class: input.alpha.class_name(),
-        alpha_attr: input.alpha.as_attr(),
-        is_bordered: input.bordered,
-        has_color: input.has_color,
-        has_custom_class_name: input.has_custom_class_name,
-        data_state_attr,
-        aria_source_attr: if input.has_custom_aria_label {
-            "custom"
-        } else {
-            "default"
-        },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
+        bordered: is_bordered,
+        alpha,
+        has_color: color.is_some(),
+        has_custom_aria_label,
+        has_custom_class_name,
+    });
+
+    let class_name = compose_class_name(class_name, state);
+    let inline_style = resolve_inline_style(color.as_deref());
+
+    ColorSwatchRenderState {
+        color,
+        aria_label,
+        is_decorative,
+        bordered_source,
+        decorative_source,
+        state,
+        class_name,
+        inline_style,
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ColorSwatchState) -> String {
-    let mut classes = vec![
-        "ui-color-swatch".to_string(),
-        state.size_class.into(),
-        state.rounding_class.into(),
-        state.shape_class.into(),
-        state.alpha_class.into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-color-swatch"),
+        Cow::Borrowed(state.size_class),
+        Cow::Borrowed(state.rounding_class),
+        Cow::Borrowed(state.shape_class),
+        Cow::Borrowed(state.alpha_class),
     ];
 
     if state.is_bordered {
-        classes.push("ui-color-swatch--bordered".to_string());
+        classes.push(Cow::Borrowed("ui-color-swatch--bordered"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-color-swatch--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-color-swatch--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(|class_name| class_name.as_ref())
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 pub fn compose_inline_style(color: Option<&str>) -> Option<String> {
     color.map(|color| format!("--ui-color-swatch-color: {color};"))
+}
+
+pub fn resolve_inline_style(color: Option<&str>) -> String {
+    compose_inline_style(color).unwrap_or_default()
 }
 
 #[cfg(test)]

@@ -1,9 +1,12 @@
-use super::{OverlayMotion, OverlayPartStateInput, OverlaySlot, logic, motion};
+use super::{OverlayMotion, logic, motion};
 use leptos::{ev, html, portal::Portal, prelude::*};
+use std::borrow::Cow;
 use ui_headless::{
-    FocusTrapOptions, ModalOptions, OnPress, use_focus_trap, use_modal,
+    FocusTrapOptions, ModalOptions, OnPress, RestorePolicy, use_focus_trap, use_modal,
     use_overlay_stack_registration,
 };
+
+const FOCUS_FALLBACK_SELECTOR: &str = r#"[data-slot="ui-root"] [tabindex]:not([tabindex="-1"]), [data-slot="ui-root"] button:not([disabled]), [data-slot="ui-root"] a[href], [data-slot="ui-root"] input:not([disabled]), [data-slot="ui-root"] select:not([disabled]), [data-slot="ui-root"] textarea:not([disabled])"#;
 
 #[component]
 pub fn Overlay(
@@ -26,12 +29,12 @@ pub fn Overlay(
     let has_custom_role = role != logic::DEFAULT_ROLE;
     let aria_labelledby = logic::normalize_optional_text(aria_labelledby);
     let aria_describedby = logic::normalize_optional_text(aria_describedby);
-
-    let root_state = logic::resolve_state(OverlayPartStateInput {
-        slot: OverlaySlot::Root,
+    let resolved_states = logic::resolve_states(logic::OverlayStateInputs {
         open: open.get_untracked(),
-        is_dismissable,
-        is_keyboard_dismiss_disabled,
+        dismiss_mode: logic::OverlayDismissMode::from_is_dismissable(is_dismissable),
+        keyboard_dismiss_mode: logic::OverlayKeyboardDismissMode::from_is_disabled(
+            is_keyboard_dismiss_disabled,
+        ),
         has_custom_role,
         has_custom_aria_labelledby: aria_labelledby.is_some(),
         has_custom_aria_describedby: aria_describedby.is_some(),
@@ -39,38 +42,13 @@ pub fn Overlay(
         has_custom_motion,
         has_on_exit_complete: on_exit_complete.is_some(),
     });
-    let root_class = logic::compose_class_name(class_name, root_state);
-    let root_class = StoredValue::new(root_class);
+    let root_state = resolved_states.root_state;
+    let backdrop_state = resolved_states.backdrop_state;
+    let panel_state = resolved_states.panel_state;
 
-    let backdrop_state = logic::resolve_state(OverlayPartStateInput {
-        slot: OverlaySlot::Backdrop,
-        open: false,
-        is_dismissable,
-        is_keyboard_dismiss_disabled,
-        has_custom_role,
-        has_custom_aria_labelledby: aria_labelledby.is_some(),
-        has_custom_aria_describedby: aria_describedby.is_some(),
-        has_custom_class_name: false,
-        has_custom_motion,
-        has_on_exit_complete: on_exit_complete.is_some(),
-    });
-    let backdrop_class = logic::compose_class_name(None, backdrop_state);
-    let backdrop_class = StoredValue::new(backdrop_class);
-
-    let panel_state = logic::resolve_state(OverlayPartStateInput {
-        slot: OverlaySlot::Panel,
-        open: false,
-        is_dismissable,
-        is_keyboard_dismiss_disabled,
-        has_custom_role,
-        has_custom_aria_labelledby: aria_labelledby.is_some(),
-        has_custom_aria_describedby: aria_describedby.is_some(),
-        has_custom_class_name: false,
-        has_custom_motion,
-        has_on_exit_complete: on_exit_complete.is_some(),
-    });
-    let panel_class = logic::compose_class_name(None, panel_state);
-    let panel_class = StoredValue::new(panel_class);
+    let root_class = StoredValue::new(logic::compose_class_name(class_name, root_state));
+    let backdrop_class = StoredValue::new(logic::compose_class_name(None, backdrop_state));
+    let panel_class = StoredValue::new(logic::compose_class_name(None, panel_state));
 
     let registration = use_overlay_stack_registration();
     use_modal(ModalOptions::from_signal(open));
@@ -79,11 +57,19 @@ pub fn Overlay(
     let aria_describedby: Signal<Option<String>> = aria_describedby.into();
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
-    let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
+    let on_exit_complete = logic::normalize_on_exit_complete(on_exit_complete);
     motion::attach_motion(root_ref, open, on_exit_complete, motion);
 
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
-    let focus_trap = use_focus_trap(FocusTrapOptions::enabled(panel_ref));
+    let focus_fallback_selector: Cow<'static, str> = Cow::Borrowed(FOCUS_FALLBACK_SELECTOR);
+    let focus_trap = use_focus_trap(
+        FocusTrapOptions::enabled(panel_ref)
+            .with_scope_id("overlay")
+            .with_restore_policy(RestorePolicy::FallbackTo(
+                focus_fallback_selector.clone().into_owned(),
+            ))
+            .with_fallback_selector(focus_fallback_selector.as_ref()),
+    );
 
     let on_key_down = {
         let is_topmost = registration.is_topmost;

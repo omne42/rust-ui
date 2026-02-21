@@ -1,6 +1,6 @@
 use crate::clear_button::{
     ClearButtonStateInput,
-    logic::{self, ClearButtonVariant},
+    logic::{self, ClearButtonFocusMode, ClearButtonVariant},
 };
 use leptos::{ev, html, prelude::*};
 use ui_headless::i18n;
@@ -14,8 +14,7 @@ pub fn ClearButton(
     #[prop(optional)] variant: ClearButtonVariant,
     #[prop(optional)] inset: bool,
     #[prop(optional)] disabled: bool,
-    #[prop(optional)] prevent_focus: bool,
-    #[prop(optional)] exclude_from_tab_order: bool,
+    #[prop(optional)] focus_mode: ClearButtonFocusMode,
     #[prop(optional, default = "clear-button")] slot_name: &'static str,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -47,8 +46,7 @@ pub fn ClearButton(
         variant,
         inset,
         disabled,
-        prevent_focus,
-        exclude_from_tab_order,
+        focus_mode,
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
         has_custom_press_handler: on_press.is_some(),
@@ -69,8 +67,8 @@ pub fn ClearButton(
     });
 
     let class = logic::compose_class_name(class_name, state);
-    let is_visible = is_visible.unwrap_or_else(|| Signal::derive(|| true));
-    let is_disabled_signal = is_disabled_signal.unwrap_or_else(|| Signal::derive(|| false));
+    let (is_visible, is_disabled_signal) =
+        logic::resolve_visibility_signals(is_visible, is_disabled_signal);
     let on_pointer_down = StoredValue::new(on_pointer_down);
     let on_pointer_up = StoredValue::new(on_pointer_up);
     let on_pointer_cancel = StoredValue::new(on_pointer_cancel);

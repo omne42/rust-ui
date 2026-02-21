@@ -1,0 +1,256 @@
+schema_version = "1"
+
+[component]
+name = "CommandDialog"
+crate = "ui-command-dialog"
+
+[[inputs]]
+name = "groups"
+ty = "Arc<[CommandGroup]>"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "open"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_open"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_open_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_action"
+ty = "Option<Callback<String>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "close_on_action"
+ty = "bool"
+default = "true"
+controlled = false
+
+[[inputs]]
+name = "id_base"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "title"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "command_motion"
+ty = "CommandMotion"
+default = "CommandMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "overlay_motion"
+ty = "OverlayMotion"
+default = "OverlayMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "placeholder"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "empty_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "data-state"
+ty = "open | closed"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-open-mode"
+ty = "controlled | uncontrolled"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-schema"
+ty = "command-dialog"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-schema-version"
+ty = "v1"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-intent"
+ty = "command.discovery"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-action"
+ty = "close-on-action | keep-open"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-state"
+ty = "open | closed"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-source"
+ty = "controlled | uncontrolled"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-stream-support"
+ty = "required | optional"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-action-source"
+ty = "default | custom"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-open-change-source"
+ty = "default | custom"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-config-policy"
+ty = "whitelist"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-stream-mode"
+ty = "streaming | snapshot"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-stream-fallback"
+ty = "streaming | snapshot"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-output-status"
+ty = "draft | verified | commit-ready"
+scope = "root-attribute"
+
+[[outputs]]
+name = "on_open_change"
+ty = "Callback<bool>"
+scope = "event"
+
+[[outputs]]
+name = "on_action"
+ty = "Callback<String>"
+scope = "event"
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_open_state"
+enabled = true
+
+[[capabilities]]
+name = "source_markers_for_state_and_custom_inputs"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_stream_contract_markers"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_with_snapshot_fallback"
+enabled = true
+
+[[capabilities]]
+name = "llm_streaming_two_display_modes_only"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_attach_and_sanitize"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_typed_markers"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_whitelist_render_policy"
+enabled = true
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "overlay-trigger-state"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "presence-and-trace"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-contract"
+
+[[dependencies]]
+name = "ui-components/modal"
+kind = "overlay-shell"
+
+[[dependencies]]
+name = "ui-components/command"
+kind = "command-content-composition"

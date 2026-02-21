@@ -1,4 +1,9 @@
 use super::*;
+use leptos::prelude::Callable;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
 
 #[test]
 fn state_dismiss_and_keyboard_attrs_follow_contract() {
@@ -30,6 +35,61 @@ fn normalize_optional_text_trims_and_filters_blank_values() {
     assert_eq!(
         normalize_optional_text(Some(" docs-sheet ".to_string())),
         Some("docs-sheet".to_string())
+    );
+}
+
+#[test]
+fn normalize_on_exit_complete_uses_noop_default_and_preserves_custom_handler() {
+    normalize_on_exit_complete(None).run(());
+
+    let called = Arc::new(AtomicBool::new(false));
+    let called_for_callback = Arc::clone(&called);
+    normalize_on_exit_complete(Some(leptos::prelude::Callback::new(move |_| {
+        called_for_callback.store(true, Ordering::SeqCst);
+    })))
+    .run(());
+
+    assert!(called.load(Ordering::SeqCst));
+}
+
+#[test]
+fn resolve_states_centralizes_slot_state_derivation() {
+    let resolved = resolve_states(SheetStateInputs {
+        open: true,
+        placement: SheetPlacement::Right,
+        dismiss_mode: SheetDismissMode::Locked,
+        keyboard_dismiss_mode: SheetKeyboardDismissMode::Disabled,
+        has_custom_motion: true,
+        has_custom_aria_labelledby: true,
+        has_custom_aria_describedby: true,
+        has_on_exit_complete: true,
+    });
+
+    assert_eq!(resolved.root_state.slot_attr, "sheet");
+    assert_eq!(resolved.root_state.state_attr, "open");
+    assert_eq!(resolved.backdrop_state.slot_attr, "sheet-backdrop");
+    assert_eq!(resolved.backdrop_state.state_attr, "backdrop");
+    assert_eq!(resolved.panel_state.slot_attr, "sheet-panel");
+    assert_eq!(resolved.panel_state.state_attr, "panel");
+}
+
+#[test]
+fn sheet_mode_enums_map_bool_inputs_to_closed_set() {
+    assert_eq!(
+        SheetDismissMode::from_is_dismissable(true),
+        SheetDismissMode::Dismissable
+    );
+    assert_eq!(
+        SheetDismissMode::from_is_dismissable(false),
+        SheetDismissMode::Locked
+    );
+    assert_eq!(
+        SheetKeyboardDismissMode::from_is_disabled(true),
+        SheetKeyboardDismissMode::Disabled
+    );
+    assert_eq!(
+        SheetKeyboardDismissMode::from_is_disabled(false),
+        SheetKeyboardDismissMode::Enabled
     );
 }
 

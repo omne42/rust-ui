@@ -41,6 +41,7 @@ fn clear_button_uses_logic_state_model() {
 
     for needle in [
         "pub enum ClearButtonVariant",
+        "pub enum ClearButtonFocusMode",
         "pub fn normalize_optional_text(",
         "pub fn normalize_aria_label(",
         "pub fn resolve_state(",
@@ -60,6 +61,7 @@ fn clear_button_uses_logic_state_model() {
         "i18n.strings::<CommonStrings>()",
         "logic::normalize_aria_label(aria_label, common.clear_aria_label.as_ref())",
         "logic::resolve_state(ClearButtonStateInput {",
+        "#[prop(optional)] focus_mode: ClearButtonFocusMode,",
         "logic::compose_class_name(class_name, state)",
     ] {
         assert!(
@@ -164,11 +166,11 @@ fn clear_button_docs_playgrounds_lock_state_matrix_contract_values() {
         "aria_label=\"Dismiss overlay\".to_string()",
         "<Playground title=\"Inset + Focus Mode + Disabled\" code_signal=state_code>",
         "inset=true",
-        "prevent_focus=true",
+        "focus_mode=ui_components::ClearButtonFocusMode::Prevent",
         "aria_label=\"Clear token\".to_string()",
         "class_name=\"docs-clear-button-custom\".to_string()",
         "disabled=true",
-        "exclude_from_tab_order=true",
+        "focus_mode=ui_components::ClearButtonFocusMode::ExcludeTab",
         "aria_label=\"Disabled clear\".to_string()",
     ] {
         assert!(

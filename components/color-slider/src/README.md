@@ -2,6 +2,9 @@
 
 `ColorSlider` 是单通道颜色滑杆组件，默认走 snapshot 渲染路径，交互语义由 `ui-headless::use_slider` 提供。
 
+阅读顺序建议：先看 `Hello World` 直接跑起来，再按需启用受控与高级配置。
+默认路径不需要手动接线 `ui-state-primitives` 或 `ui-headless` 状态机。
+
 ## Hello World
 
 ```rust
@@ -36,6 +39,12 @@ view! {
     />
 }
 ```
+
+## 常见用法（进阶）
+
+- 受控输入：`value + on_value_change`，可与业务状态同步。
+- 非受控输入：`default_value` 初始化一次，后续由组件内部交互驱动。
+- 状态切换：`is_disabled`/`disabled`（兼容别名）可覆盖禁用态。
 
 ## API 约定
 

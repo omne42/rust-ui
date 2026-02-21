@@ -1,0 +1,188 @@
+schema_version = "1"
+
+[component]
+name = "Command"
+crate = "ui-command"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "groups"
+ty = "Arc<[CommandGroup]>"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "query"
+ty = "Option<Signal<String>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_query"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_query_change"
+ty = "Option<Callback<String>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_action"
+ty = "Option<Callback<String>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "CommandMotion"
+default = "CommandMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "placeholder"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "empty_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-query + data-disabled + data-*-source + role + aria-* + lang + dir"
+scope = "root-attribute"
+
+[[outputs]]
+name = "on_query_change"
+ty = "Callback<String>"
+scope = "event"
+
+[[outputs]]
+name = "on_action"
+ty = "Callback<String>"
+scope = "event"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[agent_contract]]
+schema = "ui.command.agent-contract.v1"
+intent = "command.discovery"
+action = "filter.navigate.select"
+state_axes = ["idle", "query-results", "query-empty", "empty", "disabled"]
+source_axes = ["controlled", "uncontrolled", "query-control", "action-source", "motion-source"]
+
+[[agent_contract_markers]]
+name = "schema"
+attr = "data-ui-schema"
+values = ["ui.command.agent-contract"]
+
+[[agent_contract_markers]]
+name = "schema_version"
+attr = "data-ui-schema-version"
+values = ["v1"]
+
+[[agent_contract_markers]]
+name = "intent"
+attr = "data-ui-intent"
+values = ["command.discovery"]
+
+[[agent_contract_markers]]
+name = "action"
+attr = "data-ui-action"
+values = ["filter.navigate.select"]
+
+[[agent_contract_markers]]
+name = "state"
+attr = "data-ui-state"
+values = ["idle", "query-results", "query-empty", "empty", "disabled"]
+
+[[agent_contract_markers]]
+name = "source"
+attr = "data-ui-source"
+values = ["controlled", "uncontrolled"]
+
+[[agent_contract_markers]]
+name = "config_policy"
+attr = "data-ui-config-policy"
+values = ["whitelist"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "render_options_content",
+  "render_group_section",
+  "render_option_item",
+  "render_empty_state",
+]
+blocked = ["inner_html", "<script", "javascript:"]
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-and-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-visual-primitive"
+kind = "active-highlight-motion"

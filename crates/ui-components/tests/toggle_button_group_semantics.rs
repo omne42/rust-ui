@@ -42,6 +42,7 @@ fn toggle_button_group_uses_logic_state_model() {
     for needle in [
         "pub struct ToggleButtonGroupState",
         "pub fn normalize_toggle_button_group_aria_label(",
+        "pub fn compose_toggle_button_group_class_name(",
         "pub fn resolve_toggle_button_group_state(",
         "pub is_attached: bool",
         "pub has_explicit_label: bool",
@@ -54,8 +55,11 @@ fn toggle_button_group_uses_logic_state_model() {
 
     for needle in [
         "logic::normalize_toggle_button_group_aria_label(aria_label);",
+        "let group_a11y = labeled_group_attrs(aria_label, lang, dir);",
+        "let class_name = logic::normalize_optional_text(class_name);",
         "let state = Memo::new(move |_|",
-        "logic::resolve_toggle_button_group_state(orientation, attached, has_explicit_label)",
+        "logic::resolve_toggle_button_group_state(orientation, is_attached, has_explicit_label)",
+        "let class = logic::compose_toggle_button_group_class_name(class_name, orientation, is_attached);",
     ] {
         assert!(
             view_source.contains(needle),
@@ -77,6 +81,10 @@ fn toggle_button_group_emits_baseline_style_state_data_attributes() {
         "data-detached=move || state.get().is_detached.then_some(\"true\")",
         "data-has-explicit-label=move || state.get().has_explicit_label.then_some(\"true\")",
         "data-has-fallback-label=move || state.get().has_fallback_label.then_some(\"true\")",
+        "role=group_a11y.role",
+        "aria-label=group_a11y.aria_label.clone()",
+        "lang=group_a11y.lang.clone()",
+        "dir=group_a11y.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -127,7 +135,7 @@ fn toggle_button_group_docs_page_covers_primary_playgrounds() {
         "title=\"Vertical + detached\"",
         "<ToggleButtonGroup",
         "orientation=ToggleButtonGroupOrientation::Vertical",
-        "attached=false",
+        "is_attached=false",
         "aria_label=\"Alignment controls\".to_string()",
     ] {
         assert!(
@@ -149,22 +157,22 @@ fn toggle_button_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "if attached {",
         "variant=ToggleButtonVariant::{variant:?}",
         "size=ToggleButtonSize::{size:?}",
-        "selected=a",
-        "set_selected=set_a",
-        "selected=b",
-        "set_selected=set_b",
-        "selected=c",
-        "set_selected=set_c",
+        "is_pressed=Some(a_signal)",
+        "on_pressed_change=on_a_change",
+        "is_pressed=Some(b_signal)",
+        "on_pressed_change=on_b_change",
+        "is_pressed=Some(c_signal)",
+        "on_pressed_change=on_c_change",
         "variant=variant",
         "size=size",
         "\"attached selected count: \"",
         "\"detached selected count: \"",
-        "selected=left",
-        "set_selected=set_left",
-        "selected=center",
-        "set_selected=set_center",
-        "selected=right",
-        "set_selected=set_right",
+        "is_pressed=Some(left_signal)",
+        "on_pressed_change=on_left_change",
+        "is_pressed=Some(center_signal)",
+        "on_pressed_change=on_center_change",
+        "is_pressed=Some(right_signal)",
+        "on_pressed_change=on_right_change",
         "variant=ToggleButtonVariant::Secondary",
         "{move || detached_selected_count.get().to_string()}",
     ] {

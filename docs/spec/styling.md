@@ -29,6 +29,13 @@
 - 排版与 Overlay 基线（如 `--ui-font-size-100/150/200`、`--ui-overlay-panel-min-width`、`--ui-overlay-viewport-inset`、`--ui-overlay-enter-offset-y`）必须在 `ui-theme` 定义并输出变量。
 - 组件视觉 token 分类（示例：Button 的 `layout` + `motion` token 在 `crates/ui-theme/src/tokens.rs` 定义，映射在 `theme.rs`，变量输出在 `css.rs`）。
 - 输入类组件同理：`TextField` 的 motion token（如 `--ui-text-field-motion-duration` / `--ui-text-field-motion-easing`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
+- 标签组件同理：`Label` 的 motion token（如 `--ui-label-motion-color-duration` / `--ui-label-motion-weight-duration` / `--ui-label-motion-easing`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
+- 表单控件布局同理：`Checkbox` 的 layout token（如 `--ui-checkbox-size-*` / `--ui-checkbox-radius-*` / `--ui-checkbox-gap`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
+- 色彩预览控件同理：`ColorSwatch` 的 layout token（如 `--ui-color-swatch-size-*` / `--ui-color-swatch-radius-*` / `--ui-color-swatch-wide-multiplier`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
+- 复合表单容器同理：`CheckboxGroup` 的 layout/motion token（如 `--ui-checkbox-group-gap` / `--ui-checkbox-group-motion-duration`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
+- 文件投放区同理：`DropZone` 的 layout/motion token（如 `--ui-drop-zone-min-height` / `--ui-drop-zone-focus-outline-width`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
+- 翻转卡片同理：`FlipCard` 的 layout token（如 `--ui-flip-card-max-inline-size` / `--ui-flip-card-perspective`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
+- 颜色类控件同理：`ColorWheel` 的 layout/hue token（如 `--ui-color-wheel-size` / `--ui-color-wheel-track-thickness` / `--ui-color-wheel-hue-*`）也必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件侧仅消费变量。
 - 视觉细粒度语义同理：`Separator` 的装饰透明度 token（`--ui-separator-decorative-opacity`）必须走 `tokens.rs -> theme.rs -> css.rs` 链路，组件 `styles.rs` 只消费变量。
 - 三轴到 token 的映射（集中在一个地方做决策）。
 - CSS 变量输出（组件只消费变量，不重建主题）。

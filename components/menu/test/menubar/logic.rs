@@ -188,3 +188,86 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn menubar_runtime_decisions_are_centralized() {
+    assert_eq!(resolve_menu_state_attr(true, false), "open");
+    assert_eq!(resolve_menu_state_attr(false, true), "disabled");
+    assert_eq!(resolve_menu_state_attr(false, false), "closed");
+    assert_eq!(resolve_aria_expanded(true), "true");
+    assert_eq!(resolve_aria_expanded(false), "false");
+
+    assert_eq!(
+        resolve_next_open_index_on_trigger_press(false, Some(2), 2),
+        Some(None)
+    );
+    assert_eq!(
+        resolve_next_open_index_on_trigger_press(false, None, 1),
+        Some(Some(1))
+    );
+    assert_eq!(
+        resolve_next_open_index_on_trigger_press(true, None, 1),
+        None
+    );
+
+    assert_eq!(
+        resolve_next_open_index_on_pointer_enter(false, Some(0), 1),
+        Some(Some(1))
+    );
+    assert_eq!(
+        resolve_next_open_index_on_pointer_enter(false, None, 1),
+        None
+    );
+
+    let menus = resolve_menus(
+        "docs-menubar",
+        vec![
+            MenubarMenu::new("file", "File", vec!["New".to_string()]),
+            MenubarMenu::new("edit", "Edit", vec!["Undo".to_string()]),
+        ],
+    );
+    assert_eq!(
+        resolve_key_decision("ArrowDown", false, 0, &menus),
+        Some(MenubarKeyDecision::OpenCurrent {
+            focus: MenuOpenFocusStrategy::First
+        })
+    );
+}
+
+#[test]
+fn normalize_close_on_action_resolves_alias_priority() {
+    assert_eq!(
+        normalize_close_on_action(MenubarActionModeInput {
+            is_close_on_action: Some(false),
+            close_on_action: true,
+        }),
+        MenubarActionMode::KeepOpenOnAction
+    );
+    assert_eq!(
+        normalize_close_on_action(MenubarActionModeInput {
+            is_close_on_action: None,
+            close_on_action: true,
+        }),
+        MenubarActionMode::CloseOnAction
+    );
+}
+
+#[test]
+fn normalize_default_open_index_sanitizes_in_one_step() {
+    let menus = resolve_menus(
+        "docs-menubar",
+        vec![
+            MenubarMenu::new("file", "File", vec!["New".to_string()]),
+            MenubarMenu::new("help", "Help", vec!["About".to_string()]).disabled(true),
+        ],
+    );
+
+    assert_eq!(
+        normalize_default_open_index(Some(0), menus.len(), &menus),
+        Some(0)
+    );
+    assert_eq!(
+        normalize_default_open_index(Some(1), menus.len(), &menus),
+        None
+    );
+}

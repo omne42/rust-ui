@@ -4,16 +4,13 @@ pub struct DateInputGroupMotion {
     pub enter_scale: f64,
 }
 
+const DEFAULT_ENTER_SCALE: f64 = 0.99;
+
 impl Default for DateInputGroupMotion {
     fn default() -> Self {
         Self {
-            spring: ui_motion::spring::SpringConfig {
-                stiffness: 230.0,
-                damping: 20.0,
-                mass: 1.0,
-                ..Default::default()
-            },
-            enter_scale: 0.99,
+            spring: ui_motion::presets::spring_soft(),
+            enter_scale: DEFAULT_ENTER_SCALE,
         }
     }
 }
@@ -24,29 +21,7 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
     let default = DateInputGroupMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
+    ui_motion::spring::sanitize_config(value, default)
 }
 
 pub fn sanitize_motion(motion: DateInputGroupMotion) -> DateInputGroupMotion {
@@ -84,17 +59,31 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = node.unchecked_into();
         let style = element.style();
 
-        drop(style.set_property(
+        if ui_motion::web::prefers_reduced_motion() {
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-date-input-group-scale",
+                "1"
+            );
+            return;
+        }
+
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
             "--ui-date-input-group-scale",
             &format!("{}", motion.enter_scale),
-        ));
+        );
 
         let animator = ui_motion::spring::SpringAnimator::new(
             motion.enter_scale,
             motion.spring,
             move |scale| {
                 let scale = scale.clamp(0.0, 10.0);
-                drop(style.set_property("--ui-date-input-group-scale", &format!("{scale}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style),
+                    "--ui-date-input-group-scale",
+                    &format!("{scale}")
+                );
             },
         );
         animator.set_target(1.0);

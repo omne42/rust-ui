@@ -44,6 +44,50 @@ impl FieldsetTone {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum FieldsetMessageKind {
+    #[default]
+    None,
+    Description,
+    Error,
+}
+
+impl FieldsetMessageKind {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            FieldsetMessageKind::None => "none",
+            FieldsetMessageKind::Description => "description",
+            FieldsetMessageKind::Error => "error",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum FieldsetDataState {
+    #[default]
+    Default,
+    Required,
+    Disabled,
+    Invalid,
+    InvalidDisabled,
+    Horizontal,
+    Muted,
+}
+
+impl FieldsetDataState {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            FieldsetDataState::Default => "default",
+            FieldsetDataState::Required => "required",
+            FieldsetDataState::Disabled => "disabled",
+            FieldsetDataState::Invalid => "invalid",
+            FieldsetDataState::InvalidDisabled => "invalid-disabled",
+            FieldsetDataState::Horizontal => "horizontal",
+            FieldsetDataState::Muted => "muted",
+        }
+    }
+}
+
 pub const DEFAULT_ARIA_LABEL: &str = "Fieldset";
 pub const DEFAULT_ERROR_MESSAGE: &str = "Invalid value";
 
@@ -64,6 +108,53 @@ pub struct FieldsetStateInput {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FieldsetBooleanAxisInput {
+    pub value: Option<bool>,
+    pub default_value: Option<bool>,
+    pub has_on_change: bool,
+    pub value_source_attr: &'static str,
+    pub default_source_attr: &'static str,
+    pub change_source_attr: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FieldsetBooleanAxis {
+    pub controlled_value: Option<bool>,
+    pub initial_value: bool,
+    pub value_source_attr: &'static str,
+    pub control_mode_attr: &'static str,
+    pub change_source_attr: &'static str,
+}
+
+pub fn normalize_boolean_axis(input: FieldsetBooleanAxisInput) -> FieldsetBooleanAxis {
+    let value_source_attr = if input.value.is_some() {
+        input.value_source_attr
+    } else if input.default_value.is_some() {
+        input.default_source_attr
+    } else {
+        "default"
+    };
+    let control_mode_attr = if input.value.is_some() {
+        "controlled"
+    } else {
+        "uncontrolled"
+    };
+    let change_source_attr = if input.has_on_change {
+        input.change_source_attr
+    } else {
+        "none"
+    };
+
+    FieldsetBooleanAxis {
+        controlled_value: input.value,
+        initial_value: input.default_value.unwrap_or(false),
+        value_source_attr,
+        control_mode_attr,
+        change_source_attr,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FieldsetState {
     pub orientation: FieldsetOrientation,
     pub orientation_class: &'static str,
@@ -78,6 +169,8 @@ pub struct FieldsetState {
     pub has_description: bool,
     pub has_error_message: bool,
     pub has_actions: bool,
+    pub message_kind: FieldsetMessageKind,
+    pub data_state: FieldsetDataState,
     pub message_kind_attr: &'static str,
     pub data_state_attr: &'static str,
     pub aria_source_attr: &'static str,
@@ -135,28 +228,28 @@ pub fn resolve_state(input: FieldsetStateInput) -> FieldsetState {
         "default"
     };
 
-    let message_kind_attr = if input.has_error_message {
-        "error"
+    let message_kind = if input.has_error_message {
+        FieldsetMessageKind::Error
     } else if input.has_description {
-        "description"
+        FieldsetMessageKind::Description
     } else {
-        "none"
+        FieldsetMessageKind::None
     };
 
-    let data_state_attr = if input.invalid && input.disabled {
-        "invalid-disabled"
+    let data_state = if input.invalid && input.disabled {
+        FieldsetDataState::InvalidDisabled
     } else if input.invalid {
-        "invalid"
+        FieldsetDataState::Invalid
     } else if input.disabled {
-        "disabled"
+        FieldsetDataState::Disabled
     } else if input.required {
-        "required"
+        FieldsetDataState::Required
     } else if input.orientation == FieldsetOrientation::Horizontal {
-        "horizontal"
+        FieldsetDataState::Horizontal
     } else if input.tone == FieldsetTone::Muted {
-        "muted"
+        FieldsetDataState::Muted
     } else {
-        "default"
+        FieldsetDataState::Default
     };
 
     FieldsetState {
@@ -173,8 +266,10 @@ pub fn resolve_state(input: FieldsetStateInput) -> FieldsetState {
         has_description: input.has_description,
         has_error_message: input.has_error_message,
         has_actions: input.has_actions,
-        message_kind_attr,
-        data_state_attr,
+        message_kind,
+        data_state,
+        message_kind_attr: message_kind.as_attr(),
+        data_state_attr: data_state.as_attr(),
         aria_source_attr,
         error_source_attr,
         class_source_attr,

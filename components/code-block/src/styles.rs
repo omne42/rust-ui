@@ -1,11 +1,42 @@
 pub const CSS: &str = r#"
 .ui-code-block {
+  --ui-code-block-border-width: var(--ui-border-width, var(--ui-fallback-border-width));
+  --ui-code-block-border-color: var(--ui-border, var(--ui-fallback-border));
+  --ui-code-block-radius-lg: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  --ui-code-block-radius-sm: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
+  --ui-code-block-bg: var(--ui-bg, var(--ui-fallback-bg));
+  --ui-code-block-bg-muted: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
+  --ui-code-block-fg: var(--ui-fg, var(--ui-fallback-fg));
+  --ui-code-block-fg-muted: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  --ui-code-block-shadow-sm: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
+  --ui-code-block-accent: var(--ui-accent, var(--ui-fallback-accent));
+  --ui-code-block-accent-soft: var(--ui-accent-soft, var(--ui-fallback-accent-soft));
+  --ui-code-block-focus-ring: var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  --ui-code-block-space-xs: var(--ui-space-xs, var(--ui-fallback-space-xs));
+  --ui-code-block-space-sm: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  --ui-code-block-space-md: var(--ui-space-md, var(--ui-fallback-space-md));
+  --ui-code-block-font-size-code: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  --ui-code-block-line-height-code: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
+  --ui-code-block-font-size-meta: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  --ui-code-block-line-height-meta: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
+  --ui-code-block-label-font-size: var(--ui-button-size-s-font-size, var(--ui-fallback-button-size-s-font-size));
+  --ui-code-block-label-line-height: var(--ui-button-size-s-line-height, var(--ui-fallback-button-size-s-line-height));
+  --ui-code-block-focus-ring-width: var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width));
+  --ui-code-block-focus-ring-offset: var(--ui-button-focus-outline-offset, var(--ui-fallback-button-focus-outline-offset));
+  --ui-code-block-icon-size: var(--ui-space-md, var(--ui-fallback-space-md));
+  --ui-code-block-icon-button-size: calc(
+    var(--ui-space-md, var(--ui-fallback-space-md)) * 2 +
+      var(--ui-space-xs, var(--ui-fallback-space-xs))
+  );
+  --ui-code-block-sr-only-size: var(--ui-alert-sr-only-size, var(--ui-fallback-alert-sr-only-size));
+  --ui-code-block-motion-duration: var(--ui-checkbox-group-motion-duration, var(--ui-fallback-checkbox-group-motion-duration));
+  --ui-code-block-motion-easing: var(--ui-checkbox-group-motion-easing, var(--ui-fallback-checkbox-group-motion-easing));
   position: relative;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-sm);
+  border: var(--ui-code-block-border-width) solid var(--ui-code-block-border-color);
+  border-radius: var(--ui-code-block-radius-lg);
+  background: var(--ui-code-block-bg);
+  color: var(--ui-code-block-fg);
+  box-shadow: var(--ui-code-block-shadow-sm);
   overflow: hidden;
   isolation: isolate;
 
@@ -69,7 +100,11 @@ pub const CSS: &str = r#"
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: color-mix(in oklch, var(--ui-accent-soft) 70%, var(--ui-bg));
+  background: color-mix(
+    in oklch,
+    var(--ui-code-block-accent-soft) 70%,
+    var(--ui-code-block-bg)
+  );
   opacity: calc(var(--ui-code-block-copy-flash) * 0.18);
   pointer-events: none;
 }
@@ -83,37 +118,41 @@ pub const CSS: &str = r#"
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-sm);
-  padding: var(--ui-space-sm) var(--ui-space-md);
-  border-bottom: 1px solid var(--ui-border);
-  background: color-mix(in oklch, var(--ui-bg-muted) 70%, var(--ui-bg));
+  gap: var(--ui-code-block-space-sm);
+  padding: var(--ui-code-block-space-sm) var(--ui-code-block-space-md);
+  border-bottom: var(--ui-code-block-border-width) solid var(--ui-code-block-border-color);
+  background: color-mix(
+    in oklch,
+    var(--ui-code-block-bg-muted) 70%,
+    var(--ui-code-block-bg)
+  );
 }
 
 .ui-code-block__meta {
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-code-block-space-sm);
   min-width: 0;
 }
 
 .ui-code-block__label {
-  font-size: var(--ui-button-size-s-font-size, 13px);
-  line-height: var(--ui-button-size-s-line-height, 18px);
+  font-size: var(--ui-code-block-label-font-size);
+  line-height: var(--ui-code-block-label-line-height);
   font-weight: 600;
 }
 
 .ui-code-block__language {
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
-  color: var(--ui-fg-muted);
+  font-size: var(--ui-code-block-font-size-meta);
+  line-height: var(--ui-code-block-line-height-meta);
+  color: var(--ui-code-block-fg-muted);
 }
 
 .ui-code-block__pre {
   margin: 0;
-  padding: var(--ui-space-md);
+  padding: var(--ui-code-block-space-md);
   overflow: auto;
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-150, 20px);
+  font-size: var(--ui-code-block-font-size-code);
+  line-height: var(--ui-code-block-line-height-code);
 }
 
 .ui-code-block__code {
@@ -123,10 +162,10 @@ pub const CSS: &str = r#"
 
 .ui-code-block__a11y-status {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: var(--ui-code-block-sr-only-size);
+  height: var(--ui-code-block-sr-only-size);
   padding: 0;
-  margin: -1px;
+  margin: calc(var(--ui-code-block-sr-only-size) * -1);
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
@@ -134,20 +173,23 @@ pub const CSS: &str = r#"
 }
 
 .ui-code-block__copy-button svg {
-  width: 16px;
-  height: 16px;
+  width: var(--ui-code-block-icon-size);
+  height: var(--ui-code-block-icon-size);
 }
 
 .ui-code-block__button {
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-sm, 8px);
+  border: var(--ui-code-block-border-width) solid transparent;
+  border-radius: var(--ui-code-block-radius-sm);
   background: transparent;
-  color: var(--ui-fg);
+  color: var(--ui-code-block-fg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition:
+    background-color var(--ui-code-block-motion-duration) var(--ui-code-block-motion-easing),
+    border-color var(--ui-code-block-motion-duration) var(--ui-code-block-motion-easing),
+    color var(--ui-code-block-motion-duration) var(--ui-code-block-motion-easing);
 }
 
 .ui-code-block__button--ghost {
@@ -156,16 +198,16 @@ pub const CSS: &str = r#"
 }
 
 .ui-code-block__button--icon-sm {
-  width: 28px;
-  height: 28px;
+  width: var(--ui-code-block-icon-button-size);
+  height: var(--ui-code-block-icon-button-size);
 }
 
 .ui-code-block__button:hover {
-  background: color-mix(in oklch, var(--ui-fg) 8%, transparent);
+  background: color-mix(in oklch, var(--ui-code-block-fg) 8%, transparent);
 }
 
 .ui-code-block__button:focus-visible {
-  outline: 2px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-code-block-focus-ring-width) solid var(--ui-code-block-focus-ring);
+  outline-offset: var(--ui-code-block-focus-ring-offset);
 }
 "#;

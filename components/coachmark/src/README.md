@@ -2,29 +2,7 @@
 
 `Coachmark` 是基于 `ContextualHelp` 组合的引导提示组件，负责把步骤、CTA、资产位与语义标记装配成可测试契约。
 
-## display（展示区）
-
-- 默认引导：`Help` 变体 + 步骤 + CTA + 内置资产。
-- 信息提示：`Info` 变体 + 外链图片资产。
-- 禁用状态：保留语义标记，便于 A11y 与自动化验证。
-
-## config（配置区）
-
-可直接在 docs-app playground 的 settings 面板切换：
-
-| Config | Values | 作用 |
-| --- | --- | --- |
-| `variant` | `Help` / `Info` | 指定语义意图与视觉分支 |
-| `open` + `on_open_change` | controlled bool | 外部控制开合状态 |
-| `disabled` | `bool` | 禁用交互并切换 `data-state` |
-| `current_step` + `total_steps` | `Option<usize>` | 控制步骤文案显隐 |
-| `primary_cta` / `secondary_cta` | `Option<String>` | 单/双按钮状态矩阵 |
-| `asset_variant` / `asset_src` | `Option<...>` | 内置资产或图片资产来源 |
-| `class_name` | `Option<String>` | 自定义类来源标记 |
-
-## code（代码区）
-
-最小示例：
+## Hello World（最小可用）
 
 ```rust
 <Coachmark title="Welcome".to_string() default_open=true>
@@ -32,7 +10,34 @@
 </Coachmark>
 ```
 
-受控示例：
+## 先用起来，再进阶
+
+- 默认路径（先用起来）：优先使用 `title + default_open + children`，不需要先接线 `open/on_open_change`。
+- 常见扩展：按需补 `current_step/total_steps`、`primary_cta/secondary_cta`、`asset_variant`。
+- 进阶控制：仅在父级需要接管状态时启用 `open + on_open_change`（Controlled）。
+
+## 常见用法
+
+- 默认引导：`Help` 变体 + 步骤 + CTA + 内置资产。
+- 信息提示：`Info` 变体 + 外链图片资产。
+- 禁用状态：保留语义标记，便于 A11y 与自动化验证。
+
+### Config（配置区）
+
+可直接在 docs-app playground 的 settings 面板切换：
+
+| Config | Values | 作用 |
+| --- | --- | --- |
+| `variant` | `Help` / `Info` | 指定语义意图与视觉分支 |
+| `open` + `on_open_change` | controlled bool | 外部控制开合状态 |
+| `is_disabled` | `bool` | 禁用交互并切换 `data-state`（推荐命名） |
+| `disabled` | `bool` | 兼容别名（迁移到 `is_disabled`） |
+| `current_step` + `total_steps` | `Option<usize>` | 控制步骤文案显隐 |
+| `primary_cta` / `secondary_cta` | `Option<String>` | 单/双按钮状态矩阵 |
+| `asset_variant` / `asset_src` | `Option<...>` | 内置资产或图片资产来源 |
+| `class_name` | `Option<String>` | 自定义类来源标记 |
+
+### Controlled Example（高级入口）
 
 ```rust
 let (open, set_open) = signal(false);
@@ -45,7 +50,7 @@ let (open, set_open) = signal(false);
 />
 ```
 
-## css test（样式测试区）
+## CSS Test（样式测试区）
 
 - 在 docs-app 的 `Show test` 面板可直接编辑 scoped CSS。
 - 默认注入源：`components/coachmark/src/styles.rs` 的 `CSS` 常量。

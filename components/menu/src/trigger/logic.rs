@@ -1,29 +1,124 @@
-use std::collections::BTreeSet;
-
+use leptos::prelude::*;
 use ui_headless::PopoverPlacement;
+use ui_state_primitives::menu as menu_state;
+
+pub type MenuOpenFocusStrategy = ui_headless::MenuOpenFocusStrategy;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MenuTriggerDiscreteInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
+    pub is_close_on_action: Option<bool>,
+    pub close_on_action: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MenuTriggerDiscreteProps {
+    pub disabled: bool,
+    pub action_mode: MenuTriggerActionMode,
+}
+
+#[derive(Clone)]
+pub struct MenuTriggerOpenStateInput {
+    pub is_open: Option<Signal<bool>>,
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+}
+
+#[derive(Clone)]
+pub struct MenuTriggerOpenState {
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+    pub is_controlled: bool,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum MenuOpenFocusStrategy {
+pub enum MenuTriggerActionMode {
     #[default]
-    First,
-    Last,
+    CloseOnAction,
+    KeepOpenOnAction,
 }
 
-impl MenuOpenFocusStrategy {
-    pub fn default_index(self, item_count: usize) -> usize {
-        match self {
-            Self::First => 0,
-            Self::Last => item_count.saturating_sub(1),
+impl MenuTriggerActionMode {
+    pub fn from_bool(close_on_action: bool) -> Self {
+        if close_on_action {
+            Self::CloseOnAction
+        } else {
+            Self::KeepOpenOnAction
         }
     }
+
+    pub fn is_close_on_action(self) -> bool {
+        matches!(self, Self::CloseOnAction)
+    }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MenuTriggerPressResult {
+    pub next_open: bool,
+    pub open_focus: Option<MenuOpenFocusStrategy>,
+}
+
+#[cfg(test)]
 pub fn focus_strategy_for_open_key(key: &str) -> Option<MenuOpenFocusStrategy> {
-    match key {
-        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
-        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
-        _ => None,
+    ui_headless::menu_trigger_open_focus_strategy_for_key(key)
+}
+#[cfg(test)]
+const _: fn(&str) -> Option<MenuOpenFocusStrategy> = focus_strategy_for_open_key;
+
+pub fn resolve_root_state_attr(is_open: bool, trigger_disabled: bool) -> &'static str {
+    if is_open {
+        "open"
+    } else if trigger_disabled {
+        "disabled"
+    } else {
+        "closed"
     }
+}
+
+pub fn normalize_discrete_props(input: MenuTriggerDiscreteInput) -> MenuTriggerDiscreteProps {
+    MenuTriggerDiscreteProps {
+        disabled: input.is_disabled.unwrap_or(input.disabled),
+        action_mode: MenuTriggerActionMode::from_bool(
+            input.is_close_on_action.unwrap_or(input.close_on_action),
+        ),
+    }
+}
+
+pub fn normalize_open_state(input: MenuTriggerOpenStateInput) -> MenuTriggerOpenState {
+    let open = menu_state::normalize_controlled_prop_alias(input.is_open, input.open);
+    MenuTriggerOpenState {
+        is_controlled: menu_state::is_controlled_prop(&open),
+        open,
+        default_open: input.default_open,
+        on_open_change: input.on_open_change,
+    }
+}
+
+pub fn resolve_trigger_press(
+    trigger_disabled: bool,
+    current_open: bool,
+) -> Option<MenuTriggerPressResult> {
+    if trigger_disabled {
+        return None;
+    }
+
+    let next_open = !current_open;
+    let open_focus = next_open.then_some(MenuOpenFocusStrategy::First);
+    Some(MenuTriggerPressResult {
+        next_open,
+        open_focus,
+    })
+}
+
+pub fn resolve_open_focus_strategy(
+    key: &str,
+    trigger_disabled: bool,
+    current_open: bool,
+) -> Option<MenuOpenFocusStrategy> {
+    ui_headless::menu_trigger_open_focus_strategy(key, trigger_disabled, current_open)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -36,7 +131,7 @@ pub struct MenuTriggerIds {
 pub struct MenuTriggerStateInput {
     pub item_count: usize,
     pub trigger_disabled: bool,
-    pub close_on_action: bool,
+    pub action_mode: MenuTriggerActionMode,
     pub has_custom_aria_label: bool,
     pub has_custom_class_name: bool,
     pub has_disabled_items: bool,
@@ -65,54 +160,44 @@ pub struct MenuTriggerState {
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    menu_state::normalize_optional_text(value)
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| "menu-trigger".to_string())
+    menu_state::normalize_id_base(id_base, "menu-trigger")
 }
 
 pub fn resolve_ids(id_base: &str) -> MenuTriggerIds {
+    let (trigger_id, menu_id) = menu_state::resolve_id_pair(id_base);
     MenuTriggerIds {
-        trigger_id: format!("{id_base}-trigger"),
-        menu_id: format!("{id_base}-menu"),
+        trigger_id,
+        menu_id,
     }
 }
 
 pub fn normalize_disabled_indices(disabled_indices: Vec<usize>, item_count: usize) -> Vec<usize> {
-    let mut unique = BTreeSet::new();
-    for index in disabled_indices {
-        if index < item_count {
-            unique.insert(index);
-        }
-    }
-    unique.into_iter().collect()
+    menu_state::normalize_disabled_indices(disabled_indices, item_count)
 }
 
 pub fn resolve_trigger_disabled(disabled: bool, item_count: usize) -> bool {
-    disabled || item_count == 0
+    menu_state::resolve_trigger_disabled(disabled, item_count)
 }
 
 pub fn resolve_trigger_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    ("Open menu".to_string(), false)
+    menu_state::resolve_aria_label_with_fallback(value, "Open menu", "Open menu")
 }
 
 pub fn resolve_state(input: MenuTriggerStateInput) -> MenuTriggerState {
+    let close_on_action = input.action_mode.is_close_on_action();
+
     MenuTriggerState {
         item_count: input.item_count,
         is_empty: input.item_count == 0,
         has_items: input.item_count > 0,
         is_trigger_disabled: input.trigger_disabled,
         is_enabled: !input.trigger_disabled,
-        close_on_action: input.close_on_action,
-        keep_open_on_action: !input.close_on_action,
+        close_on_action,
+        keep_open_on_action: !close_on_action,
         has_custom_aria_label: input.has_custom_aria_label,
         has_custom_class_name: input.has_custom_class_name,
         has_disabled_items: input.has_disabled_items,

@@ -5,7 +5,7 @@ pub const CSS: &str = r#"
   max-inline-size: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   min-block-size: 0;
 }
 
@@ -77,24 +77,36 @@ pub const CSS: &str = r#"
 .ui-tray--fixed-height,
 .ui-tray[data-size="fixed"],
 .ui-tray[data-fixed-height="true"] {
-  block-size: min(28rem, 78vh);
+  block-size: min(
+    calc(
+      var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))
+        + var(--ui-space-lg, var(--ui-fallback-space-lg)) * 16
+    ),
+    78vh
+  );
 }
 
 .ui-tray--auto-height,
 .ui-tray[data-size="auto"] {
-  max-block-size: min(80vh, 36rem);
+  max-block-size: min(
+    80vh,
+    calc(
+      var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))
+        + var(--ui-space-lg, var(--ui-fallback-space-lg)) * 20
+    )
+  );
 }
 
 .ui-tray--with-description,
 .ui-tray[data-state="with-description"],
 .ui-tray[data-description="present"] {
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-tray--title-only,
 .ui-tray[data-state="title-only"],
 .ui-tray[data-description="absent"] {
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
 }
 
 .ui-tray--custom-class,
@@ -106,13 +118,16 @@ pub const CSS: &str = r#"
 .ui-tray__header[data-slot="tray-header"] {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-2xs);
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
   padding-right: 0;
 }
 
 .ui-tray--close-shown .ui-tray__header,
 .ui-tray[data-close-button="shown"] .ui-tray__header {
-  padding-right: 44px;
+  padding-right: calc(
+    var(--ui-component-height-100, var(--ui-fallback-component-height-100))
+      + var(--ui-space-md, var(--ui-fallback-space-md))
+  );
 }
 
 .ui-tray--close-hidden .ui-tray__header,
@@ -122,8 +137,14 @@ pub const CSS: &str = r#"
 
 .ui-tray__title,
 .ui-tray__title[data-slot="tray-title"] {
-  font-size: var(--ui-heading-h5-font-size, 16px);
-  line-height: var(--ui-heading-h5-line-height, 24px);
+  font-size: var(
+    --ui-heading-h5-font-size,
+    var(--ui-fallback-heading-h5-font-size)
+  );
+  line-height: var(
+    --ui-heading-h5-line-height,
+    var(--ui-fallback-heading-h5-line-height)
+  );
   font-weight: 700;
   margin: 0;
 }
@@ -134,9 +155,9 @@ pub const CSS: &str = r#"
 
 .ui-tray__description,
 .ui-tray__description[data-slot="tray-description"] {
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
-  color: var(--ui-fg-muted);
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
   margin: 0;
 }
 
@@ -151,7 +172,7 @@ pub const CSS: &str = r#"
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   overflow: auto;
 }
 
@@ -159,20 +180,21 @@ pub const CSS: &str = r#"
 .ui-tray__footer[data-slot="tray-footer"] {
   display: flex;
   justify-content: flex-end;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   flex-wrap: wrap;
 }
 
 .ui-tray--with-footer .ui-tray__footer,
 .ui-tray[data-footer="present"] .ui-tray__footer {
-  padding-top: var(--ui-space-xs);
-  border-top: 1px solid var(--ui-border);
+  padding-top: var(--ui-space-xs, var(--ui-fallback-space-xs));
+  border-top: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
 }
 
 .ui-tray__close,
 .ui-tray__close[data-slot="tray-close"] {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: var(--ui-space-3xs, var(--ui-fallback-space-3xs));
+  right: var(--ui-space-3xs, var(--ui-fallback-space-3xs));
 }
 "#;

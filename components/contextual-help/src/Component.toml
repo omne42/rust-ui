@@ -1,0 +1,193 @@
+schema_version = "1"
+
+[component]
+name = "ContextualHelp"
+crate = "ui-contextual-help"
+
+[[inputs]]
+name = "variant"
+ty = "ContextualHelpVariant"
+default = "ContextualHelpVariant::Help"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "placement"
+ty = "ui_headless::PopoverPlacement"
+default = "PopoverPlacement::BottomStart"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ContextualHelpMotion"
+default = "ContextualHelpMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "open"
+ty = "Option<leptos::prelude::Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_open"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "heading"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "footer"
+ty = "Option<leptos::children::ViewFn>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "id"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "on_open_change"
+ty = "Callback<bool>"
+scope = "component-root"
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-* + aria-*"
+scope = "trigger + panel"
+
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-intent + data-ui-action + data-ui-state + data-ui-source"
+scope = "root + panel"
+
+[[outputs]]
+name = "llm-output-mode"
+ty = "data-ui-output-mode=snapshot|streaming"
+scope = "root + panel"
+
+[[outputs]]
+name = "llm-output-status"
+ty = "data-ui-output-status=draft|verified|submittable"
+scope = "root + panel"
+
+[[outputs]]
+name = "streaming-policy"
+ty = "data-ui-streaming-requirement=required|optional + data-ui-streaming-fallback=snapshot"
+scope = "root + panel"
+
+[[slots]]
+name = "default"
+required = true
+description = "Popover content slot for contextual help body"
+
+[[slots]]
+name = "footer"
+required = false
+description = "Optional footer projection rendered inside the panel"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_open_state"
+enabled = true
+
+[[capabilities]]
+name = "aria_and_marker_contract"
+enabled = true
+
+[[capabilities]]
+name = "versioned_protocol_contract"
+enabled = true
+
+[[capabilities]]
+name = "agent_schema_contract"
+enabled = true
+
+[[capabilities]]
+name = "llm_output_snapshot_mode"
+enabled = true
+
+[[capabilities]]
+name = "llm_output_streaming_mode"
+enabled = false
+
+[[capabilities]]
+name = "llm_output_status_marker"
+enabled = true
+
+[[capabilities]]
+name = "llm_streaming_optional_fallback_snapshot"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[[dependencies]]
+name = "serde"
+kind = "protocol-serialization"

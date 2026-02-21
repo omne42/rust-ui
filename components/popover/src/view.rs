@@ -1,9 +1,13 @@
-use crate::{PopoverMotion, PopoverPartStateInput, PopoverSlot, logic, motion};
+use std::borrow::Cow;
+
+use crate::{PopoverMotion, logic, motion};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use ui_headless::{
     FocusTrapOptions, ModalOptions, OnPress, PopoverPlacement, PopoverPositionOptions,
-    use_focus_trap, use_modal, use_overlay_stack_registration, use_popover_position,
+    RestorePolicy, use_focus_trap, use_modal, use_overlay_stack_registration, use_popover_position,
 };
+
+const FOCUS_FALLBACK_SELECTOR: &str = r#"[data-slot="ui-root"] [tabindex]:not([tabindex="-1"]), [data-slot="ui-root"] button:not([disabled]), [data-slot="ui-root"] a[href], [data-slot="ui-root"] input:not([disabled]), [data-slot="ui-root"] select:not([disabled]), [data-slot="ui-root"] textarea:not([disabled])"#;
 
 #[component]
 pub fn Popover(
@@ -22,31 +26,19 @@ pub fn Popover(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_motion = motion != PopoverMotion::default();
     let has_custom_placement = placement != PopoverPlacement::default();
-    let has_on_exit_complete = on_exit_complete.is_some();
-
-    let root_state = logic::resolve_state(PopoverPartStateInput {
-        slot: PopoverSlot::Root,
+    let resolved_states = logic::resolve_states(logic::PopoverStateInputs {
         open: open.get_untracked(),
-        is_modal,
+        modal_mode: logic::PopoverModalMode::from_is_modal(is_modal),
         has_custom_class_name: class_name.is_some(),
         has_custom_motion,
         has_custom_placement,
-        has_on_exit_complete,
+        has_on_exit_complete: on_exit_complete.is_some(),
     });
-    let root_class = logic::compose_class_name(class_name, root_state);
-    let root_class = StoredValue::new(root_class);
+    let root_state = resolved_states.root_state;
+    let panel_state = resolved_states.panel_state;
 
-    let panel_state = logic::resolve_state(PopoverPartStateInput {
-        slot: PopoverSlot::Panel,
-        open: false,
-        is_modal,
-        has_custom_class_name: false,
-        has_custom_motion,
-        has_custom_placement,
-        has_on_exit_complete,
-    });
-    let panel_class = logic::compose_class_name(None, panel_state);
-    let panel_class = StoredValue::new(panel_class);
+    let root_class = StoredValue::new(logic::compose_class_name(class_name, root_state));
+    let panel_class = StoredValue::new(logic::compose_class_name(None, panel_state));
 
     let registration = use_overlay_stack_registration();
     if is_modal {
@@ -54,7 +46,15 @@ pub fn Popover(
     }
 
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
-    let focus_trap = use_focus_trap(FocusTrapOptions::enabled(panel_ref));
+    let focus_fallback_selector: Cow<'static, str> = Cow::Borrowed(FOCUS_FALLBACK_SELECTOR);
+    let focus_trap = use_focus_trap(
+        FocusTrapOptions::enabled(panel_ref)
+            .with_scope_id("popover")
+            .with_restore_policy(RestorePolicy::FallbackTo(
+                focus_fallback_selector.clone().into_owned(),
+            ))
+            .with_fallback_selector(FOCUS_FALLBACK_SELECTOR),
+    );
 
     let position = use_popover_position(PopoverPositionOptions {
         anchor_ref,
@@ -63,7 +63,7 @@ pub fn Popover(
         ..Default::default()
     });
 
-    let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
+    let on_exit_complete = logic::normalize_on_exit_complete(on_exit_complete);
     motion::attach_motion(
         panel_ref,
         open,

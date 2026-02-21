@@ -1,4 +1,9 @@
 use super::*;
+use leptos::prelude::Callable;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
 
 #[test]
 fn state_and_modal_attrs_follow_contract() {
@@ -15,6 +20,49 @@ fn normalize_optional_text_trims_and_filters_blank_values() {
     assert_eq!(
         normalize_optional_text(Some("  docs-popover  ".to_string())),
         Some("docs-popover".to_string())
+    );
+}
+
+#[test]
+fn normalize_on_exit_complete_uses_noop_default_and_preserves_custom_handler() {
+    normalize_on_exit_complete(None).run(());
+
+    let called = Arc::new(AtomicBool::new(false));
+    let called_for_callback = Arc::clone(&called);
+    normalize_on_exit_complete(Some(leptos::prelude::Callback::new(move |_| {
+        called_for_callback.store(true, Ordering::SeqCst);
+    })))
+    .run(());
+
+    assert!(called.load(Ordering::SeqCst));
+}
+
+#[test]
+fn resolve_states_centralizes_slot_state_derivation() {
+    let resolved = resolve_states(PopoverStateInputs {
+        open: true,
+        modal_mode: PopoverModalMode::NonModal,
+        has_custom_class_name: true,
+        has_custom_motion: true,
+        has_custom_placement: true,
+        has_on_exit_complete: true,
+    });
+
+    assert_eq!(resolved.root_state.slot_attr, "popover");
+    assert_eq!(resolved.root_state.state_attr, "open");
+    assert_eq!(resolved.panel_state.slot_attr, "popover-panel");
+    assert_eq!(resolved.panel_state.state_attr, "panel");
+}
+
+#[test]
+fn popover_modal_mode_enum_maps_bool_inputs_to_closed_set() {
+    assert_eq!(
+        PopoverModalMode::from_is_modal(true),
+        PopoverModalMode::Modal
+    );
+    assert_eq!(
+        PopoverModalMode::from_is_modal(false),
+        PopoverModalMode::NonModal
     );
 }
 

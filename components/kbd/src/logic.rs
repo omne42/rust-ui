@@ -1,42 +1,21 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum KbdSize {
-    Sm,
-    #[default]
-    Md,
+use std::borrow::Cow;
+
+pub use ui_state_primitives::kbd::{KbdSize, KbdState, KbdStateInput, resolve_state};
+
+pub struct KbdLogicInput {
+    pub size: Option<KbdSize>,
+    pub keys: Option<String>,
+    pub class_name: Option<String>,
 }
 
-impl KbdSize {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            KbdSize::Sm => "ui-kbd--size-sm",
-            KbdSize::Md => "ui-kbd--size-md",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            KbdSize::Sm => "sm",
-            KbdSize::Md => "md",
-        }
-    }
+pub struct KbdViewModel {
+    pub keys: Option<String>,
+    pub class: String,
+    pub state: KbdState,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct KbdStateInput {
-    pub size: KbdSize,
-    pub has_keys: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct KbdState {
-    pub size: KbdSize,
-    pub size_class: &'static str,
-    pub size_attr: &'static str,
-    pub state_class: &'static str,
-    pub state_attr: &'static str,
-    pub has_keys: bool,
-    pub has_custom_class_name: bool,
+pub fn normalize_size(value: Option<KbdSize>) -> KbdSize {
+    value.unwrap_or_default()
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -46,39 +25,47 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn resolve_state(input: KbdStateInput) -> KbdState {
-    let (state_class, state_attr) = if input.has_keys {
-        ("ui-kbd--state-with-keys", "with-keys")
-    } else {
-        ("ui-kbd--state-label-only", "label-only")
-    };
-
-    KbdState {
-        size: input.size,
-        size_class: input.size.class_name(),
-        size_attr: input.size.as_attr(),
-        state_class,
-        state_attr,
-        has_keys: input.has_keys,
-        has_custom_class_name: input.has_custom_class_name,
-    }
-}
-
 pub fn compose_class_name(base_class_name: Option<String>, state: KbdState) -> String {
-    let mut classes = vec![
-        "ui-kbd".to_string(),
-        state.size_class.into(),
-        state.state_class.into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-kbd"),
+        Cow::Borrowed(state.size_class),
+        Cow::Borrowed(state.state_class),
     ];
 
     if state.has_custom_class_name {
-        classes.push("ui-kbd--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-kbd--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    // Pre-size the output buffer to avoid repeated allocations while joining.
+    let total_len =
+        classes.iter().map(|class| class.len()).sum::<usize>() + classes.len().saturating_sub(1);
+    let mut out = String::with_capacity(total_len);
+    for (index, class) in classes.iter().enumerate() {
+        if index > 0 {
+            out.push(' ');
+        }
+        out.push_str(class.as_ref());
+    }
+
+    out
+}
+
+pub fn resolve_view_model(input: KbdLogicInput) -> KbdViewModel {
+    let size = normalize_size(input.size);
+    let keys = normalize_optional_text(input.keys);
+    let class_name = normalize_optional_text(input.class_name);
+
+    let state = resolve_state(KbdStateInput {
+        size,
+        has_keys: keys.is_some(),
+        has_custom_class_name: class_name.is_some(),
+    });
+    let class = compose_class_name(class_name, state);
+
+    KbdViewModel { keys, class, state }
 }
 
 #[cfg(test)]

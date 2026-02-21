@@ -17,7 +17,7 @@ pub const CSS: &str = r#"
 .ui-context-menu--disabled,
 .ui-context-menu[data-state="disabled"],
 .ui-context-menu[data-disabled="true"] {
-  opacity: 0.72;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
 }
 
 .ui-context-menu--enabled,
@@ -38,7 +38,7 @@ pub const CSS: &str = r#"
 .ui-context-menu--persistent,
 .ui-context-menu[data-action-mode="keep-open"],
 .ui-context-menu[data-close-on-action="false"] {
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-context-menu--close-on-action,
@@ -147,14 +147,26 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: min(100%, 22rem);
-  min-height: 7.5rem;
-  border: 1px dashed color-mix(in oklab, var(--ui-border) 82%, var(--ui-accent) 18%);
-  border-radius: var(--ui-radius-lg);
-  background: color-mix(in oklab, var(--ui-bg) 90%, var(--ui-bg-muted) 10%);
-  color: var(--ui-fg-muted);
+  width: min(
+    100%,
+    var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))
+  );
+  min-height: var(--ui-drop-zone-min-height, var(--ui-fallback-drop-zone-min-height));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) dashed
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border)) 82%,
+      var(--ui-accent, var(--ui-fallback-accent)) 18%
+    );
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  background: color-mix(
+    in oklab,
+    var(--ui-bg, var(--ui-fallback-bg)) 90%,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted)) 10%
+  );
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
   font: inherit;
-  padding: var(--ui-space-md);
+  padding: var(--ui-space-md, var(--ui-fallback-space-md));
   text-align: center;
   cursor: context-menu;
   user-select: none;
@@ -162,17 +174,26 @@ pub const CSS: &str = r#"
 }
 
 .ui-context-menu__trigger:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width))
+    solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(
+    --ui-button-focus-outline-offset,
+    var(--ui-fallback-button-focus-outline-offset)
+  );
 }
 
 .ui-context-menu--disabled .ui-context-menu__trigger,
 .ui-context-menu__trigger:disabled {
-  opacity: 0.58;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
   cursor: not-allowed;
 }
 
 .ui-context-menu--empty .ui-context-menu__trigger {
-  border: 1px dotted color-mix(in oklab, var(--ui-border) 82%, var(--ui-accent) 18%);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) dotted
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border)) 82%,
+      var(--ui-accent, var(--ui-fallback-accent)) 18%
+    );
 }
 "#;

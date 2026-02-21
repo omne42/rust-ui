@@ -3,7 +3,7 @@ pub mod motion;
 pub mod styles;
 mod view;
 
-pub use logic::{ClearButtonVariant, DEFAULT_ARIA_LABEL};
+pub use logic::{ClearButtonFocusMode, ClearButtonVariant, DEFAULT_ARIA_LABEL};
 pub use motion::ClearButtonMotion;
 pub use view::ClearButton;
 
@@ -12,8 +12,7 @@ pub struct ClearButtonStateInput {
     pub variant: ClearButtonVariant,
     pub inset: bool,
     pub disabled: bool,
-    pub prevent_focus: bool,
-    pub exclude_from_tab_order: bool,
+    pub focus_mode: ClearButtonFocusMode,
     pub has_custom_aria_label: bool,
     pub has_custom_class_name: bool,
     pub has_custom_press_handler: bool,
@@ -26,6 +25,7 @@ pub struct ClearButtonState {
     pub variant_attr: &'static str,
     pub is_inset: bool,
     pub is_disabled: bool,
+    pub focus_mode: ClearButtonFocusMode,
     pub prevent_focus: bool,
     pub exclude_from_tab_order: bool,
     pub has_custom_aria_label: bool,

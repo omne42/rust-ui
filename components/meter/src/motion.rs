@@ -76,11 +76,15 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
 
-        drop(style.set_property("--ui-meter-progress", "0"));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-meter-progress", "0");
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_apply.set_property("--ui-meter-progress", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_apply),
+                "--ui-meter-progress",
+                &format!("{v}")
+            );
         });
 
         let spring_for_cleanup = spring;

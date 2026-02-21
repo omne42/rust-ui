@@ -2,8 +2,8 @@ pub const CSS: &str = r#"
 .ui-link {
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-xs);
-  color: var(--ui-accent);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
+  color: var(--ui-accent, var(--ui-fallback-accent));
   text-decoration: none;
   font-weight: 500;
   -webkit-tap-highlight-color: transparent;
@@ -12,7 +12,7 @@ pub const CSS: &str = r#"
 .ui-link--enabled,
 .ui-link[data-state="enabled"],
 .ui-link[data-enabled="true"] {
-  color: var(--ui-accent);
+  color: var(--ui-accent, var(--ui-fallback-accent));
 }
 
 .ui-link--external,
@@ -29,9 +29,9 @@ pub const CSS: &str = r#"
 
 .ui-link--focus-visible,
 .ui-link[data-focus-visible="true"] {
-  outline: 3px solid var(--ui-focus-ring);
+  outline: 3px solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
   outline-offset: 2px;
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
 }
 
 .ui-link--disabled,

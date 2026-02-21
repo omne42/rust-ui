@@ -1,5 +1,5 @@
 use super::{SearchFieldMotion, logic, motion};
-use crate::clear_button::ClearButton;
+use crate::clear_button::{ClearButton, ClearButtonFocusMode};
 use leptos::{ev, html, prelude::*};
 use ui_headless::{
     A11yDirection, CommonStrings, FocusWithinOptions, HoverOptions, PressOptions,
@@ -76,7 +76,7 @@ fn focus_input(input_ref: &NodeRef<html::Input>) {
     let Some(el) = input_ref.get_untracked() else {
         return;
     };
-    drop(el.focus());
+    ui_observability::observe_js_result!(el.focus());
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -334,7 +334,7 @@ pub fn SearchField(
                             is_disabled || is_read_only || !search_field_contract.state.can_clear.get()
                         })
                     aria_hidden_when_invisible=true
-                    exclude_from_tab_order=true
+                    focus_mode=ClearButtonFocusMode::ExcludeTab
                     on_pointer_down=on_clear_pointer_down
                     on_pointer_enter=Callback::new(move |_| clear_hover_enter_handler.run(()))
                     on_pointer_leave=Callback::new(move |_| clear_hover_leave_handler.run(()))

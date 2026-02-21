@@ -6,6 +6,7 @@ use ui_state_primitives::button_copy::{
 
 pub const DEFAULT_COPY_LABEL: &str = snippet_logic::DEFAULT_COPY_LABEL;
 pub const DEFAULT_COPIED_LABEL: &str = snippet_logic::DEFAULT_COPIED_LABEL;
+pub const DEFAULT_COPY_FAILED_STATUS_TEXT: &str = "Copy failed";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ButtonCopyMode {
@@ -186,6 +187,29 @@ pub fn resolve_text_contract(
         copied_label,
         aria_label,
     }
+}
+
+pub fn resolve_text_contract_with_defaults(
+    label: Option<String>,
+    default_label: Option<String>,
+    copied_label: Option<String>,
+    default_copied_label: Option<String>,
+    aria_label: Option<String>,
+) -> ButtonCopyTextContract {
+    resolve_text_contract(
+        label.or(default_label),
+        copied_label.or(default_copied_label),
+        aria_label,
+    )
+}
+
+pub fn resolve_copy_failed_status_text(
+    copy_failed_status_text: Option<String>,
+    fallback_copy_failed_status_text: Option<String>,
+) -> String {
+    normalize_optional_text(copy_failed_status_text)
+        .or_else(|| normalize_optional_text(fallback_copy_failed_status_text))
+        .unwrap_or_else(|| DEFAULT_COPY_FAILED_STATUS_TEXT.to_string())
 }
 
 pub fn resolve_view_state(

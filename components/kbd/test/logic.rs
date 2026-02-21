@@ -20,6 +20,12 @@ fn normalize_optional_text_filters_blank_values() {
 }
 
 #[test]
+fn normalize_size_defaults_to_md() {
+    assert_eq!(normalize_size(None), KbdSize::Md);
+    assert_eq!(normalize_size(Some(KbdSize::Sm)), KbdSize::Sm);
+}
+
+#[test]
 fn resolve_state_tracks_size_keys_and_class_source() {
     let state = resolve_state(KbdStateInput {
         size: KbdSize::Sm,
@@ -59,4 +65,21 @@ fn compose_class_name_includes_state_markers() {
             "composed class name should include `{token}`"
         );
     }
+}
+
+#[test]
+fn resolve_view_model_normalizes_inputs_and_derives_state_in_logic() {
+    let view_model = resolve_view_model(KbdLogicInput {
+        size: None,
+        keys: Some("  Ctrl+K  ".to_string()),
+        class_name: Some("  docs-kbd  ".to_string()),
+    });
+
+    assert_eq!(view_model.state.size, KbdSize::Md);
+    assert_eq!(view_model.state.size_attr, "md");
+    assert_eq!(view_model.keys, Some("Ctrl+K".to_string()));
+    assert_eq!(view_model.state.state_attr, "with-keys");
+    assert!(view_model.state.has_custom_class_name);
+    assert!(view_model.class.contains("ui-kbd"));
+    assert!(view_model.class.contains("docs-kbd"));
 }

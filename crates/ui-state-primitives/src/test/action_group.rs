@@ -10,6 +10,29 @@ fn collect_item_ids_deduplicates_ids() {
 }
 
 #[test]
+fn normalize_optional_text_trims_and_filters_blank_values() {
+    assert_eq!(
+        normalize_optional_text(Some("  Action group  ".to_string())),
+        Some("Action group".to_string())
+    );
+    assert_eq!(normalize_optional_text(Some("   ".to_string())), None);
+    assert_eq!(normalize_optional_text(None), None);
+}
+
+#[test]
+fn normalize_items_applies_id_and_label_fallbacks() {
+    let items = normalize_items(vec![
+        ActionGroupItem::new(" ", " Edit "),
+        ActionGroupItem::new("share", " "),
+    ]);
+
+    assert_eq!(items[0].id, "action-1");
+    assert_eq!(items[0].label, "Edit");
+    assert_eq!(items[1].id, "share");
+    assert_eq!(items[1].label, "share");
+}
+
+#[test]
 fn sanitize_selected_ids_enforces_single_selection_and_known_ids() {
     let item_ids = BTreeSet::from(["a".to_string(), "b".to_string()]);
     let selected = sanitize_selected_ids(

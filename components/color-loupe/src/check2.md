@@ -52,11 +52,11 @@
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ColorLoupe` 为展示型 primitive，无事件回调；布尔输入仅 `open/disabled` 两个语义轴且与 docs 示例一致，未新增别名漂移）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ColorLoupe` 为展示型 primitive，无事件回调；公共布尔输入统一为 `is_open/is_disabled`，docs 示例已完成迁移）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`ColorLoupe` 不持有内部可变状态，`open/disabled/x_percent/y_percent` 全为外部输入快照）
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`ColorLoupe` 不持有内部可变状态，`is_open/is_disabled/x_percent/y_percent` 全为外部输入快照）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
@@ -64,7 +64,7 @@
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`view.rs` 统一通过 `logic::resolve_state(ColorLoupeStateInput { ... })` 生成状态，样式层仅消费 `data-*`）
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`view.rs` 统一通过 `logic::resolve_component_state(ColorLoupeLogicInput { ... })` 生成状态，样式层仅消费 `data-*`）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。

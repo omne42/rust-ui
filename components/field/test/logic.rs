@@ -49,6 +49,111 @@ fn normalize_helpers_apply_expected_fallbacks() {
 }
 
 #[test]
+fn resolve_is_axes_prefer_is_prefix_and_fall_back_to_legacy_alias() {
+    assert!(resolve_is_required(Some(true), Some(false)));
+    assert!(!resolve_is_required(Some(false), Some(true)));
+    assert!(resolve_is_required(None, Some(true)));
+    assert!(!resolve_is_required(None, None));
+
+    assert!(resolve_is_disabled(Some(true), Some(false)));
+    assert!(!resolve_is_disabled(Some(false), Some(true)));
+    assert!(resolve_is_disabled(None, Some(true)));
+    assert!(!resolve_is_disabled(None, None));
+
+    assert!(resolve_is_invalid(Some(true), Some(false)));
+    assert!(!resolve_is_invalid(Some(false), Some(true)));
+    assert!(resolve_is_invalid(None, Some(true)));
+    assert!(!resolve_is_invalid(None, None));
+
+    assert_eq!(
+        resolve_required_source(Some(true), Some(false)).as_data_attr(),
+        "is-prop"
+    );
+    assert_eq!(
+        resolve_required_source(None, Some(true)).as_data_attr(),
+        "legacy-prop"
+    );
+    assert_eq!(
+        resolve_required_source(None, None).as_data_attr(),
+        "default"
+    );
+
+    assert_eq!(
+        resolve_disabled_source(Some(true), Some(false)).as_data_attr(),
+        "is-prop"
+    );
+    assert_eq!(
+        resolve_disabled_source(None, Some(true)).as_data_attr(),
+        "legacy-prop"
+    );
+    assert_eq!(
+        resolve_disabled_source(None, None).as_data_attr(),
+        "default"
+    );
+
+    assert_eq!(
+        resolve_invalid_source(Some(true), Some(false)).as_data_attr(),
+        "is-prop"
+    );
+    assert_eq!(
+        resolve_invalid_source(None, Some(true)).as_data_attr(),
+        "legacy-prop"
+    );
+    assert_eq!(resolve_invalid_source(None, None).as_data_attr(), "default");
+}
+
+#[test]
+fn resolve_content_centralizes_defaults_and_priority() {
+    let content = resolve_content(FieldContentInput {
+        label: Some("  Email  ".to_string()),
+        description: Some("   ".to_string()),
+        error_message: None,
+        aria_label: None,
+        lang: Some("  en-US  ".to_string()),
+        class_name: Some("  docs-field  ".to_string()),
+        is_invalid: true,
+    });
+
+    assert_eq!(content.label_text, "Email");
+    assert_eq!(content.description_text, "");
+    assert_eq!(content.error_message_text, DEFAULT_ERROR_MESSAGE);
+    assert!(content.has_label);
+    assert!(!content.has_description);
+    assert!(content.has_error_message);
+    assert_eq!(content.aria_label, DEFAULT_ARIA_LABEL);
+    assert!(!content.has_custom_aria_label);
+    assert!(!content.has_custom_error_message);
+    assert_eq!(content.lang.as_deref(), Some("en-US"));
+    assert_eq!(content.class_name.as_deref(), Some("docs-field"));
+    assert!(content.has_custom_class_name);
+}
+
+#[test]
+fn resolve_content_ignores_error_message_when_not_invalid() {
+    let content = resolve_content(FieldContentInput {
+        label: None,
+        description: Some("  helper  ".to_string()),
+        error_message: Some("  should drop  ".to_string()),
+        aria_label: Some("  Profile Field  ".to_string()),
+        lang: None,
+        class_name: Some(" ".to_string()),
+        is_invalid: false,
+    });
+
+    assert_eq!(content.label_text, "");
+    assert_eq!(content.description_text, "helper");
+    assert_eq!(content.error_message_text, "");
+    assert!(!content.has_label);
+    assert!(content.has_description);
+    assert!(!content.has_error_message);
+    assert_eq!(content.aria_label, "Profile Field");
+    assert!(content.has_custom_aria_label);
+    assert!(!content.has_custom_error_message);
+    assert_eq!(content.class_name, None);
+    assert!(!content.has_custom_class_name);
+}
+
+#[test]
 fn resolve_state_tracks_flags_sources_and_message_kind() {
     let state = resolve_state(FieldStateInput {
         orientation: FieldOrientation::Horizontal,

@@ -1,168 +1,235 @@
-use crate::{HelpTextState, HelpTextStateInput};
+pub use ui_headless::A11yDirection;
+use ui_headless::{A11yLocaleAttrs, LiveRegionPriority, live_region_attrs, locale_attrs};
+pub use ui_state_primitives::help_text::{
+    DEFAULT_ARIA_LABEL, DEFAULT_ERROR_MESSAGE, HelpTextDataState, HelpTextErrorSourceAttr,
+    HelpTextMessageKind, HelpTextSourceAttr, HelpTextState, HelpTextStateInput, HelpTextTone,
+    normalize_aria_label, normalize_error_message, normalize_optional_text, resolve_state,
+};
 
-pub const DEFAULT_ARIA_LABEL: &str = "HelpText";
-pub const DEFAULT_ERROR_MESSAGE: &str = "Invalid value";
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum HelpTextTone {
-    #[default]
-    Auto,
-    Neutral,
-    Negative,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HelpTextLogicInput {
+    pub tone: HelpTextTone,
+    pub is_invalid: bool,
+    pub is_disabled: bool,
+    pub is_error_icon_visible: bool,
+    pub description: Option<String>,
+    pub error_message: Option<String>,
+    pub aria_label: Option<String>,
+    pub class_name: Option<String>,
 }
 
-impl HelpTextTone {
-    pub fn class_name(self) -> &'static str {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HelpTextRenderModel {
+    pub aria_label: String,
+    pub description_text: String,
+    pub error_message_text: String,
+    pub class_name: Option<String>,
+    pub state: HelpTextState,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HelpTextErrorLiveRegionAttrs {
+    pub role: &'static str,
+    pub aria_live: &'static str,
+}
+
+pub const HELP_TEXT_AGENT_SCHEMA: &str = "ui.help-text.agent-contract.v1";
+pub const HELP_TEXT_AGENT_SCHEMA_VERSION: &str = "v1";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HelpTextAgentIntent {
+    FormAssistance,
+}
+
+impl HelpTextAgentIntent {
+    pub const fn as_attr(self) -> &'static str {
         match self {
-            HelpTextTone::Auto => "ui-help-text--tone-auto",
-            HelpTextTone::Neutral => "ui-help-text--tone-neutral",
-            HelpTextTone::Negative => "ui-help-text--tone-negative",
+            HelpTextAgentIntent::FormAssistance => "form-assistance",
         }
     }
+}
 
-    pub fn as_attr(self) -> &'static str {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HelpTextAgentAction {
+    AnnounceError,
+    ReadOnly,
+}
+
+impl HelpTextAgentAction {
+    pub const fn as_attr(self) -> &'static str {
         match self {
-            HelpTextTone::Auto => "auto",
-            HelpTextTone::Neutral => "neutral",
-            HelpTextTone::Negative => "negative",
+            HelpTextAgentAction::AnnounceError => "announce-error",
+            HelpTextAgentAction::ReadOnly => "read-only",
         }
     }
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HelpTextAgentOutputStatus {
+    Verified,
 }
 
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.into(), false)
-}
-
-pub fn normalize_error_message(value: Option<String>, invalid: bool) -> (Option<String>, bool) {
-    if !invalid {
-        return (None, false);
-    }
-
-    if let Some(message) = normalize_optional_text(value) {
-        return (Some(message), true);
-    }
-
-    (Some(DEFAULT_ERROR_MESSAGE.into()), false)
-}
-
-pub fn resolve_effective_tone(
-    requested_tone: HelpTextTone,
-    invalid: bool,
-    has_error_message: bool,
-) -> HelpTextTone {
-    match requested_tone {
-        HelpTextTone::Neutral => HelpTextTone::Neutral,
-        HelpTextTone::Negative => HelpTextTone::Negative,
-        HelpTextTone::Auto if invalid && has_error_message => HelpTextTone::Negative,
-        HelpTextTone::Auto => HelpTextTone::Neutral,
+impl HelpTextAgentOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            HelpTextAgentOutputStatus::Verified => "verified",
+        }
     }
 }
 
-pub fn resolve_state(input: HelpTextStateInput) -> HelpTextState {
-    let message_kind_attr = if input.has_error_message && input.invalid {
-        "error"
-    } else if input.has_description {
-        "description"
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HelpTextAgentStreamSupport {
+    Optional,
+}
+
+impl HelpTextAgentStreamSupport {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            HelpTextAgentStreamSupport::Optional => "optional",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HelpTextAgentStreamMode {
+    Snapshot,
+}
+
+impl HelpTextAgentStreamMode {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            HelpTextAgentStreamMode::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HelpTextAgentContractAttrs {
+    pub data_ui_schema: &'static str,
+    pub data_ui_schema_version: &'static str,
+    pub data_ui_intent: &'static str,
+    pub data_ui_action: &'static str,
+    pub data_ui_state: &'static str,
+    pub data_ui_source: &'static str,
+    pub data_ui_stream_support: &'static str,
+    pub data_ui_stream_mode: &'static str,
+    pub data_ui_stream_fallback: &'static str,
+    pub data_ui_output_status: &'static str,
+}
+
+pub fn resolve_locale_attrs(lang: Option<String>, dir: Option<A11yDirection>) -> A11yLocaleAttrs {
+    locale_attrs(normalize_optional_text(lang), dir)
+}
+
+pub fn resolve_error_live_region_attrs() -> HelpTextErrorLiveRegionAttrs {
+    let attrs = live_region_attrs(LiveRegionPriority::Assertive);
+    HelpTextErrorLiveRegionAttrs {
+        role: attrs.role,
+        aria_live: attrs.aria_live,
+    }
+}
+
+pub fn resolve_display_text(value: Option<String>) -> String {
+    value.unwrap_or_default()
+}
+
+pub fn resolve_agent_contract_attrs(state: HelpTextState) -> HelpTextAgentContractAttrs {
+    let action = if state.message_kind == HelpTextMessageKind::Error {
+        HelpTextAgentAction::AnnounceError
     } else {
-        "none"
+        HelpTextAgentAction::ReadOnly
     };
-
-    let tone = resolve_effective_tone(input.tone, input.invalid, input.has_error_message);
-
-    let show_error_icon = input.show_error_icon && message_kind_attr == "error";
-
-    let data_state_attr = if message_kind_attr == "error" && input.disabled {
-        "error-disabled"
-    } else if message_kind_attr == "error" {
-        "error"
-    } else if input.disabled {
-        "disabled"
-    } else if message_kind_attr == "description" {
-        "description"
+    let source = if state.message_kind == HelpTextMessageKind::Error {
+        state.error_source.as_attr()
     } else {
-        "empty"
+        state.aria_source.as_attr()
     };
+    let stream_mode = HelpTextAgentStreamMode::Snapshot.as_attr();
 
-    let aria_source_attr = if input.has_custom_aria_label {
-        "custom"
-    } else {
-        "default"
-    };
+    HelpTextAgentContractAttrs {
+        data_ui_schema: HELP_TEXT_AGENT_SCHEMA,
+        data_ui_schema_version: HELP_TEXT_AGENT_SCHEMA_VERSION,
+        data_ui_intent: HelpTextAgentIntent::FormAssistance.as_attr(),
+        data_ui_action: action.as_attr(),
+        data_ui_state: state.data_state.as_attr(),
+        data_ui_source: source,
+        data_ui_stream_support: HelpTextAgentStreamSupport::Optional.as_attr(),
+        data_ui_stream_mode: stream_mode,
+        data_ui_stream_fallback: stream_mode,
+        data_ui_output_status: HelpTextAgentOutputStatus::Verified.as_attr(),
+    }
+}
 
-    let error_source_attr = if !input.has_error_message {
-        "none"
-    } else if input.has_custom_error_message {
-        "custom"
-    } else {
-        "default"
-    };
+pub fn resolve_render_model(input: HelpTextLogicInput) -> HelpTextRenderModel {
+    let (aria_label, has_custom_aria_label) = normalize_aria_label(input.aria_label);
+    let description = normalize_optional_text(input.description);
+    let (error_message, has_custom_error_message) =
+        normalize_error_message(input.error_message, input.is_invalid);
+    let class_name = normalize_optional_text(input.class_name);
 
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
+    let state = resolve_state(HelpTextStateInput {
+        tone: input.tone,
+        invalid: input.is_invalid,
+        disabled: input.is_disabled,
+        show_error_icon: input.is_error_icon_visible,
+        has_description: description.is_some(),
+        has_error_message: error_message.is_some(),
+        has_custom_aria_label,
+        has_custom_error_message,
+        has_custom_class_name: class_name.is_some(),
+    });
 
-    HelpTextState {
-        tone,
-        tone_class: tone.class_name(),
-        tone_attr: tone.as_attr(),
-        is_invalid: input.invalid,
-        is_disabled: input.disabled,
-        show_error_icon,
-        has_description: input.has_description,
-        has_error_message: input.has_error_message,
-        message_kind_attr,
-        data_state_attr,
-        aria_source_attr,
-        error_source_attr,
-        class_source_attr,
-        has_custom_class_name: input.has_custom_class_name,
+    HelpTextRenderModel {
+        aria_label,
+        description_text: resolve_display_text(description),
+        error_message_text: resolve_display_text(error_message),
+        class_name,
+        state,
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: HelpTextState) -> String {
-    let mut classes = vec!["ui-help-text".to_string(), state.tone_class.into()];
+    fn push_class_token(classes: &mut String, token: &str) {
+        if !classes.is_empty() {
+            classes.push(' ');
+        }
+        classes.push_str(token);
+    }
+
+    let mut classes = String::new();
+    push_class_token(&mut classes, "ui-help-text");
+    push_class_token(&mut classes, state.tone_class);
 
     if state.is_invalid {
-        classes.push("ui-help-text--invalid".to_string());
+        push_class_token(&mut classes, "ui-help-text--invalid");
     }
 
     if state.is_disabled {
-        classes.push("ui-help-text--disabled".to_string());
+        push_class_token(&mut classes, "ui-help-text--disabled");
     }
 
     if state.show_error_icon {
-        classes.push("ui-help-text--with-icon".to_string());
+        push_class_token(&mut classes, "ui-help-text--with-icon");
     }
 
     if state.has_error_message {
-        classes.push("ui-help-text--has-error".to_string());
+        push_class_token(&mut classes, "ui-help-text--has-error");
     }
 
     if state.has_description {
-        classes.push("ui-help-text--has-description".to_string());
+        push_class_token(&mut classes, "ui-help-text--has-description");
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-help-text--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+        push_class_token(&mut classes, "ui-help-text--custom-class");
+        if let Some(base_class_name) = base_class_name
+            && !base_class_name.is_empty()
+        {
+            push_class_token(&mut classes, &base_class_name);
         }
     }
 
-    classes.join(" ")
+    classes
 }
 
 #[cfg(test)]

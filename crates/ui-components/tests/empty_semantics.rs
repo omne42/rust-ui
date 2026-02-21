@@ -17,6 +17,18 @@ fn load_empty_component_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_state_primitives_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+    let path = workspace_dir
+        .join("crates/ui-state-primitives")
+        .join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
 #[test]
 fn ui_components_reexports_empty_component_crate() {
     let lib_source = load_ui_components_source("src/lib.rs");
@@ -55,8 +67,10 @@ fn empty_is_exported_from_module_and_crate_root() {
     let crate_source = load_ui_components_source("src/lib.rs");
 
     assert!(
-        module_source.contains("pub use logic::EmptyMediaVariant;"),
-        "empty module should export `EmptyMediaVariant` from logic."
+        module_source.contains(
+            "pub use logic::{EmptyMediaVariant, EmptyPartState, EmptyPartStateInput, EmptySlot};"
+        ),
+        "empty module should export state contract types from logic."
     );
     assert!(
         module_source.contains("pub use view::{"),
@@ -72,17 +86,121 @@ fn empty_is_exported_from_module_and_crate_root() {
 fn empty_logic_exposes_state_helpers() {
     let source = load_empty_component_source("src/logic.rs");
 
+    assert!(
+        source.contains("pub use ui_state_primitives::empty::{")
+            && source.contains("pub fn normalize_part("),
+        "empty logic should consume state primitives and centralize default normalization."
+    );
+}
+
+#[test]
+fn empty_is_non_interactive_and_has_no_ui_headless_dependency() {
+    let cargo_source = load_empty_component_source("Cargo.toml");
+    let view_source = load_empty_component_source("src/view.rs");
+
+    assert!(
+        !cargo_source.contains("ui-headless"),
+        "empty component should not depend on ui-headless when there is no reusable interaction contract."
+    );
+
+    for forbidden in ["ui_headless::", "on:click=", "on:keydown=", "on:pointer"] {
+        assert!(
+            !view_source.contains(forbidden),
+            "empty view should stay non-interactive; found `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn empty_has_no_motion_contract_or_runtime_dependency() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+    let cargo_source = load_empty_component_source("Cargo.toml");
+    let logic_source = load_empty_component_source("src/logic.rs");
+    let view_source = load_empty_component_source("src/view.rs");
+    let styles_source = load_empty_component_source("src/styles.rs");
+    let motion_path = workspace_dir.join("components/empty/src/motion.rs");
+
+    assert!(
+        !cargo_source.contains("ui-motion"),
+        "empty component should not depend on ui-motion without a motion contract."
+    );
+    assert!(
+        !motion_path.exists(),
+        "empty should not define `motion.rs` when there is no motion semantic axis."
+    );
+
+    for forbidden in ["ui_motion::", "attach_motion", "spring", "keyframe"] {
+        assert!(
+            !logic_source.contains(forbidden)
+                && !view_source.contains(forbidden)
+                && !styles_source.contains(forbidden),
+            "empty sources should not include motion runtime details; found `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn empty_consumes_theme_tokens_without_rebuilding_theme_context() {
+    let cargo_source = load_empty_component_source("Cargo.toml");
+    let logic_source = load_empty_component_source("src/logic.rs");
+    let view_source = load_empty_component_source("src/view.rs");
+    let styles_source = load_empty_component_source("src/styles.rs");
+
+    assert!(
+        !cargo_source.contains("ui-theme"),
+        "empty component should not rebuild theme context in component crate."
+    );
+    assert!(
+        styles_source.contains("var(--ui-space-sm)"),
+        "empty styles should consume shared ui-theme css variables."
+    );
+
+    for forbidden in [
+        "UiTheme",
+        "ui_theme::",
+        "theme.rs",
+        "theme.css",
+        "color: #",
+        "rgb(",
+        "hsl(",
+    ] {
+        assert!(
+            !logic_source.contains(forbidden)
+                && !view_source.contains(forbidden)
+                && !styles_source.contains(forbidden),
+            "empty should not rebuild theme mapping or hardcode color literals; found `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn empty_state_contracts_live_in_state_primitives() {
+    let source = load_state_primitives_source("src/empty.rs");
+    let lib_source = load_state_primitives_source("src/lib.rs");
+
     for needle in [
         "pub enum EmptyMediaVariant",
+        "pub enum EmptySlot",
+        "pub struct EmptyPartStateInput",
+        "pub struct EmptyPartState",
         "pub fn normalize_optional_text(",
         "pub fn resolve_state(input: EmptyPartStateInput)",
         "pub fn compose_class_name(base_class_name: Option<String>, state: EmptyPartState)",
     ] {
         assert!(
             source.contains(needle),
-            "Empty logic should include `{needle}` for centralized source/state contracts."
+            "ui-state-primitives empty module should include `{needle}`."
         );
     }
+
+    assert!(
+        lib_source.contains("pub mod empty;"),
+        "ui-state-primitives lib should export `empty` module."
+    );
 }
 
 #[test]
@@ -96,9 +214,17 @@ fn empty_view_uses_logic_state_contracts() {
         "pub fn EmptyDescription(",
         "pub fn EmptyContent(",
         "pub fn EmptyMedia(",
-        "logic::normalize_optional_text(class_name)",
-        "logic::resolve_state(EmptyPartStateInput {",
-        "logic::compose_class_name(class_name, state)",
+        "logic::normalize_part(EmptySlot::Root, class_name, None)",
+        "logic::normalize_part(EmptySlot::Header, class_name, None)",
+        "logic::normalize_part(EmptySlot::Title, class_name, None)",
+        "logic::normalize_part(EmptySlot::Description, class_name, None)",
+        "logic::normalize_part(EmptySlot::Content, class_name, None)",
+        "logic::normalize_part(EmptySlot::Media, class_name, variant)",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional, into)] dir: Option<String>",
+        "#[prop(optional, into)] variant: Option<logic::EmptyMediaVariant>",
+        "lang=lang",
+        "dir=dir",
         "data-slot=state.slot_attr",
         "data-state=state.state_attr",
         "data-class-source=state.class_source_attr",
@@ -108,6 +234,16 @@ fn empty_view_uses_logic_state_contracts() {
         assert!(
             source.contains(needle),
             "Empty view should include `{needle}` for stable marker contracts."
+        );
+    }
+
+    for forbidden in [
+        "EmptyMediaVariant::default()",
+        "resolve_state(EmptyPartStateInput {",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "default/source normalization should stay in logic.rs; found `{forbidden}` in view.rs."
         );
     }
 }

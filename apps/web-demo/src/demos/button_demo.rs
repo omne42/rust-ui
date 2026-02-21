@@ -12,6 +12,12 @@ pub fn ButtonDemo() -> impl IntoView {
     let (bold, set_bold) = signal(false);
     let (italic, set_italic) = signal(true);
     let (underline, set_underline) = signal(false);
+    let bold_signal: Signal<bool> = Signal::derive(move || bold.get());
+    let italic_signal: Signal<bool> = Signal::derive(move || italic.get());
+    let underline_signal: Signal<bool> = Signal::derive(move || underline.get());
+    let on_bold_change = Callback::new(move |next: bool| set_bold.set(next));
+    let on_italic_change = Callback::new(move |next: bool| set_italic.set(next));
+    let on_underline_change = Callback::new(move |next: bool| set_underline.set(next));
 
     view! {
         <section id="button" class="demo-card">
@@ -43,7 +49,7 @@ pub fn ButtonDemo() -> impl IntoView {
 
             <div class="demo-divider"></div>
             <div class="demo-row">
-                <ButtonGroup attached=true aria_label="Attached button group">
+                <ButtonGroup is_attached=true aria_label="Attached button group">
                     <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Left"</Button>
                     <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Middle"</Button>
                     <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Right"</Button>
@@ -60,26 +66,26 @@ pub fn ButtonDemo() -> impl IntoView {
 
             <div class="demo-divider"></div>
             <div class="demo-row">
-                <ToggleButtonGroup attached=true aria_label="Formatting toggles">
+                <ToggleButtonGroup is_attached=true aria_label="Formatting toggles">
                     <ToggleButton
-                        selected=bold
-                        set_selected=set_bold
+                        is_pressed=bold_signal
+                        on_pressed_change=on_bold_change
                         variant=ToggleButtonVariant::Outline
                         size=ui_components::ToggleButtonSize::Sm
                     >
                         "Bold"
                     </ToggleButton>
                     <ToggleButton
-                        selected=italic
-                        set_selected=set_italic
+                        is_pressed=italic_signal
+                        on_pressed_change=on_italic_change
                         variant=ToggleButtonVariant::Outline
                         size=ui_components::ToggleButtonSize::Sm
                     >
                         "Italic"
                     </ToggleButton>
                     <ToggleButton
-                        selected=underline
-                        set_selected=set_underline
+                        is_pressed=underline_signal
+                        on_pressed_change=on_underline_change
                         variant=ToggleButtonVariant::Outline
                         size=ui_components::ToggleButtonSize::Sm
                     >

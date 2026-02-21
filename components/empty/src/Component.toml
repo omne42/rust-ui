@@ -1,0 +1,97 @@
+schema_version = "1"
+
+[component]
+name = "Empty"
+crate = "ui-empty"
+
+[[inputs]]
+name = "root.class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "root.lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "root.dir"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "header.class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "title.class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "description.class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "content.class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "media.class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "media.variant"
+ty = "Option<EmptyMediaVariant>"
+default = "None (normalized to EmptyMediaVariant::Default)"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-variant + data-class-source + data-variant-source + data-custom-class + lang + dir + data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-stream-support + data-ui-stream-fallback + data-ui-output-status"
+scope = "root-and-part-attributes"
+
+[[slots]]
+name = "children"
+required = true
+description = "Each Empty* part receives children content and maps it onto semantic slots."
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_snapshot_fallback"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"

@@ -84,3 +84,10 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn normalize_callbacks_defaults_to_noop_handlers() {
+    let (on_press, on_pointer_move) = normalize_callbacks(None, None);
+    on_press.run(());
+    on_pointer_move.run(());
+}

@@ -1,8 +1,11 @@
 pub const CSS: &str = r#"
 .ui-color-swatch {
-  --ui-color-swatch-size: 1.25rem;
+  --ui-color-swatch-size: var(--ui-color-swatch-size-md, var(--ui-fallback-color-swatch-size-md));
   --ui-color-swatch-inline-size: var(--ui-color-swatch-size);
-  --ui-color-swatch-radius: var(--ui-radius-sm);
+  --ui-color-swatch-radius: var(
+    --ui-color-swatch-radius-default,
+    var(--ui-fallback-color-swatch-radius-default)
+  );
   --ui-color-swatch-color: transparent;
 
   position: relative;
@@ -13,8 +16,8 @@ pub const CSS: &str = r#"
   overflow: hidden;
   box-sizing: border-box;
   background: var(--ui-bg-muted);
-  opacity: var(--ui-im-opacity, 1);
-  transform: translateY(var(--ui-im-y, 0px));
+  opacity: var(--ui-color-swatch-opacity, 1);
+  transform: translateY(var(--ui-color-swatch-y, var(--ui-fallback-color-swatch-y)));
   will-change: transform, opacity;
 }
 
@@ -35,7 +38,8 @@ pub const CSS: &str = r#"
       color-mix(in oklab, var(--ui-fg) 8%, transparent) 0 25%,
       transparent 0 50%
     )
-    0 0 / 0.5rem 0.5rem;
+    0 0 / var(--ui-color-swatch-checker-size, var(--ui-fallback-color-swatch-checker-size))
+    var(--ui-color-swatch-checker-size, var(--ui-fallback-color-swatch-checker-size));
   opacity: 0;
 }
 
@@ -45,48 +49,62 @@ pub const CSS: &str = r#"
 
 .ui-color-swatch__slash {
   opacity: 0;
+  --ui-color-swatch-slash-half-width: calc(
+    var(--ui-color-swatch-slash-width, var(--ui-fallback-color-swatch-slash-width)) / 2
+  );
   background: linear-gradient(
     135deg,
-    transparent calc(50% - 1px),
-    color-mix(in oklab, var(--ui-danger) 82%, black 18%) calc(50% - 1px),
-    color-mix(in oklab, var(--ui-danger) 82%, black 18%) calc(50% + 1px),
-    transparent calc(50% + 1px)
+    transparent calc(50% - var(--ui-color-swatch-slash-half-width)),
+    color-mix(in oklab, var(--ui-danger) 82%, black 18%)
+      calc(50% - var(--ui-color-swatch-slash-half-width)),
+    color-mix(in oklab, var(--ui-danger) 82%, black 18%)
+      calc(50% + var(--ui-color-swatch-slash-half-width)),
+    transparent calc(50% + var(--ui-color-swatch-slash-half-width))
   );
 }
 
 .ui-color-swatch--size-xs,
 .ui-color-swatch[data-size="xs"] {
-  --ui-color-swatch-size: 0.875rem;
+  --ui-color-swatch-size: var(--ui-color-swatch-size-xs, var(--ui-fallback-color-swatch-size-xs));
 }
 
 .ui-color-swatch--size-sm,
 .ui-color-swatch[data-size="sm"] {
-  --ui-color-swatch-size: 1rem;
+  --ui-color-swatch-size: var(--ui-color-swatch-size-sm, var(--ui-fallback-color-swatch-size-sm));
 }
 
 .ui-color-swatch--size-md,
 .ui-color-swatch[data-size="md"] {
-  --ui-color-swatch-size: 1.25rem;
+  --ui-color-swatch-size: var(--ui-color-swatch-size-md, var(--ui-fallback-color-swatch-size-md));
 }
 
 .ui-color-swatch--size-lg,
 .ui-color-swatch[data-size="lg"] {
-  --ui-color-swatch-size: 1.5rem;
+  --ui-color-swatch-size: var(--ui-color-swatch-size-lg, var(--ui-fallback-color-swatch-size-lg));
 }
 
 .ui-color-swatch--rounding-default,
 .ui-color-swatch[data-rounding="default"] {
-  --ui-color-swatch-radius: var(--ui-radius-sm);
+  --ui-color-swatch-radius: var(
+    --ui-color-swatch-radius-default,
+    var(--ui-fallback-color-swatch-radius-default)
+  );
 }
 
 .ui-color-swatch--rounding-none,
 .ui-color-swatch[data-rounding="none"] {
-  --ui-color-swatch-radius: 0;
+  --ui-color-swatch-radius: var(
+    --ui-color-swatch-radius-none,
+    var(--ui-fallback-color-swatch-radius-none)
+  );
 }
 
 .ui-color-swatch--rounding-full,
 .ui-color-swatch[data-rounding="full"] {
-  --ui-color-swatch-radius: 999px;
+  --ui-color-swatch-radius: var(
+    --ui-color-swatch-radius-full,
+    var(--ui-fallback-color-swatch-radius-full)
+  );
 }
 
 .ui-color-swatch--shape-square,
@@ -96,12 +114,16 @@ pub const CSS: &str = r#"
 
 .ui-color-swatch--shape-wide,
 .ui-color-swatch[data-shape="wide"] {
-  --ui-color-swatch-inline-size: calc(var(--ui-color-swatch-size) * 2.5);
+  --ui-color-swatch-inline-size: calc(
+    var(--ui-color-swatch-size) *
+      var(--ui-color-swatch-wide-multiplier, var(--ui-fallback-color-swatch-wide-multiplier))
+  );
 }
 
 .ui-color-swatch--bordered,
 .ui-color-swatch[data-bordered="true"] {
-  border: 1px solid color-mix(in oklab, var(--ui-fg) 24%, transparent);
+  border: var(--ui-color-swatch-border-width, var(--ui-fallback-color-swatch-border-width))
+    solid color-mix(in oklab, var(--ui-fg) 24%, transparent);
 }
 
 .ui-color-swatch--alpha-opaque .ui-color-swatch__sample,

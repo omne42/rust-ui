@@ -1,0 +1,160 @@
+schema_version = "1"
+
+[component]
+name = "FieldLabel"
+crate = "ui-field-label"
+
+[[inputs]]
+name = "text"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "for_id"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_required"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "tone"
+ty = "FieldLabelTone"
+default = "FieldLabelTone::default()"
+controlled = false
+
+[[inputs]]
+name = "required_indicator"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-* + aria-* + lang + dir"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[agent_contract]]
+schema = "field_label.v1"
+intent = "label"
+action = "snapshot_render"
+streaming = "optional"
+fallback = "snapshot"
+output_state = "verified"
+state_axes = ["tone", "required", "disabled", "has_for_id"]
+source_axes = ["text_source", "indicator_source", "aria_source", "class_source"]
+
+[[agent_contract_markers]]
+name = "schema"
+attr = "data-ui-schema"
+values = ["field_label.v1"]
+
+[[agent_contract_markers]]
+name = "intent"
+attr = "data-ui-intent"
+values = ["label"]
+
+[[agent_contract_markers]]
+name = "action"
+attr = "data-ui-action"
+values = ["snapshot_render"]
+
+[[agent_contract_markers]]
+name = "streaming"
+attr = "data-ui-streaming"
+values = ["optional"]
+
+[[agent_contract_markers]]
+name = "fallback"
+attr = "data-ui-fallback"
+values = ["snapshot"]
+
+[[agent_contract_markers]]
+name = "output_state"
+attr = "data-ui-output-state"
+values = ["verified"]
+
+[[agent_contract_markers]]
+name = "state"
+attr = "data-tone/data-state/data-required/data-disabled/data-has-for"
+values = ["default|muted|strong", "required|optional", "true|false"]
+
+[[agent_contract_markers]]
+name = "source"
+attr = "data-text-source/data-indicator-source/data-aria-source/data-class-source"
+values = ["default", "custom"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "normalized_text_props(text,required_indicator,aria_label,for_id,class_name)",
+  "typed_state_from_ui_state_primitives::field_label::resolve_state",
+  "typed_semantics_from_ui_headless::use_field_label",
+]
+blocked = [
+  "inner_html",
+  "dangerously_set_inner_html",
+  "<script",
+  "javascript:",
+  "retry",
+  "reconnect",
+  "transport_validation",
+]

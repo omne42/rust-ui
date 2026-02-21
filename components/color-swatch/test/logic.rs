@@ -139,4 +139,51 @@ fn state_and_class_composition_track_markers() {
         compose_inline_style(Some("#ff0000")),
         Some("--ui-color-swatch-color: #ff0000;".to_string())
     );
+    assert_eq!(
+        resolve_inline_style(Some("#ff0000")),
+        "--ui-color-swatch-color: #ff0000;".to_string()
+    );
+    assert_eq!(resolve_inline_style(None), String::new());
+}
+
+#[test]
+fn render_state_centralizes_input_normalization_and_derivation() {
+    let render_state = resolve_render_state(ColorSwatchRenderInput {
+        color: Some("  #ff000080  ".to_string()),
+        color_name: None,
+        size: ColorSwatchSize::Sm,
+        rounding: ColorSwatchRounding::None,
+        shape: ColorSwatchShape::Square,
+        is_bordered: None,
+        is_decorative: Some(true),
+        aria_label: Some("  Preview  ".to_string()),
+        class_name: Some("  docs-color-swatch  ".to_string()),
+    });
+
+    assert_eq!(render_state.color, Some("#ff000080".to_string()));
+    assert_eq!(render_state.state.alpha, ColorSwatchAlpha::Translucent);
+    assert_eq!(render_state.state.data_state_attr, "translucent");
+    assert_eq!(render_state.bordered_source, ColorSwatchBoolSource::Default);
+    assert_eq!(
+        render_state.decorative_source,
+        ColorSwatchBoolSource::IsProp
+    );
+    assert_eq!(render_state.aria_label, "Translucent #ff000080, Preview");
+    assert_eq!(
+        render_state.inline_style,
+        "--ui-color-swatch-color: #ff000080;".to_string()
+    );
+    for token in [
+        "ui-color-swatch--size-sm",
+        "ui-color-swatch--rounding-none",
+        "ui-color-swatch--shape-square",
+        "ui-color-swatch--alpha-translucent",
+        "ui-color-swatch--custom-class",
+        "docs-color-swatch",
+    ] {
+        assert!(
+            render_state.class_name.contains(token),
+            "render-state class name should include `{token}`"
+        );
+    }
 }

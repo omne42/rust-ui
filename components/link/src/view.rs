@@ -21,11 +21,12 @@ pub fn Link(
     let rel = logic::normalize_optional_text(rel);
     let aria_label = logic::normalize_optional_text(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
+    let target_kind = logic::resolve_target_kind(target);
 
     let state = logic::resolve_state(LinkStateInput {
         is_disabled,
         has_href: href.is_some(),
-        target,
+        target_kind,
         has_explicit_rel: rel.is_some(),
         has_aria_label: aria_label.is_some(),
         has_custom_class_name: class_name.is_some(),
@@ -39,7 +40,7 @@ pub fn Link(
         is_disabled: state.is_disabled,
     });
 
-    let rel = logic::resolve_rel(target, rel);
+    let rel = logic::resolve_rel(target_kind, rel);
     let class = logic::compose_class_name(class_name, state);
 
     view! {
@@ -47,7 +48,7 @@ pub fn Link(
             class=class
             class:ui-link--focus-visible=move || focus_ring.is_focus_visible.get()
             data-slot="link"
-            data-state=state.state_attr
+            data-state=state.state.as_attr()
             data-enabled=state.is_enabled.then_some("true")
             data-disabled=state.is_disabled.then_some("true")
             data-disabled-source=disabled_source.as_attr()
@@ -55,16 +56,16 @@ pub fn Link(
             data-hovered=move || hover.is_hovered.get().then_some("true")
             data-focused=move || focus_ring.is_focused.get().then_some("true")
             data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
-            data-target=state.target_kind
+            data-target=state.target_kind.as_attr()
             data-external=state.opens_new_context.then_some("true")
-            data-rel=state.rel_source_attr
+            data-rel=state.rel_source.as_attr()
             data-aria-label=if state.has_aria_label { "custom" } else { "none" }
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-ui-schema="ui.link.agent-contract"
             data-ui-schema-version="1"
             data-ui-intent="navigation"
             data-ui-action="navigate"
-            data-ui-state=state.state_attr
+            data-ui-state=state.state.as_attr()
             data-ui-source=disabled_source.as_attr()
             data-ui-stream-support="optional"
             data-ui-stream-fallback="snapshot"

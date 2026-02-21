@@ -73,3 +73,22 @@ fn compose_class_name_includes_custom_marker_and_user_class() {
         );
     }
 }
+
+#[test]
+fn normalize_root_state_centralizes_default_priority_and_sources() {
+    let root = normalize_root_state(KeyboardRootInput {
+        tone: None,
+        is_compact: None,
+        aria_label: Some("  ".to_string()),
+        class_name: Some("  docs-keyboard ".to_string()),
+        lang: Some("  zh-CN ".to_string()),
+    });
+
+    assert_eq!(root.state.tone_attr, "default");
+    assert_eq!(root.state.data_state_attr, "default");
+    assert_eq!(root.state.aria_source_attr, "default");
+    assert_eq!(root.state.class_source_attr, "custom");
+    assert_eq!(root.aria_label, DEFAULT_ARIA_LABEL);
+    assert_eq!(root.lang.as_deref(), Some("zh-CN"));
+    assert!(root.class_name.contains("docs-keyboard"));
+}

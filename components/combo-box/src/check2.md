@@ -62,11 +62,11 @@
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`ComboBox` 的 open 轴由 `is_open/open + on_open_change + default_open` 组成，统一接入 `ui_headless::use_controllable_open_state_traced`；受控模式只发出变更请求不写内部状态，非受控模式由默认值初始化并由原语托管。回归：`crates/ui-headless/src/controllable_state.rs` 与 `crates/ui-components/tests/combo_box_semantics.rs` 中的 open-triplet 契约测试。）
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`ComboBox` 的 open 轴由 `is_open + on_open_change + default_open` 组成，统一接入 `ui_headless::use_controllable_open_state_traced`；受控模式只发出变更请求不写内部状态，非受控模式由默认值初始化并由原语托管。回归：`crates/ui-headless/src/controllable_state.rs` 与 `crates/ui-components/tests/combo_box_semantics.rs` 中的 open-triplet 契约测试。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ComboBox` 新增 `normalize_accessibility_state` 与 `normalize_open_state`，将 `is_*` vs 旧别名优先级、`required/invalid` 默认 false、open 轴归一全部集中在 `logic.rs`；`view.rs` 仅消费归一化结果并传给 headless。回归：`components/combo-box/src/logic.rs` 单测 + `crates/ui-components/tests/combo_box_semantics.rs` 的 no-inline-fallback 断言。）
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ComboBox` 的 `normalize_accessibility_state` 与 `normalize_open_state` 将 `is_disabled` 默认 false、`is_required/is_invalid` 默认 false、open 轴归一全部集中在 `logic.rs`；`view.rs` 仅消费归一化结果并传给 headless。回归：`components/combo-box/src/logic.rs` 单测 + `crates/ui-components/tests/combo_box_semantics.rs` 的 no-inline-fallback 断言。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。

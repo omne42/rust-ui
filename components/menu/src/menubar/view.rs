@@ -18,7 +18,7 @@ fn focus_trigger(trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
     let Some(el) = node_ref.get_untracked() else {
         return;
     };
-    drop(el.focus());
+    ui_observability::observe_js_result!(el.focus());
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -29,6 +29,7 @@ pub fn Menubar(
     id_base: String,
     menus: Vec<MenubarMenu>,
     on_action: Callback<(usize, usize)>,
+    #[prop(optional)] is_close_on_action: Option<bool>,
     #[prop(default = true)] close_on_action: bool,
     #[prop(optional)] placement: PopoverPlacement,
     #[prop(optional)] open_index: Option<Signal<Option<usize>>>,
@@ -37,6 +38,10 @@ pub fn Menubar(
     #[prop(optional)] motion: MenubarMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let action_mode = logic::normalize_close_on_action(logic::MenubarActionModeInput {
+        is_close_on_action,
+        close_on_action,
+    });
     let id_base = logic::normalize_id_base(id_base);
     let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
     let id_base = StoredValue::new(id_base);
@@ -50,15 +55,17 @@ pub fn Menubar(
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
 
-    let has_custom_close_on_action = close_on_action != logic::DEFAULT_CLOSE_ON_ACTION;
+    let has_custom_close_on_action =
+        action_mode.is_close_on_action() != logic::DEFAULT_CLOSE_ON_ACTION;
     let has_custom_placement = placement != logic::DEFAULT_PLACEMENT;
     let has_custom_open_index = open_index.is_some();
     let has_custom_default_open_index = default_open_index.is_some();
     let has_custom_on_open_index_change = on_open_index_change.is_some();
     let has_custom_motion = motion != MenubarMotion::default();
 
-    let default_open_index = logic::sanitize_open_index_for_menus(
-        logic::normalize_open_index(default_open_index, menu_count),
+    let default_open_index = logic::normalize_default_open_index(
+        default_open_index,
+        menu_count,
         menus.get_value().as_ref(),
     );
 
@@ -87,7 +94,7 @@ pub fn Menubar(
                 .get_value()
                 .iter()
                 .any(|menu| menu.is_trigger_disabled),
-            close_on_action,
+            close_on_action: action_mode.is_close_on_action(),
             is_controlled,
             placement,
             has_custom_id_base,
@@ -131,77 +138,62 @@ pub fn Menubar(
 
         let on_action_wrapped = Callback::new(move |item_index: usize| {
             on_action.run((index, item_index));
-            if close_on_action {
+            if action_mode.is_close_on_action() {
                 request_open_index_change.run(None);
             }
         });
 
         let on_trigger_press: OnPress = Callback::new(move |_| {
-            if menu_is_trigger_disabled {
-                return;
+            if let Some(next_open_index) = logic::resolve_next_open_index_on_trigger_press(
+                menu_is_trigger_disabled,
+                open_index.get_untracked(),
+                index,
+            ) {
+                request_open_index_change.run(next_open_index);
             }
-
-            let next_open_index = if open_index.get_untracked() == Some(index) {
-                None
-            } else {
-                Some(index)
-            };
-            request_open_index_change.run(next_open_index);
         });
 
         let on_key_down = {
             let trigger_refs = trigger_refs.clone();
             move |ev: ev::KeyboardEvent| {
-                if menu_is_trigger_disabled {
-                    return;
-                }
-
-                let key = ev.key();
-                if let Some(focus_strategy) = crate::menubar::focus_strategy_for_open_key(&key) {
-                    set_open_focus.set(focus_strategy);
-                    request_open_index_change.run(Some(index));
+                if let Some(decision) = logic::resolve_key_decision(
+                    &ev.key(),
+                    menu_is_trigger_disabled,
+                    index,
+                    menus.get_value().as_ref(),
+                ) {
+                    match decision {
+                        logic::MenubarKeyDecision::OpenCurrent { focus } => {
+                            set_open_focus.set(focus);
+                            request_open_index_change.run(Some(index));
+                        }
+                        logic::MenubarKeyDecision::MoveTo {
+                            index,
+                            focus,
+                            focus_trigger: should_focus_trigger,
+                        } => {
+                            set_open_focus.set(focus);
+                            request_open_index_change.run(Some(index));
+                            if should_focus_trigger {
+                                focus_trigger(&trigger_refs, index);
+                            }
+                        }
+                        logic::MenubarKeyDecision::Close => {
+                            request_open_index_change.run(None);
+                        }
+                    }
                     ev.prevent_default();
-                    return;
-                }
-
-                match key.as_str() {
-                    "ArrowRight" => {
-                        if let Some(next_index) =
-                            logic::next_enabled_menu_index(menus.get_value().as_ref(), index, 1)
-                        {
-                            set_open_focus.set(MenuOpenFocusStrategy::First);
-                            request_open_index_change.run(Some(next_index));
-                            focus_trigger(&trigger_refs, next_index);
-                            ev.prevent_default();
-                        }
-                    }
-                    "ArrowLeft" => {
-                        if let Some(next_index) =
-                            logic::next_enabled_menu_index(menus.get_value().as_ref(), index, -1)
-                        {
-                            set_open_focus.set(MenuOpenFocusStrategy::First);
-                            request_open_index_change.run(Some(next_index));
-                            focus_trigger(&trigger_refs, next_index);
-                            ev.prevent_default();
-                        }
-                    }
-                    "Escape" => {
-                        request_open_index_change.run(None);
-                        ev.prevent_default();
-                    }
-                    _ => {}
                 }
             }
         };
 
         let on_pointer_enter = move |_| {
-            if menu_is_trigger_disabled {
-                return;
-            }
-
-            let active_open = open_index.get_untracked();
-            if active_open.is_some() && active_open != Some(index) {
-                request_open_index_change.run(Some(index));
+            if let Some(next_open_index) = logic::resolve_next_open_index_on_pointer_enter(
+                menu_is_trigger_disabled,
+                open_index.get_untracked(),
+                index,
+            ) {
+                request_open_index_change.run(next_open_index);
             }
         };
 
@@ -213,15 +205,7 @@ pub fn Menubar(
                 class=menu_slot.base_class()
                 data-slot=menu_slot.as_attr()
                 data-index=index
-                data-state=move || {
-                    if open.get() {
-                        "open"
-                    } else if menu_is_trigger_disabled {
-                        "disabled"
-                    } else {
-                        "closed"
-                    }
-                }
+                data-state=move || logic::resolve_menu_state_attr(open.get(), menu_is_trigger_disabled)
                 data-open=move || open.get().then_some("true")
                 data-disabled=menu_is_trigger_disabled.then_some("true")
                 data-empty=(!menu_has_items).then_some("true")
@@ -235,18 +219,10 @@ pub fn Menubar(
                     tabindex="0"
                     disabled=menu_is_trigger_disabled
                     aria-haspopup="menu"
-                    aria-expanded=move || if open.get() { "true" } else { "false" }
+                    aria-expanded=move || logic::resolve_aria_expanded(open.get())
                     aria-controls=move || open.get().then_some(menu_id.get_value())
                     data-slot=trigger_slot.as_attr()
-                    data-state=move || {
-                        if open.get() {
-                            "open"
-                        } else if menu_is_trigger_disabled {
-                            "disabled"
-                        } else {
-                            "closed"
-                        }
-                    }
+                    data-state=move || logic::resolve_menu_state_attr(open.get(), menu_is_trigger_disabled)
                     on:click=move |_| on_trigger_press.run(())
                     on:keydown=on_key_down
                     on:pointerenter=on_pointer_enter

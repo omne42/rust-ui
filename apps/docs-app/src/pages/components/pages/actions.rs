@@ -5,11 +5,11 @@ use ui_components::{
     ActionButton, ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
     ActionButtonLoadingPlacement, ActionButtonSize, ActionMenu, ActionMenuItemSpec, Button,
     ButtonColor, ButtonCopy, ButtonCopyMode, ButtonCopyMotion, ButtonGroup, ButtonGroupOrientation,
-    ButtonLoadingPlacement, ButtonRadius, ButtonSize, ButtonVariant, FlipButton, FlipDirection,
-    LinkButton, OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton,
-    ShareButtonIconPlacement, ShareButtonItem, SharePlatform, Switch, ThemeMode, ThemeToggleButton,
-    ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation, ToggleButtonSize,
-    ToggleButtonVariant,
+    ButtonIntent, ButtonLoadingPlacement, ButtonRadius, ButtonSchema, ButtonSize, ButtonVariant,
+    FlipButton, FlipDirection, LinkButton, OnPress, SearchInputButton, SegmentedControl,
+    SegmentedControlSize, ShareButton, ShareButtonIconPlacement, ShareButtonItem, SharePlatform,
+    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
+    ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant,
 };
 
 // Legacy source-contract markers retained for semantic tests:
@@ -587,6 +587,23 @@ pub(super) fn button() -> AnyView {
     let (is_full_width, set_is_full_width) = signal(initial_workbench_state.is_full_width);
     let (show_start, set_show_start) = signal(initial_workbench_state.show_start);
     let (show_end, set_show_end) = signal(initial_workbench_state.show_end);
+    let (spec_schema_enabled, set_spec_schema_enabled) = signal(false);
+    let (spec_requires_confirmation, set_spec_requires_confirmation) = signal(false);
+    let spec_schema_json = Signal::derive(move || {
+        if !spec_schema_enabled.get() {
+            return None;
+        }
+
+        Some(
+            ButtonSchema::new(
+                "docs-button-workbench",
+                ButtonIntent::Primary,
+                "button.press",
+            )
+            .requires_confirmation(spec_requires_confirmation.get())
+            .to_json(),
+        )
+    });
     let (workbench_persist_state, set_workbench_persist_state) =
         signal(has_persisted_workbench_state);
 
@@ -611,6 +628,7 @@ pub(super) fn button() -> AnyView {
     });
 
     let hello_code = Signal::derive(move || r#"<Button>"Button"</Button>"#.to_string());
+    let button_imports = "use leptos::prelude::*;\nuse ui_components::{Button, ButtonColor, ButtonLoadingPlacement, ButtonRadius, ButtonSize, ButtonVariant};".to_string();
 
     let code = Signal::derive(move || {
         let variant = variant.get();
@@ -624,6 +642,7 @@ pub(super) fn button() -> AnyView {
         let is_full_width = is_full_width.get();
         let show_start = show_start.get();
         let show_end = show_end.get();
+        let schema_json = spec_schema_json.get();
 
         let mut snippet = vec!["<Button".to_string()];
 
@@ -663,6 +682,11 @@ pub(super) fn button() -> AnyView {
         if show_end {
             snippet.push("  end_content=move || view! { <span>\"→\"</span> }".to_string());
         }
+        if let Some(schema_json) = schema_json {
+            snippet.push(format!(
+                "  schema_json=Some(r#\"{schema_json}\"#.to_string())"
+            ));
+        }
 
         snippet.extend([
             ">".to_string(),
@@ -696,6 +720,7 @@ pub(super) fn button() -> AnyView {
         let is_full_width = is_full_width.get();
         let show_start = show_start.get();
         let show_end = show_end.get();
+        let schema_json = spec_schema_json.get();
 
         let mut classes = vec![
             "ui-button".to_string(),
@@ -723,7 +748,7 @@ pub(super) fn button() -> AnyView {
         }
 
         format!(
-            "ButtonActualConfig {{\n  color: {color:?},\n  variant: {variant:?},\n  radius: {radius:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_icon_only: {icon_only},\n  is_full_width: {is_full_width},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  class: \"{}\",\n}}",
+            "ButtonActualConfig {{\n  color: {color:?},\n  variant: {variant:?},\n  radius: {radius:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_icon_only: {icon_only},\n  is_full_width: {is_full_width},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  schema_json: {schema_json:?},\n  class: \"{}\",\n}}",
             classes.join(" ")
         )
     });
@@ -756,6 +781,59 @@ pub(super) fn button() -> AnyView {
             .to_string()
     });
 
+    let state_matrix_code = Signal::derive(move || {
+        r#"<Button id="docs-button-matrix-idle".to_string()>"Idle"</Button>
+<Button
+  id="docs-button-matrix-loading".to_string()
+  is_loading=true
+  loading_placement=ButtonLoadingPlacement::Start
+>
+  "Loading"
+</Button>
+<Button id="docs-button-matrix-disabled".to_string() is_disabled=true>"Disabled"</Button>
+<Button
+  id="docs-button-matrix-icon-only".to_string()
+  is_icon_only=true
+  aria_label="Icon only".to_string()
+>
+  "★"
+</Button>"#
+            .to_string()
+    });
+
+    let controlled_vs_uncontrolled_code = Signal::derive(move || {
+        r#"// N/A: Button has no value/open selection axis.
+// Use explicit props/callbacks and keep loading/disabled state in caller.
+<Button id="docs-button-controlled-like".to_string() is_loading=true>"Parent-managed loading"</Button>
+<Button id="docs-button-uncontrolled-like".to_string()>"No internal state axis"</Button>"#
+            .to_string()
+    });
+
+    let output_mode_code = Signal::derive(move || {
+        r#"// Button is not a long-form reading surface.
+// Streaming is optional; docs fallback remains snapshot.
+<div
+  data-ui-streaming="optional"
+  data-ui-fallback="snapshot"
+  data-ui-output-state="snapshot"
+>
+  "Button docs output mode: snapshot"
+</div>
+<Button id="docs-button-snapshot".to_string()>"Snapshot"</Button>"#
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<Button
+  id="docs-button-source-first".to_string()
+  color=ButtonColor::Primary
+  variant=ButtonVariant::Solid
+>
+  "Build"
+</Button>"#
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="Button"
@@ -763,7 +841,7 @@ pub(super) fn button() -> AnyView {
             group="Actions"
             description="Variants + sizes with spring hover/tap motion."
         >
-            <Playground title="Hello world" code_signal=hello_code>
+            <Playground title="Hello World" code_signal=hello_code code_imports=button_imports.clone()>
                 <div class="docs-row">
                     <Button>"Button"</Button>
                 </div>
@@ -772,6 +850,7 @@ pub(super) fn button() -> AnyView {
             <Playground
                 title="Variants & sizes"
                 code_signal=code
+                code_imports=button_imports.clone()
                 test_css_source=test_css_source
                 test_source_path="/root/code/personal/omne/rust-ui/crates/ui-components/src/button/styles.rs".to_string()
                 test_config_signal=actual_config
@@ -833,6 +912,12 @@ pub(super) fn button() -> AnyView {
                         <Switch checked=is_full_width set_checked=set_is_full_width>"Full width"</Switch>
                         <Switch checked=show_start set_checked=set_show_start>"Start slot"</Switch>
                         <Switch checked=show_end set_checked=set_show_end>"End slot"</Switch>
+                        <Switch checked=spec_schema_enabled set_checked=set_spec_schema_enabled>
+                            "Use AI spec payload"
+                        </Switch>
+                        <Switch checked=spec_requires_confirmation set_checked=set_spec_requires_confirmation>
+                            "Spec requires confirmation"
+                        </Switch>
                         <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
                             "Persist workbench state"
                         </Switch>
@@ -851,6 +936,7 @@ pub(super) fn button() -> AnyView {
                     let is_full_width = is_full_width.get();
                     let show_start = show_start.get();
                     let show_end = show_end.get();
+                    let schema_json = spec_schema_json.get();
                     let persist = workbench_persist_state.get();
 
                     view! {
@@ -859,6 +945,17 @@ pub(super) fn button() -> AnyView {
                                 "persist: "
                                 {if persist { "on" } else { "off" }}
                             </span>
+                            <div class="docs-stack docs-stack--tight" data-slot="button-interactive-spec-preview">
+                                <span class="ui-muted" data-slot="button-interactive-spec-input">
+                                    "spec-input: "
+                                    {if schema_json.is_some() { "schema_json" } else { "off" }}
+                                </span>
+                                <code data-slot="button-interactive-spec-json">
+                                    {schema_json
+                                        .clone()
+                                        .unwrap_or_else(|| "none".to_string())}
+                                </code>
+                            </div>
                             <div class="docs-card" data-slot="button-workbench-canvas">
                                 <div
                                     class="docs-row"
@@ -880,6 +977,7 @@ pub(super) fn button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_icon_only=icon_only
                                                 is_full_width=is_full_width
+                                                schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
                                                 start_content=move || view! { <span>"★"</span> }
                                                 end_content=move || view! { <span>"→"</span> }
@@ -899,6 +997,7 @@ pub(super) fn button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_icon_only=icon_only
                                                 is_full_width=is_full_width
+                                                schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
                                                 start_content=move || view! { <span>"★"</span> }
                                             >
@@ -917,6 +1016,7 @@ pub(super) fn button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_icon_only=icon_only
                                                 is_full_width=is_full_width
+                                                schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
                                                 end_content=move || view! { <span>"→"</span> }
                                             >
@@ -935,6 +1035,7 @@ pub(super) fn button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_icon_only=icon_only
                                                 is_full_width=is_full_width
+                                                schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
                                             >
                                                 {if icon_only { "★" } else { "Button" }}
@@ -947,6 +1048,94 @@ pub(super) fn button() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=state_matrix_code
+                code_imports=button_imports.clone()
+            >
+                <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
+                    <Button id="docs-button-matrix-idle".to_string()>"Idle"</Button>
+                    <Button
+                        id="docs-button-matrix-loading".to_string()
+                        is_loading=true
+                        loading_placement=ButtonLoadingPlacement::Start
+                    >
+                        "Loading"
+                    </Button>
+                    <Button id="docs-button-matrix-disabled".to_string() is_disabled=true>
+                        "Disabled"
+                    </Button>
+                    <Button
+                        id="docs-button-matrix-icon-only".to_string()
+                        is_icon_only=true
+                        aria_label="Icon only".to_string()
+                    >
+                        "★"
+                    </Button>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                code_signal=controlled_vs_uncontrolled_code
+                code_imports=button_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <span class="ui-muted">
+                        "N/A: Button has no value/open axis. Caller-managed props/callbacks remain the only state boundary."
+                    </span>
+                    <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
+                        <Button id="docs-button-controlled-like".to_string() is_loading=true>
+                            "Parent-managed loading"
+                        </Button>
+                        <Button id="docs-button-uncontrolled-like".to_string()>
+                            "No internal state axis"
+                        </Button>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                code_signal=output_mode_code
+                code_imports=button_imports.clone()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="button-output-mode"
+                    data-ui-streaming="optional"
+                    data-ui-fallback="snapshot"
+                    data-ui-output-state="snapshot"
+                >
+                    <span class="ui-muted">
+                        "Button is not a text-reading surface; docs output stays snapshot (`fallback=snapshot`)."
+                    </span>
+                    <Button id="docs-button-snapshot".to_string()>"Snapshot"</Button>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                code_signal=source_first_code
+                code_imports=button_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <span class="ui-muted" data-slot="button-source-first-contract">
+                        "Copy-ready snippet auto-prepends imports. Feature gate: component-button + inject-css."
+                    </span>
+                    <Button
+                        id="docs-button-source-first".to_string()
+                        color=ButtonColor::Primary
+                        variant=ButtonVariant::Solid
+                    >
+                        "Build"
+                    </Button>
+                    <p class="ui-muted" data-slot="button-source-paths">
+                        "Source: components/button/src/view.rs and crates/ui-components/src/button/view.rs."
+                    </p>
+                </div>
             </Playground>
 
             <Playground title="Colors" code_signal=colors_code>
@@ -1464,7 +1653,7 @@ pub(super) fn button_group() -> AnyView {
     });
 
     let code = Signal::derive(move || {
-        r#"<ButtonGroup attached=true>
+        r#"<ButtonGroup is_attached=true>
   <Button variant=ButtonVariant::Secondary>"Left"</Button>
   <Button variant=ButtonVariant::Secondary>"Middle"</Button>
   <Button variant=ButtonVariant::Secondary>"Right"</Button>
@@ -1474,7 +1663,7 @@ pub(super) fn button_group() -> AnyView {
 
     let states_code = Signal::derive(move || {
         r#"<ButtonGroup
-  attached=false
+  is_attached=false
   orientation=ButtonGroupOrientation::Vertical
   aria_label="Document actions".to_string()
 >
@@ -1494,7 +1683,7 @@ pub(super) fn button_group() -> AnyView {
         >
             <Playground title="Attached horizontal" code_signal=code>
                 <div class="docs-stack">
-                    <ButtonGroup attached=true orientation=ButtonGroupOrientation::Horizontal>
+                    <ButtonGroup is_attached=true orientation=ButtonGroupOrientation::Horizontal>
                         <Button variant=ButtonVariant::Secondary on_press=on_left>
                             "Left"
                         </Button>
@@ -1520,7 +1709,7 @@ pub(super) fn button_group() -> AnyView {
             <Playground title="Vertical + detached" code_signal=states_code>
                 <div class="docs-stack">
                     <ButtonGroup
-                        attached=false
+                        is_attached=false
                         orientation=ButtonGroupOrientation::Vertical
                         aria_label="Document actions".to_string()
                     >
@@ -1818,8 +2007,10 @@ pub(super) fn link_button() -> AnyView {
 }
 pub(super) fn toggle_button() -> AnyView {
     let (selected, set_selected) = signal(false);
+    let selected_signal: Signal<bool> = Signal::derive(move || selected.get());
     let (last_change, set_last_change) = signal("none".to_string());
     let on_toggle_change = Callback::new(move |next: bool| {
+        set_selected.set(next);
         set_last_change.set(if next {
             "true".to_string()
         } else {
@@ -1870,10 +2061,13 @@ pub(super) fn toggle_button() -> AnyView {
 
         let mut snippet = vec![
             "let (selected, set_selected) = signal(false);".to_string(),
+            "let selected_signal: Signal<bool> = Signal::derive(move || selected.get());"
+                .to_string(),
+            "let on_toggle_change = Callback::new(move |next| set_selected.set(next));".to_string(),
             String::new(),
             "<ToggleButton".to_string(),
-            "  selected=selected".to_string(),
-            "  set_selected=set_selected".to_string(),
+            "  is_pressed=selected_signal".to_string(),
+            "  on_pressed_change=on_toggle_change".to_string(),
         ];
 
         if variant != ToggleButtonVariant::Default {
@@ -1898,20 +2092,29 @@ pub(super) fn toggle_button() -> AnyView {
     let (notifications, set_notifications) = signal(true);
     let (disabled_selected, set_disabled_selected) = signal(true);
     let (disabled_unselected, set_disabled_unselected) = signal(false);
+    let notifications_signal: Signal<bool> = Signal::derive(move || notifications.get());
+    let on_notifications_change = Callback::new(move |next: bool| set_notifications.set(next));
+    let disabled_selected_signal: Signal<bool> = Signal::derive(move || disabled_selected.get());
+    let disabled_unselected_signal: Signal<bool> =
+        Signal::derive(move || disabled_unselected.get());
+    let on_disabled_selected_change =
+        Callback::new(move |next: bool| set_disabled_selected.set(next));
+    let on_disabled_unselected_change =
+        Callback::new(move |next: bool| set_disabled_unselected.set(next));
 
     let states_code = Signal::derive(move || {
         r#"<ToggleButton
-  selected=notifications
-  set_selected=set_notifications
+  is_pressed=notifications_signal
+  on_pressed_change=on_notifications_change
   variant=ToggleButtonVariant::Accent
   size=ToggleButtonSize::L
 >
   "Notifications"
 </ToggleButton>
-<ToggleButton selected=disabled_selected set_selected=set_disabled_selected disabled=true>
+<ToggleButton is_pressed=disabled_selected_signal is_disabled=true>
   "Disabled on"
 </ToggleButton>
-<ToggleButton selected=disabled_unselected set_selected=set_disabled_unselected disabled=true>
+<ToggleButton is_pressed=disabled_unselected_signal is_disabled=true>
   "Disabled off"
 </ToggleButton>"#
             .to_string()
@@ -1925,7 +2128,7 @@ pub(super) fn toggle_button() -> AnyView {
             description="Pressable toggle state with baseline-level spring motion and baseline-style root state attrs."
         >
             <Playground
-                title="Controlled + on_change"
+                title="Controlled + on_pressed_change"
                 code_signal=code
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1962,12 +2165,11 @@ pub(super) fn toggle_button() -> AnyView {
                         <div class="docs-stack">
                             <div class="docs-row">
                                 <ToggleButton
-                                    selected=selected
-                                    set_selected=set_selected
-                                    on_change=on_toggle_change
+                                    is_pressed=selected_signal
+                                    on_pressed_change=on_toggle_change
                                     variant=variant
                                     size=size
-                                    disabled=disabled
+                                    is_disabled=disabled
                                 >
                                     "Toggle"
                                 </ToggleButton>
@@ -1976,7 +2178,7 @@ pub(super) fn toggle_button() -> AnyView {
                                     {move || selected.get()}
                                 </span>
                             </div>
-                            <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
+                            <span class="ui-muted">"last on_pressed_change: " {move || last_change.get()}</span>
                         </div>
                     }
                 }}
@@ -1986,8 +2188,8 @@ pub(super) fn toggle_button() -> AnyView {
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ToggleButton
-                            selected=notifications
-                            set_selected=set_notifications
+                            is_pressed=notifications_signal
+                            on_pressed_change=on_notifications_change
                             variant=ToggleButtonVariant::Accent
                             size=ToggleButtonSize::L
                         >
@@ -2000,16 +2202,16 @@ pub(super) fn toggle_button() -> AnyView {
                     </div>
                     <div class="docs-row">
                         <ToggleButton
-                            selected=disabled_selected
-                            set_selected=set_disabled_selected
-                            disabled=true
+                            is_pressed=disabled_selected_signal
+                            on_pressed_change=on_disabled_selected_change
+                            is_disabled=true
                         >
                             "Disabled on"
                         </ToggleButton>
                         <ToggleButton
-                            selected=disabled_unselected
-                            set_selected=set_disabled_unselected
-                            disabled=true
+                            is_pressed=disabled_unselected_signal
+                            on_pressed_change=on_disabled_unselected_change
+                            is_disabled=true
                         >
                             "Disabled off"
                         </ToggleButton>
@@ -2024,6 +2226,12 @@ pub(super) fn toggle_button_group() -> AnyView {
     let (a, set_a) = signal(false);
     let (b, set_b) = signal(true);
     let (c, set_c) = signal(false);
+    let a_signal: Signal<bool> = Signal::derive(move || a.get());
+    let b_signal: Signal<bool> = Signal::derive(move || b.get());
+    let c_signal: Signal<bool> = Signal::derive(move || c.get());
+    let on_a_change = Callback::new(move |next: bool| set_a.set(next));
+    let on_b_change = Callback::new(move |next: bool| set_b.set(next));
+    let on_c_change = Callback::new(move |next: bool| set_c.set(next));
     let attached_selected_count =
         Signal::derive(move || usize::from(a.get()) + usize::from(b.get()) + usize::from(c.get()));
 
@@ -2088,6 +2296,14 @@ pub(super) fn toggle_button_group() -> AnyView {
             "let (bold, set_bold) = signal(false);".to_string(),
             "let (italic, set_italic) = signal(true);".to_string(),
             "let (underline, set_underline) = signal(false);".to_string(),
+            "let bold_signal: Signal<bool> = Signal::derive(move || bold.get());".to_string(),
+            "let italic_signal: Signal<bool> = Signal::derive(move || italic.get());".to_string(),
+            "let underline_signal: Signal<bool> = Signal::derive(move || underline.get());"
+                .to_string(),
+            "let on_bold_change = Callback::new(move |next| set_bold.set(next));".to_string(),
+            "let on_italic_change = Callback::new(move |next| set_italic.set(next));".to_string(),
+            "let on_underline_change = Callback::new(move |next| set_underline.set(next));"
+                .to_string(),
             String::new(),
             "<ToggleButtonGroup".to_string(),
         ];
@@ -2098,19 +2314,19 @@ pub(super) fn toggle_button_group() -> AnyView {
             ));
         }
         if attached {
-            snippet.push("  attached=true".to_string());
+            snippet.push("  is_attached=true".to_string());
         }
 
         snippet.extend([
             ">".to_string(),
             format!(
-                "  <ToggleButton selected=bold set_selected=set_bold{toggle_props}>\"Bold\"</ToggleButton>"
+                "  <ToggleButton is_pressed=bold_signal on_pressed_change=on_bold_change{toggle_props}>\"Bold\"</ToggleButton>"
             ),
             format!(
-                "  <ToggleButton selected=italic set_selected=set_italic{toggle_props}>\"Italic\"</ToggleButton>"
+                "  <ToggleButton is_pressed=italic_signal on_pressed_change=on_italic_change{toggle_props}>\"Italic\"</ToggleButton>"
             ),
             format!(
-                "  <ToggleButton selected=underline set_selected=set_underline{toggle_props}>\"Underline\"</ToggleButton>"
+                "  <ToggleButton is_pressed=underline_signal on_pressed_change=on_underline_change{toggle_props}>\"Underline\"</ToggleButton>"
             ),
             "</ToggleButtonGroup>".to_string(),
         ]);
@@ -2121,6 +2337,12 @@ pub(super) fn toggle_button_group() -> AnyView {
     let (left, set_left) = signal(true);
     let (center, set_center) = signal(false);
     let (right, set_right) = signal(true);
+    let left_signal: Signal<bool> = Signal::derive(move || left.get());
+    let center_signal: Signal<bool> = Signal::derive(move || center.get());
+    let right_signal: Signal<bool> = Signal::derive(move || right.get());
+    let on_left_change = Callback::new(move |next: bool| set_left.set(next));
+    let on_center_change = Callback::new(move |next: bool| set_center.set(next));
+    let on_right_change = Callback::new(move |next: bool| set_right.set(next));
     let detached_selected_count = Signal::derive(move || {
         usize::from(left.get()) + usize::from(center.get()) + usize::from(right.get())
     });
@@ -2128,12 +2350,12 @@ pub(super) fn toggle_button_group() -> AnyView {
     let states_code = Signal::derive(move || {
         r#"<ToggleButtonGroup
   orientation=ToggleButtonGroupOrientation::Vertical
-  attached=false
+  is_attached=false
   aria_label="Alignment controls".to_string()
 >
-  <ToggleButton selected=left set_selected=set_left>"Left"</ToggleButton>
-  <ToggleButton selected=center set_selected=set_center>"Center"</ToggleButton>
-  <ToggleButton selected=right set_selected=set_right>"Right"</ToggleButton>
+  <ToggleButton is_pressed=left_signal on_pressed_change=on_left_change>"Left"</ToggleButton>
+  <ToggleButton is_pressed=center_signal on_pressed_change=on_center_change>"Center"</ToggleButton>
+  <ToggleButton is_pressed=right_signal on_pressed_change=on_right_change>"Right"</ToggleButton>
 </ToggleButtonGroup>"#
             .to_string()
     });
@@ -2196,28 +2418,28 @@ pub(super) fn toggle_button_group() -> AnyView {
                         <div class="docs-stack">
                             <ToggleButtonGroup
                                 orientation=orientation
-                                attached=attached
+                                is_attached=attached
                                 aria_label="Formatting controls".to_string()
                             >
                                 <ToggleButton
-                                    selected=a
-                                    set_selected=set_a
+                                    is_pressed=a_signal
+                                    on_pressed_change=on_a_change
                                     variant=variant
                                     size=size
                                 >
                                     "Bold"
                                 </ToggleButton>
                                 <ToggleButton
-                                    selected=b
-                                    set_selected=set_b
+                                    is_pressed=b_signal
+                                    on_pressed_change=on_b_change
                                     variant=variant
                                     size=size
                                 >
                                     "Italic"
                                 </ToggleButton>
                                 <ToggleButton
-                                    selected=c
-                                    set_selected=set_c
+                                    is_pressed=c_signal
+                                    on_pressed_change=on_c_change
                                     variant=variant
                                     size=size
                                 >
@@ -2237,26 +2459,26 @@ pub(super) fn toggle_button_group() -> AnyView {
                 <div class="docs-stack">
                     <ToggleButtonGroup
                         orientation=ToggleButtonGroupOrientation::Vertical
-                        attached=false
+                        is_attached=false
                         aria_label="Alignment controls".to_string()
                     >
                         <ToggleButton
-                            selected=left
-                            set_selected=set_left
+                            is_pressed=left_signal
+                            on_pressed_change=on_left_change
                             variant=ToggleButtonVariant::Secondary
                         >
                             "Left"
                         </ToggleButton>
                         <ToggleButton
-                            selected=center
-                            set_selected=set_center
+                            is_pressed=center_signal
+                            on_pressed_change=on_center_change
                             variant=ToggleButtonVariant::Secondary
                         >
                             "Center"
                         </ToggleButton>
                         <ToggleButton
-                            selected=right
-                            set_selected=set_right
+                            is_pressed=right_signal
+                            on_pressed_change=on_right_change
                             variant=ToggleButtonVariant::Secondary
                         >
                             "Right"
@@ -2309,7 +2531,7 @@ pub(super) fn theme_toggle_button() -> AnyView {
         ];
 
         if disabled {
-            snippet.push("  disabled=true".to_string());
+            snippet.push("  is_disabled=true".to_string());
         }
         if two_mode_cycle {
             snippet.push("  modes=vec![ThemeMode::Dark, ThemeMode::Light]".to_string());
@@ -2336,7 +2558,7 @@ let (mode, set_mode) = signal(ThemeMode::System);
   modes=vec![ThemeMode::Dark, ThemeMode::Light]
   aria_label="Switch UI mode".to_string()
 />
-<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />"#
+<ThemeToggleButton mode=mode set_mode=set_mode is_disabled=true />"#
             .to_string()
     });
 
@@ -2389,7 +2611,7 @@ let (mode, set_mode) = signal(ThemeMode::System);
                                     <ThemeToggleButton
                                         mode=mode
                                         set_mode=set_mode
-                                        disabled=disabled
+                                        is_disabled=disabled
                                         modes=modes.clone()
                                         aria_label="Switch UI mode".to_string()
                                     />
@@ -2400,7 +2622,7 @@ let (mode, set_mode) = signal(ThemeMode::System);
                                     <ThemeToggleButton
                                         mode=mode
                                         set_mode=set_mode
-                                        disabled=disabled
+                                        is_disabled=disabled
                                         modes=modes
                                     />
                                 }
@@ -2426,7 +2648,7 @@ let (mode, set_mode) = signal(ThemeMode::System);
                         </span>
                     </div>
                     <div class="docs-row">
-                        <ThemeToggleButton mode=mode set_mode=set_mode disabled=true />
+                        <ThemeToggleButton mode=mode set_mode=set_mode is_disabled=true />
                         <span class="ui-muted">"disabled toggle should remain inert"</span>
                     </div>
                 </div>

@@ -37,6 +37,33 @@ fn normalize_helpers_fallback_to_defaults() {
 }
 
 #[test]
+fn normalize_required_and_disabled_states_track_sources() {
+    let required = normalize_required_state(Some(false), true);
+    assert!(!required.is_required);
+    assert_eq!(required.required_source_attr, "is_required");
+
+    let required = normalize_required_state(None, true);
+    assert!(required.is_required);
+    assert_eq!(required.required_source_attr, "required");
+
+    let required = normalize_required_state(None, false);
+    assert!(!required.is_required);
+    assert_eq!(required.required_source_attr, "default");
+
+    let disabled = normalize_accessibility_state(Some(false), true);
+    assert!(!disabled.is_disabled);
+    assert_eq!(disabled.disabled_source_attr, "is_disabled");
+
+    let disabled = normalize_accessibility_state(None, true);
+    assert!(disabled.is_disabled);
+    assert_eq!(disabled.disabled_source_attr, "disabled");
+
+    let disabled = normalize_accessibility_state(None, false);
+    assert!(!disabled.is_disabled);
+    assert_eq!(disabled.disabled_source_attr, "default");
+}
+
+#[test]
 fn resolve_state_tracks_required_disabled_and_sources() {
     let state = resolve_state(LegendStateInput {
         tone: LegendTone::Strong,

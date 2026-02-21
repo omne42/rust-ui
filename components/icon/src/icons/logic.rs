@@ -1,10 +1,24 @@
+use std::borrow::Cow;
+
 use crate::icons::{IconsSet, IconsState, IconsStateInput};
+
+pub const DEFAULT_INNER_CLASS: &str = "ui-icons";
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
         (!trimmed.is_empty()).then(|| trimmed.into())
     })
+}
+
+pub fn resolve_inner_aria_label(value: Option<String>) -> String {
+    value.unwrap_or_default()
+}
+
+pub fn resolve_inner_class_name(value: Option<String>) -> String {
+    value
+        .map(|value| format!("{DEFAULT_INNER_CLASS} {value}"))
+        .unwrap_or_else(|| DEFAULT_INNER_CLASS.into())
 }
 
 pub fn parse_set_from_name(name: &str) -> Option<IconsSet> {
@@ -88,37 +102,47 @@ pub fn resolve_state(input: IconsStateInput) -> IconsState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: IconsState) -> String {
-    let mut classes = vec![
-        "ui-icons".to_string(),
-        format!("ui-icons--set-{}", state.set_attr),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-icons"),
+        Cow::Borrowed(match state.set {
+            IconsSet::Ui => "ui-icons--set-ui",
+            IconsSet::Workflow => "ui-icons--set-workflow",
+        }),
     ];
 
-    classes.push(format!("ui-icons--scale-{}", state.scale_attr));
+    classes.push(Cow::Borrowed(match state.scale {
+        crate::icons::IconsScale::Medium => "ui-icons--scale-medium",
+        crate::icons::IconsScale::Large => "ui-icons--scale-large",
+    }));
 
     if state.is_disabled {
-        classes.push("ui-icons--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-icons--disabled"));
     }
 
     if state.is_decorative {
-        classes.push("ui-icons--decorative".to_string());
+        classes.push(Cow::Borrowed("ui-icons--decorative"));
     }
 
     if state.has_custom_glyphs {
-        classes.push("ui-icons--custom-glyphs".to_string());
+        classes.push(Cow::Borrowed("ui-icons--custom-glyphs"));
     }
 
     if state.has_custom_tone {
-        classes.push("ui-icons--custom-tone".to_string());
+        classes.push(Cow::Borrowed("ui-icons--custom-tone"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-icons--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-icons--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

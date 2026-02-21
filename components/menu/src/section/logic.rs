@@ -1,6 +1,33 @@
 use crate::menu::section::{MenuSectionState, MenuSectionStateInput};
 
 pub const DEFAULT_ARIA_LABEL: &str = "Menu section";
+pub const DEFAULT_ITEM_COUNT: usize = 1;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MenuSectionNormalizedProps {
+    pub title_text: String,
+    pub has_title: bool,
+    pub item_count: usize,
+    pub disabled: bool,
+}
+
+pub struct MenuSectionNormalizeInput {
+    pub title: Option<String>,
+    pub item_count: Option<usize>,
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
+}
+
+pub fn normalize_props(input: MenuSectionNormalizeInput) -> MenuSectionNormalizedProps {
+    let title = normalize_optional_text(input.title);
+
+    MenuSectionNormalizedProps {
+        title_text: title.clone().unwrap_or_default(),
+        has_title: title.is_some(),
+        item_count: input.item_count.unwrap_or(DEFAULT_ITEM_COUNT),
+        disabled: input.is_disabled.unwrap_or(input.disabled),
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum MenuSectionHeadingTone {

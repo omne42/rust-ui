@@ -55,3 +55,14 @@ fn compose_class_name_includes_state_and_custom_markers() {
         );
     }
 }
+
+#[test]
+fn normalize_part_centralizes_default_variant_in_logic_layer() {
+    let (class_name, state) =
+        normalize_part(EmptySlot::Header, Some("  docs-empty  ".to_string()), None);
+    assert_eq!(state.slot, EmptySlot::Header);
+    assert_eq!(state.media_variant, EmptyMediaVariant::Default);
+    assert_eq!(state.variant_source_attr, "default");
+    assert!(class_name.contains("ui-empty__header"));
+    assert!(class_name.contains("docs-empty"));
+}

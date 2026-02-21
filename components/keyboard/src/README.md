@@ -35,6 +35,12 @@
 <Keyboard>"⌘K"</Keyboard>
 ```
 
+## 新手路径（先用起来，再进阶）
+
+- 第一步（默认 API）：直接使用 `<Keyboard>"⌘K"</Keyboard>`，无需理解状态分层。
+- 第二步（常见定制）：按需设置 `tone` 或 `is_compact`。
+- 第三步（高级覆盖）：仅在需要可访问性或样式覆盖时传入 `aria_label` / `class_name`。
+
 ## 常见用法
 
 ```rust
@@ -98,6 +104,13 @@ Interactive Playground 已接入 scoped CSS 测试面板：
 - `data-aria-source="default|custom"`
 - `data-class-source="default|custom"`
 - `data-custom-class="true"`（仅传入 class_name）
+- `data-ui-schema="ui.keyboard.agent-contract/v1"`
+- `data-ui-schema-version="v1"`
+- `data-ui-intent="display.keyboard.render"`
+- `data-ui-action="render"`
+- `data-ui-state="default|muted|compact"`
+- `data-ui-source="default|custom"`
+- `data-ui-output-status="draft|verified|committable"`（当前默认 `verified`）
 
 ## Accessibility
 
@@ -113,6 +126,8 @@ Interactive Playground 已接入 scoped CSS 测试面板：
 ## Source-first Copy-Paste Ready
 
 - docs-app `Playground` 支持一键复制示例代码。
+- 复制片段默认包含可直接运行的 imports（`use leptos::prelude::*;` 与 `use ui_components::{Keyboard, KeyboardTone};`）。
+- 依赖前提：已在应用侧引入 `ui-components`（并按需启用 `component-keyboard` 特性）。
 - 真实源码落点：
   - `components/keyboard/src/mod.rs`
   - `components/keyboard/src/logic.rs`

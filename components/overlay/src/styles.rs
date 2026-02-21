@@ -2,16 +2,25 @@ pub const CSS: &str = r#"
 .ui-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index));
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: calc(
+    var(--ui-space-lg, var(--ui-fallback-space-lg))
+      + var(--ui-space-sm, var(--ui-fallback-space-sm))
+  );
 
   --ui-overlay-backdrop-opacity: 0;
   --ui-overlay-panel-opacity: 0;
-  --ui-overlay-panel-scale: 0.96;
-  --ui-overlay-panel-y: 8px;
+  --ui-overlay-panel-scale: var(
+    --ui-overlay-enter-scale,
+    var(--ui-fallback-overlay-enter-scale)
+  );
+  --ui-overlay-panel-y: var(
+    --ui-overlay-enter-offset-y,
+    var(--ui-fallback-overlay-enter-offset-y)
+  );
 }
 
 .ui-overlay[data-motion-source="custom"],
@@ -74,13 +83,23 @@ pub const CSS: &str = r#"
 }
 
 .ui-overlay[data-keyboard-dismiss-disabled="true"] .ui-overlay__panel {
-  outline: 1px dashed color-mix(in oklab, var(--ui-border) 72%, transparent);
+  outline: var(--ui-border-width, var(--ui-fallback-border-width)) dashed
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border)) 72%,
+      transparent
+    );
 }
 
 .ui-overlay__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, calc(0.35 * var(--ui-overlay-backdrop-opacity)));
+  background: color-mix(
+    in oklch,
+    var(--ui-fg, var(--ui-fallback-fg)) 24%,
+    transparent
+  );
+  opacity: var(--ui-overlay-backdrop-opacity);
 }
 
 .ui-overlay__backdrop[data-state="backdrop"] {
@@ -90,15 +109,23 @@ pub const CSS: &str = r#"
 .ui-overlay__panel {
   position: relative;
   z-index: 1;
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  padding: var(--ui-space-lg);
-  min-width: 280px;
-  max-width: 640px;
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  padding: var(--ui-space-lg, var(--ui-fallback-space-lg));
+  min-width: var(
+    --ui-overlay-panel-min-width,
+    var(--ui-fallback-overlay-panel-min-width)
+  );
+  max-width: calc(
+    100vw
+      - var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset))
+      * 2
+  );
 
-  box-shadow: var(--ui-shadow-md);
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
   opacity: var(--ui-overlay-panel-opacity);
   transform: translateY(var(--ui-overlay-panel-y)) scale(var(--ui-overlay-panel-scale));
   transform-origin: center;

@@ -110,35 +110,23 @@ fn field_uses_logic_state_model() {
     let logic_source = load_source("src/field_form/field/logic.rs");
     let render_source = load_source("src/field_form/field/view.rs");
 
-    for needle in [
-        "pub enum FieldOrientation",
-        "pub enum FieldTone",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_aria_label(",
-        "pub fn normalize_error_message(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "aria_source_attr",
-        "error_source_attr",
-        "class_source_attr",
-        "message_kind_attr",
-        "data_state_attr",
-    ] {
-        assert!(
-            logic_source.contains(needle),
-            "Field logic should include `{needle}` for centralized state derivation."
-        );
-    }
+    let needle = "pub use ui_state_primitives::field::*;";
+    assert!(
+        logic_source.contains(needle),
+        "Field logic should consume shared state primitives; missing `{needle}`."
+    );
 
     for needle in [
+        "use ui_headless::{A11yDirection, FieldOptions, use_field};",
         "logic::normalize_aria_label(aria_label)",
         "logic::normalize_error_message(error_message, invalid)",
         "logic::resolve_state(FieldStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
+        "use_field(FieldOptions {",
     ] {
         assert!(
             render_source.contains(needle),
-            "Field render should derive state via logic helpers; missing `{needle}`."
+            "Field render should derive state via logic/helpers + headless contract; missing `{needle}`."
         );
     }
 }
@@ -149,20 +137,22 @@ fn field_emits_baseline_style_state_data_attributes() {
 
     for attr in [
         "data-slot=\"field\"",
-        "data-orientation=move || state.get().orientation_attr",
-        "data-tone=move || state.get().tone_attr",
-        "data-state=move || state.get().data_state_attr",
-        "data-message-kind=move || state.get().message_kind_attr",
-        "data-required=move || state.get().is_required.then_some(\"true\")",
-        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
-        "data-invalid=move || state.get().is_invalid.then_some(\"true\")",
-        "data-has-label=move || state.get().has_label.then_some(\"true\")",
-        "data-has-description=move || state.get().has_description.then_some(\"true\")",
-        "data-has-error=move || state.get().has_error_message.then_some(\"true\")",
-        "data-aria-source=move || state.get().aria_source_attr",
-        "data-error-source=move || state.get().error_source_attr",
-        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
-        "data-class-source=move || state.get().class_source_attr",
+        "data-orientation=move || headless.get().attrs.data_orientation",
+        "data-tone=move || headless.get().attrs.data_tone",
+        "data-state=move || headless.get().attrs.data_state",
+        "data-message-kind=move || headless.get().attrs.data_message_kind",
+        "data-required=move || headless.get().attrs.data_required",
+        "data-disabled=move || headless.get().attrs.data_disabled",
+        "data-invalid=move || headless.get().attrs.data_invalid",
+        "data-has-label=move || headless.get().attrs.data_has_label",
+        "data-has-description=move || headless.get().attrs.data_has_description",
+        "data-has-error=move || headless.get().attrs.data_has_error",
+        "data-aria-source=move || headless.get().attrs.data_aria_source",
+        "data-error-source=move || headless.get().attrs.data_error_source",
+        "data-custom-class=move || headless.get().attrs.data_custom_class",
+        "data-class-source=move || headless.get().attrs.data_class_source",
+        "lang=move || headless.get().attrs.lang",
+        "dir=move || headless.get().attrs.dir",
     ] {
         assert!(
             source.contains(attr),

@@ -15,25 +15,11 @@
 - `styles.rs`：静态 token-first CSS。
 - `mod.rs`：最小导出面（`NativeSelect`、`NativeSelectSize`、`NativeSelectOption`）。
 
-## API
+## 新手路径：先用起来，再进阶
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `id_base` | `String` | required |
-| `options` | `Vec<NativeSelectOption>` | required |
-| `selected_index` | `Option<Signal<Option<usize>>>` | `None` |
-| `default_selected_index` | `Option<usize>` | `None` |
-| `on_selected_index_change` | `Option<Callback<Option<usize>>>` | `None` |
-| `disabled` | `bool` | `false` |
-| `required` | `bool` | `false` |
-| `invalid` | `bool` | `false` |
-| `size` | `NativeSelectSize` (`Sm` / `Md` / `Lg`) | `Md` |
-| `name` | `Option<String>` | `None` |
-| `aria_label` | `Option<String>` | fallback to `DEFAULT_ARIA_LABEL` |
-| `placeholder` | `Option<String>` | `None` |
-| `class_name` | `Option<String>` | `None` |
+先用最小示例跑通，再看受控/校验/样式定制等高级参数。
 
-## Hello World
+### Hello World（零门槛）
 
 ```rust
 use ui_components::{NativeSelect, NativeSelectOption};
@@ -49,12 +35,37 @@ view! {
 }
 ```
 
+### 常见用法（在 docs-app 直接对照）
+
+- 默认路径：`Hello World (Uncontrolled)`（只传 `id_base + options`）。
+- 常见进阶：`Controlled + Placeholder`（`selected_index + on_selected_index_change`）。
+- 状态组合：`Required + Invalid + Disabled`。
+- 参数矩阵：`Controlled vs Uncontrolled` 与 `State Matrix (Controlled / Uncontrolled / Disabled)`。
+
+## API（进阶参考）
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `id_base` | `String` | required |
+| `options` | `Vec<NativeSelectOption>` | required |
+| `selected_index` | `Option<Signal<Option<usize>>>` | `None` |
+| `default_selected_index` | `Option<usize>` | `None` |
+| `on_selected_index_change` | `Option<Callback<Option<usize>>>` | `None` |
+| `is_disabled` | `bool` | `false` |
+| `is_required` | `bool` | `false` |
+| `is_invalid` | `bool` | `false` |
+| `size` | `NativeSelectSize` (`Sm` / `Md` / `Lg`) | `Md` |
+| `name` | `Option<String>` | `None` |
+| `aria_label` | `Option<String>` | fallback to `DEFAULT_ARIA_LABEL` |
+| `placeholder` | `Option<String>` | `None` |
+| `class_name` | `Option<String>` | `None` |
+
 ## docs-app Playground（展示区 / Config 区 / Code 区 / CSS Test 区）
 
 对应页面：`apps/docs-app/src/pages/components/pages/forms_native.rs` 的 `native_select()`
 
 - 展示区：`Primary` 当前状态 + `对比矩阵`（required/invalid、disabled 等组合）。
-- Config 区：切换 size、selected 模式、required、invalid、disabled、placeholder、custom class、compare matrix。
+- Config 区：切换 size、selected 模式、is_required、is_invalid、is_disabled、placeholder、custom class、compare matrix。
 - Code 区：输出当前配置对应的 `NativeSelect` 代码片段。
 - CSS Test 区：展示 `crates/ui-components/src/native_select/styles.rs` 的 `CSS` 常量，并输出当前配置快照。
 

@@ -29,6 +29,105 @@ pub const DEFAULT_CANCEL_LABEL: &str;
 pub const DEFAULT_AUTO_FOCUS_BUTTON: AlertDialogAutoFocusButton;
 pub const DEFAULT_CONFIRM_DISABLED: bool;
 pub const DEFAULT_SECONDARY_DISABLED: bool;
+pub const ALERT_DIALOG_AGENT_SCHEMA: &str;
+
+pub enum AlertDialogAgentSchemaVersion {
+    V1,
+}
+
+impl AlertDialogAgentSchemaVersion {
+    pub fn as_str(self) -> &'static str;
+}
+
+pub enum AlertDialogAgentIntent {
+    ConfirmationDialog,
+}
+
+impl AlertDialogAgentIntent {
+    pub fn as_str(self) -> &'static str;
+}
+
+pub enum AlertDialogAgentAction {
+    ConfirmOnly,
+    ConfirmCancel,
+    ConfirmSecondary,
+    ConfirmCancelSecondary,
+}
+
+impl AlertDialogAgentAction {
+    pub fn as_str(self) -> &'static str;
+}
+
+pub enum AlertDialogAgentState {
+    Open,
+    Closed,
+}
+
+impl AlertDialogAgentState {
+    pub fn as_str(self) -> &'static str;
+}
+
+pub enum AlertDialogAgentSource {
+    Default,
+    Customized,
+}
+
+impl AlertDialogAgentSource {
+    pub fn as_str(self) -> &'static str;
+}
+
+pub enum AlertDialogAgentConfigPolicy {
+    Whitelist,
+}
+
+impl AlertDialogAgentConfigPolicy {
+    pub fn as_str(self) -> &'static str;
+}
+
+pub enum AlertDialogAgentOutputStatus {
+    Draft,
+    Verified,
+    CommitReady,
+}
+
+impl AlertDialogAgentOutputStatus {
+    pub fn as_str(self) -> &'static str;
+}
+
+pub struct AlertDialogAgentCapabilities {
+    pub has_description: bool,
+    pub has_cancel: bool,
+    pub has_secondary: bool,
+    pub can_confirm: bool,
+    pub can_dismiss: bool,
+}
+
+pub struct AlertDialogAgentContractInput {
+    pub is_open: bool,
+    pub root_state: AlertDialogPartState,
+}
+
+pub struct AlertDialogAgentContract {
+    pub schema_name: &'static str,
+    pub schema_version: AlertDialogAgentSchemaVersion,
+    pub intent: AlertDialogAgentIntent,
+    pub action: AlertDialogAgentAction,
+    pub state: AlertDialogAgentState,
+    pub source: AlertDialogAgentSource,
+    pub config_policy: AlertDialogAgentConfigPolicy,
+    pub output_status: AlertDialogAgentOutputStatus,
+    pub capabilities: AlertDialogAgentCapabilities,
+    pub variant_source: &'static str,
+    pub title_source: &'static str,
+    pub description_source: &'static str,
+    pub cancel_source: &'static str,
+    pub secondary_source: &'static str,
+    pub confirm_source: &'static str,
+    pub auto_focus_source: &'static str,
+    pub motion_source: &'static str,
+}
+
+pub fn resolve_agent_contract(input: AlertDialogAgentContractInput) -> AlertDialogAgentContract;
 
 pub struct AlertDialogMotion {
     pub overlay: crate::overlay::OverlayMotion,

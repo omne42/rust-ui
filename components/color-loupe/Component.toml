@@ -1,0 +1,63 @@
+[component]
+id = "ui-color-loupe"
+name = "ColorLoupe"
+kind = "snapshot"
+manifest_version = 1
+
+[projection]
+rbi = "Component.rbi"
+
+[files]
+mod_rs = "src/mod.rs"
+logic_rs = "src/logic.rs"
+styles_rs = "src/styles.rs"
+view_rs = "src/view.rs"
+
+[capabilities]
+snapshot = true
+streaming = false
+spec_builder = false
+motion_runtime = false
+
+[streaming_policy]
+required = false
+fallback = "snapshot"
+owner = "upstream"
+
+[a11y]
+role = "img"
+supports_lang_dir = true
+
+[markers]
+required = [
+  "data-ui-schema",
+  "data-output-state",
+  "data-state",
+  "data-open",
+  "data-disabled",
+  "data-has-color",
+  "data-x",
+  "data-y",
+  "data-x-bucket",
+  "data-y-bucket",
+  "data-aria-source",
+  "data-custom-class",
+  "data-class-source",
+]
+
+[agent_contract]
+schema = "ui-color-loupe/v1"
+fields = [
+  "intent",
+  "action",
+  "state",
+  "output_state",
+  "source.aria",
+  "source.class",
+  "x_bucket",
+  "y_bucket",
+]
+
+[output_state]
+default = "verified"
+allowed = ["draft", "verified", "committable"]

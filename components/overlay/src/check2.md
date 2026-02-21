@@ -98,6 +98,27 @@
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：N/A（`Overlay` 无 `Dragging` 高频交互路径）。
+  - 当前组件仅处理 open/close、dismiss 与焦点约束，不存在拖拽期间每帧回流 `logic.rs` 的状态收敛需求。
+  - 若后续引入拖拽手势，必须遵循“`view/motion` 本地循环 + 结束时单次回流（如 `DragEnd`）”的约束。
+- [x] 几何两段式渲染（Two-Pass Rendering）：N/A（`Overlay` 不依赖 DOM 几何测量与定位纠偏）。
+  - 当前实现不包含 `Intent -> Measure(view) -> Rectification(logic)` 流程，open/close 与 focus 行为不需要测量环路。
+  - 若后续引入依赖测量的定位能力（如 Popover/Tooltip 风格偏移修正），必须补齐两段式收敛与幂等保护。
+- [x] 集合注册协议（Registration Protocol）：N/A（`Overlay` 不存在动态子项注册与顺序导航模型）。
+  - 当前组件不维护 `items_order`，也不涉及 `RegistrationContext` 下的 `Register/Unregister` 生命周期。
+  - 若后续扩展为带动态 item 的复合组件，必须由逻辑层维护稳定顺序，禁止依赖集合迭代顺序。
+- [x] 插槽投影策略（Slot Projection）：N/A（`Overlay` 不承载 `Lazy/KeepAlive/Eager` 子树投影策略）。
+  - 当前组件无 `KeepAlive` 隐藏态生命周期通知需求，不存在 `NotifyHidden` 驱动的轮询/动画暂停路径。
+  - 若后续引入可配置投影模式，必须显式定义策略并在隐藏阶段收敛高耗能副作用。
+- [x] 环境订阅流（Env Streams）：N/A（`Overlay` 无 `Resize/Theme/Intersection` 高频环境订阅流入口）。
+  - 当前实现不在 `view.rs` 订阅原始环境事件，也不存在需要防抖并回流 `logic` 的 `BreakpointChanged` 类语义动作。
+  - 若后续引入环境驱动行为，必须先在 `view` 采样与去抖，再以高层 `Action` 推送到 `logic`，禁止原始事件洪泛。
+- [x] 事件光锥（Event Light Cone）：N/A（`Overlay` 不涉及 `Table/Grid` 级批量集合操作与 O(N) 下钻更新）。
+  - 当前组件无 `Context Bus + Selector` 的大集合广播需求，也不维护类似 `SelectionState::All` 的压缩状态表达。
+  - 若后续扩展为批量子项交互容器，必须使用上下文总线与状态压缩，禁止线性 prop drilling。
+- [x] 统一因果总线（Causality Bus）：N/A（`Overlay` 不存在跨总线派生广播链路与 `TraceId` 透传需求）。
+  - 当前交互为局部 open/close 与 dismiss，不涉及“派生命令 -> 总线广播 -> 多订阅者”链式传播。
+  - 若后续引入跨模块因果总线，必须在链路中透传 `TraceId`，确保可追踪性与因果闭环。
 - [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
@@ -152,6 +173,13 @@
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - `components/overlay/src/view.rs` 仅把 `panel_ref` 作为 trap scope 传给 `use_focus_trap`；恢复路径通过 `RestorePolicy::FallbackTo` 与 `with_fallback_selector` 声明，不在组件侧私存恢复目标 `NodeRef`。
+  - `crates/ui-headless/src/focus_trap.rs` 通过 `focus_manager_push_trap/pop_trap/peek_trap` 维护全局焦点栈并执行 `restore_focus_chain`，层叠 overlay 关闭时可按栈顺序恢复焦点。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - N/A（当前 `Overlay` 仅依赖 `ui-headless`/`ui-motion`/Leptos 标准能力，未集成 ECharts/Map 等命令式第三方实例，也不存在第三方句柄暴露到公共 API 的路径）。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - N/A（当前 `Overlay` 不在组件内部生成 runtime ID；`aria-labelledby`/`aria-describedby` 仅消费外部传入值，`logic.rs` 与 `view.rs` 无 `now()`/随机 UUID 初始化路径）。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
@@ -203,6 +231,23 @@
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - 组件范围核查：`components/overlay/src/*.rs` 无 `unwrap/expect` 与 `let _ = ...` 命中（`rg -n '\.(unwrap|unwrap_err|expect)\s*\(|^[[:space:]]*let[[:space:]]+_[[:space:]]*=' components/overlay/src --glob '*.rs'`）。
+  - 字符串热点收敛：`components/overlay/src/logic.rs` 的类名拼接切换为 `Vec<Cow<'static, str>>`；`components/overlay/src/view.rs` 的焦点恢复 selector 改为 `Cow<'static, str>` 常量路径，不再出现组件源码内 `.to_string()` 热点。
+  - `./scripts/check-rust-hygiene.sh` 在当前执行环境受工具链前置条件限制（`check-api-contracts` 依赖 PCRE2 版 `rg`），本项按组件边界执行等价规则验证。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
+  - N/A（本次 `Overlay` 提交未引入跨大版本 API 破坏升级；公共 API 语义保持兼容，不需要新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层）。
+  - 若后续发生跨大版本破坏性升级，需同步补齐：Registry 弃用窗口登记 + 纯函数迁移实现 + 迁移回归测试。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - `components/overlay/src/styles.rs` 中主题相关视觉值统一为双层回退（如 `--ui-space-lg`、`--ui-bg`、`--ui-fg`、`--ui-border`、`--ui-shadow-md`、`--ui-overlay-enter-*`）。
+  - `crates/ui-theme/src/css.rs` 补齐并统一输出对应 fallback 终值（`--ui-fallback-space-lg`、`--ui-fallback-overlay-viewport-inset`、`--ui-fallback-overlay-enter-offset-y`、`--ui-fallback-overlay-enter-scale`）。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。
+  - `crates/ui-components/src/css.rs` 在 `push_components_css` 中统一以 `@layer ui` 包裹组件样式，并按 feature 聚合 `crate::overlay::styles::CSS`。
+  - `components/overlay/src/view.rs` 未使用普通内联 `style=` 属性，组件状态与视觉变化通过语义标记 + CSS 变量/样式规则表达。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - `components/overlay/src/motion.rs` 通过 `OverlayMotion { spring, initial_scale, initial_y_px }` 固化组件动效 contract，并对 `stiffness`/`damping`/`mass`/`precision` 做 sanitize。
+  - `components/overlay/src/motion.rs` 在 wasm 路径统一通过 `attach_motion` 挂载 spring animator，组件层不自实现底层 driver。
+  - `crates/ui-motion/src/spring.rs` 在 `set_target` 内统一尊重 `crate::web::prefers_reduced_motion()`，reduce 场景直接收敛到目标值；`components/overlay/src/motion.rs` 的 non-wasm 分支为可预测 no-op/立即收敛。
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui-components` 固定入口文件落点正确。
@@ -220,6 +265,10 @@
   - `<component>/view.rs`：纯 Leptos 结构渲染 + headless 语义挂载；禁止 `render.rs` 漂移；不隐藏关键状态决策。
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - N/A（`Overlay` 当前不属于复杂 `Spec Builder` 组件，无稳定外部 schema/build DSL 需求；保持 `mod.rs + logic.rs + styles.rs + view.rs + motion.rs` 目录形态即可）。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - 已新增 `components/overlay/src/Component.toml`（能力清单）与 `components/overlay/src/overlay.rbi`（接口签名投影），并与当前 `Overlay` 公共 API 对齐。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
@@ -240,6 +289,9 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
+  - 语义覆盖证据：`cargo test -p ui-components --test overlay_semantics --no-default-features --features component-overlay,inject-css` 通过（14/14），断言覆盖 `aria-*`、`data-*` 与焦点流转路径。
+  - 性能回归证据：`Overlay` 非高频/重型组件，`render_count` 强制预算按 N/A 处理；保留可重复 profiling/trace 基线并在测试框架支持精确计数时补齐自动化 `render_count` 断言。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
@@ -252,6 +304,9 @@
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
+  - 该项由同节已验收条目闭环覆盖：`apps/docs-app` Interactive Playground、`docs-app 文档/示例/参数矩阵/状态矩阵同步更新`、`Source-first 文档必须 Copy-Paste Ready`、`Streaming/Snapshot` 模式条目。
+  - 文档代码示例与当前 `Overlay` API 同步，复制即运行路径含必要 imports/依赖提示。
 - [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
@@ -313,6 +368,7 @@
 - 最小特性编译（native）：`cargo check -p ui-components --no-default-features --features component-overlay,inject-css` 通过。
 - 最小特性编译（wasm）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-overlay,inject-css` 通过。
 - 静态检查：`cargo clippy -p ui-components --no-default-features --features component-overlay,inject-css -- -D warnings` 通过。
+- Rust Hygiene（组件边界）：`components/overlay/src` 经等价规则扫描，`unwrap/expect`、`let _ = ...` 均为 0 命中，字符串复制热点已收敛到 `Cow<'static, str>`（`components/overlay/src/logic.rs`、`components/overlay/src/view.rs`）。
 - Tree Shaking 证据：`cargo tree -e features -p ui-components --no-default-features --features component-overlay,inject-css -f "{p} {f}"` 根节点显示 `ui-components ... component-overlay,inject-css`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 `overlay` 均有 `#[cfg(feature = "component-overlay")]` 条件导出/聚合。
 - 反向依赖观察：`cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo` 通过 `web-demo-components` 聚合启用包含 `component-overlay` 在内的组件特性（应用层全量演示链路）。
-- N/A 说明：`Overlay` 无远程异步请求链路（`is_loading`/retry/`aria-busy` 不适用）；无 `inner_html` 注入路径。
+- N/A 说明：`Overlay` 无远程异步请求链路（`is_loading`/retry/`aria-busy` 不适用）；无 `Dragging` 高频交互路径（Macro/Micro Duality 项按 N/A 验收）；不依赖 DOM 几何测量闭环（Two-Pass Rendering 项按 N/A 验收）；无动态子项注册与顺序导航协议（Registration Protocol 项按 N/A 验收）；无 `Lazy/KeepAlive/Eager` 投影策略需求（Slot Projection 项按 N/A 验收）；无 `Resize/Theme/Intersection` 环境事件流回压需求（Env Streams 项按 N/A 验收）；无 `Table/Grid` 级批量集合广播路径（Event Light Cone 项按 N/A 验收）；无跨总线 `TraceId` 因果链透传场景（Causality Bus 项按 N/A 验收）；未集成 ECharts/Map 等命令式第三方实例（Escape Hatches 项按 N/A 验收）；无组件内 runtime ID 生成且无 `now()`/随机 UUID 初始化路径（Hydration Discontinuity 项按 N/A 验收）；不属于复杂 `Spec Builder` 组件且无 `*Spec::new()...render()` 需求（Hyper-Structure Builder 项按 N/A 验收）；本次无跨大版本 API 破坏升级，不涉及 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层；无 `inner_html` 注入路径。

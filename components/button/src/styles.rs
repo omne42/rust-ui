@@ -3,27 +3,27 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  --ui-button-current-min-width: var(--ui-button-size-m-min-width, var(--ui-button-min-width));
-  --ui-button-current-font-size: var(--ui-button-size-m-font-size, var(--ui-button-font-size));
-  --ui-button-current-line-height: var(--ui-button-size-m-line-height, var(--ui-line-height-150));
+  --ui-button-current-min-width: var(--ui-button-size-m-min-width, var(--ui-button-min-width, var(--ui-component-height-100, var(--ui-fallback-component-height-100))));
+  --ui-button-current-font-size: var(--ui-button-size-m-font-size, var(--ui-button-font-size, var(--ui-fallback-font-size-150)));
+  --ui-button-current-line-height: var(--ui-button-size-m-line-height, var(--ui-line-height-150, var(--ui-fallback-line-height-150)));
   min-width: var(--ui-button-current-min-width);
-  --ui-button-padding-x: var(--ui-button-size-m-padding-x);
-  --ui-button-gap: var(--ui-button-size-m-gap);
+  --ui-button-padding-x: var(--ui-button-size-m-padding-x, var(--ui-space-sm, var(--ui-fallback-space-sm)));
+  --ui-button-gap: var(--ui-button-size-m-gap, var(--ui-space-xs, var(--ui-fallback-space-xs)));
   --ui-button-inline-spinner-size: min(
-    var(--ui-button-spinner-size),
+    var(--ui-button-spinner-size, var(--ui-fallback-button-spinner-size)),
     calc(var(--ui-button-padding-x) + var(--ui-button-gap))
   );
   gap: var(--ui-button-gap);
   padding: 0 var(--ui-button-padding-x);
   white-space: nowrap;
   position: relative;
-  --ui-button-bg: var(--ui-accent);
-  --ui-button-fg: var(--ui-accent-fg);
-  --ui-button-soft: color-mix(in oklab, var(--ui-accent-soft), var(--ui-bg) 25%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-accent) 32%);
-  --ui-button-radius: var(--ui-radius-md);
+  --ui-button-bg: var(--ui-accent, var(--ui-fallback-accent));
+  --ui-button-fg: var(--ui-accent-fg, var(--ui-fallback-accent-fg));
+  --ui-button-soft: color-mix(in oklab, var(--ui-accent-soft, var(--ui-fallback-accent-soft)), var(--ui-bg, var(--ui-fallback-bg)) 25%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-accent, var(--ui-fallback-accent)) 32%);
+  --ui-button-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
   border-radius: var(--ui-button-radius);
-  border: 1px solid transparent;
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid transparent;
   box-sizing: border-box;
   line-height: var(--ui-button-current-line-height);
   font-weight: 500;
@@ -38,45 +38,45 @@ pub const CSS: &str = r#"
 }
 
 .ui-button--color-default {
-  --ui-button-bg: var(--ui-default);
-  --ui-button-fg: var(--ui-default-foreground);
-  --ui-button-soft: color-mix(in oklab, var(--ui-default), var(--ui-bg) 78%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-default) 32%);
+  --ui-button-bg: var(--ui-default, var(--ui-bg-muted, var(--ui-fallback-bg-muted)));
+  --ui-button-fg: var(--ui-default-foreground, var(--ui-fg, var(--ui-fallback-fg)));
+  --ui-button-soft: color-mix(in oklab, var(--ui-default, var(--ui-bg-muted, var(--ui-fallback-bg-muted))), var(--ui-bg, var(--ui-fallback-bg)) 78%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-default, var(--ui-bg-muted, var(--ui-fallback-bg-muted))) 32%);
 }
 
 .ui-button--color-primary {
-  --ui-button-bg: var(--ui-primary);
-  --ui-button-fg: var(--ui-primary-foreground);
-  --ui-button-soft: color-mix(in oklab, var(--ui-primary), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-primary) 34%);
+  --ui-button-bg: var(--ui-primary, var(--ui-accent, var(--ui-fallback-accent)));
+  --ui-button-fg: var(--ui-primary-foreground, var(--ui-accent-fg, var(--ui-fallback-accent-fg)));
+  --ui-button-soft: color-mix(in oklab, var(--ui-primary, var(--ui-accent, var(--ui-fallback-accent))), var(--ui-bg, var(--ui-fallback-bg)) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-primary, var(--ui-accent, var(--ui-fallback-accent))) 34%);
 }
 
 .ui-button--color-secondary {
-  --ui-button-bg: var(--ui-secondary);
-  --ui-button-fg: var(--ui-secondary-foreground);
-  --ui-button-soft: color-mix(in oklab, var(--ui-secondary), var(--ui-bg) 80%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-secondary) 34%);
+  --ui-button-bg: var(--ui-secondary, var(--ui-accent-soft, var(--ui-fallback-accent-soft)));
+  --ui-button-fg: var(--ui-secondary-foreground, var(--ui-fg, var(--ui-fallback-fg)));
+  --ui-button-soft: color-mix(in oklab, var(--ui-secondary, var(--ui-accent-soft, var(--ui-fallback-accent-soft))), var(--ui-bg, var(--ui-fallback-bg)) 80%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-secondary, var(--ui-accent-soft, var(--ui-fallback-accent-soft))) 34%);
 }
 
 .ui-button--color-success {
-  --ui-button-bg: var(--ui-success);
-  --ui-button-fg: var(--ui-success-foreground);
-  --ui-button-soft: color-mix(in oklab, var(--ui-success), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-success) 34%);
+  --ui-button-bg: var(--ui-success, var(--ui-accent, var(--ui-fallback-accent)));
+  --ui-button-fg: var(--ui-success-foreground, var(--ui-accent-fg, var(--ui-fallback-accent-fg)));
+  --ui-button-soft: color-mix(in oklab, var(--ui-success, var(--ui-accent, var(--ui-fallback-accent))), var(--ui-bg, var(--ui-fallback-bg)) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-success, var(--ui-accent, var(--ui-fallback-accent))) 34%);
 }
 
 .ui-button--color-warning {
-  --ui-button-bg: var(--ui-warning);
-  --ui-button-fg: var(--ui-warning-foreground);
-  --ui-button-soft: color-mix(in oklab, var(--ui-warning), var(--ui-bg) 84%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-warning) 34%);
+  --ui-button-bg: var(--ui-warning, var(--ui-accent, var(--ui-fallback-accent)));
+  --ui-button-fg: var(--ui-warning-foreground, var(--ui-accent-fg, var(--ui-fallback-accent-fg)));
+  --ui-button-soft: color-mix(in oklab, var(--ui-warning, var(--ui-accent, var(--ui-fallback-accent))), var(--ui-bg, var(--ui-fallback-bg)) 84%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-warning, var(--ui-accent, var(--ui-fallback-accent))) 34%);
 }
 
 .ui-button--color-danger {
-  --ui-button-bg: var(--ui-danger);
-  --ui-button-fg: var(--ui-danger-foreground);
-  --ui-button-soft: color-mix(in oklab, var(--ui-danger), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-danger) 34%);
+  --ui-button-bg: var(--ui-danger, var(--ui-fallback-danger));
+  --ui-button-fg: var(--ui-danger-foreground, var(--ui-fallback-danger-fg));
+  --ui-button-soft: color-mix(in oklab, var(--ui-danger, var(--ui-fallback-danger)), var(--ui-bg, var(--ui-fallback-bg)) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-danger, var(--ui-fallback-danger)) 34%);
 }
 
 .ui-button--radius-none {
@@ -84,19 +84,19 @@ pub const CSS: &str = r#"
 }
 
 .ui-button--radius-sm {
-  --ui-button-radius: var(--ui-radius-sm);
+  --ui-button-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
 }
 
 .ui-button--radius-md {
-  --ui-button-radius: var(--ui-radius-md);
+  --ui-button-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
 }
 
 .ui-button--radius-lg {
-  --ui-button-radius: var(--ui-radius-lg);
+  --ui-button-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
 }
 
 .ui-button--radius-full {
-  --ui-button-radius: var(--ui-button-radius-full);
+  --ui-button-radius: var(--ui-button-radius-full, var(--ui-fallback-button-radius-full));
 }
 
 .ui-button[data-motion-source="custom"],
@@ -107,12 +107,12 @@ pub const CSS: &str = r#"
 .ui-button__spinner {
   width: var(--ui-button-inline-spinner-size);
   height: var(--ui-button-inline-spinner-size);
-  border-radius: var(--ui-button-radius-full);
-  border: var(--ui-button-spinner-border) solid currentColor;
+  border-radius: var(--ui-button-radius-full, var(--ui-fallback-button-radius-full));
+  border: var(--ui-button-spinner-border, var(--ui-fallback-button-spinner-border)) solid currentColor;
   border-top-color: transparent;
   box-sizing: border-box;
 
-  animation: ui-button-spin var(--ui-button-spinner-duration) linear infinite;
+  animation: ui-button-spin var(--ui-button-spinner-duration, var(--ui-fallback-button-spinner-duration)) linear infinite;
 }
 
 .ui-button__start,
@@ -222,26 +222,26 @@ pub const CSS: &str = r#"
 }
 
 .ui-button--focus-visible {
-  outline: var(--ui-button-focus-outline-width) solid var(--ui-focus-ring);
-  outline-offset: var(--ui-button-focus-outline-offset);
+  outline: var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width)) solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(--ui-button-focus-outline-offset, var(--ui-fallback-button-focus-outline-offset));
 }
 
 .ui-button--size-xs {
-  height: var(--ui-button-size-xs-height);
-  --ui-button-current-min-width: var(--ui-button-size-xs-min-width);
-  --ui-button-current-font-size: var(--ui-button-size-xs-font-size);
-  --ui-button-current-line-height: var(--ui-button-size-xs-line-height, var(--ui-line-height-100));
-  --ui-button-padding-x: var(--ui-button-size-xs-padding-x);
-  --ui-button-gap: var(--ui-button-size-xs-gap);
+  height: var(--ui-button-size-xs-height, var(--ui-component-height-100, var(--ui-fallback-component-height-100)));
+  --ui-button-current-min-width: var(--ui-button-size-xs-min-width, var(--ui-button-min-width, var(--ui-component-height-100, var(--ui-fallback-component-height-100))));
+  --ui-button-current-font-size: var(--ui-button-size-xs-font-size, var(--ui-button-font-size, var(--ui-fallback-font-size-100)));
+  --ui-button-current-line-height: var(--ui-button-size-xs-line-height, var(--ui-line-height-100, var(--ui-fallback-line-height-100)));
+  --ui-button-padding-x: var(--ui-button-size-xs-padding-x, var(--ui-space-xs, var(--ui-fallback-space-xs)));
+  --ui-button-gap: var(--ui-button-size-xs-gap, var(--ui-space-2xs, var(--ui-fallback-space-2xs)));
 }
 
 .ui-button--size-s {
-  height: var(--ui-button-size-s-height);
-  --ui-button-current-min-width: var(--ui-button-size-s-min-width);
-  --ui-button-current-font-size: var(--ui-button-size-s-font-size);
-  --ui-button-current-line-height: var(--ui-button-size-s-line-height, var(--ui-line-height-100));
-  --ui-button-padding-x: var(--ui-button-size-s-padding-x);
-  --ui-button-gap: var(--ui-button-size-s-gap);
+  height: var(--ui-button-size-s-height, var(--ui-component-height-100, var(--ui-fallback-component-height-100)));
+  --ui-button-current-min-width: var(--ui-button-size-s-min-width, var(--ui-button-min-width, var(--ui-component-height-100, var(--ui-fallback-component-height-100))));
+  --ui-button-current-font-size: var(--ui-button-size-s-font-size, var(--ui-button-font-size, var(--ui-fallback-font-size-100)));
+  --ui-button-current-line-height: var(--ui-button-size-s-line-height, var(--ui-line-height-100, var(--ui-fallback-line-height-100)));
+  --ui-button-padding-x: var(--ui-button-size-s-padding-x, var(--ui-space-sm, var(--ui-fallback-space-sm)));
+  --ui-button-gap: var(--ui-button-size-s-gap, var(--ui-space-xs, var(--ui-fallback-space-xs)));
 }
 
 .ui-button--size-m {
@@ -310,13 +310,13 @@ pub const CSS: &str = r#"
 .ui-button--variant-solid {
   background: var(--ui-button-bg);
   color: var(--ui-button-fg);
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-button--variant-shadow {
   background: var(--ui-button-bg);
   color: var(--ui-button-fg);
-  box-shadow: var(--ui-shadow-md);
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
 }
 
 .ui-button--variant-accent,
@@ -324,7 +324,7 @@ pub const CSS: &str = r#"
   background: color-mix(in oklab, var(--ui-button-bg), var(--ui-bg) 90%);
   color: color-mix(in oklab, var(--ui-button-bg), var(--ui-fg) 25%);
   border-color: color-mix(in oklab, var(--ui-button-border-tone), transparent 20%);
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-button--variant-secondary,
@@ -332,7 +332,7 @@ pub const CSS: &str = r#"
   background: var(--ui-button-soft);
   color: color-mix(in oklab, var(--ui-button-bg), var(--ui-fg) 20%);
   border-color: color-mix(in oklab, var(--ui-button-border-tone), transparent 42%);
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-button--variant-outline,
@@ -340,7 +340,7 @@ pub const CSS: &str = r#"
   background: transparent;
   border-color: var(--ui-button-border-tone);
   color: color-mix(in oklab, var(--ui-button-bg), var(--ui-fg) 20%);
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-button--variant-light {
@@ -351,7 +351,7 @@ pub const CSS: &str = r#"
 
 .ui-button--variant-ghost {
   background: transparent;
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
   box-shadow: none;
 }
 
@@ -362,13 +362,13 @@ pub const CSS: &str = r#"
 }
 
 .ui-button--variant-destructive {
-  --ui-button-bg: var(--ui-danger);
-  --ui-button-fg: var(--ui-danger-fg);
-  --ui-button-soft: color-mix(in oklab, var(--ui-danger), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-danger) 34%);
+  --ui-button-bg: var(--ui-danger, var(--ui-fallback-danger));
+  --ui-button-fg: var(--ui-danger-fg, var(--ui-fallback-danger-fg));
+  --ui-button-soft: color-mix(in oklab, var(--ui-danger, var(--ui-fallback-danger)), var(--ui-bg, var(--ui-fallback-bg)) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), var(--ui-danger, var(--ui-fallback-danger)) 34%);
   background: var(--ui-button-bg);
   color: var(--ui-button-fg);
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-button[data-hovered="true"]:not(:disabled).ui-button--variant-default,
@@ -395,23 +395,23 @@ pub const CSS: &str = r#"
 }
 
 .ui-button[data-hovered="true"]:not(:disabled).ui-button--variant-ghost {
-  background: var(--ui-bg-muted);
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
 }
 
 .ui-button[data-hovered="true"]:not(:disabled).ui-button--variant-link {
   text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
+  text-decoration-thickness: calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 2);
+  text-underline-offset: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 "#;
 
 #[cfg(feature = "component-button_group")]
 pub const BUTTON_GROUP_CSS: &str = r#"
 .ui-button-group {
-  --ui-button-group-border-overlap: calc(var(--ui-space-xs) / 4);
+  --ui-button-group-border-overlap: calc(var(--ui-space-xs, var(--ui-fallback-space-xs)) / 4);
 
   display: inline-flex;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
   transform: scale(var(--ui-button-group-scale, 1));
   transform-origin: center;
   will-change: transform;

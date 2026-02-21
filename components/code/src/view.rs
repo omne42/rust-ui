@@ -1,21 +1,25 @@
 use crate::{
     CodeVariant,
-    logic::{self, CodeStateInput},
+    logic::{self, CodeViewInput},
 };
 use leptos::prelude::*;
+use ui_headless::a11y::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn Code(
-    #[prop(optional)] variant: CodeVariant,
+    #[prop(optional, into)] variant: Option<CodeVariant>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = logic::normalize_optional_text(class_name);
-    let state = logic::resolve_state(CodeStateInput {
+    let locale = locale_attrs(lang, dir);
+    let resolved = logic::resolve_view_state(CodeViewInput {
         variant,
-        has_custom_class_name: class_name.is_some(),
+        class_name,
     });
-    let class = logic::compose_class_name(class_name, state);
+    let state = resolved.state;
+    let class = resolved.class;
 
     view! {
         <code
@@ -26,6 +30,13 @@ pub fn Code(
             data-inline=state.is_inline.then_some("true")
             data-block=state.is_block.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-ui-streaming="optional"
+            data-ui-fallback="snapshot"
+            data-ui-output-state="verified"
+            aria-live="off"
+            aria-busy="false"
+            lang=locale.lang
+            dir=locale.dir
         >
             {children()}
         </code>

@@ -16,8 +16,8 @@ pub fn ListBoxDemo() -> impl IntoView {
                     "Second (disabled)".to_string(),
                     "Third".to_string(),
                 ]
-                selected_index=selected_index
-                set_selected_index=set_selected_index
+                selected_index=selected_index.into()
+                on_selected_index_change=Callback::new(move |next| set_selected_index.set(next))
                 disabled_indices=vec![1]
             />
             <div class="demo-kv">

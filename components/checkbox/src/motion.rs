@@ -133,7 +133,11 @@ pub fn attach_root_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(1.0, config, move |scale| {
             let scale = scale.clamp(0.0, 10.0);
-            drop(style.set_property("--ui-checkbox-scale", &format!("{scale}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-checkbox-scale",
+                &format!("{scale}")
+            );
         });
 
         let spring_for_cleanup = spring;
@@ -214,7 +218,11 @@ pub fn attach_indicator_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(initial, config, move |value| {
             let value = value.clamp(0.0, 1.0);
-            drop(style.set_property("--ui-checkbox-indicator", &format!("{value}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-checkbox-indicator",
+                &format!("{value}")
+            );
         });
 
         let spring_for_cleanup = spring;

@@ -9,7 +9,67 @@ use ui_headless::use_presence;
 use ui_headless::{
     A11yDirection, ComboBoxOptions, FocusRingOptions, PopoverPlacement, PopoverPositionOptions,
     TextFieldOptions, use_combo_box, use_focus_ring, use_popover_position, use_text_field,
+    use_ui_id_provider,
 };
+
+const SLOT_COMBO_BOX: &str = "combo-box";
+const SLOT_COMBO_BOX_LABEL: &str = "combo-box-label";
+const SLOT_COMBO_BOX_FIELD: &str = "combo-box-field";
+const SLOT_COMBO_BOX_CONTROL: &str = "combo-box-control";
+const SLOT_COMBO_BOX_INPUT: &str = "combo-box-input";
+const SLOT_COMBO_BOX_TRIGGER: &str = "combo-box-trigger";
+const SLOT_COMBO_BOX_PANEL: &str = "combo-box-panel";
+const SLOT_COMBO_BOX_LISTBOX: &str = "combo-box-listbox";
+const SLOT_COMBO_BOX_OPTIONS: &str = "combo-box-options";
+const SLOT_COMBO_BOX_HIGHLIGHT: &str = "combo-box-highlight";
+const SLOT_COMBO_BOX_OPTION: &str = "combo-box-option";
+const SLOT_COMBO_BOX_EMPTY: &str = "combo-box-empty";
+const SLOT_COMBO_BOX_DESCRIPTION: &str = "combo-box-description";
+const SLOT_COMBO_BOX_ERROR: &str = "combo-box-error";
+
+const CLASS_COMBO_BOX_PANEL: &str = "ui-combo-box__panel";
+const CLASS_COMBO_BOX_LISTBOX: &str = "ui-combo-box__listbox";
+const CLASS_COMBO_BOX_OPTIONS: &str = "ui-combo-box__options";
+const CLASS_COMBO_BOX_OPTION: &str = "ui-combo-box__option";
+const CLASS_COMBO_BOX_EMPTY: &str = "ui-combo-box__empty";
+const CLASS_COMBO_BOX_LABEL: &str = "ui-combo-box__label";
+const CLASS_COMBO_BOX_FIELD: &str = "ui-combo-box__field";
+const CLASS_COMBO_BOX_CONTROL: &str = "ui-combo-box__control";
+const CLASS_COMBO_BOX_INPUT: &str = "ui-combo-box__input";
+const CLASS_COMBO_BOX_TRIGGER: &str = "ui-combo-box__trigger";
+const CLASS_COMBO_BOX_DESCRIPTION: &str = "ui-combo-box__description";
+const CLASS_COMBO_BOX_ERROR: &str = "ui-combo-box__error";
+const CLASS_ACTIVE_HIGHLIGHT: &str = "ui-active-highlight";
+const TRIGGER_GLYPH: &str = "▾";
+
+fn render_description_slot(description_id: String, description: String) -> impl IntoView {
+    view! {
+        <div
+            class=CLASS_COMBO_BOX_DESCRIPTION
+            id=description_id
+            data-slot=SLOT_COMBO_BOX_DESCRIPTION
+        >
+            {description}
+        </div>
+    }
+}
+
+fn render_error_slot(error_id: String, error: String, invalid: Signal<bool>) -> impl IntoView {
+    let error_id = StoredValue::new(error_id);
+    let error = StoredValue::new(error);
+
+    view! {
+        <Show when=move || invalid.get()>
+            <div
+                class=CLASS_COMBO_BOX_ERROR
+                id=move || error_id.get_value()
+                data-slot=SLOT_COMBO_BOX_ERROR
+            >
+                {move || error.get_value()}
+            </div>
+        </Show>
+    }
+}
 
 #[component]
 fn ComboBoxPanel(
@@ -19,8 +79,6 @@ fn ComboBoxPanel(
     aria_labelledby: String,
     filtered_indices: Memo<Vec<usize>>,
     items: StoredValue<Arc<[String]>>,
-    disabled_indices: Arc<HashSet<usize>>,
-    selected_index: ReadSignal<Option<usize>>,
     empty_message: StoredValue<String>,
     motion: ComboBoxMotion,
     on_exit_complete: Callback<()>,
@@ -68,33 +126,32 @@ fn ComboBoxPanel(
     view! {
         <Portal>
             <div
-                class="ui-combo-box__panel"
+                class=CLASS_COMBO_BOX_PANEL
                 node_ref=panel_ref
                 data-ui-overlay-portal=""
-                data-slot="combo-box-panel"
+                data-slot=SLOT_COMBO_BOX_PANEL
                 data-placement=move || position.placement.get().as_str()
                 style=panel_vars
                 on:pointerdown=on_panel_pointer_down
             >
                 <div
-                    class="ui-combo-box__listbox"
+                    class=CLASS_COMBO_BOX_LISTBOX
                     id=aria.listbox.id.clone()
                     role=aria.listbox.role
                     aria-disabled=aria.listbox.aria_disabled
                     aria-labelledby=aria_labelledby.clone()
                     lang=aria.listbox.lang.clone()
                     dir=aria.listbox.dir
-                    data-slot="combo-box-listbox"
+                    data-slot=SLOT_COMBO_BOX_LISTBOX
                     data-empty=move || filtered_indices.get().is_empty().then_some("true")
                 >
-                    <div class="ui-combo-box__options" node_ref=options_ref data-slot="combo-box-options">
-                        <div class="ui-active-highlight" node_ref=highlight_ref data-slot="combo-box-highlight"></div>
+                    <div class=CLASS_COMBO_BOX_OPTIONS node_ref=options_ref data-slot=SLOT_COMBO_BOX_OPTIONS>
+                        <div class=CLASS_ACTIVE_HIGHLIGHT node_ref=highlight_ref data-slot=SLOT_COMBO_BOX_HIGHLIGHT></div>
                         {{
-                            let disabled_indices = disabled_indices.clone();
                             let option_id = aria.option_id;
+                            let option_attrs = aria.option_attrs;
                             let on_option_pointer_move = aria.handlers.on_option_pointer_move;
                             let on_option_click = aria.handlers.on_option_click;
-                            let active_index = aria.active_index;
 
                             move || {
                                 let indices = filtered_indices.get();
@@ -106,20 +163,18 @@ fn ComboBoxPanel(
                                     .map(|(filtered_index, original_index)| {
                                         let id = option_id.run(filtered_index);
                                         let label = items.get(original_index).cloned().unwrap_or_default();
-                                        let is_selected = move || selected_index.get() == Some(original_index);
-                                        let is_disabled = disabled_indices.contains(&original_index);
 
                                         view! {
                                             <div
                                                 id=id
-                                                role="option"
-                                                aria-selected=move || if is_selected() { Some("true") } else { None }
-                                                aria-disabled=if is_disabled { Some("true") } else { None }
-                                                class="ui-combo-box__option"
-                                                data-slot="combo-box-option"
-                                                data-selected=move || if is_selected() { Some("true") } else { None }
-                                                data-focused=move || (active_index.get() == filtered_index).then_some("true")
-                                                data-disabled=if is_disabled { Some("true") } else { None }
+                                                role=move || option_attrs.run(filtered_index).role
+                                                aria-selected=move || option_attrs.run(filtered_index).aria_selected
+                                                aria-disabled=move || option_attrs.run(filtered_index).aria_disabled
+                                                class=CLASS_COMBO_BOX_OPTION
+                                                data-slot=SLOT_COMBO_BOX_OPTION
+                                                data-selected=move || option_attrs.run(filtered_index).data_selected
+                                                data-focused=move || option_attrs.run(filtered_index).data_focused
+                                                data-disabled=move || option_attrs.run(filtered_index).data_disabled
                                                 on:pointermove=move |_| on_option_pointer_move.run(filtered_index)
                                                 on:click=move |_| on_option_click.run(filtered_index)
                                             >
@@ -131,7 +186,7 @@ fn ComboBoxPanel(
                             }
                         }}
                         <Show when=move || filtered_indices.get().is_empty()>
-                            <div class="ui-combo-box__empty" data-slot="combo-box-empty">
+                            <div class=CLASS_COMBO_BOX_EMPTY data-slot=SLOT_COMBO_BOX_EMPTY>
                                 {move || empty_message.get_value()}
                             </div>
                         </Show>
@@ -150,12 +205,9 @@ pub fn ComboBox(
     selected_index: ReadSignal<Option<usize>>,
     set_selected_index: WriteSignal<Option<usize>>,
     #[prop(optional)] is_disabled: Option<bool>,
-    #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional, into)] is_required: Option<Signal<bool>>,
-    #[prop(optional, into)] required: Option<Signal<bool>>,
     #[prop(optional, into)] is_invalid: Option<Signal<bool>>,
-    #[prop(optional, into)] invalid: Option<Signal<bool>>,
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error: Option<String>,
@@ -163,7 +215,6 @@ pub fn ComboBox(
     #[prop(optional, into)] empty_message: Option<String>,
     #[prop(optional, into)] toggle_button_aria_label: Option<String>,
     #[prop(optional)] is_open: Option<Signal<bool>>,
-    #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional, into)] lang: Option<String>,
@@ -174,15 +225,11 @@ pub fn ComboBox(
     let accessibility_state =
         logic::normalize_accessibility_state(logic::AccessibilityStateInput {
             is_disabled,
-            disabled,
             is_required,
-            required,
             is_invalid,
-            invalid,
         });
     let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {
         is_open,
-        open,
         default_open,
         on_open_change,
     });
@@ -195,11 +242,19 @@ pub fn ComboBox(
 
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
+    let has_custom_id_base = logic::normalize_optional_text(Some(id_base.clone())).is_some();
+    let generated_id_base = use_ui_id_provider()
+        .map(|id_provider| {
+            id_provider.next_prefixed_id(ui_state_primitives::combo_box::DEFAULT_ID_BASE)
+        })
+        .unwrap_or_else(|| ui_state_primitives::combo_box::DEFAULT_ID_BASE.into());
+    let id_base = logic::resolve_id_base(id_base, generated_id_base);
 
     let motion = crate::motion::sanitize_motion(motion);
     let has_custom_motion = motion != ComboBoxMotion::default();
     let root_state = logic::normalize_root_state(logic::RootStateInput {
         id_base,
+        has_custom_id_base,
         label,
         placeholder,
         empty_message,
@@ -237,6 +292,14 @@ pub fn ComboBox(
 
     let (has_typed, set_has_typed) = signal(false);
     let (query, set_query) = signal(String::new());
+    let agent_contract = Memo::new(move |_| {
+        logic::resolve_agent_contract(logic::ComboBoxAgentContractInput {
+            is_open: is_open.get(),
+            is_disabled: state.is_disabled,
+            is_controlled: state.is_controlled,
+            has_typed: has_typed.get(),
+        })
+    });
 
     let selected_label = Memo::new(move |_| {
         let items = items.get_value();
@@ -369,7 +432,7 @@ pub fn ComboBox(
             class:ui-combo-box--focus-visible=move || focus_ring.is_focus_visible.get()
             class:ui-combo-box--invalid=move || invalid.get()
             class:ui-combo-box--disabled=state.is_disabled
-            data-slot="combo-box"
+            data-slot=SLOT_COMBO_BOX
             data-state=move || {
                 logic::resolve_root_data_state(is_open.get(), state.is_disabled).as_attr()
             }
@@ -411,25 +474,44 @@ pub fn ComboBox(
             data-count=state.item_count.to_string()
             data-filtered-count=move || filtered_count.get().to_string()
             data-disabled-option-count=state.disabled_option_count.to_string()
+            data-ui-schema=move || agent_contract.get().schema_name
+            data-ui-schema-version=move || agent_contract.get().schema_version.as_str()
+            data-ui-intent=move || agent_contract.get().intent.as_str()
+            data-ui-action=move || agent_contract.get().action.as_str()
+            data-ui-state=move || agent_contract.get().state.as_str()
+            data-ui-source=move || agent_contract.get().source.as_str()
+            data-ui-stream-support=move || agent_contract.get().stream_support.as_str()
+            data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()
+            data-ui-stream-mode="snapshot"
+            data-ui-output-status=move || agent_contract.get().output_status.as_str()
+            data-ui-capability-filter=move || {
+                agent_contract.get().capabilities.can_filter.then_some("true")
+            }
+            data-ui-capability-select=move || {
+                agent_contract.get().capabilities.can_select.then_some("true")
+            }
+            data-ui-capability-open=move || {
+                agent_contract.get().capabilities.can_open.then_some("true")
+            }
         >
             <label
-                class="ui-combo-box__label"
+                class=CLASS_COMBO_BOX_LABEL
                 id=label_id.get_value()
                 for=text_field.label.for_attr.clone()
-                data-slot="combo-box-label"
+                data-slot=SLOT_COMBO_BOX_LABEL
             >
                 {label.get_value()}
             </label>
 
-            <div class="ui-combo-box__field" data-slot="combo-box-field">
+            <div class=CLASS_COMBO_BOX_FIELD data-slot=SLOT_COMBO_BOX_FIELD>
                 <div
-                    class="ui-combo-box__control"
+                    class=CLASS_COMBO_BOX_CONTROL
                     node_ref=control_ref
-                    data-slot="combo-box-control"
+                    data-slot=SLOT_COMBO_BOX_CONTROL
                 >
                     <input
-                        class="ui-combo-box__input"
-                        data-slot="combo-box-input"
+                        class=CLASS_COMBO_BOX_INPUT
+                        data-slot=SLOT_COMBO_BOX_INPUT
                         id=aria.input.id.clone()
                         prop:value=move || query.get()
                         placeholder=move || {
@@ -456,16 +538,16 @@ pub fn ComboBox(
                     />
 
                     <button
-                        class="ui-combo-box__trigger"
+                        class=CLASS_COMBO_BOX_TRIGGER
                         type="button"
                         aria-label=move || toggle_button_aria_label.get_value()
-                        data-slot="combo-box-trigger"
+                        data-slot=SLOT_COMBO_BOX_TRIGGER
                         disabled=state.is_disabled
                         tabindex="-1"
                         on:pointerdown=on_trigger_pointer_down
                         on:click=on_trigger_click
                     >
-                        "▾"
+                        {TRIGGER_GLYPH}
                     </button>
                 </div>
 
@@ -477,8 +559,6 @@ pub fn ComboBox(
                         aria_labelledby=label_id.get_value()
                         filtered_indices=filtered_indices
                         items=items
-                        disabled_indices=disabled_indices.clone()
-                        selected_index=selected_index
                         empty_message=empty_message
                         motion=motion
                         on_exit_complete=presence.finish_exit
@@ -487,34 +567,10 @@ pub fn ComboBox(
             </div>
 
             {description.map(|description| {
-                let description_id = text_field.description.id.clone();
-                view! {
-                    <div
-                        class="ui-combo-box__description"
-                        id=description_id
-                        data-slot="combo-box-description"
-                    >
-                        {description}
-                    </div>
-                }
+                render_description_slot(text_field.description.id.clone(), description)
             })}
 
-            {error.map(|error| {
-                let error_id = text_field.error.id.clone();
-                let error_id = StoredValue::new(error_id);
-                let error = StoredValue::new(error);
-                view! {
-                    <Show when=move || invalid.get()>
-                        <div
-                            class="ui-combo-box__error"
-                            id=move || error_id.get_value()
-                            data-slot="combo-box-error"
-                        >
-                            {move || error.get_value()}
-                        </div>
-                    </Show>
-                }
-            })}
+            {error.map(|error| render_error_slot(text_field.error.id.clone(), error, invalid))}
         </div>
     }
 }

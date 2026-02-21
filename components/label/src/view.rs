@@ -1,72 +1,100 @@
 use crate::label::{
-    LabelStateInput,
+    LabelMotion,
     logic::{self, LabelEmphasis},
+    motion,
 };
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, locale_attrs};
+
+fn render_required_indicator(required_indicator: String, is_required: bool) -> impl IntoView {
+    view! {
+        <Show when=move || is_required>
+            <span class="ui-label__required" data-slot="label-required" aria-hidden="true">
+                {required_indicator.clone()}
+            </span>
+        </Show>
+    }
+}
 
 #[component]
 pub fn Label(
     #[prop(optional, into)] text: Option<String>,
     #[prop(optional, into)] for_id: Option<String>,
-    #[prop(optional)] required: bool,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_required: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] emphasis: LabelEmphasis,
     #[prop(optional, into)] required_indicator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] motion: LabelMotion,
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let (text, has_custom_label) = logic::normalize_label_text(text);
-    let (required_indicator, has_custom_indicator) =
-        logic::normalize_required_indicator(required_indicator);
-    let for_id = logic::normalize_optional_text(for_id);
-    let has_for_id = for_id.is_some();
-    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
-    let class_name = logic::normalize_optional_text(class_name);
-    let class_name = StoredValue::new(class_name);
-
-    let state = Signal::derive(move || {
-        logic::resolve_state(LabelStateInput {
-            emphasis,
-            required,
-            disabled,
-            has_for_id,
-            has_custom_label,
-            has_custom_indicator,
-            has_custom_class_name: class_name.get_value().is_some(),
-        })
+    let normalized = logic::normalize_view_input(logic::LabelViewInput {
+        text,
+        for_id,
+        required_indicator,
+        class_name,
+        lang,
     });
-
-    let class =
-        Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
+    let render_state = logic::derive_render_state(
+        logic::LabelStateAxisInput {
+            emphasis,
+            is_required,
+            is_disabled,
+        },
+        &normalized,
+    );
+    let locale = locale_attrs(normalized.lang.clone(), dir);
+    let for_id = normalized.for_id;
+    let text = normalized.text;
+    let required_indicator = normalized.required_indicator;
+    let state = render_state.state;
+    let class_name = render_state.class_name;
+    let motion_source = motion::motion_source_attr(motion);
+    let agent_contract = logic::resolve_agent_contract_attrs(state, motion_source);
+    let motion_style = Signal::derive(move || motion::attach_motion(None, motion));
 
     view! {
         <label
-            class=move || class.get()
+            class=class_name
+            style=move || motion_style.get()
             for=for_id
             lang=locale.lang.clone()
             dir=locale.dir
             data-slot="label"
-            data-emphasis=move || state.get().emphasis_attr
-            data-state=move || if state.get().is_required { "required" } else { "optional" }
-            data-required=move || state.get().is_required.then_some("true")
-            data-disabled=move || state.get().is_disabled.then_some("true")
-            data-has-for=move || state.get().has_for_id.then_some("true")
-            data-label-source=move || state.get().label_source_attr
-            data-indicator-source=move || state.get().indicator_source_attr
-            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
-            data-class-source=move || state.get().class_source_attr
-            aria-disabled=move || state.get().is_disabled.then_some("true")
+            data-emphasis=state.emphasis_attr
+            data-state=if state.is_required { "required" } else { "optional" }
+            data-required=state.is_required.then_some("true")
+            data-disabled=state.is_disabled.then_some("true")
+            data-has-for=state.has_for_id.then_some("true")
+            data-label-source=state.label_source_attr
+            data-indicator-source=state.indicator_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-class-source=state.class_source_attr
+            data-motion-source=motion_source
+            data-ui-schema=agent_contract.schema_attr
+            data-ui-schema-version=agent_contract.schema_version_attr
+            data-ui-intent=agent_contract.intent_attr
+            data-ui-action=agent_contract.action_attr
+            data-ui-state=agent_contract.state_attr
+            data-ui-source=agent_contract.source_attr
+            data-ui-stream-support=agent_contract.stream_support_attr
+            data-ui-stream-fallback=agent_contract.stream_fallback_attr
+            data-ui-output-status=agent_contract.output_status_attr
+            data-ui-label-source=agent_contract.label_source_attr
+            data-ui-indicator-source=agent_contract.indicator_source_attr
+            data-ui-class-source=agent_contract.class_source_attr
+            data-ui-motion-source=agent_contract.motion_source_attr
+            aria-disabled=state.is_disabled.then_some("true")
         >
             <span class="ui-label__text" data-slot="label-text">
                 {text}
             </span>
-            <Show when=move || state.get().is_required>
-                <span class="ui-label__required" data-slot="label-required" aria-hidden="true">
-                    {required_indicator.clone()}
-                </span>
-            </Show>
+            {render_required_indicator(required_indicator, state.is_required)}
         </label>
     }
 }
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

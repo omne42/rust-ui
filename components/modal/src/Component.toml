@@ -1,0 +1,160 @@
+schema_version = "1"
+
+[component]
+name = "Modal"
+crate = "ui-modal"
+
+[[inputs]]
+name = "is_open"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_open"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_open_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "title"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "on_close"
+ty = "OnPress"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "OverlayMotion"
+default = "OverlayMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "on_exit_complete"
+ty = "Option<Callback<()>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "children"
+ty = "ChildrenFn"
+default = "required"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-description + data-open + data-open-mode + data-open-source + data-open-change-source + data-open-prop-source + data-*-source + aria-* + lang + dir"
+scope = "root/title/description/body"
+
+[[outputs]]
+name = "on_open_change"
+ty = "Callback<bool>"
+scope = "open-state"
+
+[[outputs]]
+name = "on_close"
+ty = "OnPress"
+scope = "overlay-close"
+
+[[outputs]]
+name = "on_exit_complete"
+ty = "Callback<()>"
+scope = "overlay-exit"
+
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-config-policy + data-ui-output-status + data-ui-capability-*"
+scope = "root"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_open_state"
+enabled = true
+
+[[capabilities]]
+name = "source_markers_for_open_content_motion_and_exit"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_whitelist_render_policy"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-contract"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[[dependencies]]
+name = "ui-components/overlay"
+kind = "overlay-shell"

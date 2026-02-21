@@ -1,7 +1,13 @@
 pub const CSS: &str = r#"
 .ui-asset {
+  --ui-asset-fg: var(--ui-fg, var(--ui-fallback-fg));
+  --ui-asset-bg: var(--ui-bg, var(--ui-fallback-bg));
+  --ui-asset-accent: var(--ui-accent, var(--ui-fallback-accent));
+  --ui-asset-icon-min-size: calc(var(--ui-space-xl, var(--ui-fallback-space-xl)) * 1.125);
+  --ui-asset-icon-max-size: calc(var(--ui-space-xl, var(--ui-fallback-space-xl)) * 3.4);
+  --ui-asset-focus-shadow-blur: calc(var(--ui-space-xs, var(--ui-fallback-space-xs)) / 2);
   display: inline-flex;
-  color: var(--ui-fg);
+  color: var(--ui-asset-fg);
 }
 
 .ui-asset__content {
@@ -12,36 +18,39 @@ pub const CSS: &str = r#"
 }
 
 .ui-asset__icon {
-  inline-size: max(2.25rem, min(100%, 4.25rem));
+  inline-size: max(var(--ui-asset-icon-min-size), min(100%, var(--ui-asset-icon-max-size)));
   block-size: 100%;
   max-inline-size: 100%;
   max-block-size: 100%;
-  color: color-mix(in oklch, var(--ui-fg) 82%, var(--ui-bg));
+  color: color-mix(in oklch, var(--ui-asset-fg) 82%, var(--ui-asset-bg));
 }
 
 .ui-asset__icon--file,
 .ui-asset[data-variant="file"] .ui-asset__icon {
-  color: color-mix(in oklch, var(--ui-fg) 86%, var(--ui-accent) 14%);
+  color: color-mix(in oklch, var(--ui-asset-fg) 86%, var(--ui-asset-accent) 14%);
 }
 
 .ui-asset__icon--folder,
 .ui-asset[data-variant="folder"] .ui-asset__icon {
-  color: color-mix(in oklch, var(--ui-accent) 64%, var(--ui-fg) 36%);
+  color: color-mix(in oklch, var(--ui-asset-accent) 64%, var(--ui-asset-fg) 36%);
 }
 
 .ui-asset__icon--custom-fallback,
 .ui-asset[data-variant="custom"] .ui-asset__icon {
-  color: color-mix(in oklch, var(--ui-fg) 72%, var(--ui-accent) 28%);
+  color: color-mix(in oklch, var(--ui-asset-fg) 72%, var(--ui-asset-accent) 28%);
 }
 
 .ui-asset--selected .ui-asset__icon,
 .ui-asset[data-selected="true"] .ui-asset__icon {
-  color: var(--ui-accent);
+  color: var(--ui-asset-accent);
 }
 
 .ui-asset--focused .ui-asset__icon,
 .ui-asset[data-focused="true"] .ui-asset__icon {
-  filter: drop-shadow(0 0 0.25rem color-mix(in oklch, var(--ui-accent) 38%, transparent));
+  filter: drop-shadow(
+    0 0 var(--ui-asset-focus-shadow-blur)
+      color-mix(in oklch, var(--ui-asset-accent) 38%, transparent)
+  );
 }
 
 .ui-asset--variant-file,

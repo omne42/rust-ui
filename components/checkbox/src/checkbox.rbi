@@ -17,8 +17,12 @@ pub struct CheckboxMotion {
 }
 
 pub fn Checkbox(
-    checked: leptos::prelude::ReadSignal<bool>,
-    set_checked: leptos::prelude::WriteSignal<bool>,
+    is_checked: Option<leptos::prelude::ReadSignal<bool>>,
+    checked: Option<leptos::prelude::ReadSignal<bool>>,
+    on_checked_change: Option<leptos::prelude::WriteSignal<bool>>,
+    set_checked: Option<leptos::prelude::WriteSignal<bool>>,
+    default_checked: Option<bool>,
+    is_disabled: Option<bool>,
     disabled: bool,
     on_change: Option<leptos::prelude::Callback<bool>>,
     variant: CheckboxVariant,
@@ -26,6 +30,7 @@ pub fn Checkbox(
     motion: CheckboxMotion,
     class_name: Option<String>,
     aria_label: Option<String>,
-    node_ref: leptos::prelude::NodeRef<leptos::html::Button>,
+    lang: Option<String>,
+    dir: Option<ui_headless::A11yDirection>,
     children: leptos::children::Children,
 ) -> impl leptos::prelude::IntoView;

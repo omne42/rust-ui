@@ -47,7 +47,11 @@ fn action_group_uses_logic_state_model() {
         "pub fn normalize_items(",
         "pub fn collect_item_ids(",
         "pub fn sanitize_selected_ids(",
+        "pub fn resolve_selected_ids(",
+        "pub fn normalize_default_selected_ids(",
         "pub fn toggle_selected_id(",
+        "pub fn resolve_item_render_state(",
+        "pub fn resolve_next_selected_ids(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
         "selection_source_attr",
@@ -62,11 +66,13 @@ fn action_group_uses_logic_state_model() {
     }
 
     for needle in [
-        "use_controllable_state(selected_ids, Some(default_selected_ids), on_selected_change)",
+        "use_controllable_state(selected_ids, Some(default_selected_ids), on_selected_ids_change)",
+        "let default_selected_ids = action_logic::action_group_logic::normalize_default_selected_ids(",
         "action_logic::action_group_logic::normalize_items(items)",
         "action_logic::action_group_logic::collect_item_ids(&items)",
-        "action_logic::action_group_logic::sanitize_selected_ids(",
-        "action_logic::action_group_logic::toggle_selected_id(",
+        "action_logic::action_group_logic::resolve_selected_ids(",
+        "action_logic::action_group_logic::resolve_item_render_state(",
+        "action_logic::action_group_logic::resolve_next_selected_ids(",
         "action_logic::action_group_logic::resolve_state(ActionGroupStateInput {",
         "action_logic::action_group_logic::compose_class_name(class_name.get_value(), state.get())",
     ] {
@@ -86,8 +92,7 @@ fn action_group_controlled_uncontrolled_contract_is_complete() {
         "#[prop(optional)] default_selected_ids: Option<BTreeSet<String>>",
         "#[prop(optional)] on_selected_ids_change: Option<Callback<BTreeSet<String>>>",
         "let is_selection_controlled = selected_ids.is_some();",
-        "let on_selected_change = on_selected_ids_change.or(on_selected_change);",
-        "use_controllable_state(selected_ids, Some(default_selected_ids), on_selected_change)",
+        "use_controllable_state(selected_ids, Some(default_selected_ids), on_selected_ids_change)",
     ] {
         assert!(
             view_source.contains(needle),
@@ -224,7 +229,13 @@ fn action_group_emits_baseline_style_state_data_attributes() {
         "data-slot=\"action-group-list\"",
         "data-slot=\"action-group-node\"",
         "data-slot=\"action-group-item\"",
-        "role=\"toolbar\"",
+        "let toolbar_a11y = labeled_toolbar_attrs(",
+        "role=toolbar_a11y.role",
+        "aria-label=toolbar_a11y.aria_label.clone()",
+        "aria-orientation=toolbar_a11y.aria_orientation",
+        "aria-disabled=toolbar_a11y.aria_disabled",
+        "lang=toolbar_a11y.lang.clone()",
+        "dir=toolbar_a11y.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -314,7 +325,7 @@ fn action_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Single Selection + Action Callback\"",
         "id_base=\"docs-action-group-single\".to_string()",
         "selected_ids=selected_ids",
-        "on_selected_change=on_selected_change",
+        "on_selected_ids_change=on_selected_change",
         "on_action=on_action",
         "selected: ",
         "last action:",

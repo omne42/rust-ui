@@ -1,0 +1,246 @@
+schema_version = "1"
+
+[component]
+name = "Fieldset"
+crate = "ui-fieldset"
+
+[[inputs]]
+name = "orientation"
+ty = "FieldsetOrientation"
+default = "FieldsetOrientation::Vertical"
+controlled = false
+
+[[inputs]]
+name = "tone"
+ty = "FieldsetTone"
+default = "FieldsetTone::Neutral"
+controlled = false
+
+[[inputs]]
+name = "is_required"
+ty = "Option<bool>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_is_required"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_is_required_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_is_disabled_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_invalid"
+ty = "Option<bool>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_is_invalid"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_is_invalid_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "legend"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "error_message"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "actions"
+ty = "Option<ViewFn>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "FieldsetMotion"
+default = "FieldsetMotion::default()"
+controlled = false
+
+[[outputs]]
+name = "data-state"
+ty = "neutral | required | invalid | invalid-required | disabled | disabled-required"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-required-source"
+ty = "is_required | default_is_required"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-disabled-source"
+ty = "is_disabled | default_is_disabled"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-invalid-source"
+ty = "is_invalid | default_is_invalid"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-schema"
+ty = "ui.fieldset.agent-contract"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-schema-version"
+ty = "1"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-intent"
+ty = "form-grouping"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-action"
+ty = "initialize"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-stream-support"
+ty = "unsupported"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-stream-fallback"
+ty = "snapshot"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-output-status"
+ty = "verified"
+scope = "root-attribute"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_typed_markers"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-contract"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-contract"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[agent_contract]
+schema = "ui.fieldset.agent-contract/v1"
+fields = [
+  "intent",
+  "action",
+  "state",
+  "source",
+  "stream.support",
+  "stream.fallback",
+  "stream.mode",
+  "output.status",
+]
+intent = "form-grouping"
+action = "initialize"
+state = "data-ui-state"
+source = "data-ui-source"
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "logic::resolve_view_state",
+  "logic::resolve_agent_contract",
+  "view::Fieldset",
+  "view::render_legend_block",
+  "view::render_actions_block",
+  "view::render_message_block",
+  "motion::attach_motion",
+]
+blocked = ["inner_html", "dangerously_set_inner_html", "<script", "javascript:"]

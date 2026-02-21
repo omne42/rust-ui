@@ -62,23 +62,23 @@
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`List` 选择轴采用受控信号对 `selected_index + set_selected_index`；非受控默认索引仅作用于 active roving 焦点（`default_index`），不作为选中值事实来源。）
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`List` 选择轴已统一为 `selected_index + on_selected_index_change + default_selected_index`：`view.rs` 通过 `logic::normalize_selection_axis` 与 `ui_headless::use_controllable_state` 统一受控/非受控语义；受控模式下外部值保持单一事实来源，非受控模式仅用默认值初始化一次后由内部原语管理。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（默认归一已收敛到 `logic.rs`：`normalize_list_class_name`、`item::normalize_callbacks`、`section::normalize_item_count`、`section::resolve_title_text`；`view.rs` 仅消费归一化输出。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`logic.rs` 已集中定义并派生 `ListOptionsAxisInput/ListOptionsAxis`、`ListOptionStateInput/ListOptionState`，`view.rs` 仅消费 `normalize_options_axis/resolve_option_state/is_disabled_index` 结果；item 事件回调仅使用 `item::is_interaction_blocked`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`logic.rs` 通过 `pub use primitives::{ListItemSelectionIndicator, ListSectionHeadingTone};` 暴露离散轴枚举；`view.rs` 离散 props 使用 `Option<A11yDirection>`、`ListMotion`、`ListSectionMotion`、`ListSectionHeadingTone`，未引入字符串状态输入或 `Option<bool>` 互斥轴。回归：`components/list/test/semantics.rs::list_discrete_state_axes_are_type_constrained` 与 `crates/ui-components/tests/list_module_semantics.rs::list_discrete_state_axes_are_type_constrained`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`logic.rs` 统一消费 `ui_state_primitives::list` 并暴露装配接口，`view.rs` 仅通过 `logic::normalize_selection_axis + use_controllable_state` 桥接并消费 `logic::resolve_state/item::resolve_state/section::resolve_state` 输出，未绑定业务 store。回归：`components/list/test/semantics.rs::list_state_primitives_are_consumed_via_logic_without_business_store_binding` 与 `crates/ui-components/tests/list_module_semantics.rs::list_state_primitives_are_consumed_via_logic_without_business_store_binding`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
@@ -86,13 +86,13 @@
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`List` 基础 API 仅要求 `id_base + items`，受控轴保持可选；`collections.rs` 新增 `Hello World (Uncontrolled)`，`README` Hello World 同步为无状态接线路径。回归：`components/list/test/semantics.rs::list_dx_hello_world_is_minimal_and_does_not_require_state_wiring` 与 `crates/ui-components/tests/list_module_semantics.rs::list_dx_hello_world_is_minimal_and_state_machine_free`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（根 API 仅保留 `items` 单轴输入，不提供 `labels/titles/panels` 并行数组语法；`ListSection(children)` 与 `ListItem(children)` 承担显式组合结构，docs 提供 `<ListSection><ListItem .../></ListSection>` 示例。回归：`components/list/test/semantics.rs::list_composite_api_avoids_parallel_array_conventions` 与 `crates/ui-components/tests/list_module_semantics.rs::list_composite_api_prefers_explicit_parent_item_structure`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。

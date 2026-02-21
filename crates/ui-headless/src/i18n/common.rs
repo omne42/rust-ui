@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct CommonStrings {
+    pub breadcrumb_aria_label: Arc<str>,
+    pub breadcrumb_separator: Arc<str>,
     pub loading_aria_label: Arc<str>,
     pub close_aria_label: Arc<str>,
     pub clear_aria_label: Arc<str>,
@@ -18,7 +20,11 @@ pub struct CommonStrings {
     pub swatch_default_aria_label: Arc<str>,
     pub swatch_mixed_aria_label: Arc<str>,
     pub swatch_nothing_aria_label: Arc<str>,
+    pub chart_aria_label: Arc<str>,
     pub tree_aria_label: Arc<str>,
+    pub command_placeholder: Arc<str>,
+    pub command_empty_label: Arc<str>,
+    pub command_aria_label: Arc<str>,
     pub share_button_label: Arc<str>,
     pub share_button_group_aria_label: Arc<str>,
     pub share_platform_github_label: Arc<str>,
@@ -32,12 +38,17 @@ pub struct CommonStrings {
     pub color_area_aria_label: Arc<str>,
     pub color_area_x_axis_label: Arc<str>,
     pub color_area_y_axis_label: Arc<str>,
+    pub drop_zone_aria_label: Arc<str>,
     pub scroll_area_aria_label: Arc<str>,
+    pub field_error_aria_label: Arc<str>,
+    pub field_error_default_message: Arc<str>,
 }
 
 impl Default for CommonStrings {
     fn default() -> Self {
         Self {
+            breadcrumb_aria_label: "Breadcrumb".into(),
+            breadcrumb_separator: "/".into(),
             loading_aria_label: "Loading".into(),
             close_aria_label: "Close".into(),
             clear_aria_label: "Clear".into(),
@@ -54,7 +65,11 @@ impl Default for CommonStrings {
             swatch_default_aria_label: "Swatch".into(),
             swatch_mixed_aria_label: "Mixed".into(),
             swatch_nothing_aria_label: "No fill".into(),
+            chart_aria_label: "Chart".into(),
             tree_aria_label: "Tree".into(),
+            command_placeholder: "Type a command or search...".into(),
+            command_empty_label: "No results found.".into(),
+            command_aria_label: "Command menu".into(),
             share_button_label: "Share".into(),
             share_button_group_aria_label: "Share options".into(),
             share_platform_github_label: "GitHub".into(),
@@ -68,7 +83,10 @@ impl Default for CommonStrings {
             color_area_aria_label: "Color area".into(),
             color_area_x_axis_label: "Saturation".into(),
             color_area_y_axis_label: "Lightness".into(),
+            drop_zone_aria_label: "Drop files".into(),
             scroll_area_aria_label: "Scrollable region".into(),
+            field_error_aria_label: "FieldError".into(),
+            field_error_default_message: "Invalid value".into(),
         }
     }
 }

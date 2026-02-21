@@ -105,3 +105,7 @@ pub struct CommandDialogPartState {
     pub command_motion_source_attr: &'static str,
     pub overlay_motion_source_attr: &'static str,
 }
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

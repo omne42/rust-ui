@@ -91,21 +91,35 @@ pub fn attach_thumb_motion(
             0.0
         };
 
-        drop(style.set_property("--ui-switch-thumb-width", &format!("{initial_width}px")));
-        drop(style.set_property("--ui-switch-thumb-x", &format!("{initial_x}px")));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-switch-thumb-width",
+            &format!("{initial_width}px")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-switch-thumb-x",
+            &format!("{initial_x}px")
+        );
         let style_for_width = style.clone();
         let width_anim =
             ui_motion::spring::SpringAnimator::new(initial_width, config, move |value| {
                 let value = value.clamp(0.0, 1000.0);
-                drop(
-                    style_for_width.set_property("--ui-switch-thumb-width", &format!("{value}px")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_width),
+                    "--ui-switch-thumb-width",
+                    &format!("{value}px")
                 );
             });
 
         let style_for_x = style.clone();
         let x_anim = ui_motion::spring::SpringAnimator::new(initial_x, config, move |value| {
             let value = value.clamp(-1000.0, 1000.0);
-            drop(style_for_x.set_property("--ui-switch-thumb-x", &format!("{value}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_x),
+                "--ui-switch-thumb-x",
+                &format!("{value}px")
+            );
         });
 
         let springs_for_cleanup = springs;

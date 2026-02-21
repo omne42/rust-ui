@@ -1,7 +1,7 @@
 use crate::OnPress;
 use crate::alert_dialog::{
-    AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogPartStateInput, AlertDialogSlot,
-    AlertDialogVariant, logic,
+    AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogPartState, AlertDialogPartStateInput,
+    AlertDialogSlot, AlertDialogVariant, logic,
 };
 use crate::button::{Button, ButtonVariant};
 use crate::overlay::Overlay;
@@ -17,7 +17,7 @@ fn focus_button_soon(node_ref: NodeRef<html::Button>) {
         let Some(el) = node_ref.get_untracked() else {
             return false;
         };
-        drop(el.focus());
+        ui_observability::observe_js_result!(el.focus());
         true
     }
 
@@ -30,7 +30,7 @@ fn focus_button_soon(node_ref: NodeRef<html::Button>) {
     };
 
     let callback = Closure::once_into_js(move || {
-        _ = try_focus(&node_ref);
+        try_focus(&node_ref);
     });
 
     let Some(callback) = callback.dyn_ref::<js_sys::Function>() else {
@@ -42,6 +42,394 @@ fn focus_button_soon(node_ref: NodeRef<html::Button>) {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn focus_button_soon(_node_ref: NodeRef<html::Button>) {}
+
+const ALERT_DIALOG_TYPE_ICON_VIEWBOX: &str = "0 0 20 20";
+const ALERT_DIALOG_TYPE_ICON_STROKE: &str = "currentColor";
+const ALERT_DIALOG_WARNING_ICON_OUTLINE_D: &str =
+    "M10 2.8l8.2 14.4c.6 1-.1 2.3-1.3 2.3H3.1c-1.2 0-1.9-1.3-1.3-2.3L10 2.8z";
+const ALERT_DIALOG_WARNING_ICON_VERTICAL_D: &str = "M10 7.2v5.8";
+const ALERT_DIALOG_WARNING_ICON_DOT_D: &str = "M10 15.8h.01";
+const ALERT_DIALOG_ERROR_ICON_RING_D: &str = "M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16z";
+const ALERT_DIALOG_ERROR_ICON_VERTICAL_D: &str = "M10 6.2v5.2";
+const ALERT_DIALOG_ERROR_ICON_DOT_D: &str = "M10 14.2h.01";
+
+#[derive(Clone, Copy)]
+struct AlertDialogTypeIconPath {
+    d: &'static str,
+    stroke_width: &'static str,
+    stroke_linecap: Option<&'static str>,
+    stroke_linejoin: Option<&'static str>,
+}
+
+const ALERT_DIALOG_WARNING_ICON_PATHS: [AlertDialogTypeIconPath; 3] = [
+    AlertDialogTypeIconPath {
+        d: ALERT_DIALOG_WARNING_ICON_OUTLINE_D,
+        stroke_width: "1.5",
+        stroke_linecap: None,
+        stroke_linejoin: Some("round"),
+    },
+    AlertDialogTypeIconPath {
+        d: ALERT_DIALOG_WARNING_ICON_VERTICAL_D,
+        stroke_width: "1.5",
+        stroke_linecap: Some("round"),
+        stroke_linejoin: None,
+    },
+    AlertDialogTypeIconPath {
+        d: ALERT_DIALOG_WARNING_ICON_DOT_D,
+        stroke_width: "2.5",
+        stroke_linecap: Some("round"),
+        stroke_linejoin: None,
+    },
+];
+
+const ALERT_DIALOG_ERROR_ICON_PATHS: [AlertDialogTypeIconPath; 3] = [
+    AlertDialogTypeIconPath {
+        d: ALERT_DIALOG_ERROR_ICON_RING_D,
+        stroke_width: "1.5",
+        stroke_linecap: None,
+        stroke_linejoin: None,
+    },
+    AlertDialogTypeIconPath {
+        d: ALERT_DIALOG_ERROR_ICON_VERTICAL_D,
+        stroke_width: "1.5",
+        stroke_linecap: Some("round"),
+        stroke_linejoin: None,
+    },
+    AlertDialogTypeIconPath {
+        d: ALERT_DIALOG_ERROR_ICON_DOT_D,
+        stroke_width: "2.5",
+        stroke_linecap: Some("round"),
+        stroke_linejoin: None,
+    },
+];
+
+fn render_type_icon_path(path: AlertDialogTypeIconPath) -> AnyView {
+    match (path.stroke_linecap, path.stroke_linejoin) {
+        (Some(stroke_linecap), Some(stroke_linejoin)) => view! {
+            <path
+                d=path.d
+                stroke=ALERT_DIALOG_TYPE_ICON_STROKE
+                stroke_width=path.stroke_width
+                stroke_linecap=stroke_linecap
+                stroke_linejoin=stroke_linejoin
+            />
+        }
+        .into_any(),
+        (Some(stroke_linecap), None) => view! {
+            <path
+                d=path.d
+                stroke=ALERT_DIALOG_TYPE_ICON_STROKE
+                stroke_width=path.stroke_width
+                stroke_linecap=stroke_linecap
+            />
+        }
+        .into_any(),
+        (None, Some(stroke_linejoin)) => view! {
+            <path
+                d=path.d
+                stroke=ALERT_DIALOG_TYPE_ICON_STROKE
+                stroke_width=path.stroke_width
+                stroke_linejoin=stroke_linejoin
+            />
+        }
+        .into_any(),
+        (None, None) => view! {
+            <path d=path.d stroke=ALERT_DIALOG_TYPE_ICON_STROKE stroke_width=path.stroke_width />
+        }
+        .into_any(),
+    }
+}
+
+fn render_static_type_icon(paths: &'static [AlertDialogTypeIconPath]) -> AnyView {
+    let icon_paths = paths
+        .iter()
+        .copied()
+        .map(render_type_icon_path)
+        .collect_view();
+
+    view! {
+        <svg viewBox=ALERT_DIALOG_TYPE_ICON_VIEWBOX fill="none">
+            {icon_paths}
+        </svg>
+    }
+    .into_any()
+}
+
+fn render_variant_type_icon(variant: AlertDialogVariant) -> AnyView {
+    match variant {
+        AlertDialogVariant::Warning => render_static_type_icon(&ALERT_DIALOG_WARNING_ICON_PATHS),
+        AlertDialogVariant::Error => render_static_type_icon(&ALERT_DIALOG_ERROR_ICON_PATHS),
+        _ => ().into_any(),
+    }
+}
+
+struct DialogHeaderViewCtx {
+    variant: AlertDialogVariant,
+    root_state: Memo<AlertDialogPartState>,
+    header_class: StoredValue<String>,
+    header_state: AlertDialogPartState,
+    type_icon_class: StoredValue<String>,
+    type_icon_state: AlertDialogPartState,
+    header_text_class: StoredValue<String>,
+    header_text_state: AlertDialogPartState,
+    title_class: StoredValue<String>,
+    title_state: AlertDialogPartState,
+    title_id_attr: Signal<String>,
+    title: StoredValue<String>,
+    description_class: StoredValue<String>,
+    description_state: AlertDialogPartState,
+    description_id_attr: Signal<String>,
+    description: StoredValue<Option<String>>,
+}
+
+fn render_dialog_header(ctx: DialogHeaderViewCtx) -> AnyView {
+    view! {
+        <div
+            class=move || ctx.header_class.with_value(|class_name| class_name.clone())
+            data-slot=ctx.header_state.slot_attr
+            data-state=ctx.header_state.state_attr
+        >
+            <Show when=move || ctx.root_state.get().show_type_icon>
+                <span
+                    class=move || ctx.type_icon_class.with_value(|class_name| class_name.clone())
+                    data-slot=ctx.type_icon_state.slot_attr
+                    data-state=ctx.type_icon_state.state_attr
+                    data-variant=ctx.type_icon_state.variant_attr
+                    aria-hidden="true"
+                >
+                    {render_variant_type_icon(ctx.variant)}
+                </span>
+            </Show>
+
+            <div
+                class=move || ctx.header_text_class.with_value(|class_name| class_name.clone())
+                data-slot=ctx.header_text_state.slot_attr
+                data-state=ctx.header_text_state.state_attr
+            >
+                <h2
+                    class=move || ctx.title_class.with_value(|class_name| class_name.clone())
+                    id=move || ctx.title_id_attr.get()
+                    data-slot=ctx.title_state.slot_attr
+                    data-state=ctx.title_state.state_attr
+                    data-title-source=ctx.title_state.title_source_attr
+                >
+                    {move || ctx.title.get_value()}
+                </h2>
+                <Show when=move || ctx.root_state.get().show_description>
+                    <p
+                        class=move || ctx.description_class.with_value(|class_name| class_name.clone())
+                        id=move || ctx.description_id_attr.get()
+                        data-slot=ctx.description_state.slot_attr
+                        data-state=ctx.description_state.state_attr
+                        data-description-source=ctx.description_state.description_source_attr
+                    >
+                        {move || ctx.description.get_value().unwrap_or_default()}
+                    </p>
+                </Show>
+            </div>
+        </div>
+    }
+    .into_any()
+}
+
+struct DialogFooterViewCtx {
+    root_state: Memo<AlertDialogPartState>,
+    footer_class: StoredValue<String>,
+    footer_state: AlertDialogPartState,
+    cancel_class: StoredValue<String>,
+    cancel_state: AlertDialogPartState,
+    secondary_class: StoredValue<String>,
+    secondary_state: AlertDialogPartState,
+    confirm_class: StoredValue<String>,
+    confirm_state: AlertDialogPartState,
+    cancel_ref: NodeRef<html::Button>,
+    secondary_ref: NodeRef<html::Button>,
+    confirm_ref: NodeRef<html::Button>,
+    on_cancel_press: OnPress,
+    on_secondary_press: OnPress,
+    on_confirm_press: OnPress,
+    cancel_label: StoredValue<String>,
+    secondary_label: StoredValue<Option<String>>,
+    confirm_label: StoredValue<String>,
+    secondary_disabled: bool,
+    confirm_disabled: bool,
+    confirm_variant: ButtonVariant,
+}
+
+fn render_dialog_footer(ctx: DialogFooterViewCtx) -> AnyView {
+    view! {
+        <div
+            class=move || ctx.footer_class.with_value(|class_name| class_name.clone())
+            data-slot=ctx.footer_state.slot_attr
+            data-state=ctx.footer_state.state_attr
+        >
+            <Show when=move || ctx.root_state.get().show_cancel>
+                <span
+                    class=move || ctx.cancel_class.with_value(|class_name| class_name.clone())
+                    data-slot=ctx.cancel_state.slot_attr
+                    data-state=ctx.cancel_state.state_attr
+                    data-cancel-source=ctx.cancel_state.cancel_source_attr
+                >
+                    <Button
+                        variant=ButtonVariant::Secondary
+                        is_disabled=false
+                        node_ref=ctx.cancel_ref
+                        on_press=ctx.on_cancel_press
+                    >
+                        {move || ctx.cancel_label.get_value()}
+                    </Button>
+                </span>
+            </Show>
+            <Show when=move || ctx.root_state.get().show_secondary>
+                <span
+                    class=move || ctx.secondary_class.with_value(|class_name| class_name.clone())
+                    data-slot=ctx.secondary_state.slot_attr
+                    data-state=ctx.secondary_state.state_attr
+                    data-secondary-source=ctx.secondary_state.secondary_source_attr
+                >
+                    <Button
+                        variant=ButtonVariant::Secondary
+                        is_disabled=ctx.secondary_disabled
+                        node_ref=ctx.secondary_ref
+                        on_press=ctx.on_secondary_press
+                    >
+                        {move || ctx.secondary_label.get_value().unwrap_or_default()}
+                    </Button>
+                </span>
+            </Show>
+            <span
+                class=move || ctx.confirm_class.with_value(|class_name| class_name.clone())
+                data-slot=ctx.confirm_state.slot_attr
+                data-state=ctx.confirm_state.state_attr
+                data-confirm-source=ctx.confirm_state.confirm_source_attr
+            >
+                <Button
+                    variant=ctx.confirm_variant
+                    is_disabled=ctx.confirm_disabled
+                    node_ref=ctx.confirm_ref
+                    on_press=ctx.on_confirm_press
+                >
+                    {move || ctx.confirm_label.get_value()}
+                </Button>
+            </span>
+        </div>
+    }
+    .into_any()
+}
+
+struct DialogContentViewCtx {
+    open: Signal<bool>,
+    root_class: Memo<String>,
+    root_state: Memo<AlertDialogPartState>,
+    agent_contract: Signal<logic::AlertDialogAgentContract>,
+    locale_lang: StoredValue<Option<String>>,
+    locale_dir: Option<&'static str>,
+    header_view: AnyView,
+    footer_view: AnyView,
+}
+
+fn render_dialog_content(ctx: DialogContentViewCtx) -> AnyView {
+    view! {
+        <div
+            class=move || ctx.root_class.get()
+            lang=move || ctx.locale_lang.with_value(|value| value.clone())
+            dir=ctx.locale_dir
+            data-slot=move || ctx.root_state.get().slot_attr
+            data-state=move || ctx.root_state.get().state_attr
+            data-open=move || ctx.open.get().then_some("true")
+            data-closed=move || (!ctx.open.get()).then_some("true")
+            data-variant=move || ctx.root_state.get().variant_attr
+            data-description=move || ctx.root_state.get().description_attr
+            data-cancel=move || ctx.root_state.get().cancel_attr
+            data-secondary=move || ctx.root_state.get().secondary_attr
+            data-confirm-disabled=move || ctx.root_state.get().confirm_disabled_attr
+            data-secondary-disabled=move || ctx.root_state.get().secondary_disabled_attr
+            data-auto-focus=move || ctx.root_state.get().auto_focus_attr
+            data-with-description=move || ctx.root_state.get().show_description.then_some("true")
+            data-show-cancel=move || ctx.root_state.get().show_cancel.then_some("true")
+            data-show-secondary=move || ctx.root_state.get().show_secondary.then_some("true")
+            data-with-type-icon=move || ctx.root_state.get().show_type_icon.then_some("true")
+            data-custom-variant=move || ctx.root_state.get().has_custom_variant.then_some("true")
+            data-custom-id=move || ctx.root_state.get().has_custom_id_base.then_some("true")
+            data-custom-title=move || ctx.root_state.get().has_custom_title.then_some("true")
+            data-custom-description=move || ctx.root_state.get().has_custom_description.then_some("true")
+            data-custom-confirm=move || (ctx.root_state.get().confirm_source_attr == "custom").then_some("true")
+            data-custom-cancel=move || (ctx.root_state.get().cancel_source_attr == "custom").then_some("true")
+            data-custom-secondary=move || (ctx.root_state.get().secondary_source_attr == "custom").then_some("true")
+            data-custom-auto-focus=move || {
+                (ctx.root_state.get().auto_focus_source_attr == "custom").then_some("true")
+            }
+            data-custom-motion=move || ctx.root_state.get().has_custom_motion.then_some("true")
+            data-custom-exit=move || ctx.root_state.get().has_on_exit_complete.then_some("true")
+            data-variant-source=move || ctx.root_state.get().variant_source_attr
+            data-id-source=move || ctx.root_state.get().id_source_attr
+            data-title-source=move || ctx.root_state.get().title_source_attr
+            data-description-source=move || ctx.root_state.get().description_source_attr
+            data-cancel-source=move || ctx.root_state.get().cancel_source_attr
+            data-secondary-source=move || ctx.root_state.get().secondary_source_attr
+            data-confirm-source=move || ctx.root_state.get().confirm_source_attr
+            data-auto-focus-source=move || ctx.root_state.get().auto_focus_source_attr
+            data-motion-source=move || ctx.root_state.get().motion_source_attr
+            data-exit-source=move || ctx.root_state.get().exit_source_attr
+            data-ui-schema=move || ctx.agent_contract.get().schema_name
+            data-ui-schema-version=move || ctx.agent_contract.get().schema_version.as_str()
+            data-ui-intent=move || ctx.agent_contract.get().intent.as_str()
+            data-ui-action=move || ctx.agent_contract.get().action.as_str()
+            data-ui-state=move || ctx.agent_contract.get().state.as_str()
+            data-ui-source=move || ctx.agent_contract.get().source.as_str()
+            data-ui-config-policy=move || ctx.agent_contract.get().config_policy.as_str()
+            data-ui-output-status=move || ctx.agent_contract.get().output_status.as_str()
+            data-output-status=move || ctx.agent_contract.get().output_status.as_str()
+            data-ui-capability-description=move || {
+                ctx.agent_contract
+                    .get()
+                    .capabilities
+                    .has_description
+                    .then_some("true")
+            }
+            data-ui-capability-cancel=move || {
+                ctx.agent_contract
+                    .get()
+                    .capabilities
+                    .has_cancel
+                    .then_some("true")
+            }
+            data-ui-capability-secondary=move || {
+                ctx.agent_contract
+                    .get()
+                    .capabilities
+                    .has_secondary
+                    .then_some("true")
+            }
+            data-ui-capability-confirm=move || {
+                ctx.agent_contract
+                    .get()
+                    .capabilities
+                    .can_confirm
+                    .then_some("true")
+            }
+            data-ui-capability-dismiss=move || {
+                ctx.agent_contract
+                    .get()
+                    .capabilities
+                    .can_dismiss
+                    .then_some("true")
+            }
+            data-ui-source-variant=move || ctx.agent_contract.get().variant_source
+            data-ui-source-title=move || ctx.agent_contract.get().title_source
+            data-ui-source-description=move || ctx.agent_contract.get().description_source
+            data-ui-source-cancel=move || ctx.agent_contract.get().cancel_source
+            data-ui-source-secondary=move || ctx.agent_contract.get().secondary_source
+            data-ui-source-confirm=move || ctx.agent_contract.get().confirm_source
+            data-ui-source-auto-focus=move || ctx.agent_contract.get().auto_focus_source
+            data-ui-source-motion=move || ctx.agent_contract.get().motion_source
+        >
+            {ctx.header_view}
+            {ctx.footer_view}
+        </div>
+    }
+    .into_any()
+}
 
 #[component]
 pub fn AlertDialog(
@@ -153,6 +541,12 @@ pub fn AlertDialog(
         })
     });
     let root_class = Memo::new(move |_| logic::compose_class_name(None, root_state.get()));
+    let agent_contract = Signal::derive(move || {
+        logic::resolve_agent_contract(logic::AlertDialogAgentContractInput {
+            is_open: open.get(),
+            root_state: root_state.get(),
+        })
+    });
 
     let make_state = |slot| {
         logic::resolve_state(AlertDialogPartStateInput {
@@ -237,17 +631,10 @@ pub fn AlertDialog(
     let secondary_ref: NodeRef<html::Button> = NodeRef::new();
     let confirm_ref: NodeRef<html::Button> = NodeRef::new();
 
-    let focus_state = StoredValue::new(false);
     Effect::new(move |_| {
         if !open.get() {
-            focus_state.set_value(false);
             return;
         }
-
-        if focus_state.get_value() {
-            return;
-        }
-        focus_state.set_value(true);
 
         let target = match auto_focus_button {
             AlertDialogAutoFocusButton::Cancel if show_cancel => Some(cancel_ref),
@@ -263,200 +650,59 @@ pub fn AlertDialog(
     });
 
     let content = Arc::new(move || {
-        view! {
-            <div
-                class=move || root_class.get()
-                lang=move || locale_lang.with_value(|value| value.clone())
-                dir=locale_dir
-                data-slot=move || root_state.get().slot_attr
-                data-state=move || root_state.get().state_attr
-                data-open=move || open.get().then_some("true")
-                data-closed=move || (!open.get()).then_some("true")
-                data-variant=move || root_state.get().variant_attr
-                data-description=move || root_state.get().description_attr
-                data-cancel=move || root_state.get().cancel_attr
-                data-secondary=move || root_state.get().secondary_attr
-                data-confirm-disabled=move || root_state.get().confirm_disabled_attr
-                data-secondary-disabled=move || root_state.get().secondary_disabled_attr
-                data-auto-focus=move || root_state.get().auto_focus_attr
-                data-with-description=move || root_state.get().show_description.then_some("true")
-                data-show-cancel=move || root_state.get().show_cancel.then_some("true")
-                data-show-secondary=move || root_state.get().show_secondary.then_some("true")
-                data-with-type-icon=move || root_state.get().show_type_icon.then_some("true")
-                data-custom-variant=move || root_state.get().has_custom_variant.then_some("true")
-                data-custom-id=move || root_state.get().has_custom_id_base.then_some("true")
-                data-custom-title=move || root_state.get().has_custom_title.then_some("true")
-                data-custom-description=move || root_state.get().has_custom_description.then_some("true")
-                data-custom-confirm=move || (root_state.get().confirm_source_attr == "custom").then_some("true")
-                data-custom-cancel=move || (root_state.get().cancel_source_attr == "custom").then_some("true")
-                data-custom-secondary=move || (root_state.get().secondary_source_attr == "custom").then_some("true")
-                data-custom-auto-focus=move || {
-                    (root_state.get().auto_focus_source_attr == "custom").then_some("true")
-                }
-                data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
-                data-custom-exit=move || root_state.get().has_on_exit_complete.then_some("true")
-                data-variant-source=move || root_state.get().variant_source_attr
-                data-id-source=move || root_state.get().id_source_attr
-                data-title-source=move || root_state.get().title_source_attr
-                data-description-source=move || root_state.get().description_source_attr
-                data-cancel-source=move || root_state.get().cancel_source_attr
-                data-secondary-source=move || root_state.get().secondary_source_attr
-                data-confirm-source=move || root_state.get().confirm_source_attr
-                data-auto-focus-source=move || root_state.get().auto_focus_source_attr
-                data-motion-source=move || root_state.get().motion_source_attr
-                data-exit-source=move || root_state.get().exit_source_attr
-            >
-                <div
-                    class=move || header_class.with_value(|class_name| class_name.clone())
-                    data-slot=header_state.slot_attr
-                    data-state=header_state.state_attr
-                >
-                    <Show when=move || root_state.get().show_type_icon>
-                        <span
-                            class=move || type_icon_class.with_value(|class_name| class_name.clone())
-                            data-slot=type_icon_state.slot_attr
-                            data-state=type_icon_state.state_attr
-                            data-variant=type_icon_state.variant_attr
-                            aria-hidden="true"
-                        >
-                            {match variant {
-                                AlertDialogVariant::Warning => view! {
-                                    <svg viewBox="0 0 20 20" fill="none">
-                                        <path
-                                            d="M10 2.8l8.2 14.4c.6 1-.1 2.3-1.3 2.3H3.1c-1.2 0-1.9-1.3-1.3-2.3L10 2.8z"
-                                            stroke="currentColor"
-                                            stroke_width="1.5"
-                                            stroke_linejoin="round"
-                                        />
-                                        <path
-                                            d="M10 7.2v5.8"
-                                            stroke="currentColor"
-                                            stroke_width="1.5"
-                                            stroke_linecap="round"
-                                        />
-                                        <path
-                                            d="M10 15.8h.01"
-                                            stroke="currentColor"
-                                            stroke_width="2.5"
-                                            stroke_linecap="round"
-                                        />
-                                    </svg>
-                                }
-                                .into_any(),
-                                AlertDialogVariant::Error => view! {
-                                    <svg viewBox="0 0 20 20" fill="none">
-                                        <path
-                                            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"
-                                            stroke="currentColor"
-                                            stroke_width="1.5"
-                                        />
-                                        <path
-                                            d="M10 6.2v5.2"
-                                            stroke="currentColor"
-                                            stroke_width="1.5"
-                                            stroke_linecap="round"
-                                        />
-                                        <path
-                                            d="M10 14.2h.01"
-                                            stroke="currentColor"
-                                            stroke_width="2.5"
-                                            stroke_linecap="round"
-                                        />
-                                    </svg>
-                                }
-                                .into_any(),
-                                _ => ().into_any(),
-                            }}
-                        </span>
-                    </Show>
+        let header_view = render_dialog_header(DialogHeaderViewCtx {
+            variant,
+            root_state,
+            header_class,
+            header_state,
+            type_icon_class,
+            type_icon_state,
+            header_text_class,
+            header_text_state,
+            title_class,
+            title_state,
+            title_id_attr,
+            title,
+            description_class,
+            description_state,
+            description_id_attr,
+            description,
+        });
 
-                    <div
-                        class=move || header_text_class.with_value(|class_name| class_name.clone())
-                        data-slot=header_text_state.slot_attr
-                        data-state=header_text_state.state_attr
-                    >
-                        <h2
-                            class=move || title_class.with_value(|class_name| class_name.clone())
-                            id=move || title_id_attr.get()
-                            data-slot=title_state.slot_attr
-                            data-state=title_state.state_attr
-                            data-title-source=title_state.title_source_attr
-                        >
-                            {move || title.get_value()}
-                        </h2>
-                        <Show when=move || root_state.get().show_description>
-                            <p
-                                class=move || {
-                                    description_class.with_value(|class_name| class_name.clone())
-                                }
-                                id=move || description_id_attr.get()
-                                data-slot=description_state.slot_attr
-                                data-state=description_state.state_attr
-                                data-description-source=description_state.description_source_attr
-                            >
-                                {move || description.get_value().unwrap_or_default()}
-                            </p>
-                        </Show>
-                    </div>
-                </div>
+        let footer_view = render_dialog_footer(DialogFooterViewCtx {
+            root_state,
+            footer_class,
+            footer_state,
+            cancel_class,
+            cancel_state,
+            secondary_class,
+            secondary_state,
+            confirm_class,
+            confirm_state,
+            cancel_ref,
+            secondary_ref,
+            confirm_ref,
+            on_cancel_press,
+            on_secondary_press,
+            on_confirm_press,
+            cancel_label,
+            secondary_label,
+            confirm_label,
+            secondary_disabled,
+            confirm_disabled,
+            confirm_variant,
+        });
 
-                <div
-                    class=move || footer_class.with_value(|class_name| class_name.clone())
-                    data-slot=footer_state.slot_attr
-                    data-state=footer_state.state_attr
-                >
-                    <Show when=move || root_state.get().show_cancel>
-                        <span
-                            class=move || cancel_class.with_value(|class_name| class_name.clone())
-                            data-slot=cancel_state.slot_attr
-                            data-state=cancel_state.state_attr
-                            data-cancel-source=cancel_state.cancel_source_attr
-                        >
-                            <Button
-                                variant=ButtonVariant::Secondary
-                                is_disabled=false
-                                node_ref=cancel_ref
-                                on_press=on_cancel_press
-                            >
-                                {move || cancel_label.get_value()}
-                            </Button>
-                        </span>
-                    </Show>
-                    <Show when=move || root_state.get().show_secondary>
-                        <span
-                            class=move || secondary_class.with_value(|class_name| class_name.clone())
-                            data-slot=secondary_state.slot_attr
-                            data-state=secondary_state.state_attr
-                            data-secondary-source=secondary_state.secondary_source_attr
-                        >
-                            <Button
-                                variant=ButtonVariant::Secondary
-                                is_disabled=secondary_disabled
-                                node_ref=secondary_ref
-                                on_press=on_secondary_press
-                            >
-                                {move || secondary_label.get_value().unwrap_or_default()}
-                            </Button>
-                        </span>
-                    </Show>
-                    <span
-                        class=move || confirm_class.with_value(|class_name| class_name.clone())
-                        data-slot=confirm_state.slot_attr
-                        data-state=confirm_state.state_attr
-                        data-confirm-source=confirm_state.confirm_source_attr
-                    >
-                        <Button
-                            variant=confirm_variant
-                            is_disabled=confirm_disabled
-                            node_ref=confirm_ref
-                            on_press=on_confirm_press
-                        >
-                            {move || confirm_label.get_value()}
-                        </Button>
-                    </span>
-                </div>
-            </div>
-        }
+        render_dialog_content(DialogContentViewCtx {
+            open,
+            root_class,
+            root_state,
+            agent_contract,
+            locale_lang,
+            locale_dir,
+            header_view,
+            footer_view,
+        })
     });
 
     if show_description {

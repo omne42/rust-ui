@@ -7,6 +7,8 @@ use ui_layout::{
 };
 
 const ACCORDION_README_MD: &str = include_str!("../../../../../components/accordion/src/README.md");
+const CODE_BLOCK_README_MD: &str =
+    include_str!("../../../../../components/code-block/src/README.md");
 const CHECKBOX_README_MD: &str = include_str!("../../../../../components/checkbox/src/README.md");
 const CHECKBOX_GROUP_README_MD: &str =
     include_str!("../../../../../components/checkbox-group/src/README.md");
@@ -21,6 +23,7 @@ const MODAL_README_MD: &str = include_str!("../../../../../components/modal/src/
 fn component_readme_markdown(slug: &str) -> Option<&'static str> {
     match slug {
         "accordion" => Some(ACCORDION_README_MD),
+        "code-block" => Some(CODE_BLOCK_README_MD),
         "checkbox" => Some(CHECKBOX_README_MD),
         "checkbox-group" => Some(CHECKBOX_GROUP_README_MD),
         "checkbox-field" => Some(CHECKBOX_FIELD_README_MD),
@@ -47,6 +50,46 @@ fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget {
             max_mount_ms: 36.0,
             max_update_ms: Some(12.0),
             max_heap_kb: Some(768.0),
+        },
+        "autocomplete" => UiPerfBudget {
+            max_mount_ms: 38.0,
+            max_update_ms: Some(13.0),
+            max_heap_kb: Some(768.0),
+        },
+        "error-view" => UiPerfBudget {
+            max_mount_ms: 20.0,
+            max_update_ms: Some(6.0),
+            max_heap_kb: Some(320.0),
+        },
+        "fieldset" => UiPerfBudget {
+            max_mount_ms: 24.0,
+            max_update_ms: Some(8.0),
+            max_heap_kb: Some(384.0),
+        },
+        "combo-box" => UiPerfBudget {
+            max_mount_ms: 38.0,
+            max_update_ms: Some(13.0),
+            max_heap_kb: Some(768.0),
+        },
+        "checkbox" => UiPerfBudget {
+            max_mount_ms: 22.0,
+            max_update_ms: Some(7.0),
+            max_heap_kb: Some(320.0),
+        },
+        "checkbox-field" => UiPerfBudget {
+            max_mount_ms: 24.0,
+            max_update_ms: Some(8.0),
+            max_heap_kb: Some(384.0),
+        },
+        "checkbox-group" => UiPerfBudget {
+            max_mount_ms: 26.0,
+            max_update_ms: Some(9.0),
+            max_heap_kb: Some(448.0),
+        },
+        "calendar" => UiPerfBudget {
+            max_mount_ms: 32.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(576.0),
         },
         "button-copy" => UiPerfBudget {
             max_mount_ms: 26.0,
@@ -78,6 +121,11 @@ fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget {
             max_update_ms: Some(10.0),
             max_heap_kb: Some(512.0),
         },
+        "flip-card" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
         "share-button" => UiPerfBudget {
             max_mount_ms: 32.0,
             max_update_ms: Some(11.0),
@@ -87,6 +135,16 @@ fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget {
             max_mount_ms: 22.0,
             max_update_ms: Some(6.0),
             max_heap_kb: Some(320.0),
+        },
+        "circular-progress" => UiPerfBudget {
+            max_mount_ms: 20.0,
+            max_update_ms: Some(6.0),
+            max_heap_kb: Some(320.0),
+        },
+        "avatar-group" => UiPerfBudget {
+            max_mount_ms: 24.0,
+            max_update_ms: Some(8.0),
+            max_heap_kb: Some(384.0),
         },
         "tag" => UiPerfBudget {
             max_mount_ms: 24.0,
@@ -98,15 +156,145 @@ fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget {
             max_update_ms: Some(12.0),
             max_heap_kb: Some(640.0),
         },
+        "alert-dialog" => UiPerfBudget {
+            max_mount_ms: 36.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "dialog" => UiPerfBudget {
+            max_mount_ms: 36.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "hover-card" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
+        "drop-zone" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
+        "coachmark" => UiPerfBudget {
+            max_mount_ms: 36.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "chart" => UiPerfBudget {
+            max_mount_ms: 34.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
         "tree" => UiPerfBudget {
             max_mount_ms: 42.0,
             max_update_ms: Some(14.0),
             max_heap_kb: Some(896.0),
         },
+        "list" => UiPerfBudget {
+            max_mount_ms: 34.0,
+            max_update_ms: Some(11.0),
+            max_heap_kb: Some(576.0),
+        },
+        "menu" => UiPerfBudget {
+            max_mount_ms: 38.0,
+            max_update_ms: Some(13.0),
+            max_heap_kb: Some(704.0),
+        },
+        "menu-trigger" => UiPerfBudget {
+            max_mount_ms: 36.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "dropdown-menu" => UiPerfBudget {
+            max_mount_ms: 38.0,
+            max_update_ms: Some(13.0),
+            max_heap_kb: Some(704.0),
+        },
+        "action-menu" => UiPerfBudget {
+            max_mount_ms: 38.0,
+            max_update_ms: Some(13.0),
+            max_heap_kb: Some(704.0),
+        },
+        "context-menu" => UiPerfBudget {
+            max_mount_ms: 38.0,
+            max_update_ms: Some(13.0),
+            max_heap_kb: Some(704.0),
+        },
+        "menubar" => UiPerfBudget {
+            max_mount_ms: 42.0,
+            max_update_ms: Some(14.0),
+            max_heap_kb: Some(896.0),
+        },
+        "navigation-menu" => UiPerfBudget {
+            max_mount_ms: 42.0,
+            max_update_ms: Some(14.0),
+            max_heap_kb: Some(896.0),
+        },
+        "collapsible" => UiPerfBudget {
+            max_mount_ms: 34.0,
+            max_update_ms: Some(11.0),
+            max_heap_kb: Some(576.0),
+        },
+        "color-loupe" => UiPerfBudget {
+            max_mount_ms: 20.0,
+            max_update_ms: Some(6.0),
+            max_heap_kb: Some(320.0),
+        },
+        "color-swatch" => UiPerfBudget {
+            max_mount_ms: 22.0,
+            max_update_ms: Some(6.0),
+            max_heap_kb: Some(320.0),
+        },
+        "color-thumb" => UiPerfBudget {
+            max_mount_ms: 24.0,
+            max_update_ms: Some(8.0),
+            max_heap_kb: Some(384.0),
+        },
+        "color-editor" => UiPerfBudget {
+            max_mount_ms: 40.0,
+            max_update_ms: Some(14.0),
+            max_heap_kb: Some(896.0),
+        },
+        "color-slider" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
+        "color-wheel" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
+        "color-picker" => UiPerfBudget {
+            max_mount_ms: 36.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "color-swatch-picker" => UiPerfBudget {
+            max_mount_ms: 32.0,
+            max_update_ms: Some(11.0),
+            max_heap_kb: Some(576.0),
+        },
         "time-field" => UiPerfBudget {
             max_mount_ms: 32.0,
             max_update_ms: Some(11.0),
             max_heap_kb: Some(576.0),
+        },
+        "field" => UiPerfBudget {
+            max_mount_ms: 24.0,
+            max_update_ms: Some(8.0),
+            max_heap_kb: Some(384.0),
+        },
+        "field-group" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
+        "form-field" => UiPerfBudget {
+            max_mount_ms: 26.0,
+            max_update_ms: Some(8.0),
+            max_heap_kb: Some(384.0),
         },
         "slider" => UiPerfBudget {
             max_mount_ms: 30.0,

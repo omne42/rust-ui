@@ -38,21 +38,42 @@ fn normalize_helpers_fallback_to_defaults() {
 
 #[test]
 fn normalize_required_and_disabled_states_track_sources() {
-    let required = normalize_required_state(Some(false), true);
+    let required = normalize_required_state(Some(false));
     assert!(!required.is_required);
     assert_eq!(required.required_source_attr, "is_required");
 
-    let required = normalize_required_state(None, true);
-    assert!(required.is_required);
-    assert_eq!(required.required_source_attr, "required");
+    let required = normalize_required_state(None);
+    assert!(!required.is_required);
+    assert_eq!(required.required_source_attr, "default");
 
-    let disabled = normalize_accessibility_state(Some(false), true);
+    let disabled = normalize_accessibility_state(Some(false));
     assert!(!disabled.is_disabled);
     assert_eq!(disabled.disabled_source_attr, "is_disabled");
 
-    let disabled = normalize_accessibility_state(None, true);
-    assert!(disabled.is_disabled);
-    assert_eq!(disabled.disabled_source_attr, "disabled");
+    let disabled = normalize_accessibility_state(None);
+    assert!(!disabled.is_disabled);
+    assert_eq!(disabled.disabled_source_attr, "default");
+}
+
+#[test]
+fn normalize_component_state_centralizes_state_derivation() {
+    let model = normalize_component_state(LegendNormalizeInput {
+        tone: LegendTone::Muted,
+        is_required: Some(true),
+        is_disabled: None,
+        text: Some(" Billing settings ".to_string()),
+        required_indicator: Some(" (required) ".to_string()),
+        class_name: Some(" docs-legend ".to_string()),
+    });
+
+    assert_eq!(model.state.tone_attr, "muted");
+    assert!(model.state.is_required);
+    assert!(!model.state.is_disabled);
+    assert_eq!(model.required_state.required_source_attr, "is_required");
+    assert_eq!(model.accessibility_state.disabled_source_attr, "default");
+    assert_eq!(model.text, "Billing settings");
+    assert_eq!(model.required_indicator, "(required)");
+    assert_eq!(model.class_name.as_deref(), Some("docs-legend"));
 }
 
 #[test]

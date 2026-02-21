@@ -560,8 +560,8 @@ fn action_button_normalization_reuses_button_contract() {
 
     for needle in [
         "let normalized = button_logic::normalize_input(button_logic::ButtonInputNormalizationInput {",
-        "icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string())",
-        "button_type: button_type.unwrap_or_default()",
+        "icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.as_ref().into())",
+        "button_type: action_logic::action_button_logic::resolve_button_type(button_type)",
         "let button_type = normalized.button_type;",
         "let class = view_state.class_name;",
     ] {
@@ -582,6 +582,7 @@ fn action_button_default_priority_is_centralized_in_logic_module() {
         "pub struct ActionButtonInputResolutionInput",
         "pub struct ActionButtonResolvedInput",
         "pub fn resolve_input(input: ActionButtonInputResolutionInput) -> ActionButtonResolvedInput",
+        "pub fn resolve_button_type(button_type: Option<ActionButtonType>) -> ActionButtonType",
         "let is_disabled = input",
         ".is_disabled",
         ".or(input.inherited_disabled)",
@@ -597,6 +598,7 @@ fn action_button_default_priority_is_centralized_in_logic_module() {
 
     for needle in [
         "let resolved = action_logic::action_button_logic::resolve_input(",
+        "button_type: action_logic::action_button_logic::resolve_button_type(button_type),",
         "ActionButtonInputResolutionInput {",
         "is_disabled: resolved.is_disabled",
         "size: resolved.size",

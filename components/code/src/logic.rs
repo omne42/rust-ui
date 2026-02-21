@@ -1,90 +1,49 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum CodeVariant {
-    #[default]
-    Inline,
-    Block,
+use std::borrow::Cow;
+
+pub use ui_state_primitives::code::{
+    CodeState, CodeStateInput, CodeVariant, normalize_optional_text, resolve_state,
+};
+
+pub struct CodeViewInput {
+    pub variant: Option<CodeVariant>,
+    pub class_name: Option<String>,
 }
 
-impl CodeVariant {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            CodeVariant::Inline => "ui-code--variant-inline",
-            CodeVariant::Block => "ui-code--variant-block",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            CodeVariant::Inline => "inline",
-            CodeVariant::Block => "block",
-        }
-    }
-
-    pub fn is_block(self) -> bool {
-        matches!(self, CodeVariant::Block)
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CodeStateInput {
-    pub variant: CodeVariant,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CodeState {
-    pub variant: CodeVariant,
-    pub variant_class: &'static str,
-    pub variant_attr: &'static str,
-    pub state_class: &'static str,
-    pub state_attr: &'static str,
-    pub is_inline: bool,
-    pub is_block: bool,
-    pub has_custom_class_name: bool,
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
-}
-
-pub fn resolve_state(input: CodeStateInput) -> CodeState {
-    let is_block = input.variant.is_block();
-    let (state_class, state_attr) = if is_block {
-        ("ui-code--state-block", "block")
-    } else {
-        ("ui-code--state-inline", "inline")
-    };
-
-    CodeState {
-        variant: input.variant,
-        variant_class: input.variant.class_name(),
-        variant_attr: input.variant.as_attr(),
-        state_class,
-        state_attr,
-        is_inline: !is_block,
-        is_block,
-        has_custom_class_name: input.has_custom_class_name,
-    }
+pub struct CodeViewState {
+    pub state: CodeState,
+    pub class: String,
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: CodeState) -> String {
-    let mut classes = vec![
-        "ui-code".to_string(),
-        state.variant_class.into(),
-        state.state_class.into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-code"),
+        Cow::Borrowed(state.variant_class),
+        Cow::Borrowed(state.state_class),
     ];
 
     if state.has_custom_class_name {
-        classes.push("ui-code--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-code--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+pub fn resolve_view_state(input: CodeViewInput) -> CodeViewState {
+    let class_name = normalize_optional_text(input.class_name);
+    let state = resolve_state(CodeStateInput {
+        variant: input.variant.unwrap_or_default(),
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class = compose_class_name(class_name, state);
+    CodeViewState { state, class }
 }
 
 #[cfg(test)]

@@ -1,0 +1,210 @@
+schema_version = "1"
+
+[component]
+name = "Menu"
+crate = "ui-menu"
+rbi = "menu.rbi"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "items"
+ty = "Arc<[String]>"
+default = "Arc::from([])"
+controlled = false
+
+[[inputs]]
+name = "item_specs"
+ty = "Vec<MenuItemSpec>"
+default = "Vec::new()"
+controlled = false
+
+[[inputs]]
+name = "on_action"
+ty = "Callback<usize>"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_labelledby"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "disabled_indices"
+ty = "Vec<usize>"
+default = "Vec::new()"
+controlled = false
+
+[[inputs]]
+name = "item_kinds"
+ty = "Vec<MenuItemKind>"
+default = "Vec::new()"
+controlled = false
+
+[[inputs]]
+name = "default_index"
+ty = "usize"
+default = "0"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "MenuMotion"
+default = "MenuMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-disabled + data-empty + data-has-items + data-has-checked-items + data-has-disabled-items + data-items-source + data-motion-source + data-custom-motion + role + aria-*"
+scope = "menu-root"
+
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-output-status + data-ui-stream-support + data-ui-stream-fallback + data-ui-stream-mode + data-ui-state-source + data-ui-motion-source + data-ui-items-source + data-ui-config-policy"
+scope = "menu-root"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "typed_item_spec_input"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_whitelist_boundary"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-contract"
+
+[[agent_contract]]
+schema = "ui.menu.agent-contract.v1"
+intent = "menu.interaction"
+action = "navigate-select"
+state_axes = ["disabled", "empty", "ready", "ready-checked"]
+source_axes = ["state-primitives", "data-ui-motion-source", "data-ui-items-source"]
+
+[[agent_contract_markers]]
+name = "schema"
+attr = "data-ui-schema"
+values = ["ui.menu.agent-contract"]
+
+[[agent_contract_markers]]
+name = "schema_version"
+attr = "data-ui-schema-version"
+values = ["v1"]
+
+[[agent_contract_markers]]
+name = "intent"
+attr = "data-ui-intent"
+values = ["menu.interaction"]
+
+[[agent_contract_markers]]
+name = "action"
+attr = "data-ui-action"
+values = ["navigate-select"]
+
+[[agent_contract_markers]]
+name = "state"
+attr = "data-ui-state"
+values = ["disabled", "empty", "ready", "ready-checked"]
+
+[[agent_contract_markers]]
+name = "source"
+attr = "data-ui-source"
+values = ["state-primitives"]
+
+[[agent_contract_markers]]
+name = "output_status"
+attr = "data-ui-output-status"
+values = ["verified"]
+
+[[agent_contract_markers]]
+name = "stream_support"
+attr = "data-ui-stream-support"
+values = ["unsupported"]
+
+[[agent_contract_markers]]
+name = "stream_fallback"
+attr = "data-ui-stream-fallback"
+values = ["snapshot"]
+
+[[agent_contract_markers]]
+name = "stream_mode"
+attr = "data-ui-stream-mode"
+values = ["snapshot"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "logic::normalize_props(...)",
+  "logic::normalize_menu_items(...)",
+  "logic::resolve_state(...)",
+  "logic::resolve_agent_contract(...)",
+  "menu_motion::attach_motion(...)",
+]
+blocked = ["inner_html", "<script", "javascript:", "eval("]
+
+[streaming_policy]
+term_scope = "llm-output-rendering"
+defined_modes = ["streaming", "snapshot"]
+required = false
+owner = "upstream"
+fallback = "snapshot"
+default = "snapshot"

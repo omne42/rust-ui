@@ -22,19 +22,14 @@ fn state_primitives_are_reexported_from_ui_state_primitives() {
 }
 
 #[test]
-fn normalize_accessibility_state_applies_explicit_priority_and_defaults() {
-    let (preferred_required, _set_preferred_required) = signal(true);
-    let (legacy_required, _set_legacy_required) = signal(false);
-    let (preferred_invalid, _set_preferred_invalid) = signal(true);
-    let (legacy_invalid, _set_legacy_invalid) = signal(false);
+fn normalize_accessibility_state_applies_canonical_inputs_and_defaults() {
+    let (required_signal, _set_required_signal) = signal(true);
+    let (invalid_signal, _set_invalid_signal) = signal(true);
 
     let state = normalize_accessibility_state(AccessibilityStateInput {
         is_disabled: Some(true),
-        disabled: false,
-        is_required: Some(preferred_required.into()),
-        required: Some(legacy_required.into()),
-        is_invalid: Some(preferred_invalid.into()),
-        invalid: Some(legacy_invalid.into()),
+        is_required: Some(required_signal.into()),
+        is_invalid: Some(invalid_signal.into()),
     });
 
     assert!(state.is_disabled);
@@ -43,25 +38,20 @@ fn normalize_accessibility_state_applies_explicit_priority_and_defaults() {
 
     let fallback = normalize_accessibility_state(AccessibilityStateInput {
         is_disabled: None,
-        disabled: false,
         is_required: None,
-        required: None,
         is_invalid: None,
-        invalid: None,
     });
     assert!(!fallback.required.get_untracked());
     assert!(!fallback.invalid.get_untracked());
 }
 
 #[test]
-fn normalize_open_state_applies_explicit_priority_and_triplet_passthrough() {
+fn normalize_open_state_uses_canonical_triplet_passthrough() {
     let (is_open_signal, _set_is_open_signal) = signal(true);
-    let (legacy_open_signal, _set_legacy_open_signal) = signal(false);
     let on_open_change = Callback::new(|_: bool| {});
 
     let open_state = normalize_open_state(OpenStateInput {
         is_open: Some(is_open_signal.into()),
-        open: Some(legacy_open_signal.into()),
         default_open: Some(false),
         on_open_change: Some(on_open_change),
     });
@@ -81,6 +71,7 @@ fn normalize_open_state_applies_explicit_priority_and_triplet_passthrough() {
 fn normalize_root_state_centralizes_normalization_and_state_derivation() {
     let root = normalize_root_state(RootStateInput {
         id_base: "  ".to_string(),
+        has_custom_id_base: false,
         label: "  ".to_string(),
         placeholder: Some("  ".to_string()),
         empty_message: Some("  nothing  ".to_string()),
@@ -112,6 +103,18 @@ fn normalize_root_state_centralizes_normalization_and_state_derivation() {
     assert!(root.state.is_disabled);
     assert!(root.state.is_controlled);
     assert!(root.class_name.contains("ui-combo-box"));
+}
+
+#[test]
+fn resolve_id_base_prefers_custom_and_falls_back_to_generated() {
+    assert_eq!(
+        resolve_id_base("  docs-combo  ".to_string(), "combo-box-7".to_string()),
+        "docs-combo".to_string()
+    );
+    assert_eq!(
+        resolve_id_base("  ".to_string(), "combo-box-7".to_string()),
+        "combo-box-7".to_string()
+    );
 }
 
 #[test]

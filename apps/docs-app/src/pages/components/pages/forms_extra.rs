@@ -11,21 +11,412 @@ use ui_components::{
     TimeFieldTone, field_form::field::FieldMotion,
 };
 
+#[cfg(target_arch = "wasm32")]
+const CALENDAR_WORKBENCH_STORAGE_KEY: &str = "docs:calendar:workbench:v1";
+#[cfg(target_arch = "wasm32")]
+const CALENDAR_WORKBENCH_STORAGE_VERSION: u8 = 1;
+#[cfg(target_arch = "wasm32")]
+const FIELD_WORKBENCH_STORAGE_KEY: &str = "docs:field:workbench:v1";
+#[cfg(target_arch = "wasm32")]
+const FIELD_WORKBENCH_STORAGE_VERSION: u8 = 1;
+
+#[cfg_attr(target_arch = "wasm32", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug)]
+struct FieldWorkbenchState {
+    orientation_key: String,
+    tone_key: String,
+    required: bool,
+    invalid: bool,
+    disabled: bool,
+    custom_class: bool,
+    custom_error: bool,
+    motion_ms: u16,
+}
+
+impl Default for FieldWorkbenchState {
+    fn default() -> Self {
+        Self {
+            orientation_key: "vertical".to_string(),
+            tone_key: "default".to_string(),
+            required: true,
+            invalid: false,
+            disabled: false,
+            custom_class: false,
+            custom_error: false,
+            motion_ms: 160,
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(serde::Serialize, serde::Deserialize)]
+struct FieldWorkbenchStorage {
+    version: u8,
+    state: FieldWorkbenchState,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Debug)]
+enum FieldWorkbenchStorageError {
+    Serialize(serde_json::Error),
+    Deserialize(serde_json::Error),
+    UnsupportedVersion(u8),
+}
+
+#[cfg(target_arch = "wasm32")]
+impl FieldWorkbenchStorageError {
+    fn as_code(&self) -> &'static str {
+        match self {
+            Self::Serialize(_) => "serialize_error",
+            Self::Deserialize(_) => "deserialize_error",
+            Self::UnsupportedVersion(_) => "unsupported_version",
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl FieldWorkbenchState {
+    fn sanitize(self) -> Self {
+        let Self {
+            orientation_key,
+            tone_key,
+            required,
+            invalid,
+            disabled,
+            custom_class,
+            custom_error,
+            motion_ms,
+        } = self;
+
+        let orientation_key = if orientation_key == "horizontal" {
+            "horizontal".to_string()
+        } else {
+            "vertical".to_string()
+        };
+
+        let tone_key = if tone_key == "muted" {
+            "muted".to_string()
+        } else {
+            "default".to_string()
+        };
+
+        Self {
+            orientation_key,
+            tone_key,
+            required,
+            invalid,
+            disabled,
+            custom_class,
+            custom_error,
+            motion_ms: motion_ms.clamp(1, 800),
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl FieldWorkbenchState {
+    fn encode(self) -> Result<String, FieldWorkbenchStorageError> {
+        serde_json::to_string(&FieldWorkbenchStorage {
+            version: FIELD_WORKBENCH_STORAGE_VERSION,
+            state: self.sanitize(),
+        })
+        .map_err(FieldWorkbenchStorageError::Serialize)
+    }
+
+    fn decode(raw: &str) -> Result<Self, FieldWorkbenchStorageError> {
+        let storage: FieldWorkbenchStorage =
+            serde_json::from_str(raw).map_err(FieldWorkbenchStorageError::Deserialize)?;
+        if storage.version != FIELD_WORKBENCH_STORAGE_VERSION {
+            return Err(FieldWorkbenchStorageError::UnsupportedVersion(
+                storage.version,
+            ));
+        }
+
+        Ok(storage.state.sanitize())
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn load_field_workbench_state() -> Option<FieldWorkbenchState> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(FIELD_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    match FieldWorkbenchState::decode(&raw) {
+        Ok(state) => Some(state),
+        Err(error) => {
+            leptos::logging::warn!(
+                "field workbench decode failed: code={} error={error:?}",
+                error.as_code()
+            );
+            None
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_field_workbench_state() -> Option<FieldWorkbenchState> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_field_workbench_state(state: FieldWorkbenchState) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        match state.encode() {
+            Ok(encoded) => {
+                drop(storage.set_item(FIELD_WORKBENCH_STORAGE_KEY, &encoded));
+            }
+            Err(error) => {
+                leptos::logging::warn!(
+                    "field workbench encode failed: code={} error={error:?}",
+                    error.as_code()
+                );
+            }
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_field_workbench_state(_state: FieldWorkbenchState) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_field_workbench_state() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.remove_item(FIELD_WORKBENCH_STORAGE_KEY));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_field_workbench_state() {}
+
+#[cfg_attr(target_arch = "wasm32", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Debug)]
+struct CalendarWorkbenchState {
+    month: u8,
+    selected_day: Option<u8>,
+    show_outside_days: bool,
+    monday_first: bool,
+    strong_tone: bool,
+}
+
+impl Default for CalendarWorkbenchState {
+    fn default() -> Self {
+        Self {
+            month: 3,
+            selected_day: Some(12),
+            show_outside_days: true,
+            monday_first: false,
+            strong_tone: false,
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(serde::Serialize, serde::Deserialize)]
+struct CalendarWorkbenchStorage {
+    version: u8,
+    state: CalendarWorkbenchState,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Debug)]
+enum CalendarWorkbenchStorageError {
+    Serialize(serde_json::Error),
+    Deserialize(serde_json::Error),
+    UnsupportedVersion(u8),
+}
+
+#[cfg(target_arch = "wasm32")]
+impl CalendarWorkbenchStorageError {
+    fn as_code(&self) -> &'static str {
+        match self {
+            Self::Serialize(_) => "serialize_error",
+            Self::Deserialize(_) => "deserialize_error",
+            Self::UnsupportedVersion(_) => "unsupported_version",
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl CalendarWorkbenchState {
+    fn encode(self) -> Result<String, CalendarWorkbenchStorageError> {
+        serde_json::to_string(&CalendarWorkbenchStorage {
+            version: CALENDAR_WORKBENCH_STORAGE_VERSION,
+            state: Self {
+                month: self.month.clamp(1, 12),
+                ..self
+            },
+        })
+        .map_err(CalendarWorkbenchStorageError::Serialize)
+    }
+
+    fn decode(raw: &str) -> Result<Self, CalendarWorkbenchStorageError> {
+        let storage: CalendarWorkbenchStorage =
+            serde_json::from_str(raw).map_err(CalendarWorkbenchStorageError::Deserialize)?;
+        if storage.version != CALENDAR_WORKBENCH_STORAGE_VERSION {
+            return Err(CalendarWorkbenchStorageError::UnsupportedVersion(
+                storage.version,
+            ));
+        }
+
+        Ok(Self {
+            month: storage.state.month.clamp(1, 12),
+            ..storage.state
+        })
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn load_calendar_workbench_state() -> Option<CalendarWorkbenchState> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(CALENDAR_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    match CalendarWorkbenchState::decode(&raw) {
+        Ok(state) => Some(state),
+        Err(error) => {
+            leptos::logging::warn!(
+                "calendar workbench decode failed: code={} error={error:?}",
+                error.as_code()
+            );
+            None
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_calendar_workbench_state() -> Option<CalendarWorkbenchState> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_calendar_workbench_state(state: CalendarWorkbenchState) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        match state.encode() {
+            Ok(encoded) => {
+                drop(storage.set_item(CALENDAR_WORKBENCH_STORAGE_KEY, &encoded));
+            }
+            Err(error) => {
+                leptos::logging::warn!(
+                    "calendar workbench encode failed: code={} error={error:?}",
+                    error.as_code()
+                );
+            }
+        }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_calendar_workbench_state(_state: CalendarWorkbenchState) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_calendar_workbench_state() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.remove_item(CALENDAR_WORKBENCH_STORAGE_KEY));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_calendar_workbench_state() {}
+
 pub(super) fn field_error() -> AnyView {
-    let default_code = Signal::derive(move || {
+    let field_error_imports =
+        "use leptos::prelude::*;\nuse ui_components::{FieldError, FieldErrorTone};".to_string();
+
+    let hello_world_code = Signal::derive(move || {
         r#"<FieldError
-  visible=true
+  is_visible=true
+  message="Email is required".to_string()
+/>"#
+        .to_string()
+    });
+
+    let state_matrix_code = Signal::derive(move || {
+        r#"<FieldError
+  is_visible=true
   message="Email is required".to_string()
 />
 <FieldError
-  visible=true
+  is_visible=true
   tone=FieldErrorTone::Neutral
   message="Password should include at least one symbol".to_string()
 />
 <FieldError
-  visible=true
+  is_visible=true
   tone=FieldErrorTone::Negative
-  show_icon=true
+  is_icon_visible=true
+  message="Two-factor code is invalid".to_string()
+/>
+<FieldError
+  is_visible=true
+  is_disabled=true
+  is_icon_visible=true
+  message="Read-only mode keeps the latest error snapshot".to_string()
+/>
+<FieldError
+  is_visible=false
+  message="Hidden state keeps semantic contracts without visual output".to_string()
+/>"#
+        .to_string()
+    });
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"// FieldError has no internal controllable state axis.
+// Uncontrolled-style: pass final validation snapshot directly.
+<FieldError
+  is_visible=true
+  message="Uncontrolled snapshot: email is required".to_string()
+/>
+
+// Controlled-style (by parent form store): parent updates props and FieldError re-renders.
+<FieldError
+  is_visible=true
+  tone=FieldErrorTone::Negative
+  message="Controlled snapshot: email format is invalid".to_string()
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Snapshot: render validated final output in one shot.
+<FieldError
+  is_visible=true
+  message="Snapshot: email is required".to_string()
+/>
+
+// Streaming Optional: keep fallback=snapshot and render last stable message.
+<FieldError
+  is_visible=true
+  tone=FieldErrorTone::Neutral
+  message="Streaming fallback=snapshot: waiting for final validation".to_string()
+/>"#
+        .to_string()
+    });
+
+    let default_code = Signal::derive(move || {
+        r#"<FieldError
+  is_visible=true
+  message="Email is required".to_string()
+/>
+<FieldError
+  is_visible=true
+  tone=FieldErrorTone::Neutral
+  message="Password should include at least one symbol".to_string()
+/>
+<FieldError
+  is_visible=true
+  tone=FieldErrorTone::Negative
+  is_icon_visible=true
   message="Two-factor code is invalid".to_string()
 />
 "#
@@ -34,16 +425,91 @@ pub(super) fn field_error() -> AnyView {
 
     let hidden_code = Signal::derive(move || {
         r#"<FieldError
-  visible=false
+  is_visible=false
   message="This text should not render when hidden".to_string()
 />
 <FieldError
-  visible=true
-  disabled=true
-  show_icon=true
+  is_visible=true
+  is_disabled=true
+  is_icon_visible=true
   class_name="docs-field-error-custom".to_string()
 />"#
         .to_string()
+    });
+
+    let (workbench_tone_index, set_workbench_tone_index) = signal(0usize);
+    let (workbench_visible, set_workbench_visible) = signal(true);
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_icon_visible, set_workbench_icon_visible) = signal(false);
+    let (workbench_custom_message, set_workbench_custom_message) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_code = Signal::derive(move || {
+        let tone_line = match workbench_tone_index.get() {
+            1 => "  tone=FieldErrorTone::Neutral\n",
+            2 => "  tone=FieldErrorTone::Negative\n",
+            _ => "",
+        };
+        let message_line = if workbench_custom_message.get() {
+            "  message=\"Workbench custom error message\".to_string()\n"
+        } else {
+            ""
+        };
+        let aria_line = if workbench_custom_aria.get() {
+            "  aria_label=\"Workbench aria label\".to_string()\n"
+        } else {
+            ""
+        };
+        let class_line = if workbench_custom_class.get() {
+            "  class_name=\"docs-field-error-custom\".to_string()\n"
+        } else {
+            ""
+        };
+
+        format!(
+            "<FieldError\n{tone_line}  is_visible={}\n  is_disabled={}\n  is_icon_visible={}\n{message_line}{aria_line}{class_line}/>",
+            workbench_visible.get(),
+            workbench_disabled.get(),
+            workbench_icon_visible.get(),
+        )
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* components/field-error/src/styles.rs */\n{}",
+            ui_components::field_form::field_error::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let tone = match workbench_tone_index.get() {
+            1 => FieldErrorTone::Neutral,
+            2 => FieldErrorTone::Negative,
+            _ => FieldErrorTone::Auto,
+        };
+        let message_source = if workbench_custom_message.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let aria_source = if workbench_custom_aria.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let class_source = if workbench_custom_class.get() {
+            "custom"
+        } else {
+            "default"
+        };
+
+        format!(
+            "FieldErrorWorkbenchConfig {{\n  tone: {tone:?},\n  is_visible: {},\n  is_disabled: {},\n  is_icon_visible: {},\n  message_source: \"{message_source}\",\n  aria_source: \"{aria_source}\",\n  class_source: \"{class_source}\",\n}}",
+            workbench_visible.get(),
+            workbench_disabled.get(),
+            workbench_icon_visible.get(),
+        )
     });
 
     view! {
@@ -53,22 +519,109 @@ pub(super) fn field_error() -> AnyView {
             group="Forms"
             description="baseline-style field error primitive with centralized visibility/tone/message normalization and stable data contracts."
         >
-            <Playground title="Visible + Tone" code_signal=default_code>
+            <Playground
+                title="Hello World (Snapshot Baseline)"
+                code_signal=hello_world_code
+                code_imports=field_error_imports.clone()
+            >
                 <div class="docs-stack">
                     <FieldError
-                        visible=true
+                        is_visible=true
+                        message="Email is required".to_string()
+                        aria_label="Email error".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Visible / Hidden / Disabled)"
+                code_signal=state_matrix_code
+                code_imports=field_error_imports.clone()
+            >
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
                         message="Email is required".to_string()
                         aria_label="Email error".to_string()
                     />
                     <FieldError
-                        visible=true
+                        is_visible=true
                         tone=FieldErrorTone::Neutral
                         message="Password should include at least one symbol".to_string()
                     />
                     <FieldError
-                        visible=true
+                        is_visible=true
                         tone=FieldErrorTone::Negative
-                        show_icon=true
+                        is_icon_visible=true
+                        message="Two-factor code is invalid".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        is_disabled=true
+                        is_icon_visible=true
+                        message="Read-only mode keeps the latest error snapshot".to_string()
+                    />
+                    <FieldError
+                        is_visible=false
+                        message="Hidden state keeps semantic contracts without visual output"
+                            .to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                code_signal=controlled_uncontrolled_code
+                code_imports=field_error_imports.clone()
+            >
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Uncontrolled snapshot: email is required".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Negative
+                        message="Controlled snapshot: email format is invalid".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                code_signal=stream_snapshot_code
+                code_imports=field_error_imports.clone()
+            >
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Snapshot: email is required".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Neutral
+                        message="Streaming fallback=snapshot: waiting for final validation"
+                            .to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Visible + Tone" code_signal=default_code>
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Email is required".to_string()
+                        aria_label="Email error".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Neutral
+                        message="Password should include at least one symbol".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Negative
+                        is_icon_visible=true
                         message="Two-factor code is invalid".to_string()
                     />
                 </div>
@@ -77,23 +630,214 @@ pub(super) fn field_error() -> AnyView {
             <Playground title="Hidden + Disabled + Custom Class" code_signal=hidden_code>
                 <div class="docs-stack">
                     <FieldError
-                        visible=false
+                        is_visible=false
                         message="This text should not render when hidden".to_string()
                     />
                     <FieldError
-                        visible=true
-                        disabled=true
-                        show_icon=true
+                        is_visible=true
+                        is_disabled=true
+                        is_icon_visible=true
                         class_name="docs-field-error-custom".to_string()
                     />
                 </div>
             </Playground>
+
+            <Playground
+                title="Interactive Playground (Props + State + Source Markers)"
+                description="Use settings to toggle FieldError props/state and inspect semantic marker feedback in real time."
+                code_signal=workbench_code
+                code_imports=field_error_imports.clone()
+                test_css_source=workbench_test_css_source
+                test_source_path="components/field-error/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="field-error-config-controls">
+                            <div class="docs-search__label">"Tone"</div>
+                            <select
+                                class="docs-search__input"
+                                data-action="cycle-tone-config"
+                                prop:value=move || workbench_tone_index.get().to_string()
+                                on:change=move |ev| {
+                                    if let Ok(next) = event_target_value(&ev).parse::<usize>() {
+                                        set_workbench_tone_index.set(next.min(2));
+                                    }
+                                }
+                            >
+                                <option value="0">"Auto"</option>
+                                <option value="1">"Neutral"</option>
+                                <option value="2">"Negative"</option>
+                            </select>
+
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    data-action="toggle-visible-config"
+                                    prop:checked=move || workbench_visible.get()
+                                    on:change=move |ev| set_workbench_visible.set(event_target_checked(&ev))
+                                />
+                                <span>"Visible"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    data-action="toggle-disabled-config"
+                                    prop:checked=move || workbench_disabled.get()
+                                    on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
+                                />
+                                <span>"Disabled"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    data-action="toggle-icon-config"
+                                    prop:checked=move || workbench_icon_visible.get()
+                                    on:change=move |ev| set_workbench_icon_visible.set(event_target_checked(&ev))
+                                />
+                                <span>"Show icon"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    data-action="toggle-message-config"
+                                    prop:checked=move || workbench_custom_message.get()
+                                    on:change=move |ev| set_workbench_custom_message.set(event_target_checked(&ev))
+                                />
+                                <span>"Custom message source"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    data-action="toggle-aria-config"
+                                    prop:checked=move || workbench_custom_aria.get()
+                                    on:change=move |ev| set_workbench_custom_aria.set(event_target_checked(&ev))
+                                />
+                                <span>"Custom aria source"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    data-action="toggle-class-config"
+                                    prop:checked=move || workbench_custom_class.get()
+                                    on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                                />
+                                <span>"Custom class source"</span>
+                            </label>
+
+                            <p class="ui-muted" data-slot="field-error-config-summary">
+                                {move || {
+                                    let tone = match workbench_tone_index.get() {
+                                        1 => "neutral",
+                                        2 => "negative",
+                                        _ => "auto",
+                                    };
+                                    let message_source = if workbench_custom_message.get() {
+                                        "custom"
+                                    } else {
+                                        "default"
+                                    };
+                                    let aria_source = if workbench_custom_aria.get() {
+                                        "custom"
+                                    } else {
+                                        "default"
+                                    };
+                                    let class_source = if workbench_custom_class.get() {
+                                        "custom"
+                                    } else {
+                                        "default"
+                                    };
+
+                                    format!(
+                                        "config: tone={} visible={} disabled={} icon={} message_source={} aria_source={} class_source={}",
+                                        tone,
+                                        workbench_visible.get(),
+                                        workbench_disabled.get(),
+                                        workbench_icon_visible.get(),
+                                        message_source,
+                                        aria_source,
+                                        class_source,
+                                    )
+                                }}
+                            </p>
+                        </div>
+                    }
+                }
+            >
+                {move || {
+                    let tone = match workbench_tone_index.get() {
+                        1 => FieldErrorTone::Neutral,
+                        2 => FieldErrorTone::Negative,
+                        _ => FieldErrorTone::Auto,
+                    };
+                    let message = if workbench_custom_message.get() {
+                        "Workbench custom error message".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let aria_label = if workbench_custom_aria.get() {
+                        "Workbench aria label".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if workbench_custom_class.get() {
+                        "docs-field-error-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    view! {
+                        <div class="docs-stack" data-slot="field-error-interactive-stage">
+                            <FieldError
+                                tone=tone
+                                is_visible=workbench_visible.get()
+                                is_disabled=workbench_disabled.get()
+                                is_icon_visible=workbench_icon_visible.get()
+                                message=message
+                                aria_label=aria_label
+                                class_name=class_name
+                            />
+                            <p class="ui-muted" data-slot="field-error-interactive-hint">
+                                "Inspect data-state/data-message-source/data-aria-source/data-class-source while toggling controls."
+                            </p>
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="field-error-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Use any FieldError Playground's "
+                    <code>"Show code"</code>
+                    " + copy button. Snippets are import-ready for direct paste."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{FieldError, FieldErrorTone};\n\n<FieldError\n  is_visible=true\n  message=\"Email is required\".to_string()\n/>".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-field-error-source-copy".to_string()
+                />
+                <ul data-slot="field-error-source-paths">
+                    <li><code>"components/field-error/src/mod.rs"</code></li>
+                    <li><code>"components/field-error/src/logic.rs"</code></li>
+                    <li><code>"components/field-error/src/view.rs"</code></li>
+                    <li><code>"components/field-error/src/styles.rs"</code></li>
+                </ul>
+                <ul data-slot="field-error-source-prerequisites">
+                    <li><code>"component-field_error"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn error_message() -> AnyView {
+    let hello_world_code = Signal::derive(move || {
+        r#"<ErrorMessage text="Invalid email address".to_string() />"#.to_string()
+    });
+
     let tone_code = Signal::derive(move || {
         r#"<ErrorMessage text="Invalid email address".to_string() />
 <ErrorMessage
@@ -110,12 +854,12 @@ pub(super) fn error_message() -> AnyView {
     let state_code = Signal::derive(move || {
         r#"<ErrorMessage
   text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
-  truncate=true
+  is_truncated=true
   class_name="docs-error-message-custom".to_string()
 />
 <ErrorMessage
   text="This error remains visible but marked as disabled for read-only states.".to_string()
-  disabled=true
+  is_disabled=true
   element=ErrorMessageElement::Div
   aria_label="Disabled error message".to_string()
 />"#.to_string()
@@ -134,10 +878,34 @@ pub(super) fn error_message() -> AnyView {
 />
 <ErrorMessage
   text="Disabled + truncate comparison for dense layouts.".to_string()
-  disabled=true
-  truncate=true
+  is_disabled=true
+  is_truncated=true
   class_name="docs-error-message-custom".to_string()
 />"#.to_string()
+    });
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"// ErrorMessage is an input-driven leaf component (no internal controllable state axis).
+<ErrorMessage
+  text="Uncontrolled-style usage: pass only text/tone/flags.".to_string()
+/>
+<ErrorMessage
+  text="No value/on_value_change/default_value triad is required for this component.".to_string()
+  is_disabled=true
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Streaming Optional: ErrorMessage currently renders snapshot output and fallback=snapshot.
+<ErrorMessage
+  text="Disabled path maps to draft/read-only output status.".to_string()
+  is_disabled=true
+/>
+<ErrorMessage
+  text="Active validation path maps to verified/announce-error output status.".to_string()
+/>"#
+        .to_string()
     });
 
     let (workbench_tone_index, set_workbench_tone_index) = signal(0usize);
@@ -159,12 +927,12 @@ pub(super) fn error_message() -> AnyView {
             _ => "",
         };
         let disabled_line = if workbench_disabled.get() {
-            "  disabled=true\n"
+            "  is_disabled=true\n"
         } else {
             ""
         };
         let truncate_line = if workbench_truncate.get() {
-            "  truncate=true\n"
+            "  is_truncated=true\n"
         } else {
             ""
         };
@@ -214,7 +982,7 @@ pub(super) fn error_message() -> AnyView {
         };
 
         format!(
-            "ErrorMessageWorkbenchConfig {{\n  tone: {tone:?},\n  element: {element:?},\n  disabled: {},\n  truncate: {},\n  class_source: \"{class_source}\",\n  aria_source: \"{aria_source}\",\n}}",
+            "ErrorMessageWorkbenchConfig {{\n  tone: {tone:?},\n  element: {element:?},\n  is_disabled: {},\n  is_truncated: {},\n  class_source: \"{class_source}\",\n  aria_source: \"{aria_source}\",\n}}",
             workbench_disabled.get(),
             workbench_truncate.get(),
         )
@@ -225,8 +993,14 @@ pub(super) fn error_message() -> AnyView {
             title="ErrorMessage"
             slug="error-message"
             group="Forms"
-            description="baseline-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts."
+            description="baseline-style inline error primitive with centralized tone/is_disabled/is_truncated/source normalization and stable slot/data contracts."
         >
+            <Playground title="Hello World (Default API)" code_signal=hello_world_code>
+                <div class="docs-stack">
+                    <ErrorMessage text="Invalid email address".to_string() />
+                </div>
+            </Playground>
+
             <Playground title="Tone Variants" code_signal=tone_code>
                 <div class="docs-stack">
                     <ErrorMessage
@@ -248,12 +1022,12 @@ pub(super) fn error_message() -> AnyView {
                 <div class="docs-stack docs-error-message-limit">
                     <ErrorMessage
                         text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
-                        truncate=true
+                        is_truncated=true
                         class_name="docs-error-message-custom".to_string()
                     />
                     <ErrorMessage
                         text="This error remains visible but marked as disabled for read-only states.".to_string()
-                        disabled=true
+                        is_disabled=true
                         element=ErrorMessageElement::Div
                         aria_label="Disabled error message".to_string()
                     />
@@ -262,7 +1036,7 @@ pub(super) fn error_message() -> AnyView {
 
             <Playground
                 title="Display Comparisons (Tone / State / Element)"
-                description="Display matrix for multiple semantic states to compare tone, disabled, truncate, and element mappings."
+                description="Display matrix for multiple semantic states to compare tone, is_disabled, is_truncated, and element mappings."
                 code_signal=display_code
             >
                 <div class="docs-stack docs-error-message-limit">
@@ -280,10 +1054,45 @@ pub(super) fn error_message() -> AnyView {
                     />
                     <ErrorMessage
                         text="Disabled + truncate comparison for dense layouts.".to_string()
-                        disabled=true
-                        truncate=true
+                        is_disabled=true
+                        is_truncated=true
                         class_name="docs-error-message-custom".to_string()
                     />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled / Uncontrolled (Input-Driven N/A)"
+                description="ErrorMessage has no internal controllable state axis; controlled/uncontrolled triads are not required. Inputs are consumed directly."
+                code_signal=controlled_uncontrolled_code
+            >
+                <div class="docs-stack">
+                    <ErrorMessage
+                        text="Uncontrolled-style usage: pass only text/tone/flags.".to_string()
+                    />
+                    <ErrorMessage
+                        text="No value/on_value_change/default_value triad is required for this component.".to_string()
+                        is_disabled=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional + Snapshot Fallback"
+                description="Streaming is optional for ErrorMessage; docs expose snapshot mode and fallback=snapshot contract for copy/paste verification."
+                code_signal=stream_snapshot_code
+            >
+                <div class="docs-stack">
+                    <ErrorMessage
+                        text="Disabled path maps to draft/read-only output status.".to_string()
+                        is_disabled=true
+                    />
+                    <ErrorMessage
+                        text="Active validation path maps to verified/announce-error output status.".to_string()
+                    />
+                    <p class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-stream-fallback on rendered nodes."
+                    </p>
                 </div>
             </Playground>
 
@@ -390,8 +1199,8 @@ pub(super) fn error_message() -> AnyView {
                             <ErrorMessage
                                 text="Config + code + css test workbench message".to_string()
                                 tone=tone
-                                disabled=workbench_disabled.get()
-                                truncate=workbench_truncate.get()
+                                is_disabled=workbench_disabled.get()
+                                is_truncated=workbench_truncate.get()
                                 element=element
                                 class_name=class_name
                                 aria_label=aria_label
@@ -400,12 +1209,43 @@ pub(super) fn error_message() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="error-message-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground supports "
+                    <code>"Show code"</code>
+                    " + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<ErrorMessage\n  text=\"Invalid email address\".to_string()\n/>".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-error-message-source-copy".to_string()
+                />
+                <ul data-slot="error-message-source-paths">
+                    <li><code>"components/error-message/src/mod.rs"</code></li>
+                    <li><code>"components/error-message/src/logic.rs"</code></li>
+                    <li><code>"components/error-message/src/view.rs"</code></li>
+                    <li><code>"components/error-message/src/styles.rs"</code></li>
+                    <li><code>"components/error-message/src/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="error-message-source-prerequisites">
+                    <li><code>"component-error_message"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn description() -> AnyView {
+    let description_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Description, DescriptionElement, DescriptionTone};".to_string();
+
     let tone_options = vec![
         "default".to_string(),
         "muted".to_string(),
@@ -420,7 +1260,7 @@ pub(super) fn description() -> AnyView {
     let (tone_index, set_tone_index) = signal(Some(0_usize));
     let (element_index, set_element_index) = signal(Some(0_usize));
     let (is_disabled, set_is_disabled) = signal(false);
-    let (truncate, set_truncate) = signal(false);
+    let (is_truncated, set_is_truncated) = signal(false);
     let (custom_aria_label, set_custom_aria_label) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
 
@@ -452,10 +1292,10 @@ pub(super) fn description() -> AnyView {
             lines.push(format!("  element=DescriptionElement::{element:?}"));
         }
         if is_disabled.get() {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
-        if truncate.get() {
-            lines.push("  truncate=true".to_string());
+        if is_truncated.get() {
+            lines.push("  is_truncated=true".to_string());
         }
         if custom_aria_label.get() {
             lines.push("  aria_label=\"Description helper text\".into()".to_string());
@@ -481,7 +1321,7 @@ pub(super) fn description() -> AnyView {
         if is_disabled.get() {
             classes.push("ui-description--disabled".to_string());
         }
-        if truncate.get() {
+        if is_truncated.get() {
             classes.push("ui-description--truncate".to_string());
         }
         if custom_class.get() {
@@ -490,13 +1330,68 @@ pub(super) fn description() -> AnyView {
         }
 
         format!(
-            "DescriptionActualConfig {{\n  tone: {tone:?},\n  element: {element:?},\n  disabled: {},\n  truncate: {},\n  has_custom_aria_label: {},\n  has_custom_class_name: {},\n  class: \"{}\",\n}}",
+            "DescriptionActualConfig {{\n  tone: {tone:?},\n  element: {element:?},\n  is_disabled: {},\n  is_truncated: {},\n  has_custom_aria_label: {},\n  has_custom_class_name: {},\n  class: \"{}\",\n}}",
             is_disabled.get(),
-            truncate.get(),
+            is_truncated.get(),
             custom_aria_label.get(),
             custom_class.get(),
             classes.join(" ")
         )
+    });
+
+    let hello_world_code = Signal::derive(move || {
+        r#"<Description text="This appears below the field.".to_string() />"#.to_string()
+    });
+
+    let state_matrix_code = Signal::derive(move || {
+        r#"<Description
+  text="This appears below the field as guidance.".to_string()
+  tone=DescriptionTone::Default
+  aria_label="Name helper".to_string()
+/>
+<Description
+  text="Optional details are only visible to admins.".to_string()
+  tone=DescriptionTone::Muted
+/>
+<Description
+  text="Two-factor code expired. Request a new one.".to_string()
+  tone=DescriptionTone::Negative
+/>
+<Description
+  text="Read-only helper still keeps the latest snapshot.".to_string()
+  tone=DescriptionTone::Muted
+  is_disabled=true
+/>"#
+        .to_string()
+    });
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"// Description has no internal controllable state axis.
+// Uncontrolled-style: pass final helper snapshot directly.
+<Description
+  text="Uncontrolled snapshot: email must include @".to_string()
+/>
+
+// Controlled-style (by parent form store): parent updates props and Description re-renders.
+<Description
+  text="Controlled snapshot: email format is invalid".to_string()
+  tone=DescriptionTone::Negative
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Snapshot: render validated helper output in one shot.
+<Description
+  text="Snapshot: email is required".to_string()
+/>
+
+// Streaming Optional: fallback stays snapshot until final helper output is ready.
+<Description
+  text="Streaming fallback=snapshot: waiting for final validation".to_string()
+  tone=DescriptionTone::Muted
+/>"#
+        .to_string()
     });
 
     let tone_code = Signal::derive(move || {
@@ -520,12 +1415,12 @@ pub(super) fn description() -> AnyView {
         r#"<Description
   text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
   element=DescriptionElement::Span
-  truncate=true
+  is_truncated=true
   class_name="docs-description-custom".to_string()
 />
 <Description
   text="Disabled helper text".to_string()
-  disabled=true
+  is_disabled=true
   tone=DescriptionTone::Muted
 />"#.to_string()
     });
@@ -538,9 +1433,87 @@ pub(super) fn description() -> AnyView {
             description="baseline-style form description primitive with centralized tone/state/source contracts and stable slot semantics."
         >
             <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                code_imports=description_imports.clone()
+            >
+                <div class="docs-stack">
+                    <Description text="This appears below the field.".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Disabled / Truncate)"
+                code_signal=state_matrix_code
+                code_imports=description_imports.clone()
+            >
+                <div class="docs-stack docs-description-limit">
+                    <Description
+                        text="This appears below the field as guidance.".to_string()
+                        tone=DescriptionTone::Default
+                        aria_label="Name helper".to_string()
+                    />
+                    <Description
+                        text="Optional details are only visible to admins.".to_string()
+                        tone=DescriptionTone::Muted
+                    />
+                    <Description
+                        text="Two-factor code expired. Request a new one.".to_string()
+                        tone=DescriptionTone::Negative
+                    />
+                    <Description
+                        text="Read-only helper still keeps the latest snapshot.".to_string()
+                        tone=DescriptionTone::Muted
+                        is_disabled=true
+                    />
+                    <Description
+                        text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
+                        element=DescriptionElement::Span
+                        is_truncated=true
+                        class_name="docs-description-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                code_signal=controlled_uncontrolled_code
+                code_imports=description_imports.clone()
+            >
+                <div class="docs-stack">
+                    <Description
+                        text="Uncontrolled snapshot: email must include @".to_string()
+                    />
+                    <Description
+                        text="Controlled snapshot: email format is invalid".to_string()
+                        tone=DescriptionTone::Negative
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="Description is not a正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
+                code_signal=stream_snapshot_code
+                code_imports=description_imports.clone()
+            >
+                <div class="docs-stack docs-description-limit">
+                    <Description text="Snapshot: email is required".to_string() />
+                    <Description
+                        text="Streaming fallback=snapshot: waiting for final validation".to_string()
+                        tone=DescriptionTone::Muted
+                    />
+                    <p class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
                 title="Workbench"
                 description="Interactive display/config/code/css-test playground for Description state contracts."
                 code_signal=workbench_code
+                code_imports=description_imports.clone()
                 test_css_source=test_css_source
                 test_source_path="components/description/src/styles.rs".to_string()
                 test_config_signal=actual_config
@@ -569,7 +1542,7 @@ pub(super) fn description() -> AnyView {
                         <Switch checked=is_disabled set_checked=set_is_disabled>
                             "Disabled"
                         </Switch>
-                        <Switch checked=truncate set_checked=set_truncate>
+                        <Switch checked=is_truncated set_checked=set_is_truncated>
                             "Truncate"
                         </Switch>
                         <Switch checked=custom_aria_label set_checked=set_custom_aria_label>
@@ -591,8 +1564,8 @@ pub(super) fn description() -> AnyView {
                                 text="Helper text for this field.".to_string()
                                 tone=tone
                                 element=element
-                                disabled=is_disabled.get()
-                                truncate=truncate.get()
+                                is_disabled=is_disabled.get()
+                                is_truncated=is_truncated.get()
                                 aria_label=if custom_aria_label.get() {
                                     "Description helper text".to_string()
                                 } else {
@@ -609,7 +1582,11 @@ pub(super) fn description() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Tone Variants" code_signal=tone_code>
+            <Playground
+                title="Tone Variants"
+                code_signal=tone_code
+                code_imports=description_imports.clone()
+            >
                 <div class="docs-stack">
                     <Description
                         text="This appears below the field as guidance.".to_string()
@@ -627,21 +1604,52 @@ pub(super) fn description() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Truncate + Element + Disabled" code_signal=truncate_code>
+            <Playground
+                title="Truncate + Element + Disabled"
+                code_signal=truncate_code
+                code_imports=description_imports.clone()
+            >
                 <div class="docs-stack docs-description-limit">
                     <Description
                         text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
                         element=DescriptionElement::Span
-                        truncate=true
+                        is_truncated=true
                         class_name="docs-description-custom".to_string()
                     />
                     <Description
                         text="Disabled helper text".to_string()
-                        disabled=true
+                        is_disabled=true
                         tone=DescriptionTone::Muted
                     />
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="description-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Use any Description Playground's "
+                    <code>"Show code"</code>
+                    " + copy button. Snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{Description, DescriptionElement, DescriptionTone};\n\n<Description\n  text=\"This appears below the field.\".to_string()\n/>".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-description-source-copy".to_string()
+                />
+                <ul data-slot="description-source-paths">
+                    <li><code>"components/description/src/mod.rs"</code></li>
+                    <li><code>"components/description/src/logic.rs"</code></li>
+                    <li><code>"components/description/src/view.rs"</code></li>
+                    <li><code>"components/description/src/styles.rs"</code></li>
+                </ul>
+                <ul data-slot="description-source-prerequisites">
+                    <li><code>"component-description"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -659,7 +1667,7 @@ pub(super) fn fieldset() -> AnyView {
         r#"<Fieldset
   legend="Notification channels".to_string()
   description="Pick every channel you want to receive release updates from.".to_string()
-  required=true
+  is_required=true
 >
   <label><input type="checkbox" /> "Email"</label>
   <label><input type="checkbox" /> "SMS"</label>
@@ -685,9 +1693,50 @@ pub(super) fn fieldset() -> AnyView {
 </Fieldset>"#.to_string()
     });
 
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"let (controlled_invalid, set_controlled_invalid) = signal(true);
+
+// Uncontrolled-style: initialize once with default_is_invalid.
+<Fieldset
+  legend="Uncontrolled snapshot".to_string()
+  default_is_invalid=true
+  error_message="Uncontrolled snapshot: pick at least one channel".to_string()
+>
+  <label><input type="checkbox" /> "Email"</label>
+</Fieldset>
+
+// Controlled-style: external signal is the single source of truth.
+<Fieldset
+  legend="Controlled snapshot".to_string()
+  is_invalid=Signal::derive(move || controlled_invalid.get())
+  on_is_invalid_change=Callback::new(move |next| set_controlled_invalid.set(next))
+  error_message="Controlled snapshot: pick at least one channel".to_string()
+>
+  <label><input type="checkbox" /> "SMS"</label>
+</Fieldset>"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Streaming Optional: Fieldset is not a正文阅读面; fallback remains snapshot.
+<Fieldset
+  legend="Streaming validation snapshot".to_string()
+  is_invalid=true
+  error_message="Streaming fallback=snapshot: waiting for final validation".to_string()
+>
+  <label><input type="checkbox" /> "Email"</label>
+</Fieldset>"#
+            .to_string()
+    });
+
     let orientation_options = vec!["vertical".to_string(), "horizontal".to_string()];
     let tone_options = vec!["default".to_string(), "muted".to_string()];
     let locale_options = vec!["en-US".to_string(), "zh-CN".to_string(), "ar".to_string()];
+
+    let (controlled_invalid, set_controlled_invalid) = signal(true);
+    let controlled_invalid_signal = Signal::derive(move || controlled_invalid.get());
+    let on_controlled_invalid_change =
+        Callback::new(move |next: bool| set_controlled_invalid.set(next));
 
     let (workbench_orientation_index, set_workbench_orientation_index) = signal(Some(0_usize));
     let (workbench_tone_index, set_workbench_tone_index) = signal(Some(0_usize));
@@ -842,7 +1891,7 @@ pub(super) fn fieldset() -> AnyView {
             description="baseline-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts."
         >
             <Playground title="Hello World" code_signal=hello_world_code>
-                <Fieldset legend="Channels".to_string() aria_label="Channel fieldset".to_string()>
+                <Fieldset legend="Channels".to_string()>
                     <label class="docs-choice-row">
                         <input type="checkbox" />
                         <span>"Email"</span>
@@ -854,7 +1903,7 @@ pub(super) fn fieldset() -> AnyView {
                 <Fieldset
                     legend="Notification channels".to_string()
                     description="Pick every channel you want to receive release updates from.".to_string()
-                    required=true
+                    is_required=true
                     aria_label="Notification channel group".to_string()
                 >
                     <label class="docs-choice-row">
@@ -899,6 +1948,68 @@ pub(super) fn fieldset() -> AnyView {
                         <span>"SMS"</span>
                     </label>
                 </Fieldset>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Snapshot Contrast)"
+                description="受控/非受控对照：默认值只初始化一次，受控值由外部 signal 驱动。"
+                code_signal=controlled_uncontrolled_code
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="fieldset-controlled-uncontrolled">
+                    <div class="docs-search__label">"Uncontrolled snapshot"</div>
+                    <Fieldset
+                        legend="Uncontrolled snapshot".to_string()
+                        default_is_invalid=true
+                        error_message="Uncontrolled snapshot: pick at least one channel".to_string()
+                    >
+                        <label class="docs-choice-row">
+                            <input type="checkbox" />
+                            <span>"Email"</span>
+                        </label>
+                    </Fieldset>
+
+                    <div class="docs-search__label">"Controlled snapshot"</div>
+                    <ui_components::Button
+                        variant=ui_components::ButtonVariant::Secondary
+                        size=ui_components::ButtonSize::Sm
+                        on_press=Callback::new(move |_| {
+                            set_controlled_invalid.update(|value| *value = !*value);
+                        })
+                    >
+                        {move || if controlled_invalid.get() { "Set controlled valid" } else { "Set controlled invalid" }}
+                    </ui_components::Button>
+                    <Fieldset
+                        legend="Controlled snapshot".to_string()
+                        is_invalid=controlled_invalid_signal.get()
+                        on_is_invalid_change=on_controlled_invalid_change
+                        error_message="Controlled snapshot: pick at least one channel".to_string()
+                    >
+                        <label class="docs-choice-row">
+                            <input type="checkbox" />
+                            <span>"SMS"</span>
+                        </label>
+                    </Fieldset>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="Fieldset 不是正文阅读面；文档展示 snapshot 输出与 fallback=snapshot 契约。"
+                code_signal=stream_snapshot_code
+            >
+                <Fieldset
+                    legend="Streaming validation snapshot".to_string()
+                    is_invalid=true
+                    error_message="Streaming fallback=snapshot: waiting for final validation".to_string()
+                >
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Email"</span>
+                    </label>
+                </Fieldset>
+                <div class="docs-subtitle">
+                    "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode."
+                </div>
             </Playground>
 
             <Playground
@@ -1109,12 +2220,46 @@ pub(super) fn fieldset() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="fieldset-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p data-slot="fieldset-source-first-contract">
+                    "Use any Fieldset Playground's "
+                    <code>"Show code"</code>
+                    " + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p data-slot="fieldset-source-first-dependency-baseline">
+                    "Dependency baseline (Cargo.toml): "
+                    <code>
+                        "ui-components = { default-features = false, features = [\"component-fieldset\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <Snippet
+                    text=r#"components/fieldset/src/mod.rs
+components/fieldset/src/logic.rs
+components/fieldset/src/view.rs
+components/fieldset/src/styles.rs
+components/fieldset/src/motion.rs
+crates/ui-components/src/field_form/fieldset/{mod,logic,view,styles,motion}.rs
+apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset"#.to_string()
+                    copyable=true
+                    class_name="docs-fieldset-source-copy".to_string()
+                />
+                <ul data-slot="fieldset-source-prerequisites">
+                    <li><code>"component-fieldset"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn label() -> AnyView {
+    let label_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Label, LabelEmphasis};".to_string();
     let emphasis_options = vec![
         "default".to_string(),
         "subtle".to_string(),
@@ -1144,8 +2289,8 @@ pub(super) fn label() -> AnyView {
         let mut lines = vec![
             "<Label".to_string(),
             format!("  emphasis={emphasis}"),
-            format!("  required={}", is_required.get()),
-            format!("  disabled={}", is_disabled.get()),
+            format!("  is_required={}", is_required.get()),
+            format!("  is_disabled={}", is_disabled.get()),
         ];
 
         if custom_text.get() {
@@ -1233,10 +2378,13 @@ pub(super) fn label() -> AnyView {
         )
     });
 
+    let hello_world_code =
+        Signal::derive(move || r#"<Label text="Name".to_string() />"#.to_string());
+
     let emphasis_code = Signal::derive(move || {
-        r#"<Label text="Name".to_string() for_id="name".to_string() required=true />
+        r#"<Label text="Name".to_string() for_id="name".to_string() is_required=true />
 <Label text="Hint".to_string() emphasis=LabelEmphasis::Subtle />
-<Label text="Critical".to_string() emphasis=LabelEmphasis::Strong required=true />"#
+<Label text="Critical".to_string() emphasis=LabelEmphasis::Strong is_required=true />"#
             .to_string()
     });
 
@@ -1244,11 +2392,28 @@ pub(super) fn label() -> AnyView {
         r#"<Label
   text="Assignee".to_string()
   for_id="assignee".to_string()
-  required=true
+  is_required=true
   required_indicator="(required)".to_string()
   class_name="docs-label-custom".to_string()
 />"#
         .to_string()
+    });
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"// Label has no controlled value axis (no value/on_value_change/default_value triad).
+// Parent passes a full snapshot props set each render.
+<Label text="Display Name".to_string() for_id="display-name".to_string() is_required=true />
+<Label text="Display Name (server snapshot)".to_string() for_id="display-name".to_string() is_required=true emphasis=LabelEmphasis::Strong />"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Snapshot: render validated final output in one shot.
+<Label text="Snapshot: assignee".to_string() for_id="assignee".to_string() is_required=true />
+
+// Streaming Optional: keep fallback=snapshot and render last stable label text.
+<Label text="Streaming fallback=snapshot: waiting for final label".to_string() emphasis=LabelEmphasis::Subtle />"#
+            .to_string()
     });
 
     view! {
@@ -1259,9 +2424,20 @@ pub(super) fn label() -> AnyView {
             description="Form label primitive with centralized required/emphasis/source state contracts."
         >
             <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                code_imports=label_imports.clone()
+            >
+                <div class="docs-stack">
+                    <Label text="Name".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
+                code_imports=label_imports.clone()
                 test_css_source=workbench_test_css_source
                 test_source_path="components/label/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -1316,8 +2492,8 @@ pub(super) fn label() -> AnyView {
                                             } else {
                                                 String::new()
                                             }
-                                            required=is_required.get()
-                                            disabled=is_disabled.get()
+                                            is_required=is_required.get()
+                                            is_disabled=is_disabled.get()
                                             emphasis=selected_emphasis.get()
                                             required_indicator=if custom_indicator.get() {
                                                 "(required)".to_string()
@@ -1346,7 +2522,7 @@ pub(super) fn label() -> AnyView {
                                         <Label
                                             text="Critical".to_string()
                                             for_id="docs-label-workbench-compare".to_string()
-                                            required=true
+                                            is_required=true
                                             emphasis=LabelEmphasis::Strong
                                             required_indicator="(required)".to_string()
                                             class_name="docs-label-custom".to_string()
@@ -1365,22 +2541,30 @@ pub(super) fn label() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Emphasis + Required" code_signal=emphasis_code>
+            <Playground
+                title="Emphasis + Required"
+                code_signal=emphasis_code
+                code_imports=label_imports.clone()
+            >
                 <div class="docs-stack">
-                    <Label text="Name".to_string() for_id="docs-label-name".to_string() required=true />
+                    <Label text="Name".to_string() for_id="docs-label-name".to_string() is_required=true />
                     <input id="docs-label-name" class="docs-search__input" type="text" placeholder="Type name" />
 
                     <Label text="Hint".to_string() emphasis=LabelEmphasis::Subtle />
-                    <Label text="Critical".to_string() emphasis=LabelEmphasis::Strong required=true />
+                    <Label text="Critical".to_string() emphasis=LabelEmphasis::Strong is_required=true />
                 </div>
             </Playground>
 
-            <Playground title="Custom Indicator + Class" code_signal=custom_code>
+            <Playground
+                title="Custom Indicator + Class"
+                code_signal=custom_code
+                code_imports=label_imports.clone()
+            >
                 <div class="docs-stack">
                     <Label
                         text="Assignee".to_string()
                         for_id="docs-label-assignee".to_string()
-                        required=true
+                        is_required=true
                         required_indicator="(required)".to_string()
                         class_name="docs-label-custom".to_string()
                     />
@@ -1392,20 +2576,137 @@ pub(super) fn label() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A for Label)"
+                description="Label has no controllable value axis; parent passes a full snapshot props set each render."
+                code_signal=controlled_uncontrolled_code
+                code_imports=label_imports.clone()
+            >
+                <div class="docs-stack">
+                    <Label
+                        text="Display Name".to_string()
+                        for_id="docs-label-controlled-na".to_string()
+                        is_required=true
+                    />
+                    <input
+                        id="docs-label-controlled-na"
+                        class="docs-search__input"
+                        type="text"
+                        placeholder="Display name"
+                    />
+                    <p class="ui-muted">
+                        "No value/on_value_change/default_value triad: Label is snapshot-only projection."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="Label is not a正文阅读面; docs expose snapshot mode + fallback=snapshot contract for copy/paste verification."
+                code_signal=stream_snapshot_code
+                code_imports=label_imports.clone()
+            >
+                <div class="docs-stack">
+                    <Label
+                        text="Snapshot: assignee".to_string()
+                        for_id="docs-label-streaming".to_string()
+                        is_required=true
+                    />
+                    <input
+                        id="docs-label-streaming"
+                        class="docs-search__input"
+                        type="text"
+                        placeholder="Owner"
+                    />
+                    <Label
+                        text="Streaming fallback=snapshot: waiting for final label".to_string()
+                        emphasis=LabelEmphasis::Subtle
+                    />
+                    <p class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
+                    </p>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="label-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Use any Label Playground's "
+                    <code>"Show code"</code>
+                    " + copy button. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{Label, LabelEmphasis};\n\n<Label text=\"Name\".to_string() />".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-label-source-copy".to_string()
+                />
+                <ul data-slot="label-source-paths">
+                    <li><code>"components/label/src/mod.rs"</code></li>
+                    <li><code>"components/label/src/logic.rs"</code></li>
+                    <li><code>"components/label/src/view.rs"</code></li>
+                    <li><code>"components/label/src/styles.rs"</code></li>
+                    <li><code>"components/label/src/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="label-source-prerequisites">
+                    <li><code>"component-label"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn field() -> AnyView {
-    let (workbench_orientation_key, set_workbench_orientation_key) = signal("vertical".to_string());
-    let (workbench_tone_key, set_workbench_tone_key) = signal("default".to_string());
-    let (workbench_required, set_workbench_required) = signal(true);
-    let (workbench_invalid, set_workbench_invalid) = signal(false);
-    let (workbench_disabled, set_workbench_disabled) = signal(false);
-    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
-    let (workbench_custom_error, set_workbench_custom_error) = signal(false);
-    let (workbench_motion_ms, set_workbench_motion_ms) = signal(160_u16);
+    let field_imports = "use leptos::prelude::*;\nuse ui_components::{Field, FieldOrientation, FieldTone, field_form::field::FieldMotion};".to_string();
+
+    let persisted_workbench_state = load_field_workbench_state();
+    let has_persisted_workbench_state = persisted_workbench_state.is_some();
+    let FieldWorkbenchState {
+        orientation_key: initial_orientation_key,
+        tone_key: initial_tone_key,
+        required: initial_required,
+        invalid: initial_invalid,
+        disabled: initial_disabled,
+        custom_class: initial_custom_class,
+        custom_error: initial_custom_error,
+        motion_ms: initial_motion_ms,
+    } = persisted_workbench_state.unwrap_or_default();
+
+    let (workbench_orientation_key, set_workbench_orientation_key) =
+        signal(initial_orientation_key);
+    let (workbench_tone_key, set_workbench_tone_key) = signal(initial_tone_key);
+    let (workbench_required, set_workbench_required) = signal(initial_required);
+    let (workbench_invalid, set_workbench_invalid) = signal(initial_invalid);
+    let (workbench_disabled, set_workbench_disabled) = signal(initial_disabled);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(initial_custom_class);
+    let (workbench_custom_error, set_workbench_custom_error) = signal(initial_custom_error);
+    let (workbench_motion_ms, set_workbench_motion_ms) = signal(initial_motion_ms);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(has_persisted_workbench_state);
+
+    Effect::new(move |_| {
+        let state = FieldWorkbenchState {
+            orientation_key: workbench_orientation_key.get(),
+            tone_key: workbench_tone_key.get(),
+            required: workbench_required.get(),
+            invalid: workbench_invalid.get(),
+            disabled: workbench_disabled.get(),
+            custom_class: workbench_custom_class.get(),
+            custom_error: workbench_custom_error.get(),
+            motion_ms: workbench_motion_ms.get(),
+        };
+
+        if workbench_persist_state.get() {
+            save_field_workbench_state(state);
+        } else {
+            clear_field_workbench_state();
+        }
+    });
 
     let workbench_orientation =
         Signal::derive(move || match workbench_orientation_key.get().as_str() {
@@ -1480,6 +2781,7 @@ pub(super) fn field() -> AnyView {
         let custom_class = workbench_custom_class.get();
         let custom_error = workbench_custom_error.get();
         let motion_ms = workbench_motion_ms.get();
+        let persist = workbench_persist_state.get();
 
         let mut classes = vec![
             "ui-field".to_string(),
@@ -1522,7 +2824,8 @@ pub(super) fn field() -> AnyView {
         };
 
         format!(
-            "FieldActualConfig {{\n  orientation: {orientation:?},\n  tone: {tone:?},\n  required: {required},\n  invalid: {invalid},\n  disabled: {disabled},\n  custom_error: {custom_error},\n  custom_class: {custom_class},\n  motion_ms: {motion_ms},\n  data_state: \"{data_state}\",\n  error_source: \"{}\",\n  class_source: \"{}\",\n  class: \"{}\",\n}}",
+            "FieldActualConfig {{\n  orientation: {orientation:?},\n  tone: {tone:?},\n  required: {required},\n  invalid: {invalid},\n  disabled: {disabled},\n  custom_error: {custom_error},\n  custom_class: {custom_class},\n  motion_ms: {motion_ms},\n  persist: {},\n  data_state: \"{data_state}\",\n  error_source: \"{}\",\n  class_source: \"{}\",\n  class: \"{}\",\n}}",
+            if persist { "on" } else { "off" },
             if !invalid {
                 "none"
             } else if custom_error {
@@ -1533,6 +2836,13 @@ pub(super) fn field() -> AnyView {
             if custom_class { "custom" } else { "default" },
             classes.join(" "),
         )
+    });
+
+    let hello_world_code = Signal::derive(move || {
+        r#"<Field label="Email".to_string()>
+  <input class="docs-search__input" type="email" placeholder="name@example.com" />
+</Field>"#
+            .to_string()
     });
 
     let required_code = Signal::derive(move || {
@@ -1559,6 +2869,63 @@ pub(super) fn field() -> AnyView {
             .to_string()
     });
 
+    let state_matrix_code = Signal::derive(move || {
+        r#"<Field
+  label="Email".to_string()
+  required=true
+  description="Required: this field must be provided.".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="name@example.com" />
+</Field>
+<Field
+  label="Email".to_string()
+  invalid=true
+  error_message="A valid email is required".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="owner@company.com" />
+</Field>
+<Field
+  label="Email".to_string()
+  disabled=true
+  description="Disabled: read-only snapshot.".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="disabled@example.com" />
+</Field>"#
+            .to_string()
+    });
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"// Uncontrolled-style: pass final validation snapshot props directly.
+<Field
+  label="Email".to_string()
+  description="Uncontrolled snapshot: email is required".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="name@example.com" />
+</Field>
+
+// Controlled-style: parent chooses derived flags/messages, Field only renders semantic output.
+<Field
+  label="Email".to_string()
+  invalid=true
+  error_message="Controlled snapshot: email format is invalid".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="owner@company.com" />
+</Field>"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Streaming Optional: Field is not a 正文阅读面, keep fallback=snapshot.
+<Field
+  label="Email".to_string()
+  description="Streaming fallback=snapshot: waiting for final validation".to_string()
+  aria_label="Email field".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="owner@company.com" />
+</Field>"#
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="Field"
@@ -1566,7 +2933,26 @@ pub(super) fn field() -> AnyView {
             group="Forms"
             description="Form field wrapper with centralized orientation/tone/validation/message-state modeling and stable data contracts."
         >
-            <Playground title="Required + Description" code_signal=required_code>
+            <Playground
+                title="Hello World (Default API)"
+                description="Minimal path: no manual wiring to ui-state-primitives/ui-headless state machines."
+                code_signal=hello_world_code
+                code_imports=field_imports.clone()
+            >
+                <Field label="Email".to_string()>
+                    <input
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="name@example.com"
+                    />
+                </Field>
+            </Playground>
+
+            <Playground
+                title="Required + Description"
+                code_signal=required_code
+                code_imports=field_imports.clone()
+            >
                 <Field
                     label="Email".to_string()
                     required=true
@@ -1581,7 +2967,11 @@ pub(super) fn field() -> AnyView {
                 </Field>
             </Playground>
 
-            <Playground title="Horizontal + Invalid + Custom Class" code_signal=invalid_code>
+            <Playground
+                title="Horizontal + Invalid + Custom Class"
+                code_signal=invalid_code
+                code_imports=field_imports.clone()
+            >
                 <Field
                     orientation=FieldOrientation::Horizontal
                     tone=FieldTone::Muted
@@ -1598,9 +2988,140 @@ pub(super) fn field() -> AnyView {
             </Playground>
 
             <Playground
+                title="State Matrix (Required / Invalid / Disabled)"
+                description="State matrix baseline for required/invalid/disabled semantic markers."
+                code_signal=state_matrix_code
+                code_imports=field_imports.clone()
+            >
+                <div class="docs-stack" data-slot="field-state-matrix">
+                    <Field
+                        label="Email".to_string()
+                        required=true
+                        description="Required: this field must be provided.".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="name@example.com"
+                        />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        invalid=true
+                        error_message="A valid email is required".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="owner@company.com"
+                        />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        disabled=true
+                        description="Disabled: read-only snapshot.".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="disabled@example.com"
+                        />
+                    </Field>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                description="Field is stateless: parent controls derived flags/messages; Field renders semantic snapshot."
+                code_signal=controlled_uncontrolled_code
+                code_imports=field_imports.clone()
+            >
+                <div class="docs-stack" data-slot="field-controlled-matrix">
+                    <Field
+                        label="Email".to_string()
+                        description="Uncontrolled snapshot: email is required".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="name@example.com"
+                        />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        invalid=true
+                        error_message="Controlled snapshot: email format is invalid".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="owner@company.com"
+                        />
+                    </Field>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="field-api-matrix">
+                <h3>"API Matrix"</h3>
+                <ul data-slot="field-api-rows">
+                    <li>
+                        <code>"orientation: FieldOrientation"</code>
+                        " default = vertical"
+                    </li>
+                    <li>
+                        <code>"tone: FieldTone"</code>
+                        " default = default"
+                    </li>
+                    <li>
+                        <code>"is_required / is_disabled / is_invalid"</code>
+                        " default = false（优先命名）"
+                    </li>
+                    <li>
+                        <code>"required / disabled / invalid"</code>
+                        " 兼容别名，默认 = false，且低于 `is_*` 优先级"
+                    </li>
+                    <li>
+                        <code>"label / description / error_message / aria_label / lang / class_name"</code>
+                        " optional semantic content (normalized in logic.rs)"
+                    </li>
+                    <li>
+                        <code>"dir: Option&lt;A11yDirection&gt;"</code>
+                        " optional"
+                    </li>
+                    <li>
+                        <code>"motion: FieldMotion"</code>
+                        " default = FieldMotion::default()"
+                    </li>
+                </ul>
+            </section>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="Field is not a 正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
+                code_signal=stream_snapshot_code
+                code_imports=field_imports.clone()
+            >
+                <Field
+                    label="Email".to_string()
+                    description="Streaming fallback=snapshot: waiting for final validation".to_string()
+                    aria_label="Email field".to_string()
+                >
+                    <input
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="owner@company.com"
+                    />
+                    <span class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback."
+                    </span>
+                </Field>
+            </Playground>
+
+            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
-                description="Button-style playground with display/config/code/css-test panels for field state/source contracts."
+                description="Button-style playground with display/config/code/css-test panels, plus optional persisted context."
                 code_signal=workbench_code
+                code_imports=field_imports.clone()
                 test_css_source=workbench_test_css
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/field/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -1609,6 +3130,7 @@ pub(super) fn field() -> AnyView {
                         <label class="docs-search__label">
                             "Orientation"
                             <select
+                                data-action="field-workbench-orientation"
                                 prop:value=move || workbench_orientation_key.get()
                                 on:change=move |ev| {
                                     set_workbench_orientation_key.set(event_target_value(&ev))
@@ -1621,6 +3143,7 @@ pub(super) fn field() -> AnyView {
                         <label class="docs-search__label">
                             "Tone"
                             <select
+                                data-action="field-workbench-tone"
                                 prop:value=move || workbench_tone_key.get()
                                 on:change=move |ev| set_workbench_tone_key.set(event_target_value(&ev))
                             >
@@ -1632,6 +3155,7 @@ pub(super) fn field() -> AnyView {
                             "Motion ms (" {move || workbench_motion_ms.get()} ")"
                             <input
                                 type="range"
+                                data-action="field-workbench-motion-ms"
                                 min="1"
                                 max="800"
                                 step="1"
@@ -1648,6 +3172,7 @@ pub(super) fn field() -> AnyView {
                         <label class="docs-search__label">
                             <input
                                 type="checkbox"
+                                data-action="field-workbench-toggle-required"
                                 prop:checked=move || workbench_required.get()
                                 on:change=move |ev| set_workbench_required.set(event_target_checked(&ev))
                             />
@@ -1656,6 +3181,7 @@ pub(super) fn field() -> AnyView {
                         <label class="docs-search__label">
                             <input
                                 type="checkbox"
+                                data-action="field-workbench-toggle-invalid"
                                 prop:checked=move || workbench_invalid.get()
                                 on:change=move |ev| set_workbench_invalid.set(event_target_checked(&ev))
                             />
@@ -1664,6 +3190,7 @@ pub(super) fn field() -> AnyView {
                         <label class="docs-search__label">
                             <input
                                 type="checkbox"
+                                data-action="field-workbench-toggle-disabled"
                                 prop:checked=move || workbench_disabled.get()
                                 on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
                             />
@@ -1672,6 +3199,7 @@ pub(super) fn field() -> AnyView {
                         <label class="docs-search__label">
                             <input
                                 type="checkbox"
+                                data-action="field-workbench-toggle-custom-error"
                                 prop:checked=move || workbench_custom_error.get()
                                 on:change=move |ev| set_workbench_custom_error.set(event_target_checked(&ev))
                             />
@@ -1680,11 +3208,31 @@ pub(super) fn field() -> AnyView {
                         <label class="docs-search__label">
                             <input
                                 type="checkbox"
+                                data-action="field-workbench-toggle-custom-class"
                                 prop:checked=move || workbench_custom_class.get()
                                 on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
                             />
                             " Custom class"
                         </label>
+                        <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                            "Persist workbench state"
+                        </Switch>
+                        <p class="ui-muted" data-slot="field-workbench-summary">
+                            {move || {
+                                format!(
+                                    "config: orientation={} tone={} required={} invalid={} disabled={} custom_error={} custom_class={} motion_ms={} persist={}",
+                                    workbench_orientation_key.get(),
+                                    workbench_tone_key.get(),
+                                    if workbench_required.get() { "true" } else { "false" },
+                                    if workbench_invalid.get() { "true" } else { "false" },
+                                    if workbench_disabled.get() { "true" } else { "false" },
+                                    if workbench_custom_error.get() { "true" } else { "false" },
+                                    if workbench_custom_class.get() { "true" } else { "false" },
+                                    workbench_motion_ms.get(),
+                                    if workbench_persist_state.get() { "on" } else { "off" },
+                                )
+                            }}
+                        </p>
                     </div>
                 }
             >
@@ -1698,6 +3246,7 @@ pub(super) fn field() -> AnyView {
                     let custom_class = workbench_custom_class.get();
                     let motion = FieldMotion {
                         duration_ms: f64::from(workbench_motion_ms.get()),
+                        ..FieldMotion::default()
                     };
 
                     if custom_error && custom_class {
@@ -1791,12 +3340,107 @@ pub(super) fn field() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="field-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p data-slot="field-source-first-contract">
+                    "Use any Field Playground's "
+                    <code>"Show code"</code>
+                    " + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p data-slot="field-source-first-dependency-baseline">
+                    "Dependency baseline (Cargo.toml): "
+                    <code>
+                        "ui-components = { default-features = false, features = [\"component-field\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <Snippet
+                    text=r#"components/field/src/mod.rs
+components/field/src/logic.rs
+components/field/src/view.rs
+components/field/src/styles.rs
+components/field/src/motion.rs
+apps/docs-app/src/pages/components/pages/forms_extra.rs::field"#.to_string()
+                    copyable=true
+                    class_name="docs-field-source-copy".to_string()
+                />
+                <ul data-slot="field-source-prerequisites">
+                    <li><code>"component-field"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn help_text() -> AnyView {
+    let help_text_imports =
+        "use leptos::prelude::*;\nuse ui_components::{HelpText, HelpTextTone};".to_string();
+
+    let hello_world_code = Signal::derive(move || {
+        r#"<HelpText
+  description="Use at least 12 characters.".to_string()
+/>"#
+        .to_string()
+    });
+
+    let state_matrix_code = Signal::derive(move || {
+        r#"<HelpText
+  description="Use at least 12 characters.".to_string()
+  aria_label="Password hint".to_string()
+/>
+<HelpText
+  tone=HelpTextTone::Neutral
+  description="This value is visible to project admins only.".to_string()
+/>
+<HelpText
+  is_invalid=true
+  is_error_icon_visible=true
+  error_message="Password does not meet complexity requirements.".to_string()
+  class_name="docs-help-text-custom".to_string()
+/>
+<HelpText
+  is_invalid=true
+  tone=HelpTextTone::Negative
+  error_message="Two-factor token expired. Request a new code.".to_string()
+  is_disabled=true
+/>"#
+        .to_string()
+    });
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"// HelpText has no internal controllable state axis.
+// Uncontrolled-style: pass final snapshot props directly.
+<HelpText
+  description="Uncontrolled snapshot: email must include @".to_string()
+/>
+
+// Controlled-style (parent store): parent updates props and HelpText re-renders.
+<HelpText
+  is_invalid=true
+  error_message="Controlled snapshot: email format is invalid".to_string()
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Snapshot: render validated final output in one shot.
+<HelpText
+  is_invalid=true
+  error_message="Snapshot: email is required".to_string()
+/>
+
+// Streaming Optional: fallback stays snapshot until final output is ready.
+<HelpText
+  tone=HelpTextTone::Neutral
+  description="Streaming fallback=snapshot: waiting for final validation".to_string()
+/>"#
+        .to_string()
+    });
+
     let description_code = Signal::derive(move || {
         r#"<HelpText
   description="Use at least 12 characters.".to_string()
@@ -1806,8 +3450,8 @@ pub(super) fn help_text() -> AnyView {
 
     let error_code = Signal::derive(move || {
         r#"<HelpText
-  invalid=true
-  show_error_icon=true
+  is_invalid=true
+  is_error_icon_visible=true
   error_message="Password does not meet complexity requirements.".to_string()
   class_name="docs-help-text-custom".to_string()
 />"#
@@ -1821,7 +3465,7 @@ pub(super) fn help_text() -> AnyView {
     let (tone_index, set_tone_index) = signal(Some(0_usize));
     let (is_invalid, set_is_invalid) = signal(false);
     let (is_disabled, set_is_disabled) = signal(false);
-    let (show_error_icon, set_show_error_icon) = signal(true);
+    let (is_error_icon_visible, set_is_error_icon_visible) = signal(true);
     let (use_error_message, set_use_error_message) = signal(true);
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
@@ -1862,9 +3506,9 @@ pub(super) fn help_text() -> AnyView {
     });
     let interactive_code = Signal::derive(move || {
         let tone = active_tone.get();
-        let invalid = is_invalid.get();
-        let disabled = is_disabled.get();
-        let show_icon = show_error_icon.get();
+        let is_invalid = is_invalid.get();
+        let is_disabled = is_disabled.get();
+        let is_error_icon_visible = is_error_icon_visible.get();
         let description = active_description.get();
         let error_message = active_error_message.get();
         let aria = active_aria_label.get();
@@ -1873,9 +3517,9 @@ pub(super) fn help_text() -> AnyView {
         let mut lines = vec![
             "<HelpText".to_string(),
             format!("  tone=HelpTextTone::{tone:?}"),
-            format!("  invalid={invalid}"),
-            format!("  disabled={disabled}"),
-            format!("  show_error_icon={show_icon}"),
+            format!("  is_invalid={is_invalid}"),
+            format!("  is_disabled={is_disabled}"),
+            format!("  is_error_icon_visible={is_error_icon_visible}"),
         ];
         if let Some(description) = description {
             lines.push(format!("  description={description:?}.into()"));
@@ -1901,15 +3545,15 @@ pub(super) fn help_text() -> AnyView {
     });
     let actual_config = Signal::derive(move || {
         let tone = active_tone.get();
-        let invalid = is_invalid.get();
-        let disabled = is_disabled.get();
-        let show_icon = show_error_icon.get();
+        let is_invalid = is_invalid.get();
+        let is_disabled = is_disabled.get();
+        let is_error_icon_visible = is_error_icon_visible.get();
         let has_description = active_description.get().is_some();
         let has_error = active_error_message.get().is_some();
         let has_custom_aria = custom_aria.get();
         let has_custom_class = custom_class.get();
         format!(
-            "HelpTextActualConfig {{\n  tone: HelpTextTone::{tone:?},\n  invalid: {invalid},\n  disabled: {disabled},\n  show_error_icon: {show_icon},\n  has_description: {has_description},\n  has_error_message: {has_error},\n  has_custom_aria_label: {has_custom_aria},\n  has_custom_class_name: {has_custom_class},\n}}"
+            "HelpTextActualConfig {{\n  tone: HelpTextTone::{tone:?},\n  is_invalid: {is_invalid},\n  is_disabled: {is_disabled},\n  is_error_icon_visible: {is_error_icon_visible},\n  has_description: {has_description},\n  has_error_message: {has_error},\n  has_custom_aria_label: {has_custom_aria},\n  has_custom_class_name: {has_custom_class},\n}}"
         )
     });
 
@@ -1920,7 +3564,88 @@ pub(super) fn help_text() -> AnyView {
             group="Forms"
             description="baseline-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts."
         >
-            <Playground title="Description (Neutral)" code_signal=description_code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_world_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText description="Use at least 12 characters.".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Description / Error / Disabled)"
+                code_signal=state_matrix_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        description="Use at least 12 characters.".to_string()
+                        aria_label="Password hint".to_string()
+                    />
+                    <HelpText
+                        tone=HelpTextTone::Neutral
+                        description="This value is visible to project admins only.".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        is_error_icon_visible=true
+                        error_message="Password does not meet complexity requirements.".to_string()
+                        class_name="docs-help-text-custom".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        tone=HelpTextTone::Negative
+                        error_message="Two-factor token expired. Request a new code.".to_string()
+                        is_disabled=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                code_signal=controlled_uncontrolled_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        description="Uncontrolled snapshot: email must include @".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        error_message="Controlled snapshot: email format is invalid".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="HelpText is not a正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
+                code_signal=stream_snapshot_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        is_invalid=true
+                        error_message="Snapshot: email is required".to_string()
+                    />
+                    <HelpText
+                        tone=HelpTextTone::Neutral
+                        description="Streaming fallback=snapshot: waiting for final validation"
+                            .to_string()
+                    />
+                    <p class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Description (Neutral)"
+                code_signal=description_code
+                code_imports=help_text_imports.clone()
+            >
                 <div class="docs-stack">
                     <HelpText
                         description="Use at least 12 characters.".to_string()
@@ -1933,19 +3658,23 @@ pub(super) fn help_text() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Invalid + Error Icon" code_signal=error_code>
+            <Playground
+                title="Invalid + Error Icon"
+                code_signal=error_code
+                code_imports=help_text_imports.clone()
+            >
                 <div class="docs-stack">
                     <HelpText
-                        invalid=true
-                        show_error_icon=true
+                        is_invalid=true
+                        is_error_icon_visible=true
                         error_message="Password does not meet complexity requirements.".to_string()
                         class_name="docs-help-text-custom".to_string()
                     />
                     <HelpText
-                        invalid=true
+                        is_invalid=true
                         tone=HelpTextTone::Negative
                         error_message="Two-factor token expired. Request a new code.".to_string()
-                        disabled=true
+                        is_disabled=true
                     />
                 </div>
             </Playground>
@@ -1953,50 +3682,67 @@ pub(super) fn help_text() -> AnyView {
             <Playground
                 title="Interactive Playground"
                 code_signal=interactive_code
+                code_imports=help_text_imports.clone()
                 test_css_source=test_css_source
                 test_source_path="components/help-text/src/styles.rs".to_string()
                 test_config_signal=actual_config
-                description="展示区 + Config 区 + Code 区 + CSS Test 区；支持 description/error/disabled/tone 的多场景对比。"
+                description="展示区 + Config 区 + Code 区 + CSS Test 区；支持 description/error/is_invalid/is_disabled/tone 的多场景对比。"
                 controls=move || view! {
-                    <div class="docs-stack docs-stack--tight">
+                    <div class="docs-stack docs-stack--tight" data-slot="help-text-workbench-controls">
                         <div class="docs-search__label">"配置区 · Tone"</div>
-                        <ui_components::SegmentedControl
-                            id_base="docs-help-text-tone".to_string()
-                            options=tone_options.clone()
-                            selected_index=tone_index
-                            set_selected_index=set_tone_index
-                            size=ui_components::SegmentedControlSize::Sm
-                            aria_label="HelpText tone".to_string()
-                        />
-                        <ui_components::Switch checked=is_invalid set_checked=set_is_invalid>
-                            "Invalid"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=is_disabled set_checked=set_is_disabled>
-                            "Disabled"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=show_error_icon set_checked=set_show_error_icon>
-                            "Show error icon"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=use_error_message set_checked=set_use_error_message>
-                            "Use error message"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=custom_aria set_checked=set_custom_aria>
-                            "Custom aria label"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=custom_class set_checked=set_custom_class>
-                            "Custom class"
-                        </ui_components::Switch>
-                        <ui_components::Switch checked=show_compare set_checked=set_show_compare>
-                            "Show compare matrix"
-                        </ui_components::Switch>
+                        <div data-slot="help-text-tone-control">
+                            <ui_components::SegmentedControl
+                                id_base="docs-help-text-tone".to_string()
+                                options=tone_options.clone()
+                                selected_index=tone_index
+                                set_selected_index=set_tone_index
+                                size=ui_components::SegmentedControlSize::Sm
+                                aria_label="HelpText tone".to_string()
+                            />
+                        </div>
+                        <div data-slot="help-text-toggle-invalid">
+                            <ui_components::Switch checked=is_invalid set_checked=set_is_invalid>
+                                "Invalid"
+                            </ui_components::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-disabled">
+                            <ui_components::Switch checked=is_disabled set_checked=set_is_disabled>
+                                "Disabled"
+                            </ui_components::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-show-error-icon">
+                            <ui_components::Switch checked=is_error_icon_visible set_checked=set_is_error_icon_visible>
+                                "Show error icon"
+                            </ui_components::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-use-error-message">
+                            <ui_components::Switch checked=use_error_message set_checked=set_use_error_message>
+                                "Use error message"
+                            </ui_components::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-custom-aria">
+                            <ui_components::Switch checked=custom_aria set_checked=set_custom_aria>
+                                "Custom aria label"
+                            </ui_components::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-custom-class">
+                            <ui_components::Switch checked=custom_class set_checked=set_custom_class>
+                                "Custom class"
+                            </ui_components::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-show-compare">
+                            <ui_components::Switch checked=show_compare set_checked=set_show_compare>
+                                "Show compare matrix"
+                            </ui_components::Switch>
+                        </div>
                     </div>
                 }
             >
                 {move || {
                     let tone = active_tone.get();
-                    let invalid = is_invalid.get();
-                    let disabled = is_disabled.get();
-                    let show_icon = show_error_icon.get();
+                    let is_invalid = is_invalid.get();
+                    let is_disabled = is_disabled.get();
+                    let is_error_icon_visible = is_error_icon_visible.get();
                     let description = active_description.get().unwrap_or_default();
                     let error_message = active_error_message.get().unwrap_or_default();
                     let aria_label = active_aria_label.get().unwrap_or_default();
@@ -2004,14 +3750,14 @@ pub(super) fn help_text() -> AnyView {
                     let compare = show_compare.get();
 
                     view! {
-                        <div class="docs-stack docs-stack--tight">
+                        <div class="docs-stack docs-stack--tight" data-slot="help-text-workbench-canvas">
                             <div class="docs-search__label">"展示区 · Primary"</div>
-                            <div class="docs-card docs-stack docs-stack--tight">
+                            <div class="docs-card docs-stack docs-stack--tight" data-slot="help-text-primary-card">
                                 <HelpText
                                     tone=tone
-                                    invalid=invalid
-                                    disabled=disabled
-                                    show_error_icon=show_icon
+                                    is_invalid=is_invalid
+                                    is_disabled=is_disabled
+                                    is_error_icon_visible=is_error_icon_visible
                                     description=description
                                     error_message=error_message
                                     aria_label=aria_label
@@ -2028,13 +3774,13 @@ pub(super) fn help_text() -> AnyView {
                                     />
                                     <HelpText
                                         tone=HelpTextTone::Negative
-                                        invalid=true
-                                        show_error_icon=true
+                                        is_invalid=true
+                                        is_error_icon_visible=true
                                         error_message="Negative error state.".to_string()
                                     />
                                     <HelpText
-                                        invalid=true
-                                        disabled=true
+                                        is_invalid=true
+                                        is_disabled=true
                                         error_message="Disabled + invalid state.".to_string()
                                     />
                                 </div>
@@ -2043,6 +3789,30 @@ pub(super) fn help_text() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="help-text-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground supports "
+                    <code>"Show code"</code>
+                    " + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{HelpText, HelpTextTone};\n\n<HelpText\n  description=\"Use at least 12 characters.\".to_string()\n/>".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-help-text-source-copy".to_string()
+                />
+                <ul data-slot="help-text-source-paths">
+                    <li><code>"components/help-text/src/mod.rs"</code></li>
+                    <li><code>"components/help-text/src/logic.rs"</code></li>
+                    <li><code>"components/help-text/src/view.rs"</code></li>
+                    <li><code>"components/help-text/src/styles.rs"</code></li>
+                    <li><code>"components/help-text/src/motion.rs"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -2297,11 +4067,51 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
 }
 
 pub(super) fn calendar() -> AnyView {
-    let (interactive_month, set_interactive_month) = signal(3_u8);
-    let (interactive_selected_day, set_interactive_selected_day) = signal(Some(12_u8));
-    let (interactive_show_outside_days, set_interactive_show_outside_days) = signal(true);
-    let (interactive_monday_first, set_interactive_monday_first) = signal(false);
-    let (interactive_strong_tone, set_interactive_strong_tone) = signal(false);
+    let persisted_workbench_state = load_calendar_workbench_state();
+    let has_persisted_workbench_state = persisted_workbench_state.is_some();
+    let initial_workbench_state = persisted_workbench_state.unwrap_or_default();
+
+    let (interactive_month, set_interactive_month) = signal(initial_workbench_state.month);
+    let (interactive_selected_day, set_interactive_selected_day) =
+        signal(initial_workbench_state.selected_day);
+    let (interactive_show_outside_days, set_interactive_show_outside_days) =
+        signal(initial_workbench_state.show_outside_days);
+    let (interactive_monday_first, set_interactive_monday_first) =
+        signal(initial_workbench_state.monday_first);
+    let (interactive_strong_tone, set_interactive_strong_tone) =
+        signal(initial_workbench_state.strong_tone);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(has_persisted_workbench_state);
+    let (controlled_selected_day, set_controlled_selected_day) = signal(Some(12_u8));
+    let on_controlled_selected_day_change =
+        Callback::new(move |next: Option<u8>| set_controlled_selected_day.set(next));
+
+    Effect::new(move |_| {
+        let state = CalendarWorkbenchState {
+            month: interactive_month.get(),
+            selected_day: interactive_selected_day.get(),
+            show_outside_days: interactive_show_outside_days.get(),
+            monday_first: interactive_monday_first.get(),
+            strong_tone: interactive_strong_tone.get(),
+        };
+
+        if workbench_persist_state.get() {
+            save_calendar_workbench_state(state);
+        } else {
+            clear_calendar_workbench_state();
+        }
+    });
+
+    let hello_world_code = Signal::derive(move || {
+        r#"<Calendar
+  year=2026
+  month=3
+/>"#
+        .to_string()
+    });
+    let calendar_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Calendar, CalendarFirstWeekday, CalendarTone};"
+            .to_string();
 
     let code = Signal::derive(move || {
         r#"<Calendar
@@ -2310,7 +4120,7 @@ pub(super) fn calendar() -> AnyView {
   selected_day=Some(6)
   tone=CalendarTone::Default
   first_weekday=CalendarFirstWeekday::Sunday
-  show_outside_days=true
+  is_show_outside_days=true
 />"#
         .to_string()
     });
@@ -2322,16 +4132,65 @@ pub(super) fn calendar() -> AnyView {
   selected_day=Some(14)
   tone=CalendarTone::Strong
   first_weekday=CalendarFirstWeekday::Monday
-  show_outside_days=false
+  is_show_outside_days=false
   class_name="docs-calendar-custom".to_string()
 />"#
         .to_string()
     });
 
+    let state_matrix_code = Signal::derive(move || {
+        r#"<div class="docs-calendar-state-matrix">
+  <Calendar
+    year=2026
+    month=1
+    selected_day=Some(6)
+    tone=CalendarTone::Default
+    first_weekday=CalendarFirstWeekday::Sunday
+    is_show_outside_days=true
+  />
+  <Calendar
+    year=2026
+    month=2
+    selected_day=Some(14)
+    tone=CalendarTone::Strong
+    first_weekday=CalendarFirstWeekday::Monday
+    is_show_outside_days=false
+    class_name="docs-calendar-custom".to_string()
+  />
+</div>"#
+            .to_string()
+    });
+
+    let controlled_uncontrolled_code = Signal::derive(move || {
+        r#"let (selected_day, set_selected_day) = signal(Some(12_u8));
+let on_selected_day_change = Callback::new(move |next: Option<u8>| set_selected_day.set(next));
+
+// Uncontrolled: initialize once with default_selected_day.
+<Calendar year=2026 month=3 default_selected_day=Some(12) />
+
+// Controlled: selected_day + on_selected_day_change are the single source of truth.
+<Calendar
+  year=2026
+  month=3
+  selected_day=selected_day.get()
+  on_selected_day_change=Some(on_selected_day_change)
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"// Snapshot: render final calendar result in one shot.
+<Calendar year=2026 month=3 selected_day=Some(12) />
+
+// Streaming Optional: calendar remains snapshot fallback for LLM streaming surfaces.
+<Calendar year=2026 month=3 selected_day=None />"#
+            .to_string()
+    });
+
     let interactive_code = Signal::derive(move || {
         r#"let (month, set_month) = signal(3_u8);
 let (selected_day, set_selected_day) = signal(Some(12_u8));
-let (show_outside_days, set_show_outside_days) = signal(true);
+let (is_show_outside_days, set_is_show_outside_days) = signal(true);
 let (monday_first, set_monday_first) = signal(false);
 let (strong_tone, set_strong_tone) = signal(false);
 
@@ -2341,7 +4200,7 @@ let (strong_tone, set_strong_tone) = signal(false);
   selected_day=selected_day.get()
   tone=if strong_tone.get() { CalendarTone::Strong } else { CalendarTone::Default }
   first_weekday=if monday_first.get() { CalendarFirstWeekday::Monday } else { CalendarFirstWeekday::Sunday }
-  show_outside_days=show_outside_days.get()
+  is_show_outside_days=is_show_outside_days.get()
 />"#.to_string()
     });
     let test_css_source = Signal::derive(move || {
@@ -2356,6 +4215,7 @@ let (strong_tone, set_strong_tone) = signal(false);
         let show_outside_days = interactive_show_outside_days.get();
         let monday_first = interactive_monday_first.get();
         let strong_tone = interactive_strong_tone.get();
+        let persist = workbench_persist_state.get();
 
         let mut classes = vec![
             "ui-calendar".to_string(),
@@ -2380,9 +4240,10 @@ let (strong_tone, set_strong_tone) = signal(false);
         classes.push("docs-calendar-interactive".to_string());
 
         format!(
-            "CalendarActualConfig {{\n  year: 2026,\n  month: {month},\n  selected_day: {selected_day:?},\n  tone: {},\n  first_weekday: {},\n  show_outside_days: {show_outside_days},\n  class_name: \"docs-calendar-interactive\",\n  class: \"{}\",\n}}",
+            "CalendarActualConfig {{\n  year: 2026,\n  month: {month},\n  selected_day: {selected_day:?},\n  tone: {},\n  first_weekday: {},\n  show_outside_days: {show_outside_days},\n  persist: {},\n  class_name: \"docs-calendar-interactive\",\n  class: \"{}\",\n}}",
             if strong_tone { "Strong" } else { "Default" },
             if monday_first { "Monday" } else { "Sunday" },
+            if persist { "on" } else { "off" },
             classes.join(" ")
         )
     });
@@ -2394,36 +4255,176 @@ let (strong_tone, set_strong_tone) = signal(false);
             group="Forms"
             description="Month-grid calendar with centralized date normalization and baseline-style tone/weekday/source state contracts."
         >
-            <Playground title="Default + Outside Days" code_signal=code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                code_imports=calendar_imports.clone()
+            >
+                <Calendar year=2026 month=3 />
+            </Playground>
+
+            <Playground
+                title="Default + Outside Days"
+                code_signal=code
+                code_imports=calendar_imports.clone()
+            >
                 <Calendar
                     year=2026
                     month=1
                     selected_day=Some(6)
                     tone=CalendarTone::Default
                     first_weekday=CalendarFirstWeekday::Sunday
-                    show_outside_days=true
+                    is_show_outside_days=true
                 />
             </Playground>
 
-            <Playground title="Monday First + Strong Tone" code_signal=states_code>
+            <Playground
+                title="Monday First + Strong Tone"
+                code_signal=states_code
+                code_imports=calendar_imports.clone()
+            >
                 <Calendar
                     year=2026
                     month=2
                     selected_day=Some(14)
                     tone=CalendarTone::Strong
                     first_weekday=CalendarFirstWeekday::Monday
-                    show_outside_days=false
+                    is_show_outside_days=false
                     class_name="docs-calendar-custom".to_string()
                 />
             </Playground>
 
             <Playground
+                title="State Matrix (Outside Days / Weekday / Tone)"
+                code_signal=state_matrix_code
+                code_imports=calendar_imports.clone()
+                description="Matrix baseline: compare tone + weekday-start + outside-days contracts side-by-side."
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="calendar-state-matrix">
+                    <Calendar
+                        year=2026
+                        month=1
+                        selected_day=Some(6)
+                        tone=CalendarTone::Default
+                        first_weekday=CalendarFirstWeekday::Sunday
+                        is_show_outside_days=true
+                    />
+                    <Calendar
+                        year=2026
+                        month=2
+                        selected_day=Some(14)
+                        tone=CalendarTone::Strong
+                        first_weekday=CalendarFirstWeekday::Monday
+                        is_show_outside_days=false
+                        class_name="docs-calendar-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (selected_day axis)"
+                code_signal=controlled_uncontrolled_code
+                code_imports=calendar_imports.clone()
+                description="Contrast default_selected_day (uncontrolled) with selected_day + on_selected_day_change (controlled)."
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="calendar-controlled-uncontrolled">
+                    <div class="docs-search__label">"Uncontrolled"</div>
+                    <Calendar year=2026 month=3 default_selected_day=12 />
+
+                    <div class="docs-search__label">"Controlled"</div>
+                    <Calendar
+                        year=2026
+                        month=3
+                        selected_day=controlled_selected_day.get()
+                        on_selected_day_change=Some(on_controlled_selected_day_change)
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                code_signal=stream_snapshot_code
+                code_imports=calendar_imports.clone()
+                description="Calendar is not a reader surface: docs lock snapshot baseline and streaming-optional fallback semantics."
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="calendar-streaming-snapshot">
+                    <Calendar year=2026 month=3 selected_day=Some(12) />
+                    <Calendar year=2026 month=3 selected_day=None />
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="calendar-parameter-matrix">
+                <h3>"Parameter Matrix (API + Defaults)"</h3>
+                <p>
+                    "API names and defaults below are synchronized with "
+                    <code>"components/calendar/src/view.rs"</code>
+                    " + "
+                    <code>"crates/ui-state-primitives/src/calendar.rs"</code>
+                    "."
+                </p>
+                <div class="docs-grid docs-grid--2" data-slot="calendar-parameter-matrix-grid">
+                    <article data-prop="tone">
+                        <h4><code>"tone"</code></h4>
+                        <p>"Default: " <code>"CalendarTone::Default"</code></p>
+                    </article>
+                    <article data-prop="first_weekday">
+                        <h4><code>"first_weekday"</code></h4>
+                        <p>"Default: " <code>"CalendarFirstWeekday::Sunday"</code></p>
+                    </article>
+                    <article data-prop="is_show_outside_days">
+                        <h4><code>"is_show_outside_days"</code></h4>
+                        <p>
+                            "Preferred bool axis. Resolved via "
+                            <code>"normalize_is_show_outside_days(is_show_outside_days, show_outside_days)"</code>
+                            ", default "
+                            <code>"false"</code>
+                            "."
+                        </p>
+                    </article>
+                    <article data-prop="show_outside_days">
+                        <h4><code>"show_outside_days"</code></h4>
+                        <p>
+                            "Legacy alias (compat). Participates in "
+                            <code>"normalize_is_show_outside_days"</code>
+                            " with the same default "
+                            <code>"false"</code>
+                            "."
+                        </p>
+                    </article>
+                    <article data-prop="selected-day-axis">
+                        <h4><code>"selected_day / default_selected_day"</code></h4>
+                        <p>
+                            "Resolved by "
+                            <code>"normalize_selected_day_axis(selected_day, default_selected_day, year, normalize_month(month))"</code>
+                            ". Defaults: both "
+                            <code>"None"</code>
+                            "."
+                        </p>
+                    </article>
+                    <article data-prop="aria-label">
+                        <h4><code>"aria_label"</code></h4>
+                        <p>
+                            "Default fallback comes from "
+                            <code>"DEFAULT_ARIA_LABEL"</code>
+                            " = "
+                            <code>"\"Calendar\""</code>
+                            "."
+                        </p>
+                    </article>
+                </div>
+                <p data-slot="calendar-state-matrix-note">
+                    "State matrix and controlled/uncontrolled matrix are in the playgrounds above."
+                </p>
+            </section>
+
+            <Playground
                 title="Interactive Playground (State + Source Markers)"
                 code_signal=interactive_code
+                code_imports=calendar_imports.clone()
                 test_css_source=test_css_source
                 test_source_path="/root/code/personal/omne/rust-ui/components/calendar/src/styles.rs".to_string()
                 test_config_signal=actual_config
-                description="Workbench canvas: 展示区覆盖默认/强强调对比，Config/Code/CSS Test 区用于契约校验。"
+                description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="calendar-config-controls">
                         <div class="docs-search__label">"Month"</div>
@@ -2488,10 +4489,13 @@ let (strong_tone, set_strong_tone) = signal(false);
                         >
                             "Clear selection"
                         </button>
+                        <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                            "Persist workbench state"
+                        </Switch>
                         <p class="ui-muted" data-slot="calendar-config-summary">
                             {move || {
                                 format!(
-                                    "config: month={} weekday={} tone={} outside_days={} selected_day={:?}",
+                                    "config: month={} weekday={} tone={} outside_days={} selected_day={:?} persist={}",
                                     interactive_month.get(),
                                     if interactive_monday_first.get() {
                                         "monday"
@@ -2509,6 +4513,11 @@ let (strong_tone, set_strong_tone) = signal(false);
                                         "false"
                                     },
                                     interactive_selected_day.get(),
+                                    if workbench_persist_state.get() {
+                                        "on"
+                                    } else {
+                                        "off"
+                                    },
                                 )
                             }}
                         </p>
@@ -2589,9 +4598,9 @@ let (strong_tone, set_strong_tone) = signal(false);
                         } else {
                             CalendarFirstWeekday::Sunday
                         }
-                        show_outside_days=interactive_show_outside_days.get()
-                        on_day_press=Some(Callback::new(move |day| {
-                            set_interactive_selected_day.set(Some(day));
+                        is_show_outside_days=interactive_show_outside_days.get()
+                        on_selected_day_change=Some(Callback::new(move |next| {
+                            set_interactive_selected_day.set(next);
                         }))
                         class_name="docs-calendar-interactive".to_string()
                     />
@@ -2599,7 +4608,7 @@ let (strong_tone, set_strong_tone) = signal(false);
                     <p data-slot="calendar-interactive-summary">
                         {move || {
                             format!(
-                                "month={} selected_day={:?} weekday={} tone={} outside_days={}",
+                                "month={} selected_day={:?} weekday={} tone={} outside_days={} persist={}",
                                 interactive_month.get(),
                                 interactive_selected_day.get(),
                                 if interactive_monday_first.get() { "monday" } else { "sunday" },
@@ -2608,7 +4617,12 @@ let (strong_tone, set_strong_tone) = signal(false);
                                     "true"
                                 } else {
                                     "false"
-                                }
+                                },
+                                if workbench_persist_state.get() {
+                                    "on"
+                                } else {
+                                    "off"
+                                },
                             )
                         }}
                     </p>
@@ -2625,7 +4639,7 @@ let (strong_tone, set_strong_tone) = signal(false);
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Calendar\n  year=2026\n  month=3\n  selected_day=Some(12)\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_components::{Calendar, CalendarFirstWeekday, CalendarTone};\n\n<Calendar\n  year=2026\n  month=3\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-calendar-source-copy".to_string()

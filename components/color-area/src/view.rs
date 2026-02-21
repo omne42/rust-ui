@@ -5,7 +5,7 @@ use crate::{
 };
 use leptos::prelude::*;
 use ui_headless::{
-    ColorAreaKeyboardInput, ColorAreaOptions, CommonStrings, use_color_area,
+    ColorAreaCellInput, ColorAreaKeyboardInput, ColorAreaOptions, CommonStrings, use_color_area,
     use_controllable_state, use_ui_i18n,
 };
 
@@ -20,17 +20,6 @@ const SLOT_COLOR_AREA_AXES: &str = "color-area-axes";
 const SLOT_COLOR_AREA_AXIS_X: &str = "color-area-axis-x";
 const SLOT_COLOR_AREA_AXIS_Y: &str = "color-area-axis-y";
 const BOOL_TRUE: &str = "true";
-const MOTION_SOURCE_CUSTOM: &str = "custom";
-
-fn cell_aria_label(x_axis_label: &str, y_axis_label: &str, value: (f32, f32)) -> String {
-    format!(
-        "{} {}%, {} {}%",
-        x_axis_label,
-        (value.0 * 100.0).round() as u8,
-        y_axis_label,
-        (value.1 * 100.0).round() as u8
-    )
-}
 
 fn resolve_semantics(
     root_state: logic::ColorAreaRootState,
@@ -42,6 +31,8 @@ fn resolve_semantics(
         state: root_state.state,
         aria_label: root_state.aria_label,
         label_id,
+        x_axis_label: root_state.x_axis_label,
+        y_axis_label: root_state.y_axis_label,
         lang,
         dir,
     })
@@ -55,8 +46,8 @@ pub fn ColorArea(
     #[prop(optional)] value: Option<Signal<(f32, f32)>>,
     #[prop(optional)] default_value: Option<(f32, f32)>,
     #[prop(optional)] on_value_change: Option<Callback<(f32, f32)>>,
-    #[prop(optional, default = logic::DEFAULT_STEP)] step: f32,
-    #[prop(optional, default = logic::DEFAULT_GRID_SIZE)] grid_size: usize,
+    #[prop(optional)] step: Option<f32>,
+    #[prop(optional)] grid_size: Option<usize>,
     #[prop(optional, into)] preview_color: Option<String>,
     #[prop(optional)] motion: ColorAreaMotion,
     #[prop(optional, into)] aria_label: Option<String>,
@@ -70,6 +61,8 @@ pub fn ColorArea(
     let common = i18n.strings::<CommonStrings>();
 
     let default_value = logic::normalize_default_value(default_value);
+    let step = logic::normalize_step(step);
+    let grid_size = logic::normalize_grid_size(grid_size);
     let value_axis = logic::normalize_value_axis(value.is_some());
     let controllable = use_controllable_state(value, Some(default_value), on_value_change);
     let value = controllable.value;
@@ -105,8 +98,8 @@ pub fn ColorArea(
         Memo::new(move |_| logic::compose_class_name(root.get().class_name, root.get().state));
 
     let motion = motion::sanitize_motion(motion);
-    let motion_source = motion::source_attr(motion);
-    let has_custom_motion = motion_source == MOTION_SOURCE_CUSTOM;
+    let motion_source = motion::resolve_source(motion);
+    let has_custom_motion = motion_source.is_custom();
     let inline_style = Memo::new(move |_| {
         let preview = root
             .get()
@@ -116,11 +109,7 @@ pub fn ColorArea(
     });
 
     let on_x_input = move |ev| {
-        if root.get_untracked().state.is_disabled {
-            return;
-        }
-
-        let Some(next_x) = resolve_semantics(
+        let parsed = resolve_semantics(
             root.get_untracked(),
             label_id_for_semantics.get_value(),
             lang_for_semantics.get_value(),
@@ -128,20 +117,22 @@ pub fn ColorArea(
         )
         .handlers
         .parse_axis_input
-        .run(event_target_value(&ev)) else {
+        .run(event_target_value(&ev));
+        let outcome = logic::reduce_axis_input(
+            logic::resolve_interactivity(root.get_untracked().state),
+            value.get_untracked(),
+            logic::ColorAreaAxis::X,
+            parsed,
+        );
+
+        let Some(next_value) = outcome.next_value else {
             return;
         };
-
-        let current = logic::clamp_value(value.get_untracked());
-        request_value_change.run((next_x, current.1));
+        request_value_change.run(next_value);
     };
 
     let on_y_input = move |ev| {
-        if root.get_untracked().state.is_disabled {
-            return;
-        }
-
-        let Some(next_y) = resolve_semantics(
+        let parsed = resolve_semantics(
             root.get_untracked(),
             label_id_for_semantics.get_value(),
             lang_for_semantics.get_value(),
@@ -149,12 +140,18 @@ pub fn ColorArea(
         )
         .handlers
         .parse_axis_input
-        .run(event_target_value(&ev)) else {
+        .run(event_target_value(&ev));
+        let outcome = logic::reduce_axis_input(
+            logic::resolve_interactivity(root.get_untracked().state),
+            value.get_untracked(),
+            logic::ColorAreaAxis::Y,
+            parsed,
+        );
+
+        let Some(next_value) = outcome.next_value else {
             return;
         };
-
-        let current = logic::clamp_value(value.get_untracked());
-        request_value_change.run((current.0, next_y));
+        request_value_change.run(next_value);
     };
 
     let on_key_down = move |ev: leptos::ev::KeyboardEvent| {
@@ -172,11 +169,22 @@ pub fn ColorArea(
             current_value: value.get_untracked(),
         });
 
-        if let Some(result) = result {
-            request_value_change.run(result.next_value);
-            if result.prevent_default {
-                ev.prevent_default();
-            }
+        let (next_value, prevent_default) = if let Some(result) = result {
+            (Some(result.next_value), result.prevent_default)
+        } else {
+            (None, false)
+        };
+        let outcome = logic::reduce_keyboard_result(
+            logic::resolve_interactivity(root.get_untracked().state),
+            next_value,
+            prevent_default,
+        );
+
+        if let Some(next_value) = outcome.next_value {
+            request_value_change.run(next_value);
+        }
+        if outcome.prevent_default {
+            ev.prevent_default();
         }
     };
 
@@ -226,7 +234,7 @@ pub fn ColorArea(
             .root_attrs
             .dir
             data-slot=SLOT_COLOR_AREA
-            data-motion-source=motion_source
+            data-motion-source=motion_source.as_attr()
             data-custom-motion=has_custom_motion.then_some(BOOL_TRUE)
             data-state=move || resolve_semantics(
                 root.get(),
@@ -403,48 +411,50 @@ pub fn ColorArea(
                 {move || {
                     let root_state = root.get();
                     let state = root_state.state;
-                    let x_axis_label = root_state.x_axis_label;
-                    let y_axis_label = root_state.y_axis_label;
                     (0..state.grid_size)
                         .map(|row| {
                             view! {
                                 <div class="ui-color-area__row" data-slot=SLOT_COLOR_AREA_ROW role="row">
                                     {(0..state.grid_size)
                                         .map(|col| {
-                                            let is_selected = row == state.selected_row && col == state.selected_col;
-                                            let cell_value = resolve_semantics(
+                                            let cell = resolve_semantics(
                                                 root.get_untracked(),
                                                 label_id_for_semantics.get_value(),
                                                 lang_for_semantics.get_value(),
                                                 dir_for_semantics.get_value(),
                                             )
                                             .handlers
-                                            .cell_to_value
-                                            .run((col, row, state.grid_size));
-                                            let aria_label = cell_aria_label(
-                                                x_axis_label.as_str(),
-                                                y_axis_label.as_str(),
-                                                cell_value,
-                                            );
+                                            .resolve_cell
+                                            .run(ColorAreaCellInput { col, row });
+                                            let cell_value = cell.value;
+                                            let cell_disabled = cell.attrs.disabled;
+                                            let cell_role = cell.attrs.role;
+                                            let cell_aria_label = cell.attrs.aria_label;
+                                            let cell_aria_selected = cell.attrs.aria_selected;
+                                            let cell_tabindex = cell.attrs.tabindex;
+                                            let cell_data_selected = cell.attrs.data_selected;
 
                                             view! {
                                                 <button
                                                     type="button"
                                                     class="ui-color-area__cell"
-                                                    role="gridcell"
-                                                    aria-label=aria_label
-                                                    aria-selected=is_selected.then_some(BOOL_TRUE)
-                                                    tabindex=if is_selected && !state.is_disabled { 0 } else { -1 }
-                                                    disabled=state.is_disabled
+                                                    role=cell_role
+                                                    aria-label=cell_aria_label
+                                                    aria-selected=cell_aria_selected
+                                                    tabindex=cell_tabindex
+                                                    disabled=cell_disabled
                                                     data-slot=SLOT_COLOR_AREA_CELL
                                                     data-row=row
                                                     data-col=col
-                                                    data-selected=is_selected.then_some(BOOL_TRUE)
+                                                    data-selected=cell_data_selected
                                                     on:click=move |_| {
-                                                        if state.is_disabled {
-                                                            return;
+                                                        let outcome = logic::reduce_cell_select(
+                                                            logic::resolve_interactivity(root.get_untracked().state),
+                                                            cell_value,
+                                                        );
+                                                        if let Some(next_value) = outcome.next_value {
+                                                            request_value_change.run(next_value);
                                                         }
-                                                        request_value_change.run(cell_value);
                                                     }
                                                 >
                                                     <span class="ui-color-area__thumb" data-slot=SLOT_COLOR_AREA_THUMB></span>

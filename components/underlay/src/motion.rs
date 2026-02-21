@@ -38,8 +38,16 @@ pub fn attach_motion(
             !motion.get_value().enabled || ui_motion::web::prefers_reduced_motion();
 
         if disable_motion {
-            drop(style.set_property("--ui-underlay-runtime-duration", "1ms"));
-            drop(style.set_property("--ui-underlay-runtime-visibility-duration", "1ms"));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-underlay-runtime-duration",
+                "1ms"
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-underlay-runtime-visibility-duration",
+                "1ms"
+            );
             return;
         }
 

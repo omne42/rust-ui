@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use ui_theme::{SemanticOverrides, Theme, css};
 
-use ui_headless::{UiI18n, provide_ui_i18n};
+use ui_headless::{UiI18n, provide_ui_i18n, provide_ui_id_provider};
 
 #[derive(Clone, Copy)]
 pub struct UiRootStateInput {
@@ -52,10 +52,12 @@ pub fn UiRoot(
     #[prop(into)] theme: Signal<Theme>,
     #[prop(optional)] inject_components_css: bool,
     #[prop(optional)] safe_area: bool,
+    #[prop(optional, default = 1)] id_seed: u64,
     #[prop(optional)] semantic_overrides: Option<SemanticOverrides>,
     #[prop(optional)] i18n: UiI18n,
 ) -> impl IntoView {
     provide_ui_i18n(i18n);
+    provide_ui_id_provider(id_seed);
     let safe_area = StoredValue::new(safe_area);
     let inject_components_css = StoredValue::new(inject_components_css);
     let semantic_overrides = StoredValue::new(semantic_overrides);

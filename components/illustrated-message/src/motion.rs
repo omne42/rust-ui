@@ -79,14 +79,26 @@ pub fn attach_motion(
         let style = element.style();
         let motion = motion.get_value();
 
-        drop(style.set_property("--ui-im-opacity", "0"));
-        drop(style.set_property("--ui-im-y", &format!("{}px", motion.initial_y_px)));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-im-opacity", "0");
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-im-y",
+            &format!("{}px", motion.initial_y_px)
+        );
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(0.0, config, move |progress| {
             let progress = progress.clamp(0.0, 1.0);
             let y = motion.initial_y_px * (1.0 - progress);
-            drop(style_for_apply.set_property("--ui-im-opacity", &format!("{progress}")));
-            drop(style_for_apply.set_property("--ui-im-y", &format!("{y}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_apply),
+                "--ui-im-opacity",
+                &format!("{progress}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_apply),
+                "--ui-im-y",
+                &format!("{y}px")
+            );
         });
 
         let spring_for_cleanup = spring;

@@ -1,4 +1,8 @@
+use std::borrow::Cow;
+
 use crate::icons_workflow::{IconsWorkflowState, IconsWorkflowStateInput, IconsetGlyph};
+
+pub const DEFAULT_INNER_CLASS: &str = "ui-icons-workflow";
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
@@ -7,11 +11,21 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
+pub fn resolve_inner_aria_label(value: Option<String>) -> String {
+    value.unwrap_or_default()
+}
+
+pub fn resolve_inner_class_name(value: Option<String>) -> String {
+    value
+        .map(|value| format!("{DEFAULT_INNER_CLASS} {value}"))
+        .unwrap_or_else(|| DEFAULT_INNER_CLASS.into())
+}
+
 pub fn normalize_icon_reference(icon: String) -> (String, &'static str, bool, bool) {
     let icon = icon.trim();
 
     if icon.is_empty() {
-        return ("workflow:help".to_string(), "default", false, true);
+        return ("workflow:help".into(), "default", false, true);
     }
 
     if icon.contains(':') {
@@ -85,36 +99,40 @@ pub fn resolve_state(input: IconsWorkflowStateInput) -> IconsWorkflowState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: IconsWorkflowState) -> String {
-    let mut classes = vec!["ui-icons-workflow".to_string()];
+    let mut classes: Vec<Cow<'static, str>> = vec![Cow::Borrowed("ui-icons-workflow")];
 
     if state.is_disabled {
-        classes.push("ui-icons-workflow--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-icons-workflow--disabled"));
     }
 
     if state.is_decorative {
-        classes.push("ui-icons-workflow--decorative".to_string());
+        classes.push(Cow::Borrowed("ui-icons-workflow--decorative"));
     }
 
     if state.has_custom_glyphs {
-        classes.push("ui-icons-workflow--custom-glyphs".to_string());
+        classes.push(Cow::Borrowed("ui-icons-workflow--custom-glyphs"));
     }
 
     if state.has_custom_size {
-        classes.push("ui-icons-workflow--custom-size".to_string());
+        classes.push(Cow::Borrowed("ui-icons-workflow--custom-size"));
     }
 
     if state.has_custom_tone {
-        classes.push("ui-icons-workflow--custom-tone".to_string());
+        classes.push(Cow::Borrowed("ui-icons-workflow--custom-tone"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-icons-workflow--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-icons-workflow--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

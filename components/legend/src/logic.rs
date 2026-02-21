@@ -1,82 +1,64 @@
+use std::borrow::Cow;
+
 pub use ui_state_primitives::legend::{
-    DEFAULT_REQUIRED_INDICATOR, DEFAULT_TEXT, LegendState, LegendStateInput, LegendTone,
-    normalize_optional_text, normalize_required_indicator, normalize_text, resolve_state,
+    AccessibilityState, DEFAULT_REQUIRED_INDICATOR, DEFAULT_TEXT, LegendState, LegendStateInput,
+    LegendTone, RequiredState, normalize_optional_text, normalize_required_indicator,
+    normalize_text, resolve_state,
 };
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum LegendRequiredSource {
-    IsRequired,
-    Required,
-    Default,
+const DEFAULT_IS_REQUIRED: bool = false;
+const DEFAULT_IS_DISABLED: bool = false;
+
+pub fn normalize_required_state(is_required: Option<bool>) -> RequiredState {
+    ui_state_primitives::legend::normalize_required_state(is_required, DEFAULT_IS_REQUIRED)
 }
 
-impl LegendRequiredSource {
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            Self::IsRequired => "is_required",
-            Self::Required => "required",
-            Self::Default => "default",
-        }
-    }
+pub fn normalize_accessibility_state(is_disabled: Option<bool>) -> AccessibilityState {
+    ui_state_primitives::legend::normalize_accessibility_state(is_disabled, DEFAULT_IS_DISABLED)
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum LegendDisabledSource {
-    IsDisabled,
-    Disabled,
-    Default,
+pub struct LegendNormalizeInput {
+    pub tone: LegendTone,
+    pub is_required: Option<bool>,
+    pub is_disabled: Option<bool>,
+    pub text: Option<String>,
+    pub required_indicator: Option<String>,
+    pub class_name: Option<String>,
 }
 
-impl LegendDisabledSource {
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            Self::IsDisabled => "is_disabled",
-            Self::Disabled => "disabled",
-            Self::Default => "default",
-        }
-    }
+pub struct LegendResolvedModel {
+    pub state: LegendState,
+    pub required_state: RequiredState,
+    pub accessibility_state: AccessibilityState,
+    pub text: String,
+    pub required_indicator: String,
+    pub class_name: Option<String>,
 }
 
-pub struct RequiredState {
-    pub is_required: bool,
-    pub required_source_attr: &'static str,
-}
+pub fn normalize_component_state(input: LegendNormalizeInput) -> LegendResolvedModel {
+    let required_state = normalize_required_state(input.is_required);
+    let accessibility_state = normalize_accessibility_state(input.is_disabled);
+    let (text, has_custom_text) = normalize_text(input.text);
+    let (required_indicator, has_custom_indicator) =
+        normalize_required_indicator(input.required_indicator);
+    let class_name = normalize_optional_text(input.class_name);
+    let has_custom_class_name = class_name.is_some();
+    let state = resolve_state(LegendStateInput {
+        tone: input.tone,
+        is_required: required_state.is_required,
+        is_disabled: accessibility_state.is_disabled,
+        has_custom_text,
+        has_custom_indicator,
+        has_custom_class_name,
+    });
 
-pub fn normalize_required_state(is_required: Option<bool>, required: bool) -> RequiredState {
-    let source = if is_required.is_some() {
-        LegendRequiredSource::IsRequired
-    } else if required {
-        LegendRequiredSource::Required
-    } else {
-        LegendRequiredSource::Default
-    };
-
-    RequiredState {
-        is_required: is_required.unwrap_or(required),
-        required_source_attr: source.as_attr(),
-    }
-}
-
-pub struct AccessibilityState {
-    pub is_disabled: bool,
-    pub disabled_source_attr: &'static str,
-}
-
-pub fn normalize_accessibility_state(
-    is_disabled: Option<bool>,
-    disabled: bool,
-) -> AccessibilityState {
-    let source = if is_disabled.is_some() {
-        LegendDisabledSource::IsDisabled
-    } else if disabled {
-        LegendDisabledSource::Disabled
-    } else {
-        LegendDisabledSource::Default
-    };
-
-    AccessibilityState {
-        is_disabled: is_disabled.unwrap_or(disabled),
-        disabled_source_attr: source.as_attr(),
+    LegendResolvedModel {
+        state,
+        required_state,
+        accessibility_state,
+        text,
+        required_indicator,
+        class_name,
     }
 }
 
@@ -184,6 +166,19 @@ impl LegendUiAction {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LegendUiSource {
+    Component,
+}
+
+impl LegendUiSource {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Component => "component",
+        }
+    }
+}
+
 pub struct LegendAgentContract {
     pub schema_attr: &'static str,
     pub schema_version_attr: &'static str,
@@ -207,32 +202,37 @@ pub fn resolve_agent_contract() -> LegendAgentContract {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: LegendState) -> String {
-    let mut classes = vec!["ui-legend".to_string(), state.tone_class.into()];
+    let mut classes: Vec<Cow<'static, str>> =
+        vec![Cow::Borrowed("ui-legend"), Cow::Borrowed(state.tone_class)];
 
     if state.is_required {
-        classes.push("ui-legend--required".to_string());
+        classes.push(Cow::Borrowed("ui-legend--required"));
     }
 
     if state.is_disabled {
-        classes.push("ui-legend--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-legend--disabled"));
     }
 
     if state.has_custom_text {
-        classes.push("ui-legend--text-custom".to_string());
+        classes.push(Cow::Borrowed("ui-legend--text-custom"));
     }
 
     if state.has_custom_indicator {
-        classes.push("ui-legend--indicator-custom".to_string());
+        classes.push(Cow::Borrowed("ui-legend--indicator-custom"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-legend--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-legend--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

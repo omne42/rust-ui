@@ -48,19 +48,24 @@ fn resolve_avatar_group_state_tracks_overflow_and_size_metadata() {
     assert_eq!(state.max_visible, 4);
     assert_eq!(state.size, AvatarSize::Lg);
     assert_eq!(state.size_attr, "lg");
-    assert_eq!(state.state_class, "ui-avatar-group--overflow");
-    assert_eq!(state.state_attr, "overflow");
-    assert!(!state.is_empty);
-    assert!(state.has_items);
-    assert!(state.has_overflow);
-    assert!(state.has_custom_aria_label);
     assert_eq!(
-        state.aria_label_source_class,
-        "ui-avatar-group--label-source-custom"
+        state.visual_state,
+        ui_state_primitives::avatar_group::AvatarGroupVisualState::Overflow
     );
-    assert_eq!(state.aria_label_source_attr, "custom");
-    assert!(state.has_custom_class_name);
-    assert_eq!(state.class_source_attr, "custom");
+    assert_eq!(state.visual_state.as_str(), "overflow");
+    assert!(!state.is_empty());
+    assert!(state.has_items());
+    assert!(state.has_overflow());
+    assert_eq!(
+        state.aria_label_source,
+        ui_state_primitives::avatar_group::AvatarGroupAriaLabelSource::Custom
+    );
+    assert_eq!(state.aria_label_source.as_str(), "custom");
+    assert_eq!(
+        state.class_source,
+        ui_state_primitives::avatar_group::AvatarGroupClassSource::Custom
+    );
+    assert_eq!(state.class_source.as_str(), "custom");
 }
 
 #[test]
@@ -194,4 +199,39 @@ fn resolve_avatar_group_render_state_maps_discrete_status_and_sources_to_enums()
         ui_state_primitives::avatar_group::AvatarGroupVisualState::Empty
     );
     assert!(!empty.has_items());
+}
+
+#[test]
+fn resolve_avatar_group_agent_contract_exposes_stream_policy_and_output_status() {
+    let empty = resolve_avatar_group_render_state(AvatarGroupStateInput {
+        total_count: 0,
+        max_visible: 4,
+        size: AvatarSize::Md,
+        has_custom_aria_label: false,
+        has_custom_class_name: false,
+    });
+    let empty_contract = resolve_avatar_group_agent_contract(empty);
+    assert_eq!(empty_contract.stream_support.as_str(), "optional");
+    assert_eq!(empty_contract.stream_fallback.as_str(), "snapshot");
+    assert_eq!(empty_contract.output_status.as_str(), "draft");
+
+    let verified = resolve_avatar_group_render_state(AvatarGroupStateInput {
+        total_count: 2,
+        max_visible: 4,
+        size: AvatarSize::Md,
+        has_custom_aria_label: false,
+        has_custom_class_name: false,
+    });
+    let verified_contract = resolve_avatar_group_agent_contract(verified);
+    assert_eq!(verified_contract.output_status.as_str(), "verified");
+
+    let submittable = resolve_avatar_group_render_state(AvatarGroupStateInput {
+        total_count: 2,
+        max_visible: 4,
+        size: AvatarSize::Md,
+        has_custom_aria_label: true,
+        has_custom_class_name: false,
+    });
+    let submittable_contract = resolve_avatar_group_agent_contract(submittable);
+    assert_eq!(submittable_contract.output_status.as_str(), "submittable");
 }

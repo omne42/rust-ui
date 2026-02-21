@@ -62,9 +62,9 @@ pub fn ComboBoxDemo() -> impl IntoView {
                     items=controlled_items
                     selected_index=controlled_selected
                     set_selected_index=set_controlled_selected
-                    open=controlled_open.into()
+                    is_open=controlled_open.into()
                     on_open_change=on_open_change
-                    description="This combobox is controlled via open/on_open_change.".to_string()
+                    description="This combobox is controlled via is_open/on_open_change.".to_string()
                 />
                 <div class="demo-kv">
                     {move || format!("open: {}, selected: {}", controlled_open.get(), controlled_label.get())}

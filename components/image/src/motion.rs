@@ -79,6 +79,15 @@ pub fn attach_zoom_motion(
         return;
     }
 
+    if ui_motion::web::prefers_reduced_motion() {
+        if let Some(div) = node_ref.get() {
+            let element: leptos::web_sys::HtmlElement = div.unchecked_into();
+            let style = element.style();
+            ui_observability::set_css_property_observed_auto!(&(style), "--ui-image-zoom", "1");
+        }
+        return;
+    }
+
     let motion = StoredValue::new(sanitize_motion(motion));
     let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);
 
@@ -94,12 +103,16 @@ pub fn attach_zoom_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
 
-        drop(style.set_property("--ui-image-zoom", "1"));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-image-zoom", "1");
         let zoom_scale = motion.get_value().zoom_scale;
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(1.0, config, move |v| {
             let v = v.clamp(0.1, 4.0);
-            drop(style_for_apply.set_property("--ui-image-zoom", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_apply),
+                "--ui-image-zoom",
+                &format!("{v}")
+            );
         });
 
         let spring_for_cleanup = spring;

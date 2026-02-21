@@ -22,6 +22,8 @@ test("docs-app color-field contract uses semantic selectors with settled waits",
   await expect(root).toHaveAttribute("data-placeholder-source", "default");
   await expect(root).toHaveAttribute("data-aria-source", "default");
   await expect(root).toHaveAttribute("data-has-preview", "true");
+  await expect(input).toHaveAttribute("aria-label", /.+/);
+  await expect(input).toHaveAttribute("aria-labelledby", /docs-color-field-basic-label/);
   await expect(input).toHaveValue("#4f46e5");
 });
 
@@ -34,13 +36,20 @@ test("docs-app color-field flow is repeatable with semantic breakpoints", async 
     .first();
   const input = root.locator('[data-slot="color-field-input"]').first();
 
+  await input.focus();
+  await expect(input).toBeFocused();
   await input.fill("javascript:alert(1)");
   await expect(root).toHaveAttribute("data-state", "invalid");
   await expect(root).toHaveAttribute("data-invalid", "true");
   await expect(root).not.toHaveAttribute("data-valid", "true");
   await expect(root).not.toHaveAttribute("data-has-preview", "true");
+  await expect(input).toHaveAttribute("aria-invalid", "true");
 
   const clear = root.locator('[data-slot="color-field-clear"]').first();
+  await clear.focus();
+  await expect(clear).toBeFocused();
+  await clear.press("Shift+Tab");
+  await expect(input).toBeFocused();
   await clear.click();
   await expect(root).toHaveAttribute("data-state", "empty");
   await expect(root).not.toHaveAttribute("data-has-value", "true");

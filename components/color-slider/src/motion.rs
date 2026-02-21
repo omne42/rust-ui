@@ -74,7 +74,11 @@ pub fn attach_motion(
         let style = element.style();
         let initial = sanitize_percent(visual_percent.get());
 
-        drop(style.set_property("--ui-slider-visual-percent", &format!("{initial:.4}")));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-slider-visual-percent",
+            &format!("{initial:.4}")
+        );
         let motion = motion.get_value();
         if !motion.enabled || ui_motion::web::prefers_reduced_motion() {
             return;
@@ -82,7 +86,11 @@ pub fn attach_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(initial, motion.spring, move |v| {
             let v = sanitize_percent(v);
-            drop(style.set_property("--ui-slider-visual-percent", &format!("{v:.4}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-slider-visual-percent",
+                &format!("{v:.4}")
+            );
         });
 
         let spring_for_cleanup = spring;
@@ -107,7 +115,11 @@ pub fn attach_motion(
         let motion = motion.get_value();
 
         if !motion.enabled || ui_motion::web::prefers_reduced_motion() {
-            drop(style.set_property("--ui-slider-visual-percent", &format!("{target:.4}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-slider-visual-percent",
+                &format!("{target:.4}")
+            );
             return;
         }
 
@@ -124,3 +136,7 @@ pub fn attach_motion(
     _motion: ColorSliderMotion,
 ) {
 }
+
+#[cfg(test)]
+#[path = "../test/motion.rs"]
+mod tests;

@@ -54,6 +54,26 @@ enabled = true
 name = "a11y_i18n_l10n"
 enabled = true
 
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "whitelist_render_policy_no_script_injection"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_with_snapshot_fallback_and_output_status_markers"
+enabled = true
+
 [[dependencies]]
 name = "ui-avatar"
 kind = "component-composition"

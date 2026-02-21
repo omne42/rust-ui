@@ -126,7 +126,7 @@ fn search_field_clear_button_is_excluded_from_tab_order() {
     let source = load_source("src/text_input/search_field/view.rs");
 
     assert!(
-        source.contains("exclude_from_tab_order=true"),
+        source.contains("focus_mode=ClearButtonFocusMode::ExcludeTab"),
         "SearchField clear button should be excluded from tab order like UI Baseline."
     );
 }

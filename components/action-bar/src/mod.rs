@@ -1,6 +1,7 @@
 mod i18n;
 mod logic;
 pub mod motion;
+mod protocol;
 pub mod styles;
 mod view;
 

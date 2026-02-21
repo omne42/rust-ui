@@ -153,7 +153,7 @@ fn input_clear_button_is_excluded_from_tab_order() {
     let source = load_source("src/text_input/input/view.rs");
 
     assert!(
-        source.contains("exclude_from_tab_order=true"),
+        source.contains("focus_mode=ClearButtonFocusMode::ExcludeTab"),
         "Input clear button should be excluded from tab order to avoid extra Tab stops."
     );
 }

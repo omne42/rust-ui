@@ -129,6 +129,7 @@ let (disabled_value, set_disabled_value) = signal(String::new());
 }
 
 pub(super) fn form() -> AnyView {
+    let (hello_name, set_hello_name) = signal(String::new());
     let (name, set_name) = signal(String::new());
     let (email, set_email) = signal(String::new());
     let (matrix_default_name, set_matrix_default_name) = signal(String::new());
@@ -140,7 +141,7 @@ pub(super) fn form() -> AnyView {
     let label_align_options = vec!["start".to_string(), "end".to_string()];
     let (workbench_label_position_index, set_workbench_label_position_index) = signal(Some(0));
     let (workbench_label_align_index, set_workbench_label_align_index) = signal(Some(0));
-    let (workbench_is_required, set_workbench_is_required) = signal(true);
+    let (workbench_is_required, set_workbench_is_required) = signal(false);
     let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
     let (workbench_is_read_only, set_workbench_is_read_only) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
@@ -210,7 +211,7 @@ pub(super) fn form() -> AnyView {
         };
 
         format!(
-            "FormActualConfig {{\n  is_required: {is_required},\n  is_disabled: {is_disabled},\n  is_read_only: {is_read_only},\n  label_position: {label_position:?},\n  label_align: {label_align:?},\n  class: \"{class}\",\n  marker_expectations: [\"data-disabled\", \"data-readonly\", \"data-required\", \"data-label-position\", \"data-label-align\"],\n}}"
+            "FormActualConfig {{\n  is_required: {is_required},\n  is_disabled: {is_disabled},\n  is_read_only: {is_read_only},\n  label_position: {label_position:?},\n  label_align: {label_align:?},\n  class: \"{class}\",\n  marker_expectations: [\"data-disabled\", \"data-readonly\", \"data-required\", \"data-label-position\", \"data-label-align\", \"data-ui-stream-mode=snapshot\", \"data-ui-streaming-policy=optional\", \"data-ui-streaming-fallback=snapshot\", \"data-ui-output-status=verified\"],\n}}"
         )
     });
 
@@ -237,6 +238,13 @@ pub(super) fn form() -> AnyView {
             .to_string()
     });
 
+    let hello_code = Signal::derive(move || {
+        r#"<Form>
+  <Input id="docs-form-hello".to_string() label="Name".to_string() value=hello_name set_value=set_hello_name />
+</Form>"#
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="Form"
@@ -245,12 +253,30 @@ pub(super) fn form() -> AnyView {
             description="A context provider for form-wide disabled/required/label layout."
         >
             <Playground
+                title="Hello World（默认路径）"
+                code_signal=hello_code
+                description="最小可用路径：直接 `<Form>` 包裹字段，不要求手动接线状态原语。"
+            >
+                <Form>
+                    <Input
+                        id="docs-form-hello".to_string()
+                        label="Name".to_string()
+                        value=hello_name
+                        set_value=set_hello_name
+                        placeholder="Jane".to_string()
+                        size=InputSize::Md
+                        variant=InputVariant::Bordered
+                    />
+                </Form>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=form_test_css_source
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/form/src/styles.rs".to_string()
                 test_config_signal=workbench_config
-                description="可调 label-position/align/required/disabled/read-only/class，并在同一面板查看 code + config + scoped css test。"
+                description="可调 label-position/align/required/disabled/read-only/class，并在同一面板查看 code + config + scoped css test（含 streaming/snapshot 语义标记基线）。"
                 controls=move || {
                     view! {
                         <div class="docs-stack docs-stack--tight">
@@ -342,6 +368,7 @@ pub(super) fn form() -> AnyView {
 
             <Playground
                 title="Comparison Matrix (Default / Required / Disabled / ReadOnly)"
+                description="状态矩阵覆盖默认/必填/禁用/只读；`Form` 无 value 状态轴，受控/非受控对照在该组件按 N/A 处理。"
                 code_signal=matrix_code
             >
                 <div class="docs-row">
@@ -1339,14 +1366,15 @@ pub(super) fn checkbox() -> AnyView {
             2 => CheckboxSize::Lg,
             _ => CheckboxSize::Default,
         });
+    let (comparison_controlled, set_comparison_controlled) = signal(false);
 
     let interactive_code = Signal::derive(move || {
         let mut lines = vec![
-            "let (checked, set_checked) = signal(true);".to_string(),
+            "let (is_checked, on_checked_change) = signal(true);".to_string(),
             "".to_string(),
             "<Checkbox".to_string(),
-            "  checked=checked".to_string(),
-            "  set_checked=set_checked".to_string(),
+            "  is_checked=is_checked".to_string(),
+            "  on_checked_change=on_checked_change".to_string(),
         ];
 
         if interactive_variant.get() != CheckboxVariant::Default {
@@ -1359,7 +1387,7 @@ pub(super) fn checkbox() -> AnyView {
             lines.push(format!("  size=CheckboxSize::{:?}", interactive_size.get()));
         }
         if interactive_disabled.get() {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
         if interactive_custom_class.get() {
             lines.push("  class_name=\"docs-checkbox-custom\".into()".to_string());
@@ -1393,12 +1421,14 @@ pub(super) fn checkbox() -> AnyView {
         )
     });
 
+    let hello_world_code = Signal::derive(|| r#"<Checkbox>"Accept terms"</Checkbox>"#.to_string());
+
     let code = Signal::derive(move || {
         r#"let (checked, set_checked) = signal(false);
 
 <Checkbox
-  checked=checked
-  set_checked=set_checked
+  is_checked=checked
+  on_checked_change=set_checked
   on_change=Callback::new(move |_| {})
 >
   "Accept terms"
@@ -1412,18 +1442,41 @@ let (disabled_checked, set_disabled_checked) = signal(true);
 let (disabled_unchecked, set_disabled_unchecked) = signal(false);
 
 <Checkbox
-  checked=marketing
-  set_checked=set_marketing
+  is_checked=marketing
+  on_checked_change=set_marketing
   variant=CheckboxVariant::Accent
   size=CheckboxSize::Lg
 >
   "Email updates"
 </Checkbox>
-<Checkbox checked=disabled_checked set_checked=set_disabled_checked disabled=true>
+<Checkbox
+  is_checked=disabled_checked
+  on_checked_change=set_disabled_checked
+  is_disabled=true
+>
   "Disabled on"
 </Checkbox>
-<Checkbox checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
+<Checkbox
+  is_checked=disabled_unchecked
+  on_checked_change=set_disabled_unchecked
+  is_disabled=true
+>
   "Disabled off"
+</Checkbox>"#
+            .to_string()
+    });
+
+    let comparison_code = Signal::derive(move || {
+        r#"let (controlled, set_controlled) = signal(false);
+
+<Checkbox
+  is_checked=controlled
+  on_checked_change=set_controlled
+>
+  "Controlled"
+</Checkbox>
+<Checkbox default_checked=Some(true)>
+  "Uncontrolled default on"
 </Checkbox>"#
             .to_string()
     });
@@ -1436,9 +1489,19 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
             description="Pressable checkbox with baseline-level spring indicator and baseline-style root state attrs."
         >
             <Playground
+                title="Hello World"
+                description="Minimal default path: no state wiring required."
+                code_signal=hello_world_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
+            >
+                <Checkbox>"Accept terms"</Checkbox>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground"
                 description="Display + Config + Code + CSS Test: edit checkbox props and inspect actual state contracts."
                 code_signal=interactive_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
                 test_css_source=interactive_test_css
                 test_source_path="components/checkbox/src/styles.rs".to_string()
                 test_config_signal=interactive_config
@@ -1479,13 +1542,17 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                     </div>
                 }
             >
-                <div class="docs-stack docs-stack--tight">
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="checkbox-e2e-interactive-surface"
+                    data-e2e-ready="true"
+                >
                     <Checkbox
-                        checked=interactive_checked
-                        set_checked=set_interactive_checked
+                        is_checked=interactive_checked
+                        on_checked_change=set_interactive_checked
                         variant=interactive_variant.get()
                         size=interactive_size.get()
-                        disabled=interactive_disabled.get()
+                        is_disabled=interactive_disabled.get()
                         class_name=if interactive_custom_class.get() {
                             "docs-checkbox-custom".to_string()
                         } else {
@@ -1501,28 +1568,50 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                 </div>
             </Playground>
 
-            <Playground title="Controlled + on_change" code_signal=code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <Checkbox
-                            checked=checked
-                            set_checked=set_checked
-                            on_change=on_accept_change
-                        >
-                            "Accept terms"
-                        </Checkbox>
-                        <span class="ui-muted">"checked: " {move || checked.get()}</span>
+            <Playground
+                title="Controlled + on_change"
+                code_signal=code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
+            >
+                <div
+                    class="docs-stack"
+                    data-slot="checkbox-e2e-controlled-surface"
+                    data-e2e-ready="true"
+                >
+                    <div class="docs-row" data-slot="checkbox-e2e-controlled-row">
+                        <div data-slot="checkbox-e2e-controlled-target">
+                            <Checkbox
+                                is_checked=checked
+                                on_checked_change=set_checked
+                                on_change=on_accept_change
+                            >
+                                "Accept terms"
+                            </Checkbox>
+                        </div>
+                        <span class="ui-muted" data-slot="checkbox-e2e-controlled-checked">
+                            "checked: " {move || checked.get()}
+                        </span>
                     </div>
-                    <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
+                    <span class="ui-muted" data-slot="checkbox-e2e-controlled-last-change">
+                        "last on_change: " {move || last_change.get()}
+                    </span>
                 </div>
             </Playground>
 
-            <Playground title="Variant + Disabled matrix" code_signal=states_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
+            <Playground
+                title="Variant + Disabled matrix"
+                code_signal=states_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
+            >
+                <div
+                    class="docs-stack"
+                    data-slot="checkbox-e2e-matrix-surface"
+                    data-e2e-ready="true"
+                >
+                    <div class="docs-row" data-slot="checkbox-e2e-marketing-row">
                         <Checkbox
-                            checked=marketing
-                            set_checked=set_marketing
+                            is_checked=marketing
+                            on_checked_change=set_marketing
                             variant=CheckboxVariant::Accent
                             size=CheckboxSize::Lg
                         >
@@ -1533,35 +1622,106 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                             {move || marketing.get()}
                         </span>
                     </div>
-                    <div class="docs-row">
-                        <Checkbox
-                            checked=disabled_checked
-                            set_checked=set_disabled_checked
-                            disabled=true
-                        >
-                            "Disabled on"
-                        </Checkbox>
-                        <Checkbox
-                            checked=disabled_unchecked
-                            set_checked=set_disabled_unchecked
-                            disabled=true
-                        >
-                            "Disabled off"
-                        </Checkbox>
+                    <div class="docs-row" data-slot="checkbox-e2e-disabled-row">
+                        <div data-slot="checkbox-e2e-disabled-on">
+                            <Checkbox
+                                is_checked=disabled_checked
+                                on_checked_change=set_disabled_checked
+                                is_disabled=true
+                            >
+                                "Disabled on"
+                            </Checkbox>
+                        </div>
+                        <div data-slot="checkbox-e2e-disabled-off">
+                            <Checkbox
+                                is_checked=disabled_unchecked
+                                on_checked_change=set_disabled_unchecked
+                                is_disabled=true
+                            >
+                                "Disabled off"
+                            </Checkbox>
+                        </div>
                     </div>
                 </div>
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Comparison)"
+                description="受控路径展示外部单一事实来源；非受控路径由 default_checked 初始化后内部管理。"
+                code_signal=comparison_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
+            >
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <Checkbox
+                            is_checked=comparison_controlled
+                            on_checked_change=set_comparison_controlled
+                        >
+                            "Controlled"
+                        </Checkbox>
+                        <span class="ui-muted">
+                            "controlled: " {move || comparison_controlled.get()}
+                        </span>
+                    </div>
+                    <div class="docs-row">
+                        <Checkbox default_checked=true>"Uncontrolled default on"</Checkbox>
+                        <span class="ui-muted">"uncontrolled: internal state (default_checked)"</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="checkbox-streaming-policy">
+                <h3>"Streaming / Snapshot"</h3>
+                <p>
+                    "Checkbox is "
+                    <strong>"Streaming Optional; fallback=snapshot."</strong>
+                </p>
+                <p data-slot="checkbox-streaming-modes">
+                    "Snapshot mode renders verified full output for checkbox semantics. Streaming labels are exposed via stable markers (`data-ui-stream-support`, `data-ui-stream-fallback`, `data-ui-output-status`)."
+                </p>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="checkbox-source-first">
+                <h3>"Source-first / Copy-ready"</h3>
+                <p data-slot="checkbox-copy-ready">
+                    "Each playground supports code + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    " and include "
+                    <code>"use leptos::prelude::*; use ui_components::*;"</code>
+                    "."
+                </p>
+                <ul data-slot="checkbox-source-paths">
+                    <li><code>"components/checkbox/src/view.rs"</code></li>
+                    <li><code>"components/checkbox/src/logic.rs"</code></li>
+                    <li><code>"components/checkbox/src/styles.rs"</code></li>
+                    <li><code>"apps/docs-app/src/pages/components/pages/forms.rs"</code></li>
+                </ul>
+                <ul data-slot="checkbox-source-prerequisites">
+                    <li>
+                        <code>"ui-components"</code>
+                        " with feature "
+                        <code>"component-checkbox"</code>
+                    </li>
+                    <li>
+                        <code>"inject-css"</code>
+                        " enabled in docs acceptance surface"
+                    </li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 pub(super) fn checkbox_group() -> AnyView {
+    let (hello_apple, set_hello_apple) = signal(false);
+    let (hello_banana, set_hello_banana) = signal(true);
+
     let (apple, set_apple) = signal(false);
     let (banana, set_banana) = signal(true);
     let (mango, set_mango) = signal(false);
 
-    let invalid = Signal::derive(move || !(apple.get() || banana.get() || mango.get()));
-    let required = Signal::derive(|| true);
+    let is_invalid = Signal::derive(move || !(apple.get() || banana.get() || mango.get()));
+    let is_required = Signal::derive(|| true);
     let external_desc_id = "docs-checkbox-group-extra".to_string();
     let aria_describedby = Signal::derive(move || Some(external_desc_id.clone()));
 
@@ -1580,15 +1740,23 @@ pub(super) fn checkbox_group() -> AnyView {
     let (interactive_description, set_interactive_description) = signal(true);
     let (interactive_error, set_interactive_error) = signal(true);
 
+    let hello_code = Signal::derive(move || {
+        r#"<CheckboxGroup id="demo".to_string() label="Fruits".to_string()>
+  <Checkbox checked=apple set_checked=set_apple>"Apple"</Checkbox>
+  <Checkbox checked=banana set_checked=set_banana>"Banana"</Checkbox>
+</CheckboxGroup>"#
+            .to_string()
+    });
+
     let code = Signal::derive(move || {
-        r#"let invalid = Signal::derive(move || !(apple.get() || banana.get()));
+        r#"let is_invalid = Signal::derive(move || !(apple.get() || banana.get()));
 <CheckboxGroup
   id="demo".to_string()
   label="Fruits".to_string()
   description="Pick at least one".to_string()
   error="At least one required".to_string()
-  required=Signal::derive(|| true)
-  invalid=invalid
+  is_required=Signal::derive(|| true)
+  is_invalid=is_invalid
 >
   <Checkbox checked=apple set_checked=set_apple>"Apple"</Checkbox>
   <Checkbox checked=banana set_checked=set_banana>"Banana"</Checkbox>
@@ -1613,15 +1781,15 @@ pub(super) fn checkbox_group() -> AnyView {
             lines.push("  error=\"At least one channel is required.\".into()".to_string());
         }
         lines.push(format!(
-            "  required=Signal::derive(|| {})",
+            "  is_required=Signal::derive(|| {})",
             interactive_required.get()
         ));
         lines.push(format!(
-            "  invalid=Signal::derive(|| {})",
+            "  is_invalid=Signal::derive(|| {})",
             interactive_invalid.get()
         ));
         if interactive_disabled.get() {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
 
         lines.push(">".to_string());
@@ -1644,7 +1812,7 @@ pub(super) fn checkbox_group() -> AnyView {
 
     let interactive_config = Signal::derive(move || {
         format!(
-            "CheckboxGroupActualConfig {{\n  required: {},\n  invalid: {},\n  disabled: {},\n  description: {},\n  error: {},\n  alpha: {},\n  beta: {},\n}}",
+            "CheckboxGroupActualConfig {{\n  is_required: {},\n  is_invalid: {},\n  is_disabled: {},\n  description: {},\n  error: {},\n  alpha: {},\n  beta: {},\n}}",
             interactive_required.get(),
             interactive_invalid.get(),
             interactive_disabled.get(),
@@ -1667,7 +1835,7 @@ pub(super) fn checkbox_group() -> AnyView {
         r#"<CheckboxGroup
   id="disabled".to_string()
   label="Notifications".to_string()
-  disabled=true
+  is_disabled=true
 >
   <Checkbox ...>"Email"</Checkbox>
   <Checkbox ...>"SMS"</Checkbox>
@@ -1691,9 +1859,21 @@ pub(super) fn checkbox_group() -> AnyView {
             description="Fieldset wrapper with normalized labels, validation semantics, and baseline-style root state attrs."
         >
             <Playground
+                title="Hello World（默认路径）"
+                code_signal=hello_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
+            >
+                <CheckboxGroup id="docs-checkbox-group-hello".to_string() label="Fruits".to_string()>
+                    <Checkbox checked=hello_apple set_checked=set_hello_apple>"Apple"</Checkbox>
+                    <Checkbox checked=hello_banana set_checked=set_hello_banana>"Banana"</Checkbox>
+                </CheckboxGroup>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground"
-                description="Display + Config + Code + CSS Test: edit group validation/required state and inspect contracts."
+                description="Display + Config + Code + CSS Test: edit group is_invalid/is_required state and inspect contracts."
                 code_signal=interactive_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
                 test_css_source=interactive_test_css
                 test_source_path="components/checkbox-group/src/styles.rs".to_string()
                 test_config_signal=interactive_config
@@ -1728,8 +1908,8 @@ pub(super) fn checkbox_group() -> AnyView {
                     } else {
                         String::new()
                     };
-                    let required = Signal::derive(move || interactive_required.get());
-                    let invalid = Signal::derive(move || interactive_invalid.get());
+                    let is_required = Signal::derive(move || interactive_required.get());
+                    let is_invalid = Signal::derive(move || interactive_invalid.get());
                     view! {
                         <div class="docs-stack docs-stack--tight">
                             <CheckboxGroup
@@ -1737,9 +1917,9 @@ pub(super) fn checkbox_group() -> AnyView {
                                 label="Release channels".to_string()
                                 description=description
                                 error=error
-                                required=required
-                                invalid=invalid
-                                disabled=interactive_disabled.get()
+                                is_required=is_required
+                                is_invalid=is_invalid
+                                is_disabled=interactive_disabled.get()
                             >
                                 <Checkbox checked=interactive_alpha set_checked=set_interactive_alpha>
                                     "Email"
@@ -1761,15 +1941,19 @@ pub(super) fn checkbox_group() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Validation + Required" code_signal=code>
+            <Playground
+                title="Validation + Required"
+                code_signal=code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
+            >
                 <div class="docs-stack">
                     <CheckboxGroup
                         id="docs-checkbox-group".to_string()
                         label="Fruits".to_string()
                         description="Pick at least one".to_string()
                         error="At least one required".to_string()
-                        required=required
-                        invalid=invalid
+                        is_required=is_required
+                        is_invalid=is_invalid
                         aria_describedby=aria_describedby
                     >
                         <Checkbox checked=apple set_checked=set_apple>"Apple"</Checkbox>
@@ -1801,7 +1985,7 @@ pub(super) fn checkbox_group() -> AnyView {
                             }
                         }}
                         " · invalid: "
-                        {move || invalid.get()}
+                        {move || is_invalid.get()}
                     </span>
 
                     <div class="docs-row">
@@ -1819,14 +2003,18 @@ pub(super) fn checkbox_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Optional" code_signal=states_code>
+            <Playground
+                title="Disabled + Optional"
+                code_signal=states_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::*;".to_string()
+            >
                 <div class="docs-row">
                     <div class="docs-stack">
                         <CheckboxGroup
                             id="docs-checkbox-group-disabled".to_string()
                             label="Notifications".to_string()
                             description="Read-only preferences".to_string()
-                            disabled=true
+                            is_disabled=true
                         >
                             <Checkbox checked=disabled_a set_checked=set_disabled_a>"Email"</Checkbox>
                             <Checkbox checked=disabled_b set_checked=set_disabled_b>"SMS"</Checkbox>
@@ -1852,6 +2040,48 @@ pub(super) fn checkbox_group() -> AnyView {
                     </div>
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="checkbox-group-streaming-policy">
+                <h3>"Streaming / Snapshot"</h3>
+                <p>
+                    "CheckboxGroup is "
+                    <strong>"Streaming Optional; fallback=snapshot."</strong>
+                </p>
+                <p data-slot="checkbox-group-streaming-modes">
+                    "Snapshot mode renders verified full output for group semantics. Streaming labels are exposed via stable markers (`data-ui-stream-support`, `data-ui-stream-fallback`, `data-ui-output-status`)."
+                </p>
+                <p data-slot="checkbox-group-controlled-uncontrolled-na">
+                    "Controlled vs Uncontrolled contrast is N/A at group level: this component does not own a group value axis (`value/on_value_change/default_value`); child `Checkbox` owns checked state."
+                </p>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="checkbox-group-source-first">
+                <h3>"Source-first / Copy-ready"</h3>
+                <p data-slot="checkbox-group-copy-ready">
+                    "Each playground supports code + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    " and include "
+                    <code>"use leptos::prelude::*; use ui_components::*;"</code>
+                    "."
+                </p>
+                <ul data-slot="checkbox-group-source-paths">
+                    <li><code>"components/checkbox-group/src/view.rs"</code></li>
+                    <li><code>"components/checkbox-group/src/logic.rs"</code></li>
+                    <li><code>"components/checkbox-group/src/styles.rs"</code></li>
+                    <li><code>"apps/docs-app/src/pages/components/pages/forms.rs"</code></li>
+                </ul>
+                <ul data-slot="checkbox-group-source-prerequisites">
+                    <li>
+                        <code>"ui-components"</code>
+                        " with feature "
+                        <code>"component-checkbox_group"</code>
+                    </li>
+                    <li>
+                        <code>"inject-css"</code>
+                        " enabled in docs acceptance surface"
+                    </li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()

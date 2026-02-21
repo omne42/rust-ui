@@ -1,0 +1,99 @@
+schema_version = "1"
+
+[component]
+name = "Legend"
+crate = "ui-legend"
+
+[[inputs]]
+name = "text"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "tone"
+ty = "LegendTone"
+default = "LegendTone::Default"
+controlled = false
+
+[[inputs]]
+name = "is_required"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "LegendMotion"
+default = "LegendMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "required_indicator"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-tone + data-required + data-disabled + data-*source + data-ui-* + aria-* + lang + dir"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"

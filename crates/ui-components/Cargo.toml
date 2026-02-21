@@ -13,6 +13,8 @@ default = ["inject-css", "all-components"]
 inject-css = []
 accordion-wasm-debug = ["component-accordion", "dep:tracing"]
 button-wasm-debug = ["component-button", "dep:tracing"]
+calendar-wasm-debug = ["component-calendar", "ui-calendar/wasm-debug"]
+code-block-wasm-debug = ["component-code_block", "ui-code-block/wasm-debug"]
 sheet-wasm-debug = ["component-sheet", "dep:tracing"]
 web-demo-components = [
     "component-active_highlight",
@@ -683,6 +685,7 @@ ui-underlay = { path = "../../components/underlay", optional = true }
 ui-visually-hidden = { path = "../../components/visually-hidden", optional = true }
 ui-layout = { path = "../ui-layout", default-features = false, features = ["inject-css"] }
 ui-motion = { path = "../ui-motion" }
+ui-observability = { path = "../ui-observability" }
 ui-visual-primitive = { path = "../ui-visual-primitive", optional = true }
 ui-logic-calendar = { path = "../ui-logic-calendar", optional = true }
 ui-state-primitives = { path = "../ui-state-primitives" }

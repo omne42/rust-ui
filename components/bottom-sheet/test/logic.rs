@@ -1,4 +1,5 @@
 use super::*;
+use leptos::prelude::Callable;
 
 #[test]
 fn normalize_helpers_trim_and_fallback() {
@@ -114,19 +115,144 @@ fn compose_class_name_includes_state_markers() {
 }
 
 #[test]
-fn agent_contract_is_stable_and_machine_readable() {
-    let contract = agent_contract();
-
-    assert_eq!(contract.schema_attr, "bottom-sheet.v1");
-    assert_eq!(contract.intent_attr, "overlay");
-    assert_eq!(contract.action_attr, "dismiss");
+fn resolve_defaults_are_single_source_and_explicit() {
+    assert_eq!(resolve_title(" ".to_string()), DEFAULT_TITLE);
     assert_eq!(
-        contract.state_axis_attr,
-        "visibility|description|footer|detached|inset"
+        resolve_title("  Bottom sheet title  ".to_string()),
+        "Bottom sheet title"
     );
-    assert_eq!(contract.source_axis_attr, "default|custom");
-    assert_eq!(contract.render_mode_attr, "snapshot");
-    assert_eq!(contract.streaming_attr, "optional");
-    assert_eq!(contract.fallback_attr, "snapshot");
-    assert_eq!(contract.output_status_attr, "verified");
+
+    assert_eq!(resolve_close_label(None), DEFAULT_CLOSE_LABEL);
+    assert_eq!(resolve_close_label(Some("  ")), DEFAULT_CLOSE_LABEL);
+    assert_eq!(resolve_close_label(Some("Dismiss")), "Dismiss");
+    assert_eq!(resolve_description_text(None), "");
+    assert_eq!(
+        resolve_description_text(Some("Description".to_string())),
+        "Description"
+    );
+
+    assert_eq!(
+        resolve_handle_visibility(None, None),
+        BottomSheetVisibility::Visible
+    );
+    assert_eq!(
+        resolve_handle_visibility(Some(false), Some(true)),
+        BottomSheetVisibility::Hidden
+    );
+    assert_eq!(
+        resolve_handle_visibility(None, Some(false)),
+        BottomSheetVisibility::Hidden
+    );
+
+    assert_eq!(
+        resolve_close_button_visibility(None, None),
+        BottomSheetVisibility::Visible
+    );
+    assert_eq!(
+        resolve_close_button_visibility(Some(false), Some(true)),
+        BottomSheetVisibility::Hidden
+    );
+    assert_eq!(
+        resolve_close_button_visibility(None, Some(false)),
+        BottomSheetVisibility::Hidden
+    );
+
+    assert_eq!(
+        resolve_attachment(None, None),
+        BottomSheetAttachment::Attached
+    );
+    assert_eq!(
+        resolve_attachment(Some(true), Some(false)),
+        BottomSheetAttachment::Detached
+    );
+    assert_eq!(
+        resolve_attachment(None, Some(true)),
+        BottomSheetAttachment::Detached
+    );
+    assert_eq!(
+        resolve_detached(Some(true), Some(false)),
+        BottomSheetAttachment::Detached
+    );
+
+    assert_eq!(resolve_bottom_inset_px(None), DEFAULT_BOTTOM_INSET_PX);
+    assert_eq!(resolve_bottom_inset_px(Some(999.0)), 240.0);
+
+    assert!(resolve_dismissable(None));
+    assert!(!resolve_dismissable(Some(false)));
+    assert!(!resolve_keyboard_dismiss_disabled(None));
+    assert!(resolve_keyboard_dismiss_disabled(Some(true)));
+}
+
+#[test]
+fn resolve_on_exit_complete_returns_noop_when_absent() {
+    let callback = resolve_on_exit_complete(None);
+    callback.run(());
+}
+
+#[test]
+fn derive_view_state_centralizes_state_and_motion_markers() {
+    let derived = derive_view_state(BottomSheetDeriveInput {
+        has_description: true,
+        has_footer: false,
+        handle_visibility: BottomSheetVisibility::Visible,
+        close_button_visibility: BottomSheetVisibility::Hidden,
+        attachment: BottomSheetAttachment::Detached,
+        bottom_inset_px: 18.0,
+        has_custom_class_name: true,
+        has_custom_motion: true,
+    });
+
+    assert_eq!(derived.motion_source_attr, CUSTOM_MOTION_SOURCE_ATTR);
+    assert!(derived.has_custom_motion);
+    assert_eq!(derived.state.state_attr, "with-description");
+    assert_eq!(derived.state.footer_attr, "absent");
+    assert_eq!(derived.state.handle_attr, "shown");
+    assert_eq!(derived.state.close_button_attr, "hidden");
+    assert_eq!(derived.state.detached_attr, "true");
+}
+
+#[test]
+fn has_slot_is_generic_and_reports_option_presence() {
+    assert!(has_slot(&Some("slot")));
+    assert!(!has_slot::<i32>(&None));
+}
+
+#[test]
+fn agent_contract_is_stable_and_machine_readable() {
+    let contract = resolve_agent_contract(BottomSheetAgentContractInput {
+        is_open: false,
+        show_description: false,
+        show_footer: false,
+        detached: false,
+        is_dismissable: true,
+        is_keyboard_dismiss_disabled: false,
+        motion_source_attr: DEFAULT_MOTION_SOURCE_ATTR,
+    });
+
+    assert_eq!(contract.schema_name, "ui.bottom-sheet.agent-contract");
+    assert_eq!(contract.schema_version, BottomSheetAgentSchemaVersion::V1);
+    assert_eq!(contract.intent, BottomSheetAgentIntent::OverlayBottomSheet);
+    assert_eq!(contract.action, BottomSheetAgentAction::DismissAnyInput);
+    assert_eq!(contract.state, BottomSheetAgentStateAxis::Closed);
+    assert_eq!(
+        contract.source,
+        BottomSheetAgentSourceAxis::StatePrimitivesDefaultMotion
+    );
+    assert_eq!(
+        contract.output_status,
+        BottomSheetAgentOutputStatus::Verified
+    );
+    assert_eq!(
+        contract.stream_support,
+        BottomSheetAgentStreamSupport::Optional
+    );
+    assert_eq!(contract.stream_mode, BottomSheetAgentStreamMode::Snapshot);
+    assert_eq!(
+        contract.stream_fallback,
+        BottomSheetAgentStreamFallback::Snapshot
+    );
+    assert_eq!(
+        contract.render_policy,
+        BottomSheetAgentRenderPolicy::TypedOnly
+    );
 }

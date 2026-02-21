@@ -1,5 +1,17 @@
 pub const CSS: &str = r#"
 .ui-color-thumb {
+  --ui-color-thumb-handle-duration: var(
+    --ui-text-field-motion-duration,
+    var(--ui-fallback-text-field-motion-duration, 180ms)
+  );
+  --ui-color-thumb-loupe-duration: var(
+    --ui-text-field-motion-duration,
+    var(--ui-fallback-text-field-motion-duration, 180ms)
+  );
+  --ui-color-thumb-motion-easing: var(
+    --ui-text-field-motion-easing,
+    var(--ui-fallback-text-field-motion-easing, ease)
+  );
   position: absolute;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -7,43 +19,52 @@ pub const CSS: &str = r#"
 }
 
 .ui-color-thumb--x-start {
-  left: 16%;
+  left: var(--ui-color-thumb-x-start, var(--ui-fallback-color-thumb-x-start));
 }
 
 .ui-color-thumb--x-center {
-  left: 50%;
+  left: var(--ui-color-thumb-x-center, var(--ui-fallback-color-thumb-x-center));
 }
 
 .ui-color-thumb--x-end {
-  left: 84%;
+  left: var(--ui-color-thumb-x-end, var(--ui-fallback-color-thumb-x-end));
 }
 
 .ui-color-thumb--y-start {
-  top: 16%;
+  top: var(--ui-color-thumb-y-start, var(--ui-fallback-color-thumb-y-start));
 }
 
 .ui-color-thumb--y-center {
-  top: 50%;
+  top: var(--ui-color-thumb-y-center, var(--ui-fallback-color-thumb-y-center));
 }
 
 .ui-color-thumb--y-end {
-  top: 84%;
+  top: var(--ui-color-thumb-y-end, var(--ui-fallback-color-thumb-y-end));
 }
 
 .ui-color-thumb__handle {
   pointer-events: auto;
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
-  border-radius: var(--ui-radius-full, 999px);
-  border: 2px solid var(--ui-bg);
+  inline-size: var(--ui-color-thumb-handle-size, var(--ui-fallback-color-thumb-handle-size));
+  block-size: var(--ui-color-thumb-handle-size, var(--ui-fallback-color-thumb-handle-size));
+  border-radius: var(--ui-color-thumb-radius-full, var(--ui-fallback-color-thumb-radius-full));
+  border:
+    var(
+      --ui-color-thumb-handle-border-width,
+      var(--ui-fallback-color-thumb-handle-border-width)
+    )
+    solid var(--ui-bg, var(--ui-fallback-bg));
   box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--ui-fg), transparent 56%),
-    var(--ui-shadow-sm);
-  background: color-mix(in oklch, var(--ui-bg), var(--ui-fg) 4%);
+    0 0 0 1px color-mix(in oklch, var(--ui-fg, var(--ui-fallback-fg)), transparent 56%),
+    var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
+  background: color-mix(
+    in oklch,
+    var(--ui-bg, var(--ui-fallback-bg)),
+    var(--ui-fg, var(--ui-fallback-fg)) 4%
+  );
   transition:
-    transform 140ms ease,
-    box-shadow 160ms ease,
-    opacity 120ms ease;
+    transform var(--ui-color-thumb-handle-duration) var(--ui-color-thumb-motion-easing),
+    box-shadow var(--ui-color-thumb-handle-duration) var(--ui-color-thumb-motion-easing),
+    opacity var(--ui-color-thumb-loupe-duration) var(--ui-color-thumb-motion-easing);
 }
 
 .ui-color-thumb__fill,
@@ -66,25 +87,48 @@ pub const CSS: &str = r#"
 .ui-color-thumb__loupe {
   position: absolute;
   left: 50%;
-  bottom: calc(100% + var(--ui-space-xs));
-  transform: translateX(-50%);
-  inline-size: 1.875rem;
-  block-size: 1.875rem;
-  border-radius: var(--ui-radius-full, 999px);
-  padding: 2px;
-  background: var(--ui-bg);
-  border: 1px solid color-mix(in oklch, var(--ui-border), transparent 24%);
-  box-shadow: var(--ui-shadow-md);
-  animation: ui-color-thumb-loupe-in 120ms ease-out;
+  bottom: calc(100% + var(--ui-space-xs, var(--ui-fallback-space-xs)));
+  transform: translateX(-50%)
+    translateY(
+      var(
+        --ui-color-thumb-loupe-hidden-offset,
+        var(--ui-fallback-color-thumb-loupe-hidden-offset)
+      )
+    )
+    scale(var(--ui-color-thumb-loupe-hidden-scale, var(--ui-fallback-color-thumb-loupe-hidden-scale)));
+  inline-size: var(--ui-color-thumb-loupe-size, var(--ui-fallback-color-thumb-loupe-size));
+  block-size: var(--ui-color-thumb-loupe-size, var(--ui-fallback-color-thumb-loupe-size));
+  border-radius: var(--ui-color-thumb-radius-full, var(--ui-fallback-color-thumb-radius-full));
+  padding: var(--ui-color-thumb-loupe-padding, var(--ui-fallback-color-thumb-loupe-padding));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  border:
+    var(--ui-color-thumb-loupe-border-width, var(--ui-fallback-color-thumb-loupe-border-width))
+    solid color-mix(in oklch, var(--ui-border, var(--ui-fallback-border)), transparent 24%);
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--ui-color-thumb-loupe-duration) var(--ui-color-thumb-motion-easing),
+    transform var(--ui-color-thumb-loupe-duration) var(--ui-color-thumb-motion-easing),
+    visibility 0s linear var(--ui-color-thumb-loupe-duration);
+}
+
+.ui-color-thumb[data-loupe-visible="true"] .ui-color-thumb__loupe,
+.ui-color-thumb--dragging .ui-color-thumb__loupe {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
+  transition-delay: 0s;
 }
 
 .ui-color-thumb--focused .ui-color-thumb__handle,
 .ui-color-thumb[data-focused="true"] .ui-color-thumb__handle {
   transform: scale(1.12);
   box-shadow:
-    0 0 0 2px color-mix(in oklch, var(--ui-accent), transparent 72%),
-    0 0 0 1px color-mix(in oklch, var(--ui-fg), transparent 56%),
-    var(--ui-shadow-sm);
+    0 0 0 2px color-mix(in oklch, var(--ui-accent, var(--ui-fallback-accent)), transparent 72%),
+    0 0 0 1px color-mix(in oklch, var(--ui-fg, var(--ui-fallback-fg)), transparent 56%),
+    var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-color-thumb--dragging .ui-color-thumb__handle,
@@ -94,7 +138,7 @@ pub const CSS: &str = r#"
 
 .ui-color-thumb--disabled,
 .ui-color-thumb[data-disabled="true"] {
-  opacity: 0.58;
+  opacity: var(--ui-color-thumb-disabled-opacity, var(--ui-fallback-color-thumb-disabled-opacity));
 }
 
 .ui-color-thumb--disabled .ui-color-thumb__handle,
@@ -105,17 +149,5 @@ pub const CSS: &str = r#"
 .ui-color-thumb--custom-class,
 .ui-color-thumb[data-custom-class="true"] {
   isolation: isolate;
-}
-
-@keyframes ui-color-thumb-loupe-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(0.2rem) scale(0.88);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
 }
 "#;

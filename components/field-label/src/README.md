@@ -21,8 +21,8 @@
 | --- | --- | --- |
 | `text` | `Option<String>` | `"Field"`（空值回退） |
 | `for_id` | `Option<String>` | `None` |
-| `required` | `bool` | `false` |
-| `disabled` | `bool` | `false` |
+| `is_required` | `bool` | `false` |
+| `is_disabled` | `bool` | `false` |
 | `tone` | `FieldLabelTone` (`Default` / `Muted` / `Strong`) | `Default` |
 | `required_indicator` | `Option<String>` | `"*"`（空值回退） |
 | `aria_label` | `Option<String>` | `"Field label"`（空值回退） |
@@ -30,10 +30,15 @@
 | `lang` | `Option<String>` | `None` |
 | `dir` | `Option<A11yDirection>` | `None` |
 
+命名迁移：布尔 props 统一为 `is_*` 前缀，使用 `is_required` / `is_disabled`。
+受控/非受控：N/A（组件不维护内部可变状态轴，不提供 `value/on_*_change/default_*` 三元组）。
+默认值归一：`logic::normalize_props` 统一处理 `text/required_indicator/aria_label/for_id/class_name` 的优先级与来源标记。
+状态派生：`logic::derive_view_model` 统一生成 `FieldLabelState`，`view.rs` 仅消费归一化输出。
+
 ## Hello World（最小可用）
 
 ```rust
-<FieldLabel text="Email".to_string() for_id="email".to_string() required=true />
+<FieldLabel text="Email".to_string() for_id="email".to_string() is_required=true />
 <input id="email" type="email" />
 ```
 

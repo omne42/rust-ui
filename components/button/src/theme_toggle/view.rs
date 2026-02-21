@@ -56,7 +56,7 @@ fn icon_view(icon: logic::ThemeToggleIcon) -> impl IntoView {
 pub fn ThemeToggleButton(
     mode: ReadSignal<ThemeMode>,
     set_mode: WriteSignal<ThemeMode>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] modes: Vec<ThemeMode>,
     #[prop(optional, default = ButtonVariant::Ghost)] variant: ButtonVariant,
     #[prop(optional, default = ButtonSize::IconSm)] size: ButtonSize,
@@ -71,8 +71,7 @@ pub fn ThemeToggleButton(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
 
-    let aria_label = logic::normalize_optional_text(aria_label);
-    let has_custom_aria_label = aria_label.is_some();
+    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
 
     let has_custom_motion = motion != ThemeToggleMotion::default();
     let motion_source_attr = if has_custom_motion {
@@ -82,7 +81,7 @@ pub fn ThemeToggleButton(
     };
 
     let on_press: OnPress = Callback::new(move |_| {
-        if disabled {
+        if is_disabled {
             return;
         }
         let current = mode.get_untracked();
@@ -90,14 +89,12 @@ pub fn ThemeToggleButton(
         set_mode.set(next);
     });
 
-    let aria_label = aria_label.unwrap_or_else(|| "Toggle theme".to_string());
-
     let class = logic::compose_class_name(
         class_name.clone(),
         logic::resolve_state(
             mode.get_untracked(),
             &modes.get_value(),
-            disabled,
+            is_disabled,
             has_custom_modes,
             has_custom_aria_label,
             has_custom_class_name,
@@ -108,7 +105,7 @@ pub fn ThemeToggleButton(
         logic::resolve_state(
             mode.get(),
             &modes.get_value(),
-            disabled,
+            is_disabled,
             has_custom_modes,
             has_custom_aria_label,
             has_custom_class_name,
@@ -152,7 +149,7 @@ pub fn ThemeToggleButton(
                 variant=variant
                 size=size
                 is_icon_only=true
-                is_disabled=disabled
+                is_disabled=is_disabled
                 on_press=on_press
             >
                 <span

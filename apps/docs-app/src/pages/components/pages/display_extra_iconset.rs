@@ -66,12 +66,12 @@ pub(super) fn iconset() -> AnyView {
             lines.push(format!("  tone=IconsetTone::{tone:?}"));
         }
         if disabled.get() {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
         if decorative.get() {
-            lines.push("  decorative=true".to_string());
+            lines.push("  is_decorative=true".to_string());
         } else {
-            lines.push("  decorative=false".to_string());
+            lines.push("  is_decorative=false".to_string());
         }
         if custom_aria_label.get() {
             lines.push("  aria_label=\"Custom icon label\".into()".to_string());
@@ -92,7 +92,7 @@ pub(super) fn iconset() -> AnyView {
   ]
   size=IconsetSize::Md
   tone=IconsetTone::Accent
-  decorative=false
+  is_decorative=false
 />"#
         .to_string()
     });
@@ -103,7 +103,7 @@ pub(super) fn iconset() -> AnyView {
   iconset="ui".to_string()
   size=IconsetSize::Lg
   tone=IconsetTone::Muted
-  decorative=false
+  is_decorative=false
   class_name="docs-iconset-custom".to_string()
 />"#
         .to_string()
@@ -152,18 +152,18 @@ pub(super) fn iconset() -> AnyView {
     });
 
     let comparison_code = Signal::derive(move || {
-        r#"<Iconset icon="workflow:check".to_string() glyphs=glyphs.clone() decorative=false />
+        r#"<Iconset icon="workflow:check".to_string() glyphs=glyphs.clone() is_decorative=false />
 <Iconset
   icon="workflow:alert".to_string()
   glyphs=glyphs.clone()
   tone=IconsetTone::Danger
-  decorative=false
+  is_decorative=false
 />
 <Iconset
   icon="ui:unknown".to_string()
   iconset="ui".to_string()
   tone=IconsetTone::Muted
-  decorative=false
+  is_decorative=false
 />"#
         .to_string()
     });
@@ -175,7 +175,7 @@ pub(super) fn iconset() -> AnyView {
   glyphs=vec![IconsetGlyph::new("workflow:check", "✓").with_aria_label("Registry Check")]
   size=IconsetSize::Lg
   tone=IconsetTone::Danger
-  decorative=false
+  is_decorative=false
   aria_label="Explicit workflow check".to_string()
   class_name="docs-iconset-state".to_string()
 />"#
@@ -248,8 +248,8 @@ pub(super) fn iconset() -> AnyView {
                                 glyphs=workbench_glyphs.clone()
                                 size=size_value.get()
                                 tone=tone_value.get()
-                                disabled=disabled.get()
-                                decorative=decorative.get()
+                                is_disabled=disabled.get()
+                                is_decorative=decorative.get()
                                 aria_label=if custom_aria_label.get() {
                                     "Custom icon label".to_string()
                                 } else {
@@ -273,14 +273,14 @@ pub(super) fn iconset() -> AnyView {
                         glyphs=workflow_glyphs.clone()
                         size=IconsetSize::Md
                         tone=IconsetTone::Accent
-                        decorative=false
+                        is_decorative=false
                     />
                     <Iconset
                         icon="workflow:alert".to_string()
                         glyphs=workflow_glyphs.clone()
                         size=IconsetSize::Md
                         tone=IconsetTone::Danger
-                        decorative=false
+                        is_decorative=false
                     />
                 </div>
             </Playground>
@@ -292,7 +292,7 @@ pub(super) fn iconset() -> AnyView {
                         iconset="ui".to_string()
                         size=IconsetSize::Lg
                         tone=IconsetTone::Muted
-                        decorative=false
+                        is_decorative=false
                         class_name="docs-iconset-custom".to_string()
                     />
                 </div>
@@ -303,19 +303,19 @@ pub(super) fn iconset() -> AnyView {
                     <Iconset
                         icon="workflow:check".to_string()
                         glyphs=comparison_glyphs.clone()
-                        decorative=false
+                        is_decorative=false
                     />
                     <Iconset
                         icon="workflow:alert".to_string()
                         glyphs=comparison_glyphs.clone()
                         tone=IconsetTone::Danger
-                        decorative=false
+                        is_decorative=false
                     />
                     <Iconset
                         icon="ui:unknown".to_string()
                         iconset="ui".to_string()
                         tone=IconsetTone::Muted
-                        decorative=false
+                        is_decorative=false
                     />
                 </div>
             </Playground>
@@ -335,7 +335,7 @@ pub(super) fn iconset() -> AnyView {
                         ]
                         size=IconsetSize::Lg
                         tone=IconsetTone::Danger
-                        decorative=false
+                        is_decorative=false
                         aria_label="Explicit workflow check".to_string()
                         class_name="docs-iconset-state".to_string()
                     />

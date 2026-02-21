@@ -84,7 +84,7 @@ pub fn MoreComponentsDemo() -> impl IntoView {
 
             <Show when=move || is_drawer_present.get()>
                 <Drawer
-                    open=is_drawer_open
+                    is_open=is_drawer_open
                     on_close=close_drawer
                     placement=DrawerPlacement::Right
                     id_base="demo-drawer".to_string()

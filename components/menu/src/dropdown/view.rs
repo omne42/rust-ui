@@ -17,6 +17,7 @@ pub fn Dropdown(
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
+    #[prop(optional)] is_close_on_action: Option<bool>,
     #[prop(default = true)] close_on_action: bool,
     #[prop(optional)] placement: PopoverPlacement,
     #[prop(optional)] is_open: Option<Signal<bool>>,
@@ -41,6 +42,10 @@ pub fn Dropdown(
     let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
 
     let item_kinds: StoredValue<Vec<MenuItemKind>> = StoredValue::new(item_kinds);
+    let action_mode = logic::normalize_close_on_action(logic::ActionModeInput {
+        is_close_on_action,
+        close_on_action,
+    });
 
     let class_name = logic::normalize_optional_text(class_name);
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
@@ -67,7 +72,7 @@ pub fn Dropdown(
     let state = logic::resolve_state(logic::DropdownStateInput {
         item_count,
         disabled: logic::resolve_trigger_disabled(is_disabled, item_count),
-        close_on_action,
+        close_on_action: action_mode.is_close_on_action(),
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
         is_controlled: normalized_open_state.is_controlled,
@@ -86,15 +91,14 @@ pub fn Dropdown(
     let trigger_disabled = StoredValue::new(state.is_disabled);
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if trigger_disabled.get_value() {
-            return;
+        if let Some(result) =
+            logic::resolve_trigger_press(trigger_disabled.get_value(), open.get_untracked())
+        {
+            if let Some(strategy) = result.open_focus {
+                set_open_focus.set(strategy);
+            }
+            request_open_change.run(result.next_open);
         }
-
-        let next_open = !open.get_untracked();
-        if next_open {
-            set_open_focus.set(logic::DropdownOpenFocusStrategy::First);
-        }
-        request_open_change.run(next_open);
     });
     let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
@@ -114,15 +118,11 @@ pub fn Dropdown(
     let aria_label = StoredValue::new(aria_label);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if trigger_disabled.get_value() {
-            return;
-        }
-        if open.get_untracked() {
-            return;
-        }
-
-        let key = ev.key();
-        if let Some(strategy) = logic::focus_strategy_for_open_key(&key) {
+        if let Some(strategy) = logic::resolve_open_focus_strategy(
+            &ev.key(),
+            trigger_disabled.get_value(),
+            open.get_untracked(),
+        ) {
             set_open_focus.set(strategy);
             request_open_change.run(true);
             ev.prevent_default();
@@ -133,13 +133,7 @@ pub fn Dropdown(
         <div
             class=class
             data-slot="dropdown"
-            data-state=move || {
-                if open.get() {
-                    "open"
-                } else {
-                    state.data_state_attr
-                }
-            }
+            data-state=move || logic::resolve_root_state_attr(open.get(), state)
             data-open=move || open.get().then_some("true")
             data-closed=move || (!open.get()).then_some("true")
             data-empty=state.is_empty.then_some("true")

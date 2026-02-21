@@ -13,19 +13,17 @@ use leptos::children::ViewFn;
 use leptos::{html, prelude::*};
 #[cfg(feature = "component-action_group")]
 use std::collections::BTreeSet;
+#[cfg(any(
+    feature = "component-action_button_group",
+    feature = "component-action_group"
+))]
+use ui_headless::labeled_toolbar_attrs;
 #[cfg(feature = "component-action_group")]
 use ui_headless::use_controllable_state;
 use ui_headless::{
-    ButtonOptions, CommonStrings, FocusRingOptions, HoverOptions, OnPress, popup_trigger_attrs,
-    use_button, use_focus_ring, use_hover, use_ui_i18n,
+    A11yDirection, ButtonOptions, CommonStrings, FocusRingOptions, HoverOptions, OnPress,
+    popup_trigger_attrs, use_button, use_focus_ring, use_hover, use_ui_i18n,
 };
-
-#[cfg(feature = "component-action_group")]
-const ACTION_GROUP_ITEM_CLASS_BASE: &str = "ui-action-group__item";
-#[cfg(feature = "component-action_group")]
-const ACTION_GROUP_ITEM_CLASS_SELECTED: &str = " ui-action-group__item--selected";
-#[cfg(feature = "component-action_group")]
-const ACTION_GROUP_ITEM_CLASS_DISABLED: &str = " ui-action-group__item--disabled";
 
 #[cfg(feature = "component-action_group")]
 #[derive(Clone, Copy)]
@@ -57,6 +55,8 @@ pub fn ActionButton(
     #[prop(optional)] aria_expanded: Option<Signal<bool>>,
     #[prop(optional, into)] aria_controls: Option<String>,
     #[prop(optional)] aria_controls_signal: Option<Signal<Option<String>>>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] node_ref: NodeRef<html::Button>,
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
@@ -102,7 +102,7 @@ pub fn ActionButton(
         // icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string())
         icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.as_ref().into()),
         is_icon_only,
-        button_type: button_type.unwrap_or_default(),
+        button_type: action_logic::action_button_logic::resolve_button_type(button_type),
     });
     let aria_label = normalized.aria_label.clone();
     let aria_label_source = normalized.aria_label_source;
@@ -157,8 +157,8 @@ pub fn ActionButton(
         aria_controls,
         aria_controls_signal,
         aria_expanded,
-        None::<String>,
-        None,
+        lang,
+        dir,
     );
 
     view! {
@@ -193,6 +193,8 @@ pub fn ActionButton(
             aria-controls=move || popup_a11y.aria_controls.get()
             aria-busy=state.is_loading.then_some("true")
             aria-expanded=move || popup_a11y.aria_expanded.get()
+            lang=popup_a11y.lang.clone()
+            dir=popup_a11y.dir
             on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
             on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
             on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())
@@ -234,6 +236,8 @@ pub fn ActionButtonGroup(
     #[prop(optional)] is_disabled: bool,
     #[prop(optional)] motion: ActionButtonGroupMotion,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let i18n = use_ui_i18n();
@@ -269,6 +273,13 @@ pub fn ActionButtonGroup(
     let motion = action_motion::sanitize_motion(motion);
     let has_custom_motion = motion != ActionButtonGroupMotion::default();
     let panel_vars = action_motion::attach_motion(motion);
+    let toolbar_a11y = labeled_toolbar_attrs(
+        aria_label,
+        state.orientation.aria_orientation(),
+        state.is_disabled,
+        lang,
+        dir,
+    );
 
     view! {
         <div
@@ -292,10 +303,12 @@ pub fn ActionButtonGroup(
             data-enabled=state.is_enabled.then_some("true")
             data-has-explicit-label=state.has_explicit_label.then_some("true")
             data-has-fallback-label=state.has_fallback_label.then_some("true")
-            role="toolbar"
-            aria-label=aria_label
-            aria-orientation=state.orientation.aria_orientation()
-            aria-disabled=state.is_disabled.then_some("true")
+            role=toolbar_a11y.role
+            aria-label=toolbar_a11y.aria_label.clone()
+            aria-orientation=toolbar_a11y.aria_orientation
+            aria-disabled=toolbar_a11y.aria_disabled
+            lang=toolbar_a11y.lang.clone()
+            dir=toolbar_a11y.dir
         >
             {children()}
         </div>
@@ -313,9 +326,10 @@ pub fn ActionGroup(
     #[prop(optional, into)] selected_ids: Option<Signal<BTreeSet<String>>>,
     #[prop(optional)] default_selected_ids: Option<BTreeSet<String>>,
     #[prop(optional)] on_selected_ids_change: Option<Callback<BTreeSet<String>>>,
-    #[prop(optional)] on_selected_change: Option<Callback<BTreeSet<String>>>,
     #[prop(optional)] on_action: Option<Callback<String>>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let i18n = use_ui_i18n();
@@ -323,16 +337,18 @@ pub fn ActionGroup(
     let items = action_logic::action_group_logic::normalize_items(items);
     let item_ids = action_logic::action_group_logic::collect_item_ids(&items);
 
-    let default_selected_ids = action_logic::action_group_logic::sanitize_selected_ids(
-        default_selected_ids.unwrap_or_default(),
+    let default_selected_ids = action_logic::action_group_logic::normalize_default_selected_ids(
+        default_selected_ids,
         &item_ids,
         selection_mode,
     );
     let is_selection_controlled = selected_ids.is_some();
 
-    let on_selected_change = on_selected_ids_change.or(on_selected_change);
-    let selected_state =
-        use_controllable_state(selected_ids, Some(default_selected_ids), on_selected_change);
+    let selected_state = use_controllable_state(
+        selected_ids,
+        Some(default_selected_ids),
+        on_selected_ids_change,
+    );
     let selected_ids = selected_state.value;
     let request_selected_change = selected_state.request_change;
 
@@ -360,7 +376,7 @@ pub fn ActionGroup(
     };
 
     let resolved_selected_ids = Memo::new(move |_| {
-        action_logic::action_group_logic::sanitize_selected_ids(
+        action_logic::action_group_logic::resolve_selected_ids(
             selected_ids.get(),
             &item_ids.get_value(),
             selection_mode,
@@ -383,6 +399,7 @@ pub fn ActionGroup(
     let class = Memo::new(move |_| {
         action_logic::action_group_logic::compose_class_name(class_name.get_value(), state.get())
     });
+    let toolbar_a11y = labeled_toolbar_attrs(aria_label, "horizontal", is_disabled, lang, dir);
 
     view! {
         <div
@@ -400,8 +417,12 @@ pub fn ActionGroup(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
-            role="toolbar"
-            aria-label=aria_label
+            role=toolbar_a11y.role
+            aria-label=toolbar_a11y.aria_label.clone()
+            aria-orientation=toolbar_a11y.aria_orientation
+            aria-disabled=toolbar_a11y.aria_disabled
+            lang=toolbar_a11y.lang.clone()
+            dir=toolbar_a11y.dir
         >
             <ul class="ui-action-group__list" data-slot="action-group-list">
                 {move || {
@@ -428,9 +449,13 @@ fn render_action_group_items(
         .into_iter()
         .enumerate()
         .map(|(index, item)| {
-            let is_item_disabled = is_disabled || item.disabled;
             let is_selected = resolved_selected_ids.contains(&item.id);
-            render_action_group_item(render_context, index, item, is_item_disabled, is_selected)
+            let item_render_state = action_logic::action_group_logic::resolve_item_render_state(
+                is_disabled,
+                item.disabled,
+                is_selected,
+            );
+            render_action_group_item(render_context, index, item, item_render_state)
         })
         .collect_view()
 }
@@ -440,47 +465,30 @@ fn render_action_group_item(
     render_context: ActionGroupRenderContext,
     index: usize,
     item: ActionGroupItem,
-    is_item_disabled: bool,
-    is_selected: bool,
+    item_render_state: action_logic::action_group_logic::ActionGroupItemRenderState,
 ) -> impl IntoView {
     let item_id_for_action = item.id.clone();
     let item_id_for_selection = item.id.clone();
     let item_node_id = format!("{}-item-{}", render_context.id_base.get_value(), index + 1);
-    let item_class = format!(
-        "{ACTION_GROUP_ITEM_CLASS_BASE}{}{}",
-        if is_selected {
-            ACTION_GROUP_ITEM_CLASS_SELECTED
-        } else {
-            ""
-        },
-        if is_item_disabled {
-            ACTION_GROUP_ITEM_CLASS_DISABLED
-        } else {
-            ""
-        }
-    );
+    let is_item_disabled = item_render_state.is_disabled;
+    let is_selected = item_render_state.is_selected;
+    let item_class = item_render_state.class_name;
 
     let on_click = move |_| {
-        if is_item_disabled {
-            return;
-        }
-
-        if let Some(on_action) = render_context.on_action.get_value() {
-            on_action.run(item_id_for_action.clone());
-        }
-
-        let selected_ids = action_logic::action_group_logic::sanitize_selected_ids(
+        let next = action_logic::action_group_logic::resolve_next_selected_ids(
             render_context.selected_ids.get_untracked(),
-            &render_context.item_ids.get_value(),
-            render_context.selection_mode,
-        );
-        let next = action_logic::action_group_logic::toggle_selected_id(
-            selected_ids,
             &item_id_for_selection,
             &render_context.item_ids.get_value(),
             render_context.selection_mode,
+            is_item_disabled,
         );
-        render_context.request_selected_change.run(next);
+
+        if let Some(next) = next {
+            if let Some(on_action) = render_context.on_action.get_value() {
+                on_action.run(item_id_for_action.clone());
+            }
+            render_context.request_selected_change.run(next);
+        }
     };
 
     view! {

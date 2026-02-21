@@ -1,0 +1,134 @@
+schema_version = "1"
+
+[component]
+name = "EmptyState"
+crate = "ui-empty-state"
+
+[[inputs]]
+name = "title"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "tone"
+ty = "EmptyStateTone"
+default = "EmptyStateTone::Default"
+controlled = false
+
+[[inputs]]
+name = "align"
+ty = "EmptyStateAlign"
+default = "EmptyStateAlign::Start"
+controlled = false
+
+[[inputs]]
+name = "is_compact"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_bordered"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "EmptyStateMotion"
+default = "EmptyStateMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "icon"
+ty = "Option<ViewFn>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "actions"
+ty = "Option<ViewFn>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "role + aria-live + aria-label + lang + dir + data-tone + data-align + data-state + data-compact + data-bordered + data-icon + data-actions + data-title-source + data-description-source + data-aria-source + data-class-source + data-motion-source + data-custom-motion + data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-streaming + data-ui-render-mode + data-ui-fallback + data-ui-output-status"
+scope = "root-attributes"
+
+[[slots]]
+name = "icon"
+required = false
+description = "Optional visual slot rendered at empty-state icon position."
+
+[[slots]]
+name = "actions"
+required = false
+description = "Optional action slot rendered at empty-state actions position."
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_snapshot_fallback"
+enabled = true
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-contract"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-runtime"
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"

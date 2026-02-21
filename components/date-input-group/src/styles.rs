@@ -3,24 +3,40 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: stretch;
   width: fit-content;
-  min-height: 2.25rem;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-md);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
+  min-height: var(--ui-component-height-100, var(--ui-fallback-component-height-100));
+  transform: scale(
+    var(
+      --ui-date-input-group-scale,
+      var(--ui-alert-scale, var(--ui-fallback-alert-scale))
+    )
+  );
+  transform-origin: center;
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
   overflow: hidden;
 }
 
 .ui-date-input-group--variant-primary,
 .ui-date-input-group[data-variant="primary"] {
-  border-color: var(--ui-border);
-  background: var(--ui-bg);
+  border-color: var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg, var(--ui-fallback-bg));
 }
 
 .ui-date-input-group--variant-secondary,
 .ui-date-input-group[data-variant="secondary"] {
-  border-color: color-mix(in oklab, var(--ui-border) 64%, var(--ui-accent) 36%);
-  background: color-mix(in oklab, var(--ui-bg) 88%, var(--ui-bg-muted) 12%);
+  border-color: color-mix(
+    in oklab,
+    var(--ui-border, var(--ui-fallback-border)) 64%,
+    var(--ui-accent, var(--ui-fallback-accent)) 36%
+  );
+  background: color-mix(
+    in oklab,
+    var(--ui-bg, var(--ui-fallback-bg)) 88%,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted)) 12%
+  );
 }
 
 .ui-date-input-group--full-width,
@@ -35,12 +51,16 @@ pub const CSS: &str = r#"
 
 .ui-date-input-group--invalid,
 .ui-date-input-group[data-invalid="true"] {
-  border-color: color-mix(in oklab, var(--ui-danger) 74%, var(--ui-border) 26%);
+  border-color: color-mix(
+    in oklab,
+    var(--ui-danger, var(--ui-fallback-danger)) 74%,
+    var(--ui-border, var(--ui-fallback-border)) 26%
+  );
 }
 
 .ui-date-input-group--segmented .ui-date-input-group__segment,
 .ui-date-input-group[data-segmented="true"] .ui-date-input-group__segment {
-  gap: var(--ui-space-2xs);
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 .ui-date-input-group__prefix,
@@ -48,20 +68,26 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.25rem;
-  padding-inline: var(--ui-space-sm);
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
-  color: var(--ui-fg-muted);
-  background: color-mix(in oklab, var(--ui-bg-muted), var(--ui-bg) 28%);
+  min-width: var(--ui-component-height-100, var(--ui-fallback-component-height-100));
+  padding-inline: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  background: color-mix(
+    in oklab,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted)),
+    var(--ui-bg, var(--ui-fallback-bg)) 28%
+  );
 }
 
 .ui-date-input-group__prefix {
-  border-inline-end: 1px solid color-mix(in oklab, var(--ui-border), transparent 28%);
+  border-inline-end: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), transparent 28%);
 }
 
 .ui-date-input-group__suffix {
-  border-inline-start: 1px solid color-mix(in oklab, var(--ui-border), transparent 28%);
+  border-inline-start: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(in oklab, var(--ui-border, var(--ui-fallback-border)), transparent 28%);
 }
 
 .ui-date-input-group__input {
@@ -98,7 +124,8 @@ pub const CSS: &str = r#"
 
 .ui-date-input-group--custom-class,
 .ui-date-input-group[data-custom-class="true"] {
-  outline: 1px solid color-mix(in oklab, var(--ui-accent) 24%, transparent);
-  outline-offset: 2px;
+  outline: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(in oklab, var(--ui-accent, var(--ui-fallback-accent)) 24%, transparent);
+  outline-offset: calc(var(--ui-space-2xs, var(--ui-fallback-space-2xs)) / 2);
 }
 "#;

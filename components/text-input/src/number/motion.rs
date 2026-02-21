@@ -181,14 +181,22 @@ pub fn attach_motion(
 
         let initial_digit = digit.get_untracked();
         let initial_offset = normalized_offset(initial_digit);
-        drop(style.set_property("--ui-sliding-number-offset", &format!("{initial_offset}")));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-sliding-number-offset",
+            &format!("{initial_offset}")
+        );
         let style_for_offset = style.clone();
         let driver_instance = Rc::new(RefCell::new(SlidingNumberRollerDriver::new(
             initial_digit,
             config,
             move |v| {
                 let v = v.clamp(-1000.0, 1000.0);
-                drop(style_for_offset.set_property("--ui-sliding-number-offset", &format!("{v}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_offset),
+                    "--ui-sliding-number-offset",
+                    &format!("{v}")
+                );
             },
         )));
 

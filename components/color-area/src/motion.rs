@@ -3,6 +3,25 @@ pub struct ColorAreaMotion {
     pub duration_ms: f64,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorAreaMotionSource {
+    Default,
+    Custom,
+}
+
+impl ColorAreaMotionSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Custom => "custom",
+        }
+    }
+
+    pub const fn is_custom(self) -> bool {
+        matches!(self, Self::Custom)
+    }
+}
+
 impl Default for ColorAreaMotion {
     fn default() -> Self {
         Self { duration_ms: 180.0 }
@@ -21,27 +40,36 @@ pub fn sanitize_motion(motion: ColorAreaMotion) -> ColorAreaMotion {
     }
 }
 
-pub fn source_attr(motion: ColorAreaMotion) -> &'static str {
+pub fn resolve_source(motion: ColorAreaMotion) -> ColorAreaMotionSource {
     if sanitize_motion(motion) == ColorAreaMotion::default() {
-        "default"
+        ColorAreaMotionSource::Default
     } else {
-        "custom"
+        ColorAreaMotionSource::Custom
     }
 }
 
+pub fn source_attr(motion: ColorAreaMotion) -> &'static str {
+    resolve_source(motion).as_attr()
+}
+
 pub fn attach_motion(base_vars: Option<String>, motion: ColorAreaMotion) -> String {
-    let motion = sanitize_motion(motion);
     let mut style = base_vars.unwrap_or_default();
 
     if !style.trim().is_empty() && !style.trim_end().ends_with(';') {
         style.push(';');
     }
 
-    if !style.trim().is_empty() {
-        style.push(' ');
-    }
+    if resolve_source(motion).is_custom() {
+        let motion = sanitize_motion(motion);
 
-    style.push_str(format!("--ui-color-area-motion-duration: {}ms;", motion.duration_ms).as_str());
+        if !style.trim().is_empty() {
+            style.push(' ');
+        }
+
+        style.push_str(
+            format!("--ui-color-area-motion-duration: {}ms;", motion.duration_ms).as_str(),
+        );
+    }
     style
 }
 

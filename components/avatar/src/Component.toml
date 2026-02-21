@@ -54,6 +54,10 @@ enabled = true
 name = "a11y_i18n_l10n"
 enabled = true
 
+[[capabilities]]
+name = "agent_contract_schema"
+enabled = true
+
 [[dependencies]]
 name = "ui-state-primitives"
 kind = "state-normalization"

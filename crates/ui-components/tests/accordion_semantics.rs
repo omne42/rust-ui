@@ -141,7 +141,7 @@ fn accordion_primary_api_uses_explicit_item_composition_contract() {
         "pub fn AccordionItem(",
         "collect_accordion_items(children)",
         "children: Children",
-        "fn next_id() -> u64",
+        "use_ui_id_provider",
     ] {
         assert!(
             source.contains(needle),
@@ -149,10 +149,100 @@ fn accordion_primary_api_uses_explicit_item_composition_contract() {
         );
     }
 
-    for forbidden in ["labels: Vec<String>", "children().nodes", "zip(panels)"] {
+    for forbidden in [
+        "labels: Vec<String>",
+        "children().nodes",
+        "zip(panels)",
+        "fn next_id() -> u64",
+        "thread_local!",
+    ] {
         assert!(
             !source.contains(forbidden),
             "Accordion should not rely on parallel array/slot convention `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn accordion_collection_registration_protocol_is_context_driven_and_ordered_in_logic() {
+    let view_source = load_source("src/accordion/view.rs");
+    let logic_source = load_source("src/accordion/logic.rs");
+
+    for needle in [
+        "struct RegistrationContext",
+        "AccordionRegistrationAction::Register",
+        "AccordionRegistrationAction::Unregister",
+        "collect_accordion_items(children)",
+        "logic::resolve_registered_item_keys",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Accordion view should wire registration protocol through `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub enum AccordionRegistrationAction",
+        "pub struct AccordionRegistrationState",
+        "pub fn reduce_registration_actions(",
+        "pub fn resolve_registered_item_keys(",
+        "pub items_order: Vec<usize>",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Accordion logic should own registration ordering contract via `{needle}`."
+        );
+    }
+
+    assert!(
+        !view_source.contains("HashSet"),
+        "Accordion registration/navigation ordering should not rely on HashSet iteration order."
+    );
+}
+
+#[test]
+fn accordion_slot_projection_contract_covers_lazy_keepalive_eager_and_notify_hidden() {
+    let view_source = load_source("src/accordion/view.rs");
+    let logic_source = load_source("src/accordion/logic.rs");
+    let motion_source = load_source("src/accordion/motion.rs");
+
+    for needle in [
+        "#[prop(optional)] slot_projection: AccordionSlotProjection,",
+        "#[prop(optional)] on_panel_lifecycle: Option<Callback<AccordionPanelLifecycleEvent>>",
+        "logic::should_render_panel_surface(",
+        "data-slot-projection=slot_projection.as_str()",
+        "data-panel-lifecycle=move || panel_lifecycle.get().as_str()",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Accordion view should expose slot projection lifecycle contract `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub enum AccordionSlotProjection",
+        "Lazy",
+        "KeepAlive",
+        "Eager",
+        "pub enum AccordionPanelLifecycleEvent",
+        "NotifyHidden",
+        "NotifyShown",
+        "pub fn should_render_panel_surface(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Accordion logic should model slot projection/lifecycle contract via `{needle}`."
+        );
+    }
+
+    for needle in [
+        "if slot_projection == logic::AccordionSlotProjection::KeepAlive {",
+        "observer.disconnect();",
+        "on_panel_lifecycle.run(panel_lifecycle_event_from_hidden(hidden));",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Accordion motion should pause keep-alive hidden work and notify lifecycle via `{needle}`."
         );
     }
 }
@@ -282,11 +372,18 @@ fn accordion_consumes_state_primitive_sources_only() {
     let view_source = load_source("src/accordion/view.rs");
     let logic_source = load_source("src/accordion/logic.rs");
 
-    let needle = "normalize_open_indices, summarize, toggle_open_indices";
-    assert!(
-        view_source.contains(needle) || logic_source.contains(needle),
-        "Accordion should consume ui-state-primitives capability `{needle}`."
-    );
+    for needle in [
+        "use ui_state_primitives::expansion::{",
+        "normalize_open_keys",
+        "normalize_default_open_keys",
+        "toggle_open_key",
+        "summarize",
+    ] {
+        assert!(
+            view_source.contains(needle) || logic_source.contains(needle),
+            "Accordion should consume ui-state-primitives capability `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -1382,7 +1479,9 @@ fn accordion_reuses_state_primitives_instead_of_reimplementing_reusable_rules() 
     let logic_source = load_source("src/accordion/logic.rs");
 
     for needle in [
-        "normalize_open_indices, summarize, toggle_open_indices",
+        "normalize_open_keys",
+        "normalize_default_open_keys",
+        "toggle_open_key",
         "pub fn normalize_open_for_items(",
         "pub fn toggle_open_for_items(",
     ] {
@@ -1431,6 +1530,7 @@ fn ui_components_entry_file_locations_follow_contract() {
     for needle in [
         "pub fn UiRoot(",
         "provide_ui_i18n(i18n);",
+        "provide_ui_id_provider(id_seed);",
         "crate::css::push_components_css(&mut out);",
     ] {
         assert!(

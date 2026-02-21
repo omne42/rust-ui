@@ -76,7 +76,7 @@ fn setup_modal(is_enabled: Signal<bool>) {
         let style = body.style();
         let previous_overflow = style.get_property_value("overflow").ok();
         state.body_overflow = previous_overflow;
-        drop(style.set_property("overflow", "hidden"));
+        ui_observability::set_css_property_observed_auto!(&(style), "overflow", "hidden");
         state.aria_hidden.clear();
 
         let children = body.children();
@@ -120,7 +120,11 @@ fn setup_modal(is_enabled: Signal<bool>) {
             if previous_overflow.is_empty() {
                 drop(style.remove_property("overflow"));
             } else {
-                drop(style.set_property("overflow", &previous_overflow));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style),
+                    "overflow",
+                    &previous_overflow
+                );
             }
         }
 

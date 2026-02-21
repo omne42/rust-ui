@@ -1,52 +1,47 @@
-use crate::{
-    BadgeVariant,
-    logic::{self, BadgeStateInput},
-};
+use crate::{BadgeVariant, logic};
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn Badge(
-    #[prop(optional)] variant: BadgeVariant,
+    #[prop(optional, into)] variant: Option<BadgeVariant>,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = logic::normalize_optional_text(class_name);
-    let state = logic::resolve_state(BadgeStateInput {
-        variant,
-        has_custom_class_name: class_name.is_some(),
-    });
+    let render_state = logic::resolve_render_state(variant, class_name);
     let locale = locale_attrs(lang, dir);
-    let agent_contract = logic::resolve_agent_contract(state);
-    let class = logic::compose_class_name(class_name, state);
 
     view! {
         <span
-            class=class
+            class=render_state.class_name
             lang=locale.lang
             dir=locale.dir
             data-slot="badge"
-            data-variant=state.variant_attr
-            data-fill=state.fill_attr
-            data-state=state.fill_attr
-            data-solid=state.is_solid.then_some("true")
-            data-outline=state.is_outline.then_some("true")
-            data-custom-class=state.has_custom_class_name.then_some("true")
-            data-class-source=agent_contract.class_source_attr
-            data-ui-schema=agent_contract.schema_attr
-            data-ui-schema-version=agent_contract.schema_version_attr
-            data-ui-intent=agent_contract.intent_attr
-            data-ui-action=agent_contract.action_attr
-            data-ui-state=agent_contract.state_attr
-            data-ui-source=agent_contract.source_attr
-            data-ui-stream-support=agent_contract.stream_support_attr
-            data-ui-stream-fallback=agent_contract.stream_fallback_attr
-            data-ui-stream-mode=agent_contract.stream_mode_attr
-            data-ui-output-status=agent_contract.output_status_attr
+            data-variant=render_state.state.variant_attr
+            data-fill=render_state.state.fill_attr
+            data-state=render_state.state.fill_attr
+            data-solid=render_state.state.is_solid.then_some("true")
+            data-outline=render_state.state.is_outline.then_some("true")
+            data-custom-class=render_state.state.has_custom_class_name.then_some("true")
+            data-class-source=render_state.agent_contract.source.as_attr()
+            data-ui-schema=render_state.agent_contract.schema_name
+            data-ui-schema-version=render_state.agent_contract.schema_version.as_attr()
+            data-ui-intent=render_state.agent_contract.intent.as_attr()
+            data-ui-action=render_state.agent_contract.action.as_attr()
+            data-ui-state=render_state.agent_contract.state.as_attr()
+            data-ui-source=render_state.agent_contract.source.as_attr()
+            data-ui-stream-support=render_state.agent_contract.stream_support.as_attr()
+            data-ui-stream-fallback=render_state.agent_contract.stream_fallback.as_attr()
+            data-ui-stream-mode=render_state.agent_contract.stream_mode.as_attr()
+            data-ui-output-status=render_state.agent_contract.output_status.as_attr()
         >
             {children()}
         </span>
     }
 }
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

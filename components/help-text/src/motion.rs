@@ -1,3 +1,16 @@
+use ui_theme::default_text_field_motion_tokens;
+
+const MIN_DURATION_MS: u32 = 1;
+const MAX_DURATION_MS: u32 = 1_200;
+#[cfg(target_arch = "wasm32")]
+const ENTER_FROM_OPACITY: &str = "0.92";
+#[cfg(target_arch = "wasm32")]
+const EXIT_TO_OPACITY: &str = "0.96";
+#[cfg(target_arch = "wasm32")]
+const ENTER_FROM_TRANSFORM: &str = "translateY(-1px)";
+#[cfg(target_arch = "wasm32")]
+const EXIT_TO_TRANSFORM: &str = "translateY(1px)";
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct HelpTextMotion {
     pub enabled: bool,
@@ -6,9 +19,10 @@ pub struct HelpTextMotion {
 
 impl Default for HelpTextMotion {
     fn default() -> Self {
+        let tokens = default_text_field_motion_tokens();
         Self {
             enabled: true,
-            duration_ms: 160,
+            duration_ms: u32::from(tokens.duration_ms),
         }
     }
 }
@@ -23,13 +37,29 @@ impl HelpTextMotion {
 }
 
 pub fn sanitize_duration_ms(duration_ms: u32) -> u32 {
-    duration_ms.clamp(100, 800)
+    let default_duration = HelpTextMotion::default().duration_ms;
+    if duration_ms == 0 {
+        default_duration
+    } else {
+        duration_ms.clamp(MIN_DURATION_MS, MAX_DURATION_MS)
+    }
 }
 
 pub fn sanitize_motion(motion: HelpTextMotion) -> HelpTextMotion {
     HelpTextMotion {
         enabled: motion.enabled,
         duration_ms: sanitize_duration_ms(motion.duration_ms),
+    }
+}
+
+pub fn resolve_motion_options(motion: HelpTextMotion) -> ui_motion::options::MotionOptions {
+    let motion = sanitize_motion(motion);
+    let tokens = default_text_field_motion_tokens();
+
+    ui_motion::options::MotionOptions {
+        duration_ms: motion.duration_ms,
+        easing: tokens.easing,
+        fill: ui_motion::options::FillMode::Both,
     }
 }
 
@@ -41,12 +71,10 @@ pub fn attach_motion(
 ) {
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
-    use ui_motion::{
-        keyframes::MotionKeyframe,
-        options::{FillMode, MotionOptions},
-    };
+    use ui_motion::keyframes::MotionKeyframe;
 
     let motion = sanitize_motion(motion);
+    let motion_options = resolve_motion_options(motion);
     let last_is_error = StoredValue::new(None::<bool>);
 
     Effect::new(move |_| {
@@ -74,8 +102,8 @@ pub fn attach_motion(
             [
                 MotionKeyframe::new()
                     .with_offset(0.0)
-                    .prop("opacity", "0.92")
-                    .prop("transform", "translateY(-1px)"),
+                    .prop("opacity", ENTER_FROM_OPACITY)
+                    .prop("transform", ENTER_FROM_TRANSFORM),
                 MotionKeyframe::new()
                     .with_offset(1.0)
                     .prop("opacity", "1")
@@ -89,21 +117,12 @@ pub fn attach_motion(
                     .prop("transform", "translateY(0px)"),
                 MotionKeyframe::new()
                     .with_offset(1.0)
-                    .prop("opacity", "0.96")
-                    .prop("transform", "translateY(1px)"),
+                    .prop("opacity", EXIT_TO_OPACITY)
+                    .prop("transform", EXIT_TO_TRANSFORM),
             ]
         };
 
-        ui_motion::web::animate(
-            &element,
-            &frames,
-            MotionOptions {
-                duration_ms: motion.duration_ms,
-                easing: "cubic-bezier(0.2, 0, 0, 1)",
-                fill: FillMode::Both,
-                ..Default::default()
-            },
-        );
+        ui_motion::web::animate(&element, &frames, motion_options);
     });
 }
 

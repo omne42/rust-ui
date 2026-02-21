@@ -151,7 +151,7 @@ fn render_back_panel(
 ) -> impl IntoView {
     view! {
         <div class="ui-share-button__back" data-slot="share-button-back">
-            <ButtonGroup attached=true>
+            <ButtonGroup is_attached=true>
                 <div class="ui-share-button__platforms" data-slot="share-button-platforms">
                     {items
                         .into_iter()

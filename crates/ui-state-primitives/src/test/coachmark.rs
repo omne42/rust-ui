@@ -34,6 +34,43 @@ fn compose_step_label_requires_multi_step_context() {
 }
 
 #[test]
+fn resolve_cta_mode_prefers_typed_discrete_states() {
+    assert_eq!(resolve_cta_mode(None, None), CoachmarkCtaMode::None);
+    assert_eq!(
+        resolve_cta_mode(Some("Continue"), None),
+        CoachmarkCtaMode::Primary
+    );
+    assert_eq!(
+        resolve_cta_mode(None, Some("Later")),
+        CoachmarkCtaMode::Secondary
+    );
+    assert_eq!(
+        resolve_cta_mode(Some("Continue"), Some("Later")),
+        CoachmarkCtaMode::Dual
+    );
+}
+
+#[test]
+fn resolve_asset_source_prefers_image_over_variant() {
+    assert_eq!(resolve_asset_source(None, None), CoachmarkAssetSource::None);
+    assert_eq!(
+        resolve_asset_source(Some(crate::asset::AssetVariant::Folder), None),
+        CoachmarkAssetSource::Variant
+    );
+    assert_eq!(
+        resolve_asset_source(None, Some("https://example.com/demo.png")),
+        CoachmarkAssetSource::Image
+    );
+    assert_eq!(
+        resolve_asset_source(
+            Some(crate::asset::AssetVariant::Folder),
+            Some("https://example.com/demo.png")
+        ),
+        CoachmarkAssetSource::Image
+    );
+}
+
+#[test]
 fn resolve_state_tracks_sources_and_markers() {
     let state = resolve_state(CoachmarkStateInput {
         variant_attr: "info",
@@ -41,16 +78,13 @@ fn resolve_state_tracks_sources_and_markers() {
         disabled: false,
         is_controlled: true,
         has_footer: true,
-        has_asset: true,
         has_custom_aria_label: true,
         has_custom_class_name: true,
         has_shortcut: true,
-        has_primary_cta: true,
-        has_secondary_cta: true,
+        cta_mode: CoachmarkCtaMode::Dual,
         has_actions_slot: true,
         has_step_label: true,
-        has_asset_variant: false,
-        has_asset_src: true,
+        asset_source: CoachmarkAssetSource::Image,
     });
 
     assert_eq!(state.variant_attr, "info");
@@ -71,16 +105,13 @@ fn compose_class_name_exposes_state_markers() {
         disabled: true,
         is_controlled: false,
         has_footer: false,
-        has_asset: false,
         has_custom_aria_label: false,
         has_custom_class_name: true,
         has_shortcut: false,
-        has_primary_cta: false,
-        has_secondary_cta: false,
+        cta_mode: CoachmarkCtaMode::None,
         has_actions_slot: false,
         has_step_label: false,
-        has_asset_variant: false,
-        has_asset_src: false,
+        asset_source: CoachmarkAssetSource::None,
     });
 
     let class_name = compose_class_name(Some("docs-coachmark".to_string()), state);

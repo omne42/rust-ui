@@ -6,11 +6,31 @@ use leptos::children::Children;
 use leptos::prelude::*;
 use ui_headless::MenuItemKind;
 
+const SUBMENU_INDICATOR_SLOT: &str = "menu-item-submenu-indicator";
+const SUBMENU_INDICATOR_MARK: &str = "›";
+
+fn render_submenu_indicator(has_submenu: bool) -> impl IntoView {
+    let data_visible = if has_submenu { "true" } else { "false" };
+    let marker = has_submenu.then_some(SUBMENU_INDICATOR_MARK);
+
+    view! {
+        <span
+            class="ui-menu-item__submenu-indicator"
+            aria-hidden="true"
+            data-slot=SUBMENU_INDICATOR_SLOT
+            data-visible=data_visible
+        >
+            {marker}
+        </span>
+    }
+}
+
 #[component]
 pub fn MenuItem(
     #[prop(optional, into)] id: Option<String>,
     #[prop(optional)] index: Option<usize>,
     #[prop(optional)] kind: MenuItemKind,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] focused: bool,
     #[prop(optional)] has_submenu: bool,
@@ -20,8 +40,15 @@ pub fn MenuItem(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let on_pointer_move = on_pointer_move.unwrap_or_else(|| Callback::new(|()| {}));
-    let on_press = on_press.unwrap_or_else(|| Callback::new(|()| {}));
+    let interaction = logic::normalize_interaction(logic::MenuItemInteractionInput {
+        is_disabled,
+        disabled,
+        on_pointer_move,
+        on_press,
+    });
+    let disabled = interaction.disabled;
+    let on_pointer_move = interaction.on_pointer_move;
+    let on_press = interaction.on_press;
 
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
@@ -53,7 +80,7 @@ pub fn MenuItem(
             class=move || class.get()
             id=id
             role=move || state.get().role_attr
-            tabindex=if disabled { Some(-1) } else { Some(0) }
+            tabindex=logic::resolve_tabindex(disabled)
             aria-label=aria_label
             aria-checked=move || logic::resolve_aria_checked(kind)
             aria-disabled=disabled.then_some("true")
@@ -72,13 +99,13 @@ pub fn MenuItem(
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
             on:pointermove=move |_| {
-                if disabled {
+                if logic::should_ignore_interaction(disabled) {
                     return;
                 }
                 on_pointer_move.run(());
             }
             on:click=move |_| {
-                if disabled {
+                if logic::should_ignore_interaction(disabled) {
                     return;
                 }
                 on_press.run(());
@@ -98,30 +125,11 @@ pub fn MenuItem(
                 {children()}
             </span>
 
-            <Show
-                when=move || state.get().has_submenu
-                fallback=move || view! {
-                    <span
-                        class="ui-menu-item__submenu-indicator"
-                        aria-hidden="true"
-                        data-slot="menu-item-submenu-indicator"
-                        data-visible="false"
-                    ></span>
-                }
-            >
-                <span
-                    class="ui-menu-item__submenu-indicator"
-                    aria-hidden="true"
-                    data-slot="menu-item-submenu-indicator"
-                    data-visible="true"
-                >
-                    "›"
-                </span>
-            </Show>
+            {move || render_submenu_indicator(state.get().has_submenu)}
 
             <Show when=move || selection_indicator != MenuItemSelectionIndicator::Hidden>
                 <span class="ui-menu-item__selection-sr" data-slot="menu-item-selection-sr">
-                    {move || if state.get().is_checked { "selected" } else { "not selected" }}
+                    {move || logic::resolve_selection_sr_text(state.get().is_checked)}
                 </span>
             </Show>
         </div>

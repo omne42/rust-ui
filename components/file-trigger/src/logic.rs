@@ -1,44 +1,143 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct FileTriggerStateInput {
-    pub disabled: bool,
-    pub has_custom_motion: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct FileTriggerState {
-    pub is_disabled: bool,
-    pub is_enabled: bool,
-    pub state_attr: &'static str,
-    pub motion_source_attr: &'static str,
-    pub has_custom_motion: bool,
-}
-
-pub fn resolve_state(input: FileTriggerStateInput) -> FileTriggerState {
-    FileTriggerState {
-        is_disabled: input.disabled,
-        is_enabled: !input.disabled,
-        state_attr: if input.disabled { "disabled" } else { "ready" },
-        motion_source_attr: if input.has_custom_motion {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_motion: input.has_custom_motion,
-    }
-}
+#[cfg(test)]
+pub use ui_state_primitives::file_trigger::{
+    FileTriggerProps, FileTriggerSelectionMode, FileTriggerStateInput, resolve_props, resolve_state,
+};
+pub use ui_state_primitives::file_trigger::{
+    FileTriggerPropsInput, FileTriggerRenderState, FileTriggerRenderStateInput, FileTriggerState,
+    resolve_render_state,
+};
 
 pub fn compose_class_name(state: FileTriggerState) -> String {
-    let mut classes = vec!["ui-file-trigger".to_string()];
+    let mut classes = Vec::with_capacity(3);
+    classes.push("ui-file-trigger");
 
     if state.is_disabled {
-        classes.push("ui-file-trigger--disabled".to_string());
+        classes.push("ui-file-trigger--disabled");
     }
 
     if state.has_custom_motion {
-        classes.push("ui-file-trigger--custom-motion".to_string());
+        classes.push("ui-file-trigger--custom-motion");
     }
 
     classes.join(" ")
+}
+
+pub fn compose_class_name_from_render_state(render_state: FileTriggerRenderState) -> String {
+    compose_class_name(render_state.state)
+}
+
+pub const FILE_TRIGGER_COMPONENT_SCHEMA_NAME: &str = "ui.file_trigger";
+pub const FILE_TRIGGER_COMPONENT_SCHEMA_VERSION: &str = "1";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FileTriggerAgentIntent {
+    FilePick,
+}
+
+impl FileTriggerAgentIntent {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::FilePick => "file-pick",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FileTriggerAgentAction {
+    RenderSnapshot,
+}
+
+impl FileTriggerAgentAction {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::RenderSnapshot => "render-snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FileTriggerAgentSource {
+    Default,
+    Custom,
+}
+
+impl FileTriggerAgentSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Custom => "custom",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FileTriggerAgentStreamSupport {
+    Optional,
+}
+
+impl FileTriggerAgentStreamSupport {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Optional => "optional",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FileTriggerAgentStreamFallback {
+    Snapshot,
+}
+
+impl FileTriggerAgentStreamFallback {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FileTriggerAgentOutputStatus {
+    Verified,
+}
+
+impl FileTriggerAgentOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FileTriggerAgentContract {
+    pub schema_name: &'static str,
+    pub schema_version: &'static str,
+    pub intent: FileTriggerAgentIntent,
+    pub action: FileTriggerAgentAction,
+    pub state: &'static str,
+    pub source: FileTriggerAgentSource,
+    pub stream_support: FileTriggerAgentStreamSupport,
+    pub stream_fallback: FileTriggerAgentStreamFallback,
+    pub output_status: FileTriggerAgentOutputStatus,
+}
+
+pub fn resolve_agent_contract(state: FileTriggerState) -> FileTriggerAgentContract {
+    FileTriggerAgentContract {
+        schema_name: FILE_TRIGGER_COMPONENT_SCHEMA_NAME,
+        schema_version: FILE_TRIGGER_COMPONENT_SCHEMA_VERSION,
+        intent: FileTriggerAgentIntent::FilePick,
+        action: FileTriggerAgentAction::RenderSnapshot,
+        state: state.state_attr,
+        source: if state.has_custom_motion {
+            FileTriggerAgentSource::Custom
+        } else {
+            FileTriggerAgentSource::Default
+        },
+        stream_support: FileTriggerAgentStreamSupport::Optional,
+        stream_fallback: FileTriggerAgentStreamFallback::Snapshot,
+        output_status: FileTriggerAgentOutputStatus::Verified,
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

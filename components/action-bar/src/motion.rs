@@ -113,18 +113,24 @@ pub fn attach_motion(
         let initial_translate = if open_now { 0.0 } else { closed_translate };
         let initial_opacity = if open_now { 1.0 } else { closed_opacity };
 
-        drop(style.set_property(
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
             "--ui-action-bar-translate-y",
             &format!("{initial_translate}px"),
-        ));
-        drop(style.set_property("--ui-action-bar-opacity", &format!("{initial_opacity}")));
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-action-bar-opacity",
+            &format!("{initial_opacity}")
+        );
         let style_translate = style.clone();
         let translate =
             ui_motion::spring::SpringAnimator::new(initial_translate, motion.spring, move |next| {
                 let next = next.clamp(-1000.0, 1000.0);
-                drop(
-                    style_translate
-                        .set_property("--ui-action-bar-translate-y", &format!("{next}px")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_translate),
+                    "--ui-action-bar-translate-y",
+                    &format!("{next}px")
                 );
             });
 
@@ -132,7 +138,11 @@ pub fn attach_motion(
         let opacity =
             ui_motion::spring::SpringAnimator::new(initial_opacity, motion.spring, move |next| {
                 let next = next.clamp(0.0, 1.0);
-                drop(style_opacity.set_property("--ui-action-bar-opacity", &format!("{next}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_opacity),
+                    "--ui-action-bar-opacity",
+                    &format!("{next}")
+                );
             });
 
         let springs_for_cleanup = springs;

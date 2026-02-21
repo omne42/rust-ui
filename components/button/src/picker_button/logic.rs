@@ -3,10 +3,7 @@ use crate::picker_button::{PickerButtonState, PickerButtonStateInput};
 pub const DEFAULT_ARIA_LABEL: &str = "PickerButton";
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    ui_state_primitives::button::normalize_optional_text(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
@@ -15,6 +12,10 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     }
 
     (DEFAULT_ARIA_LABEL.into(), false)
+}
+
+pub fn resolve_inner_class_name(value: Option<String>) -> String {
+    value.unwrap_or_default()
 }
 
 pub fn resolve_state(input: PickerButtonStateInput) -> PickerButtonState {

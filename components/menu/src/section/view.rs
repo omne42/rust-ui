@@ -10,17 +10,23 @@ pub fn MenuSection(
     #[prop(optional, into)] title: Option<String>,
     #[prop(optional)] item_count: Option<usize>,
     #[prop(optional)] heading_tone: MenuSectionHeadingTone,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] sticky_heading: bool,
     #[prop(optional)] show_divider: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let title = logic::normalize_optional_text(title);
-    let has_title = title.is_some();
-    let title = StoredValue::new(title);
-
-    let resolved_item_count = item_count.unwrap_or(1);
+    let normalized_props = logic::normalize_props(logic::MenuSectionNormalizeInput {
+        title,
+        item_count,
+        is_disabled,
+        disabled,
+    });
+    let resolved_item_count = normalized_props.item_count;
+    let resolved_disabled = normalized_props.disabled;
+    let has_title = normalized_props.has_title;
+    let title_text = StoredValue::new(normalized_props.title_text);
 
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
 
@@ -32,7 +38,7 @@ pub fn MenuSection(
         logic::resolve_state(MenuSectionStateInput {
             heading_tone,
             item_count: resolved_item_count,
-            disabled,
+            disabled: resolved_disabled,
             sticky_heading,
             show_divider,
             has_title,
@@ -49,7 +55,7 @@ pub fn MenuSection(
             class=move || class.get()
             role="group"
             aria-label=aria_label
-            aria-disabled=disabled.then_some("true")
+            aria-disabled=resolved_disabled.then_some("true")
             data-slot="menu-section"
             data-tone=move || state.get().heading_tone_attr
             data-state=move || state.get().data_state_attr
@@ -71,7 +77,7 @@ pub fn MenuSection(
                     data-slot="menu-section-header"
                     data-sticky=move || state.get().is_sticky_heading.then_some("true")
                 >
-                    {move || title.get_value().unwrap_or_default()}
+                    {title_text.get_value()}
                 </header>
             </Show>
 

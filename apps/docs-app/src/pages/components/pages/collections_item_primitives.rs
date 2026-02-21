@@ -7,6 +7,8 @@ use ui_components::{
     SegmentedControlSize,
 };
 
+const ITEM_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Item, ItemActions, ItemContent, ItemDescription, ItemFooter, ItemGroup, ItemHeader, ItemMedia, ItemMediaVariant, ItemSeparator, ItemSize, ItemTitle, ItemVariant};";
+
 pub(super) fn item_primitives() -> AnyView {
     let variant_options = vec![
         "default".to_string(),
@@ -74,6 +76,62 @@ pub(super) fn item_primitives() -> AnyView {
         .join("\n")
     });
 
+    let hello_code = Signal::derive(move || {
+        [
+            "<ItemGroup>".to_string(),
+            "  <Item>".to_string(),
+            "    <ItemTitle>\"Hello Item\"</ItemTitle>".to_string(),
+            "  </Item>".to_string(),
+            "</ItemGroup>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let state_matrix_code = Signal::derive(move || {
+        [
+            "<ItemGroup>".to_string(),
+            "  <Item variant=ItemVariant::Default size=ItemSize::Default>".to_string(),
+            "    <ItemTitle>\"Default / M\"</ItemTitle>".to_string(),
+            "  </Item>".to_string(),
+            "  <Item variant=ItemVariant::Outline size=ItemSize::Default>".to_string(),
+            "    <ItemTitle>\"Outline / M\"</ItemTitle>".to_string(),
+            "  </Item>".to_string(),
+            "  <Item variant=ItemVariant::Muted size=ItemSize::Sm>".to_string(),
+            "    <ItemTitle>\"Muted / S\"</ItemTitle>".to_string(),
+            "  </Item>".to_string(),
+            "</ItemGroup>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let controlled_na_code = Signal::derive(move || {
+        [
+            "// Item has no controllable value axis (no value/on_value_change/default_value triad)."
+                .to_string(),
+            "// Parent renders a full snapshot props set each time.".to_string(),
+            "<Item variant=ItemVariant::Outline size=ItemSize::Default>".to_string(),
+            "  <ItemTitle>\"Controlled vs Uncontrolled: N/A\"</ItemTitle>".to_string(),
+            "</Item>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let streaming_snapshot_code = Signal::derive(move || {
+        [
+            "// Item is snapshot-first. Streaming input is optional and falls back to snapshot rendering."
+                .to_string(),
+            "<ItemGroup>".to_string(),
+            "  <Item>".to_string(),
+            "    <ItemTitle>\"Streaming feed (fallback=snapshot)\"</ItemTitle>".to_string(),
+            "  </Item>".to_string(),
+            "  <Item>".to_string(),
+            "    <ItemTitle>\"Snapshot\"</ItemTitle>".to_string(),
+            "  </Item>".to_string(),
+            "</ItemGroup>".to_string(),
+        ]
+        .join("\n")
+    });
+
     view! {
         <ComponentPage
             title="Item"
@@ -81,9 +139,35 @@ pub(super) fn item_primitives() -> AnyView {
             group="Collections"
             description="baseline-compatible item composition primitives (`Item*`) with stable slot/variant/size contracts for media-content-actions and header-footer layouts."
         >
+            <section class="docs-card docs-prose" data-slot="item-doc-onboarding">
+                <p>
+                    "Start with "
+                    <strong>"Hello World"</strong>
+                    " to get a running Item immediately, then move to state and layout scenarios."
+                </p>
+                <p>
+                    "Default API path comes first; advanced combinations (state matrix, header/footer, and streaming markers) follow after."
+                </p>
+            </section>
+
+            <Playground
+                title="Hello World"
+                code_signal=hello_code
+                code_imports=ITEM_DOC_IMPORTS.to_string()
+            >
+                <ItemGroup>
+                    <Item>
+                        <ItemTitle>
+                            "Hello Item"
+                        </ItemTitle>
+                    </Item>
+                </ItemGroup>
+            </Playground>
+
             <Playground
                 title="Media + Content + Actions"
                 code_signal=basic_code
+                code_imports=ITEM_DOC_IMPORTS.to_string()
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Variant"</div>
@@ -149,7 +233,11 @@ pub(super) fn item_primitives() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Header + Footer Layout" code_signal=advanced_code>
+            <Playground
+                title="Header + Footer Layout"
+                code_signal=advanced_code
+                code_imports=ITEM_DOC_IMPORTS.to_string()
+            >
                 <Item variant=ItemVariant::Muted size=ItemSize::Sm>
                     <ItemHeader>
                         <ItemTitle>
@@ -169,6 +257,85 @@ pub(super) fn item_primitives() -> AnyView {
                     </ItemFooter>
                 </Item>
             </Playground>
+
+            <Playground
+                title="State Matrix (Variant + Size)"
+                code_signal=state_matrix_code
+                code_imports=ITEM_DOC_IMPORTS.to_string()
+            >
+                <ItemGroup>
+                    <Item variant=ItemVariant::Default size=ItemSize::Default>
+                        <ItemTitle>"Default / M"</ItemTitle>
+                    </Item>
+                    <ItemSeparator />
+                    <Item variant=ItemVariant::Outline size=ItemSize::Default>
+                        <ItemTitle>"Outline / M"</ItemTitle>
+                    </Item>
+                    <ItemSeparator />
+                    <Item variant=ItemVariant::Muted size=ItemSize::Sm>
+                        <ItemTitle>"Muted / S"</ItemTitle>
+                    </Item>
+                </ItemGroup>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A for Item)"
+                code_signal=controlled_na_code
+                code_imports=ITEM_DOC_IMPORTS.to_string()
+                description="Item is a static composition primitive with no value/on_change/default_value axis."
+            >
+                <Item variant=ItemVariant::Outline>
+                    <ItemTitle>"Controlled vs Uncontrolled: N/A"</ItemTitle>
+                    <ItemDescription>
+                        "Parent passes a full snapshot props set each render."
+                    </ItemDescription>
+                </Item>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Display"
+                code_signal=streaming_snapshot_code
+                code_imports=ITEM_DOC_IMPORTS.to_string()
+                description="Item is snapshot-first; streaming stays optional with snapshot fallback."
+            >
+                <ItemGroup>
+                    <Item>
+                        <ItemTitle>"Streaming feed (fallback=snapshot)"</ItemTitle>
+                        <ItemDescription>
+                            "Shows stable markers while upstream output is still generating."
+                        </ItemDescription>
+                    </Item>
+                    <ItemSeparator />
+                    <Item>
+                        <ItemTitle>"Snapshot"</ItemTitle>
+                        <ItemDescription>
+                            "Final output renders through the same semantic contract."
+                        </ItemDescription>
+                    </Item>
+                </ItemGroup>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="item-copy-ready-hint">
+                <p>
+                    "Playground code panel supports one-click copy, and copied snippets auto-inject missing imports via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p>
+                    "Source location: "
+                    <code>"components/item/src/view.rs"</code>
+                    " + "
+                    <code>"components/item/src/logic.rs"</code>
+                    "."
+                </p>
+                <p>
+                    "Dependency prerequisite: use "
+                    <code>"ui_components::{Item, ItemGroup, ...}"</code>
+                    " from docs snippet imports (package mode: enable feature "
+                    <code>"component-item"</code>
+                    ")."
+                </p>
+            </section>
         </ComponentPage>
     }
     .into_any()

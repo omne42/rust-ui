@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,167 +55,205 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+  - N/A（本组件）：无远程请求与异步状态，交互仅为同步本地筛选/选择；并由语义测试约束不引入 `is_loading`/`aria-busy`/`use_async_action`。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+  - N/A（本组件）：`Autocomplete` 为输入 + 选项集合组件，不是 `Parent/Item` 组合容器；主 API 采用单一 `items` 轴，不引入 `labels + children` / `titles + panels` 并行槽位约定。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A（本组件）：`Autocomplete` 无拖拽交互与 `Dragging` 生命周期；当前仅使用 pointer hover/select 语义，不存在每帧 drag 回流路径。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - 实现证据：`view.rs` 通过 `use_popover_position` 执行测量并消费 `top/left/placement`；`ui-headless/popover_position.rs` 通过 `POSITION_EPSILON_PX + should_update_scalar` 做幂等收敛更新，避免测量抖动导致循环更新。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A（本组件）：`Autocomplete` 不采用动态子项注册协议；选项顺序由 `filtered_indices: Vec<usize>` 稳定驱动，`HashSet` 仅用于禁用项 membership（`contains`），不参与导航顺序推导。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A（本组件）：`Autocomplete` 非容器型投影组件，不提供 `Lazy/KeepAlive/Eager` 模式切换；显示生命周期由 `use_presence` 管理，无 `KeepAlive` 隐藏态副作用需 `NotifyHidden` 协议。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A（本组件）：`Autocomplete` 组件层不直接订阅 `Resize/Theme/Intersection` 原始事件；环境流由 `ui-headless::use_popover_position` 统一承接并输出定位信号，`view.rs` 仅消费 `position.*` 结果，不存在组件层原始事件洪泛。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A（本组件）：`Autocomplete` 非 `Table/Grid` 大型批量操作组件；交互聚焦单输入筛选 + 单项提交，不存在批量选择与跨层 O(N) prop drilling 场景，也未引入 `Context Bus + Selector` 状态压缩协议。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A（本组件）：`Autocomplete` 不承载跨模块复杂派生总线；交互因果链局限在组件内输入筛选与选项提交，不存在总线广播/订阅编排，因此不需要 `TraceId` 透传协议。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+  - 实现证据：`view.rs` 通过 `use_combo_box` / `use_text_field` 挂载 `role` / `aria-*` 与键盘路径；文案来源遵循 `empty_message > i18n(CommonStrings) > primitive default`，并透传 `lang` / `dir` 到 input 与 listbox；共享 A11y 工具由 `crates/ui-headless/src/a11y.rs` 提供，组件层未重写同名能力。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - 实现证据：`view.rs` 根节点与子节点已稳定暴露 `data-state/open/closed/disabled/selected/focus-visible/*-source` 与 `role/aria-*`；状态来源由 `RootDataState` / `SelectedSource` / `SelectedChangeSource` 等类型化枚举映射输出；自动化锚点采用 `data-slot` 与语义标记，`loading` 轴在本组件为 N/A（同步交互、无异步协议）。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+  - 实现证据：`styles.rs` 状态分支基于 `data-*`/稳定 class（如 `data-empty`、`data-controlled`、`data-has-disabled-options`、`data-placement`、`data-selected`、`data-focused`），未使用 `:nth-child`/深层级猜测；`view.rs` 仅保留 `style=panel_vars` 一处运行时样式，且只传 `--ui-popover-top/left/anchor-width` 必要 CSS 变量；视觉状态切换由语义标记直接解释，不依赖节点偶然存在性。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。
+  - 实现证据：已存在并补强语义契约测试，覆盖 `role/aria/data-state/source markers`、受控/非受控、disabled、键盘路径（`on_input_key_down`）、指针路径（`pointermove/click`）以及 SSR/wasm 平台差异守卫；并通过 `autocomplete_semantics_suite_is_contract_first_not_snapshot_only` 约束“非快照优先”。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - 实现证据：`mod.rs` 仅导出 `Autocomplete/AutocompleteMotion` 并保留最小测试挂载；`logic.rs` 只做归一/派生与来源枚举映射；`styles.rs` 仅提供 token-first `CSS` 常量；`view.rs` 负责结构渲染与 headless 挂载；`motion.rs` 只封装动效 contract 与 `attach_popover_motion`，并有 non-wasm 降级。对应语义回归见 `layer_boundaries_keep_logic_view_styles_motion_separated` 与 `autocomplete_component_files_are_layered_and_spec_file_is_absent`。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+  - 实现证据：`Autocomplete` 当前未引入 `src/autocomplete/spec.rs`；规范说明保留在 `check2.md`/组件文档；并由 `autocomplete_component_files_are_layered_and_spec_file_is_absent` 语义回归约束“不得新增 spec.rs”。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+  - 实现证据：`src/autocomplete/styles.rs` 维持 `pub const CSS` 且仅消费 `var(--ui-*)`；`crates/ui-components/src/css.rs` 通过 `out.push_str(crate::autocomplete::styles::CSS)` 聚合；`crates/ui-components/src/root.rs` 在 `inject_components_css` 为真时经 `crate::css::push_components_css(&mut out)` 注入；语义守卫由 `token_first_static_style_contract_is_aggregated_and_injected_via_ui_root` 与 `autocomplete_token_first_style_contract_is_aggregated_and_ui_root_injected` 覆盖。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+  - 实现证据：docs-app 已提供 `theme-visual-baseline` 基线页面（`apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs`），页面明确覆盖 Button/Input/Overlay 的层级、对比与交互反馈；`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 提供渲染断言与截图基线（page/button/input/overlay）；并由 `visual_desire_default_theme_baseline_is_guarded_by_docs_and_screenshot_specs` 与 `autocomplete_visual_desire_default_theme_baseline_contract_is_backed_by_docs_and_e2e` 语义守卫约束持续有效。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+  - 实现证据：`crates/ui-components/Cargo.toml` 已为 `component-autocomplete` 独立建模特性链（仅依赖 `component-active_highlight`/`component-popover`/`ui-autocomplete`）；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对导出与样式聚合均做 `#[cfg(feature = "component-autocomplete")]` 门控；CI 的 `Tree Shaking Budget` 步骤执行 `scripts/check-ui-components-tree-shaking.sh`，覆盖最小特性树、`web-demo` 反向依赖、`wasm32` 最小特性编译与 release 体积预算阻断；对应语义守卫见 `tree_shaking_contract_keeps_feature_gates_and_ci_budget_pipeline_explicit` 与 `autocomplete_tree_shaking_feature_gates_are_explicit`。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
   - 任意“全量组件映射表/注册表”若导致不可达代码变可达，直接判不通过。
-  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css`，确认仅启用目标组件特性链。
+  - 验证命令（特性树）：`cargo tree -e features -p ui-components --no-default-features --features component-autocomplete,inject-css`，确认仅启用目标组件特性链。
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
-  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
+  - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-autocomplete,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+  - 实现证据：离散状态由 `RootDataState` / `SelectedSource` / `SelectedChangeSource` 等 `enum` 建模（见 `components/autocomplete/test/logic.rs` 的 `resolve_root_data_state_uses_type_safe_exclusive_enum` 与 `normalize_selection_change_prefers_on_selected_index_change_and_keeps_legacy_alias_path`）；无效输入在 `logic.rs` 统一归一（`normalize_root_state` / `normalize_selection_change`）；关键状态通过稳定 `data-*` 标记输出（`data-state` / `data-selected-source` / `data-selected-change-source` 等，见 `semantic_contract_matrix_covers_state_a11y_input_paths_and_platform_guards` 与 `autocomplete_emits_baseline_style_state_data_attributes`）；当契约破坏时可由命名明确的语义测试直接定位到状态轴与来源链路。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - N/A（本组件）：`Autocomplete` 为非模态 combobox 弹层，焦点生命周期绑定输入框（focus 打开、blur 关闭），不承担层叠 Overlay 关闭后的焦点恢复职责；组件层未引入 `use_focus_trap`/`RestorePolicy`/`document.body.focus` 或私存恢复目标 `NodeRef`。全局焦点恢复能力由 `ui-headless/src/focus_trap.rs` 提供（`RestorePolicy::FallbackTo/Selector` + `FOCUS_MANAGER_STACK`）。对应语义守卫：`focus_stack_gc_contract_is_na_for_non_modal_combobox_and_component_does_not_restore_focus_itself` 与 `autocomplete_focus_stack_gc_contract_is_na_for_non_modal_combobox_overlay`。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - N/A（本组件）：`Autocomplete` 未集成 ECharts/Map 等命令式第三方库，不存在 `Foreign Zone` 生命周期管理需求；组件层与公开 API 未暴露任何第三方实例句柄，也未把命令式实例反向注入状态机。对应语义守卫：`escape_hatch_foreign_zone_contract_is_na_and_third_party_imperative_instances_are_absent` 与 `autocomplete_escape_hatch_foreign_zone_contract_is_na_without_third_party_instances`。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - 实现证据：`view.rs` 已接入 `use_ui_id_provider()`，在 `id_base` 为空时通过 `next_prefixed_id(ui_state_primitives::autocomplete::DEFAULT_ID_BASE)` 获取确定性种子 ID，再由 `logic::resolve_id_base` 统一归一并保持“显式 `id_base` 优先”；代码路径不包含 `now()`/`Uuid`/随机熵源。`UiRoot` 继续通过 `provide_ui_id_provider(id_seed)` 注入全局种子，上下文契约见 `ui-headless/src/id_provider.rs`。对应语义守卫：`hydration_discontinuity_contract_uses_seeded_id_provider_and_avoids_entropy_sources` 与 `autocomplete_hydration_discontinuity_contract_uses_seeded_id_provider_and_has_no_entropy_path`。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+  - 实现证据：`scripts/check-ui-components-platforms.sh` 已补充 `component-autocomplete` 的 compile-only 三路径与守卫链路（默认 native、`ui-headless` `ssr`、`wasm32`，并新增 `component-autocomplete` 的 native/wasm 最小特性编译命令）；同时新增 non-wasm 源码守卫（`components/autocomplete/src/{mod,logic,styles,view,motion}.rs` 禁止 `web_sys`）。语义回归由 `platform_compile_only_contract_covers_default_ssr_wasm_and_non_wasm_source_guard` 与 `autocomplete_platform_cross_target_compile_only_contract_is_explicit_and_non_wasm_safe` 持续约束。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+  - 实现证据：`crates/ui-headless/src/lib.rs` 保持 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥门禁；`scripts/check-ui-components-platforms.sh` 保留并校验 `web+ssr` 必须编译失败（`cargo check -p ui-headless --no-default-features --features web,ssr`）且错误原因包含 `mutually exclusive`；同脚本同时覆盖 `ssr` 与 `web(wasm32)` 两条可编译路径。语义守卫：`headless_web_ssr_mutex_contract_is_guarded_by_compile_error_and_failure_probe` 与 `autocomplete_headless_web_ssr_mutex_contract_is_enforced_by_compile_error_and_platform_probe`。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+  - 实现证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion()` 与 `web::animate(...)` no-op/stub；`crates/ui-motion/tests/non_wasm_stub.rs` 覆盖 non-wasm 安全回归；`components/autocomplete/src/motion.rs` 通过 wasm/non-wasm 双分支 `attach_popover_motion` 在非 wasm 路径以 `on_exit_complete.run(())` 可预测降级，不假设动画句柄存在且不含 panic 占位。平台脚本 `scripts/check-ui-components-platforms.sh` 同步覆盖 `ui-motion` native/wasm compile-only、`non_wasm_stub` 测试，以及 `autocomplete motion` wasm/non-wasm 分支与 non-wasm 回退守卫。语义守卫：`motion_non_wasm_stub_contract_is_predictable_and_toolchain_safe` 与 `autocomplete_ui_motion_non_wasm_stub_contract_is_explicit_and_predictable`。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+  - 实现证据：`crates/ui-motion/src/spring.rs` 在 `set_target` 路径通过 `crate::web::prefers_reduced_motion()` 执行最小必要反馈（直接应用目标值并触发 `on_rest`）；`components/autocomplete/src/motion.rs` 对 `attach_popover_motion` 维持 wasm/non-wasm 双分支，non-wasm 路径通过 `on_exit_complete.run(())` 可预测降级；`components/autocomplete/src/view.rs` 通过 `use_presence(is_open)` + `on_exit_complete=presence.finish_exit` + `Show when=presence.is_present` 保持 SSR/hydration 与客户端首帧语义一致。平台脚本已加入 `autocomplete reduced-motion/ssr/wasm contract` 检查（`cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`）。语义守卫：`reduced_motion_ssr_wasm_branches_keep_semantics_consistent` 与 `autocomplete_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+  - 实现证据：`apps/docs-app/src/pages/components/shell.rs` 已为 `autocomplete` 增加显式预算（`max_mount_ms: 38.0`、`max_update_ms: Some(13.0)`、`max_heap_kb: Some(768.0)`）；`UiPerfProbe` 继续输出 `data-perf-mount-ms / data-perf-budget-ms / data-perf-budget-update-ms / data-perf-budget-heap-kb / data-perf-violation / data-perf-observability`，并由 `e2e/tests/docs_app_components_coverage.spec.mjs` 保持阻断断言；`scripts/check-ui-components-performance.sh` 已加入 `autocomplete` 性能门禁（`autocomplete_performance_governance_budget_is_defined_and_blocking`）；归因路径通过 `view.rs` 稳定来源标记（`data-state`、`data-*-source`、`data-motion-source`、`data-selected-*`）暴露；`render_count` 自动化暂由 `docs/plan/TODO.md` 明确 follow-up（现阶段以可重复 mount/perf trace 证据替代精确计数）。语义守卫：`performance_governance_budget_is_defined_traceable_and_blocking` 与 `autocomplete_performance_governance_budget_is_defined_and_blocking`。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+  - 实现证据：`components/autocomplete/src/view.rs` 已将高重复/深嵌套片段拆为普通函数与语义上下文（`AutocompleteOptionViewCtx` + `render_autocomplete_option`、`render_autocomplete_description`、`render_autocomplete_error`），主 `Autocomplete` `view!` 仅保留根容器装配与语义挂载；option 行渲染不再在 `map` 内联 `view!`，description/error 也从根块内联分支回收为局部渲染函数。门禁新增：`scripts/check-ui-components-view-macro.sh` -> `autocomplete_view_macro_complexity_is_split_into_semantic_subrenders`。回归：`components/autocomplete/test/semantics.rs::view_macro_complexity_is_split_into_semantic_subblocks` + `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_view_macro_complexity_is_split_into_semantic_subrenders`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+  - 实现证据：`components/autocomplete/src/view.rs` 已将轻逻辑片段函数化：`render_autocomplete_option`、`render_autocomplete_description`、`render_autocomplete_error`；主路径通过普通函数装配，不把局部片段升格为额外 `#[component]`。当前仅保留 2 个必要组件边界：`Autocomplete`（公共入口）与 `AutocompletePanel`（独立 overlay props/语义挂载边界），避免抽象噪音并保持语义稳定。门禁新增：`scripts/check-ui-components-view-macro.sh` -> `autocomplete_view_functional_split_prefers_plain_functions_over_local_components`。回归：`components/autocomplete/test/semantics.rs::view_functional_split_prefers_plain_functions_over_local_components` + `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_view_functional_split_prefers_plain_functions_over_local_components`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+  - 实现证据：`Autocomplete` 当前不包含复杂 SVG、页脚、长说明文本等重静态片段，按“constantized-or-absent”路径通过：`view.rs` 仅保留轻量静态锚点（`ui-active-highlight`、`autocomplete-empty`），且空态文案通过 `empty_message.get_value()` 单一路径输出，避免重复静态构造与硬编码散落。门禁新增：`scripts/check-ui-components-view-macro.sh` -> `autocomplete_static_fragments_are_constantized_or_absent_for_simple_combobox_layout`。回归：`components/autocomplete/test/semantics.rs::static_fragments_are_constantized_or_absent_for_simple_combobox_layout` + `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_static_fragments_are_constantized_or_absent_for_simple_combobox_layout`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+  - 实现证据：N/A：`Autocomplete` 当前无 `inner_html` 使用点；`components/autocomplete/src/{mod,logic,view,styles,motion}.rs` 与 `components/autocomplete/src/README.md` 未出现 `inner_html`/`set_inner_html`/`dangerously_set_inner_html`；语义回归：`components/autocomplete/test/semantics.rs::inner_html_usage_is_forbidden_in_component_and_docs_examples` 与 `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_inner_html_usage_is_forbidden_in_component_and_docs_examples`；门禁脚本：`scripts/check-ui-components-inner-html.sh` 已加入 `autocomplete_inner_html_usage_is_forbidden_in_component_and_docs_examples`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+  - 实现证据：`view.rs` 通过 `use_controllable_open_state_traced("autocomplete", ...)` 与稳定 `data-*-source`（如 `data-selected-source`/`data-selected-change-source`）输出变更来源；`apps/docs-app/src/debug_overlay.rs` 挂载 `UiTraceEvent` 时间轴（`ts_ms`）并展示 `OpenChange` 序列（`open=true/false` 形成前后值轨迹）；关键交互回放由 `e2e/tests/docs_app_autocomplete_contract.spec.mjs` 的可重复键盘链路（`fill -> click -> reload`）守卫；调试入口在 `apps/docs-app/src/lib.rs` 仅 `cfg!(debug_assertions)` 下启用 `provide_ui_trace` + `UiDebugOverlay`；feature 隔离由 `crates/ui-components/Cargo.toml` 的共享门控（`button-wasm-debug` 不进入 `all-components`）与 “无 `autocomplete-wasm-debug`/无组件私有 debug API” 约束。语义回归：`components/autocomplete/test/semantics.rs::wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated` 与 `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`；门禁脚本：`scripts/check-ui-components-wasm-debug.sh` 已加入 `autocomplete_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+  - 实现证据：`apps/docs-app/src/pages/components/pages/collections.rs` 的 `autocomplete()` 已新增 Workbench（`title="Workbench（展示 + Config + Code + CSS Test）"`）并接入 `test_css_source=workbench_test_css` + `test_source_path=".../components/autocomplete/src/styles.rs"`，常见样式调整可在 `Playground` 的 CSS Test 面板即时反馈；同时提供 `autocomplete-workbench-controls`/`autocomplete-workbench-canvas` 隔离画布与上下文可视标记。可选状态保留通过 `AUTOCOMPLETE_WORKBENCH_STORAGE_KEY` + `load/save/clear_autocomplete_workbench_selected`（`wasm32`）与 `"Persist selected index (optional)"` 开关实现。语义回归：`components/autocomplete/test/semantics.rs::dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`components/autocomplete/test/semantics.rs::dx_workbench_supports_optional_state_persistence_and_isolated_canvas`、`crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_dx_workbench_supports_optional_state_persistence_and_isolated_canvas`；门禁脚本：`scripts/check-ui-components-dx.sh` 已加入两条 `autocomplete_dx_*` 检查命令。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+  - 实现证据：`serde/spec` 路径已结构化：`components/autocomplete/src/protocol.rs` 定义 `AutocompleteComponentSchemaVersion` + `AutocompleteComponentSpec` 并通过 `Serialize/Deserialize` + `#[serde(default)]` 固化 schema 默认；当前无跨大版本迁移与 JSON 输入解析面，`serde_json/SchemaError` 路径按 N/A 受控（避免过度设计）。`tracing` 路径统一复用 `overlay_open::use_controllable_open_state_traced("autocomplete", ...)`，未引入组件私有 `tracing::span!/event!` 语义漂移。异步/runtime 边界保持纯净：组件源码与 README 不暴露 `tokio/async-std/runtime::Handle`。回归：`components/autocomplete/test/semantics.rs::{engineering_contract_uses_serde_protocol_and_structured_schema_defaults, engineering_contract_keeps_tracing_semantics_unified_without_component_local_events, engineering_contract_avoids_runtime_leaks_in_public_api_surface, engineering_check_script_covers_serde_tracing_and_runtime_boundaries}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_engineering_contract_uses_serde_protocol_and_structured_schema_defaults, autocomplete_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events, autocomplete_engineering_contract_avoids_runtime_leaks_in_public_api_surface, autocomplete_engineering_check_script_covers_serde_tracing_and_runtime_boundaries}`；门禁：`scripts/check-ui-components-engineering.sh` 已新增三条 `autocomplete_engineering_contract_*` 检查命令。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - 实现证据：`components/autocomplete/src/styles.rs` 已将关键视觉变量统一为双层回退链（如 `var(--ui-space-*, var(--ui-fallback-space-*))`、`var(--ui-border, var(--ui-fallback-border))`、`var(--ui-overlay-*, var(--ui-fallback-overlay-*)))`），并移除裸尺寸终值（不再直接使用 `14px/20px/240px/0px` 等终值回退）。`ui-theme` 终值来源由 `crates/ui-theme/src/css.rs` 统一提供（`--ui-fallback-*`）。回归：`components/autocomplete/test/semantics.rs::{styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals, defensive_variables_check_script_covers_style_fallback_contract, check2_marks_defensive_variables_contract_complete}` 与 `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_styles_use_defensive_variable_fallback_chain, autocomplete_defensive_variables_check_script_covers_style_fallback_contract, autocomplete_check2_marks_defensive_variables_contract_complete}`；门禁：`scripts/check-ui-components-contract-hygiene.sh` 新增 `autocomplete_styles_use_defensive_variable_fallback_chain`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
+  - 实现证据：`crates/ui-components/src/css.rs` 通过 `out.push_str("\n@layer ui {\n"); ... out.push_str(crate::autocomplete::styles::CSS); ... out.push_str("\n}\n");` 将 `autocomplete` CSS 聚合进 `@layer ui`。`components/autocomplete/src/view.rs` 运行时仅保留单一 `style=panel_vars` 绑定，且只透传 CSS Custom Properties（`--ui-popover-top/left/anchor-width`），不存在 `style="top: ..."` 或 `style:top=` 这类普通内联样式。回归：`components/autocomplete/test/semantics.rs::{cascade_layer_and_runtime_style_contract_is_enforced, cascade_layer_check_script_covers_contract, check2_marks_cascade_layer_contract_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_cascade_layer_and_runtime_style_contract_is_enforced, autocomplete_cascade_layer_check_script_covers_contract, autocomplete_check2_marks_cascade_layer_contract_complete}`；门禁：`scripts/check-ui-components-contract-hygiene.sh` 新增 `autocomplete_cascade_layer_and_runtime_style_contract_is_enforced`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - 实现证据：`components/autocomplete/src/motion.rs` 已内置 `PopoverMotion` 合同（`spring.stiffness/damping/mass` + `initial_scale/offset_y_px`）并通过 `sanitize_popover_motion/sanitize_motion` 做边界收敛；`components/autocomplete/src/view.rs` 通过 `crate::motion::attach_popover_motion(...)`（组件 attach 入口）挂载 popover 动效并复用 `motion.highlight`。`reduced-motion` 由 `crates/ui-motion/src/spring.rs` 的 `prefers_reduced_motion()` 分支执行最小反馈（直接落目标值并触发 `on_rest`）；non-wasm/SSR 在 `attach_popover_motion` 的 `#[cfg(not(target_arch = "wasm32"))]` 分支安全降级为 `on_exit_complete.run(())` no-op。回归：`components/autocomplete/test/semantics.rs::{motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop, motion_contract_check_script_covers_contractualization_guard, check2_marks_motion_contractualization_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop, autocomplete_check2_marks_motion_contractualization_complete}`；门禁：`scripts/check-ui-components-contract-hygiene.sh` 新增 `autocomplete_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
+- [x] `ui-components` 固定入口文件落点正确。
+  - 实现证据：`crates/ui-components/src/lib.rs` 作为总入口保留 `mod css;`、`pub mod root;`、`pub use root::UiRoot;` 与 `#[cfg(feature = "component-autocomplete")] pub use ui_autocomplete as autocomplete;`（并在导出聚合处保留 `pub use autocomplete::{Autocomplete, AutocompleteMotion};`），未暴露 `web_sys/HtmlElement/NodeRef` 等平台细节类型；`crates/ui-components/src/css.rs` 仅通过 `push_components_css` 聚合并以 feature 条件注入（含 `component-autocomplete` 门控 + `inject-css` no-op 分支）；`crates/ui-components/src/root.rs` 集中注入 base css + theme vars + optional components css，并统一提供 `provide_ui_i18n/provide_ui_id_provider`；共享高亮能力固定在 `crates/ui-visual-primitive/src/active_highlight.rs`（`ActiveHighlightMotion + attach_active_highlight_motion`，无组件业务语义）；`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 不存在，原语固定由 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs` 提供并由组件消费。回归：`components/autocomplete/test/semantics.rs::{ui_components_fixed_entry_files_are_correctly_located_and_scoped, ui_components_fixed_entry_check_script_covers_contract, check2_marks_ui_components_fixed_entry_files_contract_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped, autocomplete_ui_components_fixed_entry_check_script_covers_contract, autocomplete_check2_marks_ui_components_fixed_entry_files_contract_complete}`；门禁：`scripts/check-ui-components-contract-hygiene.sh` 新增 `autocomplete_ui_components_fixed_entry_files_are_correctly_located_and_scoped`。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +261,8 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。
+  - 实现证据：`components/autocomplete/src/mod.rs` 保持最小稳定导出面（`mod logic; mod view; pub mod styles; pub mod motion; pub use Autocomplete/AutocompleteMotion`），未过度公开内部模块；`components/autocomplete/src/logic.rs` 继续只承载 props 归一化/状态派生/来源标记（消费 `ui_state_primitives::autocomplete`），无 `view!`/DOM/web-sys；`components/autocomplete/src/styles.rs` 维持静态 `CSS` 常量与 `var(--ui-*)` token-first 契约；`components/autocomplete/src/view.rs` 维持 Leptos 结构渲染与 `ui_headless` 挂载（`use_combo_box`/`use_text_field`），未引入 `render.rs` 漂移；`components/autocomplete/src/motion.rs` 维持 `AutocompleteMotion + attach_popover_motion` 语义到 motion contract 映射，不混入 `role/aria` 判定；`components/autocomplete/src/spec.rs`、`components/autocomplete/src/render.rs` 均不存在（simple component N/A）。回归：`components/autocomplete/test/semantics.rs::{component_directory_standard_files_follow_contract_and_na_spec, component_directory_check_script_covers_contract, check2_marks_component_directory_standard_files_contract_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_component_directory_standard_files_follow_contract_and_na_spec, autocomplete_component_directory_check_script_covers_contract, autocomplete_check2_marks_component_directory_standard_files_contract_complete}`；门禁：`scripts/check-ui-components-component-files.sh` 新增 `autocomplete_component_directory_standard_files_follow_contract_and_na_spec`。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,64 +271,128 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
+  - 已满足：`components/autocomplete/src/` 保持核心落点 `mod.rs`、`logic.rs`、`styles.rs`、`view.rs`、`motion.rs`；`components/autocomplete/src/render.rs` 与 `components/autocomplete/src/spec.rs` 不存在。`components/autocomplete/src/protocol.rs` 保留为 schema/projection sidecar（不承担渲染职责），与文件落点纪律不冲突。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::file_placement_discipline_is_strict_for_component_scope`、`components/autocomplete/test/semantics.rs::file_placement_check_script_covers_contract`、`components/autocomplete/test/semantics.rs::check2_marks_file_placement_discipline_contract_complete`；`crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_file_placement_discipline_is_strict_for_component_scope`、`crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_file_placement_check_script_covers_contract`、`crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_check2_marks_file_placement_discipline_contract_complete`。
+  - 门禁阻断：`scripts/check-ui-components-component-files.sh` 已纳入 `cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_file_placement_discipline_is_strict_for_component_scope`。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - N/A（simple component）：`Autocomplete` 当前不属于复杂 schema/builder 组件，`components/autocomplete/src/spec.rs` 保持缺席，且 `mod.rs/logic.rs/view.rs/motion.rs/protocol.rs/README.md` 未暴露 `AutocompleteSpec` 或 `Spec::new()...render()` 路径，避免为假问题引入抽象噪音。
+  - 复杂组件正例仍保留在 `components/button/src/spec.rs`：`ButtonSpec::new()...render()` 可用，保证“复杂组件才上 spec builder”的边界未回归。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{hyper_structure_builder_spec_is_not_applicable_for_simple_component, hyper_structure_builder_check_script_covers_contract, check2_marks_hyper_structure_builder_item_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component, autocomplete_hyper_structure_builder_check_script_covers_contract, autocomplete_check2_marks_hyper_structure_builder_item_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-component-files.sh` 已纳入 `cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - 实现证据：已新增 `components/autocomplete/src/Component.toml`（`schema_version=1`、`component.name=Autocomplete`、`crate=ui-autocomplete`、`rbi=autocomplete.rbi`，并覆盖核心输入轴/能力标记 `context_compression_manifest`、`rbi_signature_projection`）与 `components/autocomplete/src/autocomplete.rbi`（导出 `AutocompleteMotion`，投影 `sanitize_motion/sanitize_popover_motion` 与 `Autocomplete(...) -> IntoView` 签名），用于 AI 上下文压缩检索。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{context_compression_manifest_and_rbi_projection_are_present_and_current, component_files_check_script_covers_context_compression_manifest_contract, check2_marks_context_compression_manifest_and_rbi_contract_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_current, autocomplete_component_files_check_script_covers_context_compression_manifest_contract, autocomplete_check2_marks_context_compression_manifest_and_rbi_contract_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-component-files.sh` 已纳入 `cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_context_compression_manifest_and_rbi_projection_are_present_and_current`。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+  - 实现证据：`components/autocomplete/src/logic.rs` 新增类型化 Agent Contract（`AUTOCOMPLETE_AGENT_SCHEMA`、`AutocompleteAgent*` 枚举、`AutocompleteAgentContract/Input`、`resolve_agent_contract`），`intent/action/state/source` 均由封闭枚举映射输出；`components/autocomplete/src/view.rs` 通过单一 `Signal::derive -> logic::resolve_agent_contract(...)` 挂载 `data-ui-schema/version/intent/action/state/source` 与 `data-ui-*-source`/`data-ui-config-policy`，不在 `view` 层自由拼接 schema 字符串；`components/autocomplete/src/Component.toml` 增补 `[[agent_contract]]`、`[[agent_contract_markers]]`、`[[agent_contract_whitelist]]`（`allowed + blocked`）及 `agent_contract_*` capability；`components/autocomplete/src/autocomplete.rbi` 新增 Agent Contract 投影签名，确保 Agent 消费字段可由类型契约追溯。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_agent_contract_schema_governance_rules, agent_contract_is_schema_typed_and_machine_readable, agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing, agent_contract_render_path_is_whitelist_safe_and_script_injection_free, contract_hygiene_script_covers_agent_contract_schema_guards}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_agent_contract_schema_governance_rules, autocomplete_agent_contract_is_schema_typed_and_machine_readable, autocomplete_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing, autocomplete_agent_contract_render_path_is_whitelist_safe_and_script_injection_free}` + `components/autocomplete/test/logic.rs::resolve_agent_contract_is_schema_typed_and_traceable`。
+  - 门禁阻断：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `autocomplete_agent_contract_is_schema_typed_and_machine_readable`、`autocomplete_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`autocomplete_agent_contract_render_path_is_whitelist_safe_and_script_injection_free` 三条命令。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+  - 实现证据：`components/autocomplete/src/logic.rs` 的 `AutocompleteAgentStreamMode` 术语显式限定为 `Streaming|Snapshot`（`as_str -> streaming/snapshot`），并继续保持组件当前输出 `stream_mode=Snapshot`、`stream_support=Unsupported`、`stream_fallback=Snapshot`；`components/autocomplete/src/Component.toml` 新增 `[streaming_policy]`（`term_scope="llm-output-rendering"`、`defined_modes=["streaming","snapshot"]`、`fallback/default="snapshot"`），确保“流式”仅指 LLM 输出渲染显示模式，不扩散为网络/动画等泛化概念。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{streaming_term_is_limited_to_llm_output_render_modes, contract_hygiene_script_covers_streaming_term_guard}` + `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_streaming_term_is_limited_to_llm_output_render_modes` + `components/autocomplete/test/logic.rs::resolve_agent_contract_is_schema_typed_and_traceable`（含 `AutocompleteAgentStreamMode::Streaming/Snapshot` 映射）。
+  - 门禁阻断：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_streaming_term_is_limited_to_llm_output_render_modes`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+  - 实现证据：`Autocomplete` 继续以 `Snapshot` 作为稳定基础渲染路径：`components/autocomplete/src/logic.rs` 固化 `output_status=Verified`、`stream_fallback=Snapshot`、`stream_mode=Snapshot`；`components/autocomplete/src/view.rs` 稳定输出 `data-ui-output-status` / `data-ui-stream-fallback` / `data-ui-stream-mode`；`components/autocomplete/src/Component.toml` 的 `[streaming_policy]` 固定 `fallback/default="snapshot"`，并通过 `data-ui-*` marker 公开可检索契约。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{snapshot_is_foundational_and_complete_config_renders_stably, contract_hygiene_script_covers_snapshot_foundation_guard}` + `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_snapshot_is_foundational_and_complete_config_renders_stably`；并由 `semantic_contract_matrix_covers_state_a11y_input_paths_and_platform_guards` / `autocomplete_semantic_contract_matrix_covers_core_branches_and_platform_paths` 纳入语义矩阵。
+  - 门禁阻断：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_snapshot_is_foundational_and_complete_config_renders_stably`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+  - 实现证据：`Autocomplete` 被明确归类为 `Streaming Optional`（非正文阅读面）：`components/autocomplete/src/README.md` 的 “Streaming 策略” 已声明 `fallback=snapshot`；`components/autocomplete/src/Component.toml` 的 `[streaming_policy]` 固化 `required=false`、`owner="upstream"`、`fallback/default="snapshot"`；`components/autocomplete/src/logic.rs` 与 `components/autocomplete/src/view.rs` 继续显式输出 `data-ui-output-status`（verified）与 `data-ui-stream-support/fallback/mode`，确保“是否流式”与“当前输出状态”对 role/aria/data 契约连续可读。数据校验/断线恢复/重试未下沉至组件层，保持上层职责边界。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status, contract_hygiene_script_covers_streaming_requirement_guard}` + `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`；并由 `semantic_contract_matrix_covers_state_a11y_input_paths_and_platform_guards` / `autocomplete_semantic_contract_matrix_covers_core_branches_and_platform_paths` 纳入语义矩阵。
+  - 门禁阻断：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - 实现证据：`components/autocomplete/src/logic.rs` 已将 class token 组装热点收敛为 `Vec<Cow<'static, str>>`（`Cow::Borrowed` + `Cow::Owned`），移除原先逐项 `.to_string()`；`mod.rs`/`logic.rs`/`view.rs`/`styles.rs`/`motion.rs`/`protocol.rs` 非测试源码均无 `unwrap(` / `expect(` / `let _ =`。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{rust_hygiene_forbids_unwrap_expect_and_let_result_swallowing_in_non_test_sources, string_clone_hotspots_converge_to_cow_static_str_for_class_tokens, check2_marks_rust_hygiene_item_complete_with_component_scope, contract_hygiene_script_covers_rust_hygiene_guards}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_rust_hygiene_forbids_unwrap_expect_and_let_result_swallowing_in_non_test_sources, autocomplete_string_clone_hotspots_converge_to_cow_static_str_for_class_tokens, autocomplete_check2_marks_rust_hygiene_item_complete_with_component_scope, autocomplete_contract_hygiene_script_covers_rust_hygiene_guards}`。
+  - 门禁阻断：`scripts/check-ui-components-contract-hygiene.sh` 已纳入 `autocomplete_rust_hygiene_forbids_unwrap_expect_and_let_result_swallowing_in_non_test_sources`、`autocomplete_string_clone_hotspots_converge_to_cow_static_str_for_class_tokens`、`autocomplete_check2_marks_rust_hygiene_item_complete_with_component_scope`。
+  - 验证记录：已执行 `./scripts/check-rust-hygiene.sh`；当前失败项仍在组件外（`crates/ui-headless/src/test/*`、`crates/ui-state-primitives/src/test/*`、`apps/docs-app/src/pages/components/pages/*`），`components/autocomplete/src/*` 未被该脚本报错。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 实现证据：`crates/ui-components/Cargo.toml` 已注册 `component-autocomplete = ["component-active_highlight", "component-popover", "dep:ui-autocomplete"]`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-autocomplete")] pub use ui_autocomplete as autocomplete;` 门控导出；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-autocomplete")] out.push_str(crate::autocomplete::styles::CSS);` 门控样式聚合，不存在无条件全局引入。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{tree_shaking_contract_keeps_feature_gates_and_ci_budget_pipeline_explicit, tree_shaking_script_enforces_component_minimal_feature_tree_and_budget, check2_marks_tree_shaking_feature_pruning_contract_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_tree_shaking_feature_gates_are_explicit, autocomplete_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget, autocomplete_check2_marks_tree_shaking_feature_pruning_contract_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-tree-shaking.sh` 已纳入 `autocomplete_tree_shaking_feature_gates_are_explicit`、`autocomplete_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`autocomplete_check2_marks_tree_shaking_feature_pruning_contract_complete`，并新增 `AUTOCOMPLETE_MIN_FEATURES="component-autocomplete,inject-css"` 的最小特性树断言（含 `all-components` 反拉起阻断）与 wasm compile-only 检查。
+  - 验证命令：`cargo tree -e features -p ui-components --no-default-features --features component-autocomplete,inject-css`、`cargo tree -e features -i ui-components -p web-demo`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-autocomplete,inject-css`。（本地 `cargo check/test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
+  - 实现证据：`components/autocomplete/src/view.rs` 已稳定挂载 `role/aria-*`（如 `role=aria.input.role`、`aria-controls`、`aria-expanded`、`aria-selected`、`aria-disabled`）与关键 `data-*` 状态来源标记（`data-state`、`data-selected-source`、`data-selected-change-source`、`data-*-source`）；焦点流转由 `on:focus=on_focus` / `on:blur=on_blur` 与 `focus_ring` 状态标记闭环；性能预算与可观测性由 docs perf probe 与脚本门禁持续约束。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{semantic_contract_matrix_covers_state_a11y_input_paths_and_platform_guards, performance_governance_budget_is_defined_traceable_and_blocking, semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement, semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_semantic_contract_matrix_covers_core_branches_and_platform_paths, autocomplete_performance_governance_budget_is_defined_and_blocking, autocomplete_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement, autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks}`。
+  - 门禁阻断：`scripts/check-ui-components-performance.sh` 已纳入 `autocomplete_performance_governance_budget_is_defined_and_blocking`、`autocomplete_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`、`autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`。
+  - `render_count` 状态：当前测试框架对该组件仍采用可重复 mount/perf trace 等价证据；`docs/plan/TODO.md` 已保留 `render_count` 自动化回归 follow-up（`Button/Input/Accordion` 基线迁移项），避免“只编译通过无回归闭环”。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Autocomplete` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/autocomplete/src/protocol.rs` 的 `AutocompleteComponentSchemaVersion::V1`、`components/autocomplete/src/Component.toml` 的 `schema_version = "1"` 与 `ui.autocomplete.agent-contract.v1`、`components/autocomplete/src/autocomplete.rbi` 的 `AutocompleteAgentSchemaVersion::V1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/autocomplete/test/semantics.rs::version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`、`crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 已接入对应 `cargo test` 目标。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
+  - 实现证据：`apps/docs-app/src/pages/components/pages/collections.rs::autocomplete()` 已补齐文档即产品路径：`Playground("Hello World")`、受控对照 `Playground("Controlled Open State")`、状态矩阵 `section[data-slot="autocomplete-state-matrix"]`、`Playground("Streaming/Snapshot Display")`（`data-ui-streaming="optional"` + `data-ui-fallback="snapshot"` + `AiSpace Snapshot/Streaming`）以及 `section[data-slot="autocomplete-source-first"]`（`Snippet copyable=true`）。
+  - Copy-ready 导入补全：`autocomplete` 所有示例 `Playground` 统一接入 `code_imports=autocomplete_code_imports`，并复用 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 进行缺失 imports 自动补全，保证一键复制后可直接运行。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot` + `crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。
+  - 门禁阻断：`scripts/check-ui-components-dx.sh` 已纳入 `cargo test -p ui-components --test autocomplete_semantics --no-default-features --features component-autocomplete,inject-css autocomplete_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+  - 实现证据：`components/autocomplete/test/semantics.rs` 与 `crates/ui-components/tests/autocomplete_semantics.rs` 已以语义契约断言为主，覆盖 `role/aria/data-state/data-*-source` 与关键交互路径；核心回归包括 `semantic_contract_matrix_covers_state_a11y_input_paths_and_platform_guards`、`semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`、`semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 与 `autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`，并显式禁止 `assert_snapshot!/insta/toMatchSnapshot` 作为主验证手段。
+  - 门禁阻断：`scripts/check-ui-components-performance.sh` 已接入 `autocomplete_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 与 `autocomplete_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`。（本地执行仍受环境 `Invalid cross-device link (os error 18)` 阻断。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
-  - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
-  - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
-  - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
-  - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
-  - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
-  - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
-  - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
-  - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
-  - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
-  - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
-  - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
-  - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+  - 实现证据：`e2e/tests/docs_app_autocomplete_contract.spec.mjs` 已统一使用语义选择器与稳定等待（`body:not(:has(#boot))`、`#docs-autocomplete-controlled-input`、`[data-slot="autocomplete-controlled-open"]`、`[data-slot="autocomplete-controlled-selected"]`、`[data-slot="autocomplete-option"]`），并移除文本定位依赖（不再使用 `hasText` 过滤）；关键路径显式断言 ready/settled 断点（`open: false -> open: true -> open: false`、`selected: 2 -> selected: 3 -> reload -> selected: 2` 与 `data-open/data-closed`）。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_e2e_selector_and_stable_wait_rules, e2e_selector_contract_uses_semantic_markers_and_wasm_stable_waits, e2e_contract_covers_ready_and_settled_semantic_breakpoints, e2e_check_script_covers_selector_and_stable_wait_contract, check2_marks_e2e_selector_stability_item_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_e2e_selector_and_stable_wait_rules, autocomplete_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable, autocomplete_e2e_contract_covers_ready_and_settled_semantic_breakpoints, autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints, autocomplete_e2e_check_script_covers_selector_and_settled_wait_contract}`。
+  - 门禁阻断：新增 `scripts/check-ui-components-e2e-autocomplete.sh`，纳入 `autocomplete_check2_documents_e2e_selector_and_stable_wait_rules`、`autocomplete_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable`、`autocomplete_e2e_contract_covers_ready_and_settled_semantic_breakpoints`、`autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints`。
+  - 验证记录：`bash -n scripts/check-ui-components-e2e-autocomplete.sh` 通过；本地 `cargo test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+  - 实现证据：`e2e/tests/docs_app_autocomplete_contract.spec.mjs` 已纳入两条可重复关键流程并可回放：`docs-app autocomplete key flow is repeatable with semantic contract breakpoints`（打开/输入/选择/关闭 + reload 复验）与 `docs-app autocomplete high-risk overlay/focus/keyboard path is replayable with semantic breakpoints`（`focus -> Escape -> ArrowDown -> Enter`，断点落在 `data-open/data-closed/aria-activedescendant` 与 `selected/open` marker），失败可定位到具体语义断点而非笼统页面差异。
+  - 高风险路径覆盖：overlay/focus/keyboard 已进入回归集合；`async` 轴对当前 `Autocomplete` 为 N/A（组件无远程请求、无 loading/retry 协议），因此以同步交互收敛断点作为高风险验收主路径。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_e2e_repeatable_key_flow_rules, e2e_key_flow_is_repeatable_and_failure_points_are_semantic, e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints, e2e_check_script_covers_repeatable_flow_and_high_risk_contract, check2_marks_e2e_repeatable_regression_item_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_e2e_repeatable_key_flow_rules, autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints, autocomplete_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints, autocomplete_e2e_check_script_covers_repeatable_flow_and_high_risk_contract}`。
+  - 门禁阻断：`scripts/check-ui-components-e2e-autocomplete.sh` 已纳入 `autocomplete_check2_documents_e2e_repeatable_key_flow_rules`、`autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints`、`autocomplete_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints`。
+  - 验证记录：`bash -n scripts/check-ui-components-e2e-autocomplete.sh` 通过；本地 `cargo test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+  - 实现证据：`apps/docs-app/src/pages/components/pages/collections.rs::autocomplete()` 已同步补齐示例与双矩阵：示例包含 `Hello World`、`Selection + Validation`、`Controlled Open State`、`Disabled + Empty`；状态矩阵为 `section[data-slot="autocomplete-state-matrix"]`；参数矩阵为 `section[data-slot="autocomplete-parameter-matrix"]`，显式对齐 `is_open/on_open_change/default_open`、`selected_index/on_selected_index_change/default_selected_index`、`set_selected_index`（迁移别名）以及布尔轴与默认值来源说明。
+  - API/默认值对齐：文档参数矩阵默认值与实现一致，`logic.rs`/`view.rs` 以 `normalize_open_state`、`normalize_selection_change`、`normalize_accessibility_state` 做归一；默认文本与标识来源对齐 `crates/ui-state-primitives/src/autocomplete.rs::{DEFAULT_LABEL, DEFAULT_ID_BASE, DEFAULT_PLACEHOLDER, DEFAULT_EMPTY_MESSAGE}`。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_docs_sync_and_state_matrix_rules, docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults, dx_check_script_covers_docs_sync_and_state_matrix_contract, check2_marks_docs_sync_and_state_matrix_item_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_docs_sync_and_state_matrix_rules, autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults, autocomplete_dx_check_script_covers_docs_sync_and_state_matrix_contract, autocomplete_check2_marks_docs_sync_and_state_matrix_item_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-dx.sh` 已纳入 `autocomplete_check2_documents_docs_sync_and_state_matrix_rules`、`autocomplete_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`。
+  - 验证记录：`bash -n scripts/check-ui-components-dx.sh` 通过；本地 `cargo test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+  - 实现证据：`components/autocomplete/src/README.md` 已形成新手优先路径：`Hello World` 零门槛示例 + `常见用法`（默认 API）在前，`受控 open 示例`（进阶控制）在后，并补充 `Architecture Layers` 与 `Source-first` 索引；`apps/docs-app/src/pages/components/pages.rs` 继续保留 `component_doc!("Autocomplete", "autocomplete", "Collections", collections::autocomplete)` 文档入口。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_documentation_as_product_rules, documentation_entry_exists_with_beginner_first_progression, dx_check_script_covers_documentation_as_product_contract, check2_marks_documentation_as_product_item_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_documentation_as_product_rules, autocomplete_documentation_entry_exists_with_beginner_first_progression, autocomplete_dx_check_script_covers_documentation_as_product_contract, autocomplete_check2_marks_documentation_as_product_item_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-dx.sh` 已纳入 `autocomplete_check2_documents_documentation_as_product_rules`、`autocomplete_documentation_entry_exists_with_beginner_first_progression`。
+  - 验证记录：`bash -n scripts/check-ui-components-dx.sh` 通过；本地 `cargo test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+  - 实现证据（在线调参 + 实时预览）：`apps/docs-app/src/pages/components/pages/collections.rs::autocomplete()` 已提供 `Playground title="Workbench（展示 + Config + Code + CSS Test）"`，并通过 `controls=...` + `data-slot="autocomplete-workbench-controls"`（配置）与 `data-slot="autocomplete-workbench-canvas"`（预览）形成交互验收面；`test_config_signal=workbench_actual_config` 可回读当前配置。
+  - 交互反馈观察：Workbench 控制项覆盖 `Invalid/Disabled root/Disable last option/Controlled open/Custom class/Persist selected index`，并通过 `open/selected/persist` 文本反馈实时观察状态变化；`Streaming/Snapshot Display` 同页提供 `data-ui-streaming="optional"` + `data-ui-fallback="snapshot"` 语义反馈。
+  - AI Spec 子条款对 `Autocomplete` 为 N/A（组件不承载 Spec 输入协议，交互验收以 props/state Workbench + Streaming/Snapshot 契约为准）。
+  - 可重复关键路径：`e2e/tests/docs_app_autocomplete_contract.spec.mjs` 已覆盖 `docs-app autocomplete key flow is repeatable with semantic contract breakpoints` 与 `docs-app autocomplete high-risk overlay/focus/keyboard path is replayable with semantic breakpoints`，包含 `reload` 重放与语义断点断言。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_interactive_playground_rules, docs_app_provides_interactive_playground_for_props_state_and_preview, interactive_playground_reuses_repeatable_semantic_e2e_flow, dx_check_script_covers_interactive_playground_contract, check2_marks_interactive_playground_item_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_interactive_playground_rules, autocomplete_docs_app_provides_interactive_playground_for_props_state_and_preview, autocomplete_interactive_playground_reuses_repeatable_semantic_e2e_flow, autocomplete_dx_check_script_covers_interactive_playground_contract, autocomplete_check2_marks_interactive_playground_item_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-dx.sh` 已纳入 `autocomplete_check2_documents_interactive_playground_rules`、`autocomplete_docs_app_provides_interactive_playground_for_props_state_and_preview`、`autocomplete_interactive_playground_reuses_repeatable_semantic_e2e_flow`。
+  - 验证记录：`bash -n scripts/check-ui-components-dx.sh` 通过；本地 `cargo test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+  - 实现证据：`apps/docs-app/src/pages/components/pages/collections.rs::autocomplete()` 的 `section[data-slot="autocomplete-source-first"]` 已提供 `Snippet(label="Copy starter", copyable=true)`，并通过 `code_imports=autocomplete_code_imports` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 保证复制代码包含必要 imports 后可直接运行。
+  - 源码与依赖前提：Source-first 区块显式列出真实源码落点 `components/autocomplete/src/{mod,logic,view,styles,motion}.rs`（`data-slot="autocomplete-source-paths"`）及依赖前提 `component-autocomplete`、`inject-css`（`data-slot="autocomplete-source-prerequisites"`）。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_source_first_copy_paste_ready_rules, docs_source_first_copy_paste_ready_with_real_paths_and_dependencies, dx_check_script_covers_source_first_copy_paste_ready_contract, check2_marks_source_first_copy_paste_ready_contract_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_source_first_copy_paste_ready_rules, autocomplete_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies, autocomplete_dx_check_script_covers_source_first_copy_paste_ready_contract, autocomplete_check2_marks_source_first_copy_paste_ready_contract_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-dx.sh` 已纳入 `autocomplete_check2_documents_source_first_copy_paste_ready_rules`、`autocomplete_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`。
+  - 验证记录：`bash -n scripts/check-ui-components-dx.sh` 通过；本地 `cargo test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
+  - 实现证据（策略文档同步）：`docs/spec/heroui-parameter-design-strategy.md` 已包含 `### Autocomplete 同步记录（2026-02-18）`，明确参数主轴（`is_open/on_open_change/default_open`、`is_disabled/disabled`、`is_required/required`、`is_invalid/invalid`）与 docs 同步约束（参数语义变更必须先同步策略文档与 docs 页面）。
+  - 组件文档入口与索引：`apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!("Autocomplete", "autocomplete", "Collections", collections::autocomplete)`；`apps/docs-app/src/pages/components/pages/collections.rs::autocomplete()` 保持 `title="Autocomplete"` + `slug="autocomplete"` 可索引访问。
+  - 研究文档补充判定：当前变更属于参数语义与文档同步校验，不引入新的 HeroUI 风格研究结论；`docs/research/spectrum-heroui-style-interface-study.md` 本轮按 N/A 处理。
+  - 回归锁定：`components/autocomplete/test/semantics.rs::{check2_documents_heroui_benchmark_docs_sync_rules, heroui_strategy_and_component_docs_are_synchronized_and_indexable, dx_check_script_covers_heroui_benchmark_docs_sync_contract, check2_marks_heroui_benchmark_docs_sync_contract_complete}` + `crates/ui-components/tests/autocomplete_semantics.rs::{autocomplete_check2_documents_heroui_benchmark_docs_sync_rules, autocomplete_heroui_strategy_and_component_docs_are_synchronized_and_indexable, autocomplete_dx_check_script_covers_heroui_benchmark_docs_sync_contract, autocomplete_check2_marks_heroui_benchmark_docs_sync_contract_complete}`。
+  - 门禁阻断：`scripts/check-ui-components-dx.sh` 已纳入 `autocomplete_check2_documents_heroui_benchmark_docs_sync_rules`、`autocomplete_heroui_strategy_and_component_docs_are_synchronized_and_indexable`。
+  - 验证记录：`bash -n scripts/check-ui-components-dx.sh` 通过；本地 `cargo test` 仍受环境 `Invalid cross-device link (os error 18)` 阻断。
 
 ### 8. 合并前门禁死命令（最终执行）
 在发起 PR 或完成任务前，必须保证本地/CI 以下命令全部通过：

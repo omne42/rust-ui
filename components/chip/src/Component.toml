@@ -1,0 +1,79 @@
+schema_version = "1"
+
+[component]
+name = "Chip"
+crate = "ui-chip"
+
+[[inputs]]
+name = "variant"
+ty = "ChipVariant"
+default = "ChipVariant::Default"
+controlled = false
+
+[[inputs]]
+name = "size"
+ty = "ChipSize"
+default = "ChipSize::Md"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "on_dismiss"
+ty = "Option<OnPress>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ChipMotion"
+default = "ChipMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "dismiss_aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-*"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"

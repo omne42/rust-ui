@@ -37,3 +37,31 @@ fn sanitize_config_keeps_valid_values() {
     assert_eq!(sanitized.mass, 1.1);
     assert_eq!(sanitized.precision, 0.002);
 }
+
+#[test]
+fn spring_animator_triplet_updates_all_channels() {
+    use std::cell::Cell;
+    use std::rc::Rc;
+
+    let first = Rc::new(Cell::new(0.0));
+    let second = Rc::new(Cell::new(0.0));
+    let third = Rc::new(Cell::new(0.0));
+
+    let first_out = Rc::clone(&first);
+    let second_out = Rc::clone(&second);
+    let third_out = Rc::clone(&third);
+
+    let triplet = SpringAnimatorTriplet::new(
+        [0.0, 1.0, 2.0],
+        SpringConfig::default(),
+        move |value| first_out.set(value),
+        move |value| second_out.set(value),
+        move |value| third_out.set(value),
+    );
+
+    triplet.set_targets([10.0, 11.0, 12.0]);
+
+    assert_eq!(first.get(), 10.0);
+    assert_eq!(second.get(), 11.0);
+    assert_eq!(third.get(), 12.0);
+}

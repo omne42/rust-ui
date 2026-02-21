@@ -1,8 +1,8 @@
-use crate::logic::{self, CircularProgressStateInput};
+use crate::logic::{self, CircularProgressLogicInput};
 use leptos::prelude::*;
 use ui_headless::i18n;
 use ui_headless::i18n::CommonStrings;
-use ui_headless::{A11yDirection, locale_attrs};
+use ui_headless::{A11yDirection, CircularProgressOptions, use_circular_progress};
 
 #[component]
 pub fn CircularProgress(
@@ -15,43 +15,62 @@ pub fn CircularProgress(
 ) -> impl IntoView {
     let i18n = i18n::use_ui_i18n();
     let common = i18n.strings::<CommonStrings>();
-    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
-    let class_name = logic::normalize_optional_text(class_name);
-    let (aria_label, has_custom_aria_label) =
-        logic::resolve_aria_label(aria_label, common.loading_aria_label.as_ref());
-
-    let state = logic::resolve_state(CircularProgressStateInput {
+    let logic::CircularProgressLogicOutput {
+        state,
+        aria_label,
+        lang,
+        class,
+        style_vars,
+        agent_contract,
+    } = logic::resolve_component_contract(CircularProgressLogicInput {
+        aria_label,
         size_px,
         thickness_px,
-        has_custom_aria_label,
-        has_custom_class_name: class_name.is_some(),
+        class_name,
+        lang,
+        default_aria_label: common.loading_aria_label.as_ref(),
     });
 
-    let class = logic::compose_class_name(class_name, &state);
+    let semantics = use_circular_progress(CircularProgressOptions {
+        state,
+        aria_label,
+        lang,
+        dir,
+    });
 
     view! {
         <span
             class=class
-            style=state.style_vars
+            style=style_vars
             data-slot="circular-progress"
-            data-state="indeterminate"
-            data-motion="spin"
-            data-size=state.has_custom_size.then_some("custom")
-            data-thickness=state.has_custom_thickness.then_some("custom")
-            data-size-source=state.size_source_attr
-            data-thickness-source=state.thickness_source_attr
-            data-label-source=state.label_source_attr
-            data-custom-size=state.has_custom_size.then_some("true")
-            data-custom-thickness=state.has_custom_thickness.then_some("true")
-            data-custom-aria-label=state.has_custom_aria_label.then_some("true")
-            data-custom-class=state.has_custom_class_name.then_some("true")
-            data-class-source=state.class_source_attr
-            role="progressbar"
-            aria-label=aria_label
-            aria-valuemin="0"
-            aria-valuemax="100"
-            lang=locale.lang.clone()
-            dir=locale.dir
+            data-state=semantics.attrs.data_state
+            data-motion=semantics.attrs.data_motion
+            data-size=semantics.attrs.data_size
+            data-thickness=semantics.attrs.data_thickness
+            data-size-source=semantics.attrs.data_size_source
+            data-thickness-source=semantics.attrs.data_thickness_source
+            data-label-source=semantics.attrs.data_label_source
+            data-custom-size=semantics.attrs.data_custom_size
+            data-custom-thickness=semantics.attrs.data_custom_thickness
+            data-custom-aria-label=semantics.attrs.data_custom_aria_label
+            data-custom-class=semantics.attrs.data_custom_class
+            data-class-source=semantics.attrs.data_class_source
+            data-ui-schema=agent_contract.schema_name
+            data-ui-schema-version=agent_contract.schema_version.as_str()
+            data-ui-intent=agent_contract.intent.as_str()
+            data-ui-action=agent_contract.action.as_str()
+            data-ui-state=agent_contract.state.as_str()
+            data-ui-source=agent_contract.source.as_str()
+            data-ui-size-source=agent_contract.size_source
+            data-ui-thickness-source=agent_contract.thickness_source
+            data-ui-label-source=agent_contract.label_source
+            data-ui-class-source=agent_contract.class_source
+            role=semantics.attrs.role
+            aria-label=semantics.attrs.aria_label
+            aria-valuemin=semantics.attrs.aria_valuemin
+            aria-valuemax=semantics.attrs.aria_valuemax
+            lang=semantics.attrs.lang
+            dir=semantics.attrs.dir
         ></span>
     }
 }

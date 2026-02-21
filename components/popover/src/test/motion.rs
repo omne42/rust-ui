@@ -24,6 +24,24 @@ fn placement_offset_y_follows_vertical_direction_contract() {
 }
 
 #[test]
+fn values_for_state_matches_open_and_closed_contract() {
+    let motion = PopoverMotion::default();
+
+    assert_eq!(
+        values_for_state(true, PopoverPlacement::BottomStart, motion),
+        (1.0, 1.0, 0.0)
+    );
+    assert_eq!(
+        values_for_state(false, PopoverPlacement::BottomStart, motion),
+        (0.0, motion.initial_scale, motion.offset_y_px)
+    );
+    assert_eq!(
+        values_for_state(false, PopoverPlacement::TopStart, motion),
+        (0.0, motion.initial_scale, -motion.offset_y_px)
+    );
+}
+
+#[test]
 fn sanitize_motion_falls_back_for_invalid_values() {
     let motion = sanitize_motion(PopoverMotion {
         spring: ui_motion::spring::SpringConfig {

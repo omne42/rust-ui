@@ -108,18 +108,20 @@ pub fn attach_motion(
                 let element: leptos::web_sys::HtmlElement = container.unchecked_into();
                 let style = element.style();
 
-                drop(
-                    style
-                        .set_property("--ui-auto-height-height", &format!("{initial_height_px}px")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style),
+                    "--ui-auto-height-height",
+                    &format!("{initial_height_px}px")
                 );
 
                 let style_for_apply = style.clone();
                 let animator =
                     ui_motion::spring::SpringAnimator::new(initial_height_px, config, move |v| {
                         let v = v.max(0.0);
-                        drop(
-                            style_for_apply
-                                .set_property("--ui-auto-height-height", &format!("{v}px")),
+                        ui_observability::set_css_property_observed_auto!(
+                            &(style_for_apply),
+                            "--ui-auto-height-height",
+                            &format!("{v}px")
                         );
                     });
 

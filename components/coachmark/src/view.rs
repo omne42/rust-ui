@@ -1,18 +1,162 @@
-use super::{CoachmarkAssetVariant, CoachmarkMotion, CoachmarkVariant, logic};
+use super::{CoachmarkAssetVariant, CoachmarkMotion, CoachmarkVariant, logic, motion};
 use crate::OnPress;
 use crate::asset::{Asset, AssetSize};
 use crate::button::{Button, ButtonVariant};
 use crate::contextual_help::ContextualHelp;
 use leptos::children::ViewFn;
 use leptos::prelude::*;
-use ui_headless::PopoverPlacement;
+use ui_headless::{A11yDirection, PopoverPlacement};
+
+const COACHMARK_BUTTON_SECONDARY_CLASS: &str =
+    "ui-coachmark__button ui-coachmark__button--secondary";
+const COACHMARK_BUTTON_PRIMARY_CLASS: &str = "ui-coachmark__button ui-coachmark__button--primary";
+const COACHMARK_ASSET_CLASS: &str = "ui-coachmark__asset";
+const COACHMARK_UI_STREAM_SUPPORT: &str = "optional";
+const COACHMARK_STREAM_MODE_SNAPSHOT: &str = "snapshot";
+const DATA_TRUE_ATTR: &str = "true";
+
+fn render_footer_fragment(
+    step_label: Option<String>,
+    secondary_cta: Option<String>,
+    primary_cta: Option<String>,
+    on_secondary: OnPress,
+    on_primary: OnPress,
+    actions: Option<ViewFn>,
+) -> AnyView {
+    view! {
+        <div class="ui-coachmark__footer" data-slot="coachmark-footer">
+            {step_label.map(|step_label| {
+                view! {
+                    <span
+                        class="ui-coachmark__steps ui-muted"
+                        data-slot="coachmark-steps"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        {step_label}
+                    </span>
+                }
+            })}
+
+            <div class="ui-coachmark__actions" data-slot="coachmark-actions">
+                {secondary_cta.map(|secondary_cta| {
+                    view! {
+                        <Button
+                            variant=ButtonVariant::Secondary
+                            on_press=on_secondary
+                            class_name=COACHMARK_BUTTON_SECONDARY_CLASS.to_string()
+                        >
+                            {secondary_cta}
+                        </Button>
+                    }
+                })}
+
+                {primary_cta.map(|primary_cta| {
+                    view! {
+                        <Button
+                            variant=ButtonVariant::Accent
+                            on_press=on_primary
+                            class_name=COACHMARK_BUTTON_PRIMARY_CLASS.to_string()
+                        >
+                            {primary_cta}
+                        </Button>
+                    }
+                })}
+
+                {actions.map(|actions| {
+                    view! {
+                        <span class="ui-coachmark__actions-extra" data-slot="coachmark-actions-extra">
+                            {actions.run()}
+                        </span>
+                    }
+                })}
+            </div>
+        </div>
+    }
+    .into_any()
+}
+
+fn render_content_fragment(
+    state: logic::CoachmarkState,
+    agent_contract: logic::CoachmarkAgentContract,
+    asset_src: Option<String>,
+    asset_alt: String,
+    asset_variant: Option<CoachmarkAssetVariant>,
+    asset_label: String,
+    children: ChildrenFn,
+) -> AnyView {
+    view! {
+        <div
+            class="ui-coachmark__content"
+            data-slot="coachmark-content"
+            data-state=state.state_attr
+            data-variant=state.variant_attr
+            data-placement=state.placement_attr
+            data-open-mode=state.open_mode_attr
+            data-footer=state.footer_attr
+            data-asset=state.asset_attr
+            data-cta=state.cta_attr
+            data-label-source=state.label_source_attr
+            data-class-source=state.class_source_attr
+            data-shortcut=state.shortcut_attr
+            data-actions=state.actions_attr
+            data-steps=state.steps_attr
+            data-asset-source=state.asset_source_attr
+            data-has-asset=state.has_asset.then_some(DATA_TRUE_ATTR)
+            data-custom-class=state.has_custom_class_name.then_some(DATA_TRUE_ATTR)
+            data-ui-schema=agent_contract.schema_name
+            data-ui-schema-version=agent_contract.schema_version.as_str()
+            data-ui-intent=agent_contract.intent.as_str()
+            data-ui-action=agent_contract.action.as_str()
+            data-ui-state=agent_contract.state.as_str()
+            data-ui-source=agent_contract.source.as_str()
+            data-ui-state-source=agent_contract.state_source
+            data-ui-action-source=agent_contract.action_source
+            data-ui-render-path=agent_contract.render_path
+            data-ui-stream-support=COACHMARK_UI_STREAM_SUPPORT
+            data-ui-stream-fallback=COACHMARK_STREAM_MODE_SNAPSHOT
+            data-ui-stream-mode=COACHMARK_STREAM_MODE_SNAPSHOT
+            data-ui-output-status=agent_contract.output_status.as_str()
+            data-stream-mode=COACHMARK_STREAM_MODE_SNAPSHOT
+            data-stream-fallback=COACHMARK_STREAM_MODE_SNAPSHOT
+            data-output-status=agent_contract.output_status.as_str()
+        >
+            {if let Some(asset_src) = asset_src {
+                view! {
+                    <Asset size=AssetSize::Size700 class_name=COACHMARK_ASSET_CLASS.to_string()>
+                        <img src=asset_src alt=asset_alt />
+                    </Asset>
+                }
+                .into_any()
+            } else if let Some(asset_variant) = asset_variant {
+                view! {
+                    <Asset
+                        variant=asset_variant
+                        size=AssetSize::Size700
+                        label=asset_label
+                        class_name=COACHMARK_ASSET_CLASS.to_string()
+                    />
+                }
+                .into_any()
+            } else {
+                ().into_any()
+            }}
+
+            <div class="ui-coachmark__body" data-slot="coachmark-body">
+                {children()}
+            </div>
+        </div>
+    }
+    .into_any()
+}
 
 #[component]
 pub fn Coachmark(
     children: ChildrenFn,
     #[prop(optional)] variant: CoachmarkVariant,
     #[prop(optional, into)] aria_label: Option<String>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_disabled: Option<bool>,
+    #[prop(optional)] disabled: Option<bool>,
     #[prop(optional)] placement: PopoverPlacement,
     #[prop(optional)] motion: CoachmarkMotion,
     #[prop(optional)] open: Option<Signal<bool>>,
@@ -32,281 +176,247 @@ pub fn Coachmark(
     #[prop(optional, into)] asset_label: Option<String>,
     #[prop(optional, into)] asset_src: Option<String>,
     #[prop(optional, into)] asset_alt: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] actions: Option<ViewFn>,
 ) -> impl IntoView {
-    let normalized_aria_label = logic::normalize_optional_text(aria_label);
-    let normalized_class_name = logic::normalize_optional_text(class_name);
-    let normalized_primary_cta = logic::normalize_optional_text(primary_cta);
-    let normalized_secondary_cta = logic::normalize_optional_text(secondary_cta);
-    let normalized_asset_src = logic::normalize_optional_text(asset_src);
-    let normalized_asset_label = logic::normalize_optional_text(asset_label)
-        .unwrap_or_else(|| logic::DEFAULT_ASSET_LABEL.into());
-    let normalized_asset_alt =
-        logic::normalize_optional_text(asset_alt).unwrap_or_else(|| normalized_asset_label.clone());
-
-    let normalized_shortcut_key = logic::normalize_optional_text(shortcut_key);
-    let normalized_modifier_keys = logic::normalize_modifier_keys(modifier_keys);
-    let has_shortcut = normalized_shortcut_key.is_some();
-
-    let heading = logic::compose_heading(title, normalized_modifier_keys, normalized_shortcut_key);
-    let step_label = logic::compose_step_label(current_step, total_steps);
-
-    let has_asset_variant = asset_variant.is_some();
-    let has_asset_src = normalized_asset_src.is_some();
-    let has_asset = has_asset_variant || has_asset_src;
+    let motion = motion::resolve_motion(motion);
     let has_actions_slot = actions.is_some();
-    let has_footer = step_label.is_some()
-        || normalized_primary_cta.is_some()
-        || normalized_secondary_cta.is_some()
-        || has_actions_slot;
-
-    let state = logic::resolve_state(logic::CoachmarkStateInput {
-        variant_attr: variant.as_attr(),
-        placement_attr: placement.as_str(),
+    let view_model = logic::resolve_view_model(logic::CoachmarkViewModelInput {
+        variant,
+        placement,
+        is_disabled,
         disabled,
         is_controlled: open.is_some(),
-        has_footer,
-        has_asset,
-        has_custom_aria_label: normalized_aria_label.is_some(),
-        has_custom_class_name: normalized_class_name.is_some(),
-        has_shortcut,
-        has_primary_cta: normalized_primary_cta.is_some(),
-        has_secondary_cta: normalized_secondary_cta.is_some(),
+        aria_label,
+        class_name,
+        title,
+        current_step,
+        total_steps,
+        primary_cta,
+        secondary_cta,
+        shortcut_key,
+        modifier_keys,
         has_actions_slot,
-        has_step_label: step_label.is_some(),
-        has_asset_variant,
-        has_asset_src,
+        asset_variant,
+        asset_label,
+        asset_src,
+        asset_alt,
+        lang,
     });
-    let ui_action_attr = if has_footer {
-        "navigate-step"
-    } else {
-        "read-guidance"
-    };
-    let ui_source_attr = if state.open_mode_attr == "controlled" {
-        "external"
-    } else {
-        "internal"
-    };
-    let output_status_attr = if disabled { "draft" } else { "verified" };
 
-    let class_name = logic::compose_class_name(normalized_class_name, state);
-    let trigger_label =
-        normalized_aria_label.unwrap_or_else(|| variant.default_label().to_string());
+    let is_disabled = view_model.is_disabled;
+    let has_footer = view_model.has_footer;
+    let state = view_model.state;
+    let agent_contract = view_model.agent_contract;
 
-    let on_primary = on_primary.unwrap_or_else(|| Callback::new(|()| {}));
-    let on_secondary = on_secondary.unwrap_or_else(|| Callback::new(|()| {}));
+    let on_primary = logic::resolve_on_press(on_primary);
+    let on_secondary = logic::resolve_on_press(on_secondary);
 
-    let default_open = default_open.unwrap_or(false);
-    let on_open_change = on_open_change.unwrap_or_else(|| Callback::new(|_: bool| {}));
+    let default_open = logic::resolve_default_open(default_open);
+    let on_open_change = logic::resolve_on_open_change(on_open_change);
 
-    let class_name = StoredValue::new(class_name);
-    let trigger_label = StoredValue::new(trigger_label);
-    let heading = StoredValue::new(heading);
+    let class_name = StoredValue::new(view_model.class_name);
+    let trigger_label = StoredValue::new(view_model.trigger_label);
+    let heading = StoredValue::new(view_model.heading);
 
     let children = StoredValue::new(children);
-    let primary_cta = StoredValue::new(normalized_primary_cta);
-    let secondary_cta = StoredValue::new(normalized_secondary_cta);
-    let step_label = StoredValue::new(step_label);
+    let primary_cta = StoredValue::new(view_model.primary_cta);
+    let secondary_cta = StoredValue::new(view_model.secondary_cta);
+    let step_label = StoredValue::new(view_model.step_label);
     let actions = StoredValue::new(actions);
     let on_primary = StoredValue::new(on_primary);
     let on_secondary = StoredValue::new(on_secondary);
-    let asset_variant = StoredValue::new(asset_variant);
-    let asset_src = StoredValue::new(normalized_asset_src);
-    let asset_label = StoredValue::new(normalized_asset_label);
-    let asset_alt = StoredValue::new(normalized_asset_alt);
+    let asset_variant = StoredValue::new(view_model.asset_variant);
+    let asset_src = StoredValue::new(view_model.asset_src);
+    let asset_label = StoredValue::new(view_model.asset_label);
+    let asset_alt = StoredValue::new(view_model.asset_alt);
+    let lang = StoredValue::new(view_model.lang.unwrap_or_default());
+    let dir = StoredValue::new(dir);
 
     let footer_view = StoredValue::new(ViewFn::from(move || {
-        view! {
-            <div class="ui-coachmark__footer" data-slot="coachmark-footer">
-                {step_label.get_value().map(|step_label| {
-                    view! {
-                        <span
-                            class="ui-coachmark__steps ui-muted"
-                            data-slot="coachmark-steps"
-                            role="status"
-                            aria-live="polite"
-                        >
-                            {step_label}
-                        </span>
-                    }
-                })}
-
-                <div class="ui-coachmark__actions" data-slot="coachmark-actions">
-                    {secondary_cta.get_value().map(|secondary_cta| {
-                        view! {
-                            <Button
-                                variant=ButtonVariant::Secondary
-                                on_press=on_secondary.get_value()
-                                class_name="ui-coachmark__button ui-coachmark__button--secondary".to_string()
-                            >
-                                {secondary_cta}
-                            </Button>
-                        }
-                    })}
-
-                    {primary_cta.get_value().map(|primary_cta| {
-                        view! {
-                            <Button
-                                variant=ButtonVariant::Accent
-                                on_press=on_primary.get_value()
-                                class_name="ui-coachmark__button ui-coachmark__button--primary".to_string()
-                            >
-                                {primary_cta}
-                            </Button>
-                        }
-                    })}
-
-                    {actions.get_value().map(|actions| {
-                        view! {
-                            <span class="ui-coachmark__actions-extra" data-slot="coachmark-actions-extra">
-                                {actions.run()}
-                            </span>
-                        }
-                    })}
-                </div>
-            </div>
-        }
-        .into_any()
+        render_footer_fragment(
+            step_label.get_value(),
+            secondary_cta.get_value(),
+            primary_cta.get_value(),
+            on_secondary.get_value(),
+            on_primary.get_value(),
+            actions.get_value(),
+        )
     }));
 
     let content_view = StoredValue::new(ViewFn::from(move || {
-        view! {
-            <div
-                class="ui-coachmark__content"
-                data-slot="coachmark-content"
-                data-state=state.state_attr
-                data-variant=state.variant_attr
-                data-placement=state.placement_attr
-                data-open-mode=state.open_mode_attr
-                data-footer=state.footer_attr
-                data-asset=state.asset_attr
-                data-cta=state.cta_attr
-                data-label-source=state.label_source_attr
-                data-class-source=state.class_source_attr
-                data-shortcut=state.shortcut_attr
-                data-actions=state.actions_attr
-                data-steps=state.steps_attr
-                data-asset-source=state.asset_source_attr
-                data-has-asset=state.has_asset.then_some("true")
-                data-custom-class=state.has_custom_class_name.then_some("true")
-                data-ui-schema="ui.coachmark.agent-contract.v1"
-                data-ui-schema-version="1"
-                data-ui-intent="guided-tour"
-                data-ui-action=ui_action_attr
-                data-ui-state=state.state_attr
-                data-ui-source=ui_source_attr
-                data-ui-stream-support="optional"
-                data-ui-stream-fallback="snapshot"
-                data-ui-stream-mode="snapshot"
-                data-ui-output-status=output_status_attr
-                data-stream-mode="snapshot"
-                data-stream-fallback="snapshot"
-                data-output-status=output_status_attr
-            >
-                {move || {
-                    if let Some(asset_src) = asset_src.get_value() {
-                        view! {
-                            <Asset size=AssetSize::Size700 class_name="ui-coachmark__asset".to_string()>
-                                <img src=asset_src alt=asset_alt.get_value() />
-                            </Asset>
-                        }
-                        .into_any()
-                    } else if let Some(asset_variant) = asset_variant.get_value() {
-                        view! {
-                            <Asset
-                                variant=asset_variant
-                                size=AssetSize::Size700
-                                label=asset_label.get_value()
-                                class_name="ui-coachmark__asset".to_string()
-                            />
-                        }
-                        .into_any()
-                    } else {
-                        ().into_any()
-                    }
-                }}
-
-                <div class="ui-coachmark__body" data-slot="coachmark-body">
-                    {children.get_value()()}
-                </div>
-            </div>
-        }
-        .into_any()
+        render_content_fragment(
+            state,
+            agent_contract,
+            asset_src.get_value(),
+            asset_alt.get_value(),
+            asset_variant.get_value(),
+            asset_label.get_value(),
+            children.get_value(),
+        )
     }));
 
-    if let Some(open) = open {
+    let render_contextual_help = |open: Option<Signal<bool>>, has_footer: bool| -> AnyView {
+        let dir = dir.get_value();
+        let lang = lang.get_value();
+
         if has_footer {
-            view! {
-                <ContextualHelp
-                    variant=variant
-                    aria_label=trigger_label.get_value()
-                    disabled=disabled
-                    placement=placement
-                    motion=motion
-                    open=open
-                    default_open=default_open
-                    on_open_change=on_open_change
-                    heading=heading.get_value()
-                    footer=move || footer_view.get_value().run()
-                    class_name=class_name.get_value()
-                >
-                    {move || content_view.get_value().run()}
-                </ContextualHelp>
+            match (open, dir) {
+                (Some(open), Some(dir)) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang.clone()
+                        dir=dir
+                        open=open
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        footer=move || footer_view.get_value().run()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
+                (Some(open), None) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang.clone()
+                        open=open
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        footer=move || footer_view.get_value().run()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
+                (None, Some(dir)) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang.clone()
+                        dir=dir
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        footer=move || footer_view.get_value().run()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
+                (None, None) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        footer=move || footer_view.get_value().run()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
             }
-            .into_any()
         } else {
-            view! {
-                <ContextualHelp
-                    variant=variant
-                    aria_label=trigger_label.get_value()
-                    disabled=disabled
-                    placement=placement
-                    motion=motion
-                    open=open
-                    default_open=default_open
-                    on_open_change=on_open_change
-                    heading=heading.get_value()
-                    class_name=class_name.get_value()
-                >
-                    {move || content_view.get_value().run()}
-                </ContextualHelp>
+            match (open, dir) {
+                (Some(open), Some(dir)) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang.clone()
+                        dir=dir
+                        open=open
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
+                (Some(open), None) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang.clone()
+                        open=open
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
+                (None, Some(dir)) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang.clone()
+                        dir=dir
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
+                (None, None) => view! {
+                    <ContextualHelp
+                        variant=variant
+                        aria_label=trigger_label.get_value()
+                        disabled=is_disabled
+                        placement=placement
+                        motion=motion
+                        lang=lang
+                        default_open=default_open
+                        on_open_change=on_open_change
+                        heading=heading.get_value()
+                        class_name=class_name.get_value()
+                    >
+                        {move || content_view.get_value().run()}
+                    </ContextualHelp>
+                }
+                .into_any(),
             }
-            .into_any()
         }
-    } else if has_footer {
-        view! {
-            <ContextualHelp
-                variant=variant
-                aria_label=trigger_label.get_value()
-                disabled=disabled
-                placement=placement
-                motion=motion
-                default_open=default_open
-                on_open_change=on_open_change
-                heading=heading.get_value()
-                footer=move || footer_view.get_value().run()
-                class_name=class_name.get_value()
-            >
-                {move || content_view.get_value().run()}
-            </ContextualHelp>
-        }
-        .into_any()
-    } else {
-        view! {
-            <ContextualHelp
-                variant=variant
-                aria_label=trigger_label.get_value()
-                disabled=disabled
-                placement=placement
-                motion=motion
-                default_open=default_open
-                on_open_change=on_open_change
-                heading=heading.get_value()
-                class_name=class_name.get_value()
-            >
-                {move || content_view.get_value().run()}
-            </ContextualHelp>
-        }
-        .into_any()
-    }
+    };
+
+    render_contextual_help(open, has_footer)
 }

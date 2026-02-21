@@ -1,0 +1,155 @@
+schema_version = "1"
+
+[component]
+name = "CheckboxField"
+crate = "ui-checkbox-field"
+
+[[inputs]]
+name = "is_checked"
+ty = "Option<ReadSignal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "checked"
+ty = "Option<ReadSignal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "on_checked_change"
+ty = "Option<WriteSignal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "set_checked"
+ty = "Option<WriteSignal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_checked"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_invalid"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "invalid"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "id_base"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "tone"
+ty = "CheckboxFieldTone"
+default = "CheckboxFieldTone::Default"
+controlled = false
+
+[[inputs]]
+name = "indicator_placement"
+ty = "CheckboxFieldIndicatorPlacement"
+default = "CheckboxFieldIndicatorPlacement::Start"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "CheckboxFieldMotion"
+default = "CheckboxFieldMotion::default()"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-tone + data-indicator-placement + data-checked + data-disabled + data-invalid + data-checked-mode + data-checked-prop-source + data-checked-change-source + data-checked-default-source + data-motion-source + aria-* + lang + dir"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-checkbox"
+kind = "composed-control"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "motion-token-source"

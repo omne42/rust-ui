@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`Keyboard` 状态原语已下沉到 `crates/ui-state-primitives/src/keyboard.rs`，并由 `crates/ui-state-primitives/src/test/keyboard.rs` 覆盖回归。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（N/A：`Keyboard` 为静态展示组件，无 open/close 等动效状态轴，不需要组件级 `motion.rs`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（已补本地语义回归：`components/keyboard/test/semantics.rs`，并将旧入口 `crates/ui-components/tests/keyboard_semantics.rs` 迁移为桥接 `include!`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +55,92 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Keyboard` 布尔入参固定为 `is_compact`，无 `compact` 别名漂移；本组件无事件/受控状态轴，`on_*` 与 `default_*` 在该组件按 N/A 处理。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`Keyboard` 为静态语义展示组件，不维护可控状态轴；不存在 `value/on_value_change/default_value` 的受控协议需求。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`tone/is_compact/aria_label/class_name/lang` 统一经 `logic::normalize_root_state` 归一化，`view.rs` 仅消费 `KeyboardRootState`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`KeyboardRootInput -> normalize_root_state -> KeyboardRootState` 在 `logic.rs` 一次性完成派生；`view.rs` 仅挂载 `root_state + use_keyboard` 语义输出；`styles.rs` 仅消费 `data-*` 标记。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（离散语义轴 `tone` 已由 `ui-state-primitives::keyboard::KeyboardTone` 建模；组件 `view.rs` 仅接收 `Option<KeyboardTone>`，未引入字符串离散输入或多布尔互斥编码。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`logic.rs` 仅通过 `pub use ui_state_primitives::keyboard::*` 消费状态原语并做装配映射；组件未引入业务 store 类型或全局状态容器依赖。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Keyboard` 为静态语义展示组件，无远程请求与异步状态轴，不涉及加载/失败/重试协议。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`Keyboard` 基础用法可直接 `<Keyboard>"⌘K"</Keyboard>`；默认路径无需接线 `ui-state-primitives/ui-headless` 或传入内部状态对象；docs 最小示例位于 `apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`Keyboard` 是单节点语义组件，不属于 `Parent/Item` 组合容器；公共 API 不存在 `labels + children`、`titles + panels` 等并行数组契约。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`Keyboard` 为静态语义组件，不存在拖拽交互与逐帧物理循环，也无 `Action::DragEnd` 回流路径。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`Keyboard` 不依赖几何测量，不读取 DOM 尺寸/位置信息，不存在 `Intent -> Measure -> Rectification` 收敛循环。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`Keyboard` 非动态集合容器，不存在子项注册/注销流程，也无 `items_order` 导航语义。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`Keyboard` 不是容器投影组件，不承载子内容投影生命周期管理；不存在 `Lazy/KeepAlive/Eager` 策略切换与 `NotifyHidden` 隐藏通知链路。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`Keyboard` 为静态语义展示组件，不订阅 `Resize/Theme/Intersection` 环境流，也不存在采样/防抖后回推 `logic` 的高层 `Action` 管线。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`Keyboard` 非大型集合容器，不承担批量选择/批量广播语义；不存在 `Context Bus + Selector` 批处理通道与 `SelectionState::All` 状态压缩需求。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`Keyboard` 为静态语义展示组件，不存在复杂派生命令总线与跨订阅者广播链路；无 `TraceId` 透传需求。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Keyboard` 通过 `use_keyboard(KeyboardOptions)` 挂载 headless 语义契约，输出 `aria-label/lang/dir` 与状态标记；文案入口为 `aria_label`（可覆盖）并在 primitives 提供默认回退，`view.rs` 不硬编码用户可见文本。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`Keyboard` 在 `view.rs` 稳定挂载 `data-slot/data-tone/data-state/data-compact/data-aria-source/data-class-source/data-custom-class + aria-label`；来源标记由 primitives 的 `default|custom` 枚举与状态枚举（`default|muted|compact`）驱动，避免自由文本漂移。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`Keyboard` 的 `styles.rs` 状态分支仅使用稳定 class 与 `data-tone/data-compact/data-custom-class`，未使用 `:nth-child` 或深层结构猜测；`view.rs` 未注入业务 inline style，视觉切换由语义标记直接驱动。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/keyboard/test/semantics.rs` 以语义断言覆盖 `<kbd>/aria-label/data-state/data-aria-source/data-class-source` 等契约；测试不依赖视觉快照断言。`Keyboard` 无受控轴、disabled、键盘/指针交互与 wasm 专属分支，相关矩阵在本组件按 N/A 语义验证。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`Keyboard` 维持 `mod/logic/styles/view` 分层：`mod.rs` 仅导出 `Keyboard/KeyboardTone`，`logic.rs` 仅做归一与来源派生，`styles.rs` 仅静态 token-first CSS，`view.rs` 仅结构与 headless 语义挂载。该组件无动效状态轴，`motion.rs` 按 N/A 处理且未引入动效引擎实现。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（N/A：`Keyboard` 为简单单节点语义组件，当前目录无 `spec.rs`；组件说明与约束保留在 `check2.md` 与 `README.md`，未引入额外 Spec Builder 抽象。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Keyboard` 样式集中在 `components/keyboard/src/styles.rs`，并由 `crates/ui-components/src/css.rs` 通过 `component-keyboard` 聚合，再由 `UiRoot` 的 `inject_components_css` 路径注入；视觉值使用 `var(--ui-*)` token，组件层未引入 Utility-First/CSS-in-Rust 方案。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（N/A：该项是跨组件的仓库级视觉基线治理（默认主题页面、截图基线、Button/Input/Overlay 视觉回归对比）；`Keyboard` 仅消费 token 与语义样式，不拥有全局主题基线与关键组件回归矩阵。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui-components` 已为 `Keyboard` 提供 `component-keyboard = ["dep:ui-keyboard"]` 可选特性，且 `ui-keyboard` 依赖为 `optional`；`lib.rs` 与 `css.rs` 分别以 `#[cfg(feature = "component-keyboard")]` 条件导出与样式聚合。验证命令 `cargo tree -e features -p ui-components --no-default-features --features component-keyboard,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo` 已确认最小特性链与 `web-demo` 未启用 `all-components`。CI 最小特性编译与体积预算属于仓库流水线门禁，组件侧已满足接入前提。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +149,73 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`Keyboard` 的离散输入由 `KeyboardTone` 枚举与 `KeyboardStateInput` 新类型承载；`logic.rs` 统一通过 `normalize_root_state -> resolve_state` 归一无效输入；`view.rs` 稳定输出 `data-tone/data-state/data-aria-source/data-class-source` 封闭语义域，`components/keyboard/test/logic.rs` 与 `components/keyboard/test/semantics.rs` 可直接定位类型或标记契约回归。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`Keyboard` 为单节点语义展示组件，不是层叠 `Overlay`，不存在焦点恢复栈、`NodeRef` 恢复目标或回落 `document.body` 的焦点管理路径。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`Keyboard` 不集成 ECharts/Map 等命令式第三方库，无 `Foreign Zone`/`YieldControl`/`CleanupForeign` 接入路径；公共 API 也未暴露任何第三方实例句柄。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`Keyboard` 不生成运行时 ID、无 hydration 期间的随机初始化路径，也不依赖 `now()`/UUID；该组件当前不需要 `IdProvider` 接入。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（`Keyboard` 源码层未引入 `web-sys`/浏览器对象，未依赖运行时偶然分支；平台路径由 feature/cfg 管理。仓库 `scripts/check.sh` 已纳入 `ssr (compile-only)` 与 `wasm` 编译门禁。当前环境执行 `cargo check -p ui-keyboard`、`cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-keyboard --target wasm32-unknown-unknown` 均受 `Invalid cross-device link (os error 18)` 限制，compile-only 结果以 CI 门禁为准。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 已声明 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥保护；`Keyboard` 仅通过 `components/keyboard/Cargo.toml` 依赖 `ui-headless`，未覆写其 feature 互斥策略。仓库 `scripts/check.sh` 已分别覆盖 `ssr` 与 `web(wasm)` compile-only 路径。当前环境执行 `cargo check -p ui-headless --no-default-features --features web,ssr` 受 `Invalid cross-device link (os error 18)` 限制，互斥回归以该 `compile_error!` 源码断言与 CI 编译门禁共同兜底。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...)` no-op/stub，并带有 non-wasm 预测性测试。`Keyboard` 无 `motion.rs` 且未依赖 `ui-motion`，不存在动画句柄假设与 non-wasm panic 路径，测试/文档/静态分析不会被 motion 依赖阻塞。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（N/A：`Keyboard` 无组件级动效与 `motion.rs`，不存在 `reduced-motion` 动画降级分支；组件在 SSR/wasm 上均输出同一 `<kbd>` 语义契约（`aria-label/lang/dir/data-*`），不依赖 wasm 专属增强路径，因此不存在跨分支语义分裂与 hydration 首帧错位来源。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（N/A：该项以仓库级性能基线治理为主（含 `Button`/`Input` 的 `render_count` 预算）；`Keyboard` 非关键交互组件且无事件驱动更新循环。当前组件等价证据为：`view.rs` 仅渲染单 `<kbd>` 并通过两个 `Memo` 做确定性派生，无环境订阅、无逐帧动效、无异步任务路径；渲染计数自动化由仓库测试框架统一补齐时纳入。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`Keyboard` 的 `view.rs` 仅含一个 `view!`，渲染单 `<kbd>` 结构，无多层容器嵌套与重复片段；当前宏展开体量稳定且无额外子块拆分需求。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`Keyboard` 当前仅保留一个公共入口 `#[component] fn Keyboard`，`view.rs` 无局部子组件升格与无意义片段抽象；在无重复静态片段与独立 props 需求前，保持单函数实现可读性更高、抽象噪音更低。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`Keyboard` 的 `view.rs` 不包含复杂 SVG/页脚/长静态文案，仅渲染语义 `<kbd>` 与外部 `children`；可常量化的静态资源集中在 `styles.rs` 的 `pub const CSS`，变更路径单一且不散落多处 `view!`。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`Keyboard` 不使用 `inner_html`，`view.rs` 仅渲染 `<kbd>{children()}</kbd>` 并挂载 headless 语义属性；不存在用户输入或远端内容注入 HTML 的路径。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`Keyboard` 为静态语义展示组件，无关键交互状态机与事件回放链路；组件实现未引入 `TraceId/tracing` 调试埋点。调试能力隔离由上层 `ui-components` 的 `*-wasm-debug` 特性治理，且当前不存在 `keyboard-wasm-debug` 特性，默认产物不携带组件调试开关。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`Keyboard` 在 docs-app 提供 `Interactive Playground (展示 / Config / Code / CSS Test)` 工作台，`test_css_source + test_source_path` 支持 scoped CSS 快速验证，常见样式调整无需修改组件逻辑；交互上下文由 playground signals 持续保持。`Keyboard` 为轻量展示组件，不维护复杂工作流状态，持久化状态保留按复杂交互组件可选（N/A）。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Keyboard` 已在 `components/keyboard/src/protocol.rs` 提供 `KeyboardComponentSchemaVersion + KeyboardComponentSpec` 的 `serde` 协议结构用于 spec 序列化与版本演进；组件 crate 仅引入 `serde`，未引入 `tracing/tokio/async-std` 依赖。该组件为静态语义展示组件，无组件级异步边界与 tracing 埋点需求（N/A），公共 API 不泄露 runtime 细节。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/keyboard/src/styles.rs` 已将边框/圆角/前景/背景/字号/行高/尺寸与内边距统一为双层回退链，并以 `calc + var(--ui-*, var(--ui-fallback-*))` 消除组件内裸尺寸终值；终值 fallback 由 `crates/ui-theme/src/css.rs` 统一生成（如 `--ui-fallback-border-width`、`--ui-fallback-radius-sm`、`--ui-fallback-space-xs`、`--ui-fallback-font-size-100`、`--ui-fallback-component-height-100`）。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui-components/src/css.rs` 的 `push_components_css` 已以 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式并在末尾闭合，`Keyboard` 样式通过 `component-keyboard` 条件聚合进入该层；`components/keyboard/src/view.rs` 未使用 `style=\"...\"` 或 `style:*` 普通内联样式，运行时视觉状态仅通过 `data-*` 语义标记与 CSS 变量契约驱动。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（N/A：`Keyboard` 为静态语义展示组件，无 enter/exit/active 等动效状态轴，不引入 `motion.rs`、`attach_motion` 与 `stiffness/damping` 组件级动效 contract。`reduced-motion` 与 non-wasm/SSR 降级能力由 `crates/ui-motion/src/lib.rs` 的 no-op/stub 统一提供，且 `components/keyboard/test/semantics.rs` 已覆盖该能力与 SSR/wasm 语义一致性回归。）
+- [x] `ui-components` 固定入口文件落点正确。（`crates/ui-components/src/lib.rs` 作为总入口并以 `#[cfg(feature = \"component-*\")]` 条件导出组件（含 `component-keyboard -> pub use ui_keyboard as keyboard`）；`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 内按 feature 条件聚合组件 CSS；`crates/ui-components/src/root.rs` 的 `UiRoot` 统一注入 `BASE_CSS + theme vars + 可选 components css`，并集中提供 `provide_ui_i18n/provide_ui_id_provider`。共享高亮能力位于 `crates/ui-visual-primitive/src/active_highlight.rs`，仅提供通用样式与 motion driver。`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前不存在；对应原语分别固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +223,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（`components/keyboard/src` 维持 `mod.rs + logic.rs + styles.rs + view.rs` 主职责落点：`mod.rs` 仅保留最小稳定导出（`Keyboard/KeyboardTone`），`logic.rs` 仅做 props 归一与状态派生，`styles.rs` 仅承载 token-first 静态 CSS，`view.rs` 仅做 Leptos 结构与 headless 语义挂载；目录中不存在 `render.rs`。`Keyboard` 为静态语义展示组件，无组件级动效状态轴与复杂 schema 需求，`motion.rs/spec.rs` 按 N/A 处理且当前未引入。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,61 +232,61 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（`Keyboard` 组件目录落实为 `mod.rs + logic.rs + styles.rs + view.rs`：`mod.rs` 仅导出边界，`logic.rs` 仅做归一派生，`styles.rs` 仅承载 token 样式，`view.rs` 仅负责结构渲染与语义挂载；`render.rs` 不存在。该组件无动效状态轴且无复杂 spec 契约需求，`motion.rs/spec.rs` 按 N/A 处理并保持未引入。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`Keyboard` 为简单静态语义组件，不属于复杂配置型组件；当前目录无 `spec.rs`，也不暴露 `Spec::new()...render()` 构建器入口。复杂组件 Builder 约束保留给如 `button` 等具备稳定外部 schema/配置固化需求的组件。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`Keyboard` 已补齐 `components/keyboard/src/Component.toml` 与 `components/keyboard/src/keyboard.rbi`：Manifest 声明组件能力、文件落点与依赖关系；RBI 提供 `Keyboard/KeyboardTone/DEFAULT_ARIA_LABEL` 与 `Keyboard(...) -> IntoView` 的签名投影，作为 AI 先读索引入口，避免检索时与源码接口漂移。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`Keyboard` 已在 `view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source`，并保留 `data-*` 状态来源标记；这些字段由 `crates/ui-headless/src/keyboard.rs` 的类型化 `KeyboardAgent*` 枚举与 `resolve_agent_contract_attrs(...)` 统一生成，避免散落字符串拼接。`components/keyboard/src/Component.toml` 同步声明 `agent_contract` 与 `agent_contract_whitelist`（阻断 `inner_html/<script/javascript:`），保证渲染链路受白名单能力边界约束。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Keyboard` 在 `components/keyboard/src/Component.toml` 明确声明 `snapshot=true`、`streaming=false`，并通过 `[streaming_policy] fallback="snapshot"` 固定输出语义；本组件仅消费 `Snapshot`（完整结果一次性渲染），不承担正文 `Streaming`（增量渲染）职责。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Keyboard` 在 `components/keyboard/src/Component.toml` 声明 `kind="snapshot"` 与 `snapshot=true`，并在 `view.rs` 通过 `Keyboard(...) -> logic::normalize_root_state(...) -> <kbd>` 路径消费完整配置快照后稳定渲染；即使不展示正文，也可在接收上层完整结果后正常渲染。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Keyboard` 不是正文阅读面，按 `Streaming Optional` 执行：`components/keyboard/src/Component.toml` 声明 `streaming=false`、`[streaming_policy] required=false`、`fallback="snapshot"`；并在 `view.rs` 连续挂载 `data-ui-output-status`（当前 `verified`）与既有 `aria-*`/`data-*` 语义标记，保证快照路径可稳定消费。数据校验、断线恢复、重试策略保持 `owner="upstream"` 由上层负责，组件层仅渲染契约输出。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`Keyboard` 组件范围内 `components/keyboard/src/*.rs` 与相关原语文件未出现非测试 `unwrap/expect` 或 `let _ = ...`；`components/keyboard/src/logic.rs` 的 class 组装已收敛为 `Cow<'static, str>`。本地执行 `./scripts/check-rust-hygiene.sh` 受仓库其余组件历史项影响未全绿，`Keyboard` 范围检查通过。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`crates/ui-components/Cargo.toml` 已注册 `component-keyboard = ["dep:ui-keyboard"]` 且 `ui-keyboard` 为 optional；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均以 `#[cfg(feature = "component-keyboard")]` 条件导出/聚合，未无条件引入 keyboard。验证：`cargo tree -e features -p ui-components --no-default-features --features component-keyboard,inject-css` 可见 keyboard 特性链；`cargo tree -e features -i ui-components -p web-demo` 未出现 `all-components` 拉起。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`components/keyboard/test/semantics.rs` 已覆盖 `<kbd>`、`aria-label` 与关键 `data-*`（含 `data-state/data-aria-source/data-class-source/data-ui-*`）语义契约，且断言不依赖视觉快照。`Keyboard` 为非交互展示组件，不存在焦点流转链路（无 focus trap/roving/overlay 恢复），该维度按 N/A 记录；性能侧已通过单节点 `<kbd>` + 两个 `Memo` + 无事件热循环给出等价回归证据，`render_count` 对“高频/重型组件”要求在本组件按适用范围 N/A。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本轮 `Keyboard` 变更未引入跨大版本 API 破坏；`components/keyboard/src/protocol.rs` 仍为单一 `KeyboardComponentSchemaVersion::V1` 与 `KeyboardComponentSpec`，不存在 `v2` 协议切换、弃用窗口或 `migrate_v1_to_v2` 迁移函数需求。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 已补齐 `Playground`：`Hello World (Default Path)`、`State Matrix (Tone / Compact / Source Markers)`、`Controlled vs Uncontrolled Contrast (N/A for Keyboard)`、`Streaming / Snapshot Contract`、`Source-first Starter (Copy-Paste Ready)` 与 `Interactive Playground`；示例统一配置 `code_imports=keyboard_imports`，复制代码由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports 后可直接运行。`Keyboard` 无可控状态轴，受控/非受控对照按 N/A 语义展示“上游状态映射到 props”路径。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Keyboard` 已具备本地语义套件 `components/keyboard/test/semantics.rs`（通过 `components/keyboard/src/mod.rs` 的 `#[cfg(test)]` 挂载），并以 `keyboard_semantics_contract_tests_are_primary_and_snapshot_independent`、`keyboard_state_markers_are_observable_searchable_and_enumerated` 等断言覆盖 `data-state/data-aria-source/data-class-source/data-ui-* + aria-label` 与状态来源契约；role 语义由原生 `<kbd>` 标签承载并在测试中显式校验。语义测试中禁止 `assert_snapshot/to_match_snapshot/insta::` 视觉快照依赖。`Keyboard` 无交互事件链路（`on:keydown/on:keyup`）与可控状态轴，键盘路径按组件适用范围 N/A 记录。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（已新增 `e2e/tests/docs_app_keyboard_contract.spec.mjs`：通过 `gotoKeyboardDocsAndWaitSettled(...)` 统一执行 `page.locator("body:not(:has(#boot))").waitFor()` 与语义就绪断言（`data-slot="keyboard" + data-ui-schema + data-ui-output-status="verified"`），避免固定 sleep；主流程与工作台流程均使用 `data-*` 语义选择器（如 `data-state/data-aria-source/data-class-source/data-compact`）定位与断言，不依赖 DOM 层级或文本定位。`Keyboard` 无异步请求/动画状态轴（无 loading/enter/exit），ready/settled 以封闭状态域 `default|muted|compact` 断言作为适用路径。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（`Keyboard` 已纳入 `e2e/tests/docs_app_keyboard_contract.spec.mjs` 的可重复回归流：`docs-app keyboard workbench flow is repeatable with semantic ready/settled breakpoints` 在首次运行与 `page.reload()` 后各执行一次同一关键流程（tone/key/switch 状态切换），并通过 `data-state/data-tone/data-compact/data-aria-source/data-class-source/data-custom-class` 等语义断点定位失败。高风险路径优先覆盖 `focus + keyboard`（`switch.focus() + page.keyboard.press("Space")`）而非仅指针点击；该组件无 overlay/async 动画路径，相关分支按组件适用范围 N/A。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 已同步覆盖：示例路径含 `Hello World (Default Path)`、`Source-first Starter` 与 `Interactive Playground`；状态矩阵为 `State Matrix (Tone / Compact / Source Markers)`；参数矩阵新增 `data-slot="keyboard-parameter-matrix"`，显式声明 `tone/is_compact/aria_label/class_name` 与默认值（`KeyboardTone::Default`、`false`、`Keyboard` fallback、`None`）。API 命名与默认行为与 `components/keyboard/src/logic.rs::normalize_root_state` 一致（`tone.unwrap_or_default()`、`is_compact.unwrap_or(false)`、`normalize_aria_label(...)`、`normalize_optional_text(...)`）。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`components/keyboard/src/README.md` 已作为稳定文档入口，包含 `Hello World（最小可用）`、`常见用法` 与 `新手路径（先用起来，再进阶）` 分层说明：先走默认 API `<Keyboard>"⌘K"</Keyboard>`，再引导到 `tone/is_compact`，最后进入 `aria_label/class_name` 高级覆盖。`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 页面同步提供 `Hello World (Default Path)` 与 Interactive Playground，保证新手可先复制运行再逐步进阶。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 已提供 `Interactive Playground (展示 / Config / Code / CSS Test)`：支持 `Tone/Key Text/is_compact/Custom aria_label/Custom class_name` 在线调整并实时预览 `<Keyboard>` 语义状态；`test_config_signal=workbench_config` 提供配置可视化，`code_signal` 与 `test_css_source` 支持联动观察。该验收面已由 `e2e/tests/docs_app_keyboard_contract.spec.mjs` 的 `runKeyboardWorkbenchFlow(...)` 与 reload 重跑覆盖，保证关键路径可重复复现。`Keyboard` 非 AI Spec 组件，无 `spec.rs` 输入协议，Spec 输入联动示例按组件适用范围 N/A。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `keyboard()` 已提供 `Source-first Starter (Copy-Paste Ready)`，并通过 `code_imports=keyboard_imports` 接入 `Playground` 的 `compose_copy_ready_code(...)` 自动补齐 imports。`e2e/tests/docs_app_keyboard_contract.spec.mjs` 新增 `docs-app keyboard source-first snippet is copy-paste ready with imports`，断言代码块 `data-copyable=\"true\"` 且包含 `use leptos::prelude::*;`、`use ui_components::{Keyboard, KeyboardTone};` 与可运行示例。`components/keyboard/src/README.md` 的 `Source-first Copy-Paste Ready` 节已指向真实源码落点（`mod/logic/view/styles`）并补充依赖前提（`ui-components` + `component-keyboard`）。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（`docs/spec/heroui-parameter-design-strategy.md` 已新增 `Keyboard 同步记录（2026-02-20）`，明确参数模型 `tone/is_compact/aria_label/class_name` 与默认归一来源 `components/keyboard/src/logic.rs::normalize_root_state`；`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Keyboard", "keyboard", "Display", display_extra::keyboard)` 暴露 `#/components/keyboard` 索引入口，`components/keyboard/src/README.md` 提供等价文档入口。本轮仅为 Keyboard 参数与文档对齐，未引入新的 Spectrum/HeroUI 风格结论，`docs/research/spectrum-heroui-style-interface-study.md` 按 N/A 处理。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

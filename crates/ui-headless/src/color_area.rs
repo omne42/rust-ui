@@ -4,6 +4,8 @@ use ui_state_primitives::color_area::{
     ColorAreaState, clamp_value, move_value_by_delta, parse_axis_percent, value_from_cell,
 };
 
+const BOOL_TRUE: &str = "true";
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ColorAreaRootAttrs {
     pub role: &'static str,
@@ -39,6 +41,28 @@ pub struct ColorAreaAxisAttrs {
     pub aria_disabled: Option<&'static str>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ColorAreaCellInput {
+    pub col: usize,
+    pub row: usize,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ColorAreaCellAttrs {
+    pub role: &'static str,
+    pub aria_label: String,
+    pub aria_selected: Option<&'static str>,
+    pub tabindex: i32,
+    pub disabled: bool,
+    pub data_selected: Option<&'static str>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ColorAreaCellContract {
+    pub attrs: ColorAreaCellAttrs,
+    pub value: (f32, f32),
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ColorAreaKeyboardInput {
     pub key: String,
@@ -55,7 +79,7 @@ pub struct ColorAreaKeyboardResult {
 pub struct ColorAreaHandlers {
     pub on_key_down: Callback<ColorAreaKeyboardInput, Option<ColorAreaKeyboardResult>>,
     pub parse_axis_input: Callback<String, Option<f32>>,
-    pub cell_to_value: Callback<(usize, usize, usize), (f32, f32)>,
+    pub resolve_cell: Callback<ColorAreaCellInput, ColorAreaCellContract>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -87,19 +111,29 @@ pub struct ColorAreaOptions {
     pub state: ColorAreaState,
     pub aria_label: String,
     pub label_id: String,
+    pub x_axis_label: String,
+    pub y_axis_label: String,
     pub lang: Option<String>,
     pub dir: Option<A11yDirection>,
 }
 
 pub fn use_color_area(options: ColorAreaOptions) -> ColorAreaContract {
-    let group = labeled_group_attrs(options.aria_label, options.lang, options.dir);
-    let state = options.state;
+    let ColorAreaOptions {
+        state,
+        aria_label,
+        label_id,
+        x_axis_label,
+        y_axis_label,
+        lang,
+        dir,
+    } = options;
+    let group = labeled_group_attrs(aria_label, lang, dir);
 
     ColorAreaContract {
         root_attrs: ColorAreaRootAttrs {
             role: group.role,
             aria_label: group.aria_label,
-            aria_labelledby: options.label_id,
+            aria_labelledby: label_id,
             lang: group.lang,
             dir: group.dir,
             tabindex: if state.is_disabled { -1 } else { 0 },
@@ -167,8 +201,33 @@ pub fn use_color_area(options: ColorAreaOptions) -> ColorAreaContract {
                 })
             }),
             parse_axis_input: Callback::new(|raw: String| parse_axis_percent(raw.as_str())),
-            cell_to_value: Callback::new(|(col, row, grid_size)| {
-                value_from_cell(col, row, grid_size)
+            resolve_cell: Callback::new(move |input: ColorAreaCellInput| {
+                let value = value_from_cell(input.col, input.row, state.grid_size);
+                let is_selected =
+                    input.row == state.selected_row && input.col == state.selected_col;
+                let aria_label = format!(
+                    "{} {}%, {} {}%",
+                    x_axis_label,
+                    (value.0 * 100.0).round() as u8,
+                    y_axis_label,
+                    (value.1 * 100.0).round() as u8
+                );
+
+                ColorAreaCellContract {
+                    attrs: ColorAreaCellAttrs {
+                        role: "gridcell",
+                        aria_label,
+                        aria_selected: is_selected.then_some(BOOL_TRUE),
+                        tabindex: if is_selected && !state.is_disabled {
+                            0
+                        } else {
+                            -1
+                        },
+                        disabled: state.is_disabled,
+                        data_selected: is_selected.then_some(BOOL_TRUE),
+                    },
+                    value,
+                }
             }),
         },
         state: ColorAreaSemanticState {

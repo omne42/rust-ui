@@ -157,8 +157,10 @@ pub fn SearchInputButton(
     let show_shortcut = view_state.show_shortcut;
     let placeholder = StoredValue::new(view_state.placeholder);
     let compact_placeholder = StoredValue::new(view_state.compact_placeholder);
-    let meta_key_label = StoredValue::new(view_state.meta_key_label.unwrap_or_default());
-    let key_label = StoredValue::new(view_state.key_label.unwrap_or_default());
+    let (meta_key_label, key_label) =
+        logic::resolve_shortcut_labels(view_state.meta_key_label, view_state.key_label);
+    let meta_key_label = StoredValue::new(meta_key_label);
+    let key_label = StoredValue::new(key_label);
 
     view! {
         <button

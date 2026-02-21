@@ -1,154 +1,347 @@
-use crate::{ColorWheelState, ColorWheelStateInput};
+use ui_state_primitives::color_wheel as primitives;
 
-pub const DEFAULT_LABEL: &str = "Hue";
-pub const DEFAULT_ARIA_LABEL: &str = "Hue wheel";
-pub const MIN_VALUE: f64 = 0.0;
-pub const MAX_VALUE: f64 = 359.0;
-pub const DEFAULT_STEP: f64 = 1.0;
-pub const DEFAULT_PAGE_STEP: f64 = 15.0;
+pub type ColorWheelStateInput = primitives::ColorWheelStateInput;
+pub type ColorWheelState = primitives::ColorWheelState;
+pub type ColorWheelStatus = primitives::ColorWheelStatus;
+pub type ColorWheelValueLabelMode = primitives::ColorWheelValueLabelMode;
+pub type ColorWheelSource = primitives::ColorWheelSource;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelInteractionSource {
+    None,
+    Pointer,
+    Keyboard,
+    Input,
+}
+
+impl ColorWheelInteractionSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Pointer => "pointer",
+            Self::Keyboard => "keyboard",
+            Self::Input => "input",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelAgentSchema {
+    V1,
+}
+
+impl ColorWheelAgentSchema {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::V1 => "ui.color-wheel.agent-contract.v1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelAgentSchemaVersion {
+    V1,
+}
+
+impl ColorWheelAgentSchemaVersion {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::V1 => "1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelStreamSupport {
+    Unsupported,
+}
+
+impl ColorWheelStreamSupport {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Unsupported => "unsupported",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelStreamFallback {
+    Snapshot,
+}
+
+impl ColorWheelStreamFallback {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelStreamMode {
+    Snapshot,
+}
+
+impl ColorWheelStreamMode {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelOutputStatus {
+    Verified,
+    Submittable,
+}
+
+impl ColorWheelOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+            Self::Submittable => "submittable",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelIntent {
+    SelectHueAngle,
+}
+
+impl ColorWheelIntent {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::SelectHueAngle => "select-hue-angle",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelUiAction {
+    Idle,
+    Drag,
+    Pointer,
+    Keyboard,
+    Input,
+}
+
+impl ColorWheelUiAction {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Idle => "idle",
+            Self::Drag => "drag",
+            Self::Pointer => "pointer",
+            Self::Keyboard => "keyboard",
+            Self::Input => "input",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelUiState {
+    Active,
+    Disabled,
+}
+
+impl ColorWheelUiState {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Active => "active",
+            Self::Disabled => "disabled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorWheelUiSource {
+    OnValueChange,
+    None,
+}
+
+impl ColorWheelUiSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::OnValueChange => "on_value_change",
+            Self::None => "none",
+        }
+    }
+}
+
+pub struct ColorWheelAgentContract {
+    pub schema_attr: &'static str,
+    pub schema_version_attr: &'static str,
+    pub stream_support_attr: &'static str,
+    pub stream_fallback_attr: &'static str,
+    pub stream_mode_attr: &'static str,
+    pub output_status_attr: &'static str,
+    pub intent_attr: &'static str,
+    pub source_attr: &'static str,
+}
+
+pub fn resolve_agent_contract(has_value_change_handler: bool) -> ColorWheelAgentContract {
+    let output_status = if has_value_change_handler {
+        ColorWheelOutputStatus::Submittable
+    } else {
+        ColorWheelOutputStatus::Verified
+    };
+    let source = if has_value_change_handler {
+        ColorWheelUiSource::OnValueChange
+    } else {
+        ColorWheelUiSource::None
+    };
+
+    ColorWheelAgentContract {
+        schema_attr: ColorWheelAgentSchema::V1.as_attr(),
+        schema_version_attr: ColorWheelAgentSchemaVersion::V1.as_attr(),
+        stream_support_attr: ColorWheelStreamSupport::Unsupported.as_attr(),
+        stream_fallback_attr: ColorWheelStreamFallback::Snapshot.as_attr(),
+        stream_mode_attr: ColorWheelStreamMode::Snapshot.as_attr(),
+        output_status_attr: output_status.as_attr(),
+        intent_attr: ColorWheelIntent::SelectHueAngle.as_attr(),
+        source_attr: source.as_attr(),
+    }
+}
+
+pub fn resolve_ui_action(
+    is_dragging: bool,
+    interaction_source: ColorWheelInteractionSource,
+) -> ColorWheelUiAction {
+    if is_dragging {
+        ColorWheelUiAction::Drag
+    } else {
+        match interaction_source {
+            ColorWheelInteractionSource::None => ColorWheelUiAction::Idle,
+            ColorWheelInteractionSource::Pointer => ColorWheelUiAction::Pointer,
+            ColorWheelInteractionSource::Keyboard => ColorWheelUiAction::Keyboard,
+            ColorWheelInteractionSource::Input => ColorWheelUiAction::Input,
+        }
+    }
+}
+
+pub fn resolve_ui_state(is_disabled: bool) -> ColorWheelUiState {
+    if is_disabled {
+        ColorWheelUiState::Disabled
+    } else {
+        ColorWheelUiState::Active
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Action {
+    DragEnd { value: f64, step: f64 },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ColorWheelInputBoundary {
+    pub status: ColorWheelStatus,
+    pub value_label_mode: ColorWheelValueLabelMode,
+}
+
+impl ColorWheelInputBoundary {
+    pub const fn is_disabled(self) -> bool {
+        self.status.is_disabled()
+    }
+
+    pub const fn is_value_label_visible(self) -> bool {
+        self.value_label_mode.is_visible()
+    }
+}
+
+#[cfg(test)]
+pub const DEFAULT_LABEL: &str = primitives::DEFAULT_LABEL;
+pub const DEFAULT_ARIA_LABEL: &str = primitives::DEFAULT_ARIA_LABEL;
+pub const MIN_VALUE: f64 = primitives::MIN_VALUE;
+pub const MAX_VALUE: f64 = primitives::MAX_VALUE;
+pub const DEFAULT_STEP: f64 = primitives::DEFAULT_STEP;
+#[cfg(test)]
+pub const DEFAULT_PAGE_STEP: f64 = primitives::DEFAULT_PAGE_STEP;
+
+pub fn normalize_state_inputs(
+    is_disabled: Option<bool>,
+    disabled: bool,
+    is_value_label_visible: Option<bool>,
+    show_value_label: bool,
+) -> ColorWheelInputBoundary {
+    ColorWheelInputBoundary {
+        status: ColorWheelStatus::from_disabled(is_disabled.unwrap_or(disabled)),
+        value_label_mode: ColorWheelValueLabelMode::from_visible(
+            is_value_label_visible.unwrap_or(show_value_label),
+        ),
+    }
+}
+
+pub fn source_from_custom_flag(is_custom: bool) -> ColorWheelSource {
+    ColorWheelSource::from_custom(is_custom)
+}
+
+pub fn resolve_action(action: Action) -> f64 {
+    match action {
+        Action::DragEnd { value, step } => sanitize_value(value, step),
+    }
+}
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    primitives::normalize_optional_text(value)
 }
 
 pub fn normalize_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_LABEL.into(), false)
+    primitives::normalize_label(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>, label: &str) -> (String, bool) {
-    if let Some(aria_label) = normalize_optional_text(value) {
-        return (aria_label, true);
-    }
-
-    let label = label.trim();
-    if !label.is_empty() {
-        return (format!("{label} wheel"), false);
-    }
-
-    (DEFAULT_ARIA_LABEL.into(), false)
+    primitives::normalize_aria_label(value, label)
 }
 
 pub fn sanitize_step(step: f64) -> f64 {
-    if step.is_finite() && step > 0.0 {
-        step.min(90.0)
-    } else {
-        DEFAULT_STEP
-    }
+    primitives::sanitize_step(step)
 }
 
+#[cfg(test)]
 pub fn normalize_angle(value: f64) -> f64 {
-    if !value.is_finite() {
-        return MIN_VALUE;
-    }
-
-    value.rem_euclid(360.0)
-}
-
-fn round_to_precision(value: f64) -> f64 {
-    (value * 1_000_000.0).round() / 1_000_000.0
+    primitives::normalize_angle(value)
 }
 
 pub fn sanitize_value(value: f64, step: f64) -> f64 {
-    let step = sanitize_step(step);
-    let normalized = normalize_angle(value);
-    let snapped = (normalized / step).round() * step;
-    let snapped = normalize_angle(snapped);
-
-    round_to_precision(snapped).clamp(MIN_VALUE, MAX_VALUE)
+    primitives::sanitize_value(value, step)
 }
 
+pub fn resolve_default_value(default_value: Option<f64>, step: f64) -> f64 {
+    primitives::resolve_default_value(default_value, step)
+}
+
+#[cfg(test)]
 pub fn parse_value(value: &str) -> Option<f64> {
-    let trimmed = value.trim();
-    (!trimmed.is_empty())
-        .then(|| trimmed.parse::<f64>().ok())
-        .flatten()
+    primitives::parse_value(value)
 }
 
+#[cfg(test)]
 pub fn page_step(step: f64) -> f64 {
-    sanitize_step(step).max(DEFAULT_PAGE_STEP)
+    let _ = DEFAULT_PAGE_STEP;
+    primitives::page_step(step)
 }
 
+#[cfg(test)]
 pub fn move_value_by_delta(current: f64, delta: f64, step: f64) -> f64 {
-    sanitize_value(current + delta, step)
+    primitives::move_value_by_delta(current, delta, step)
 }
 
+#[cfg(test)]
 pub fn resolve_percent(value: f64) -> f64 {
-    let value = sanitize_value(value, DEFAULT_STEP);
-    (value / 360.0 * 100.0).clamp(0.0, 100.0)
+    primitives::resolve_percent(value)
 }
 
 pub fn format_value_text(value: f64) -> String {
-    let value = sanitize_value(value, DEFAULT_STEP).round() as i64;
-    format!("{value}°")
+    primitives::format_value_text(value)
 }
 
 pub fn resolve_state(input: ColorWheelStateInput) -> ColorWheelState {
-    let step = sanitize_step(input.step);
-    let value = sanitize_value(input.value, step);
-
-    let (motion_source_class, motion_source_attr) = if input.has_custom_motion {
-        ("ui-color-wheel--motion-custom", "custom")
-    } else {
-        ("ui-color-wheel--motion-default", "default")
-    };
-
-    let (label_source_class, label_source_attr) = if input.has_custom_label {
-        ("ui-color-wheel--label-custom", "custom")
-    } else {
-        ("ui-color-wheel--label-default", "default")
-    };
-
-    ColorWheelState {
-        is_disabled: input.disabled,
-        value,
-        step,
-        value_percent: resolve_percent(value),
-        show_value_label: input.show_value_label,
-        data_state_attr: if input.disabled { "disabled" } else { "active" },
-        motion_source_class,
-        motion_source_attr,
-        label_source_class,
-        label_source_attr,
-        aria_source_attr: if input.has_custom_aria_label {
-            "custom"
-        } else {
-            "default"
-        },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_class_name: input.has_custom_class_name,
-    }
+    primitives::resolve_state(input)
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ColorWheelState) -> String {
-    let mut classes = vec![
-        "ui-color-wheel".to_string(),
-        state.motion_source_class.into(),
-        state.label_source_class.into(),
-    ];
-
-    if state.is_disabled {
-        classes.push("ui-color-wheel--disabled".to_string());
-    }
-
-    if state.has_custom_class_name {
-        classes.push("ui-color-wheel--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
-
-    classes.join(" ")
+    primitives::compose_class_name(base_class_name, state)
 }
 
 #[cfg(any(test, target_arch = "wasm32"))]
@@ -160,32 +353,14 @@ pub fn pointer_to_hue_angle(
     rect_width: f64,
     rect_height: f64,
 ) -> f64 {
-    let center_x = rect_left + rect_width / 2.0;
-    let center_y = rect_top + rect_height / 2.0;
-    let dx = client_x - center_x;
-    let dy = client_y - center_y;
-
-    let radians = dy.atan2(dx);
-    let degrees = radians.to_degrees();
-
-    normalize_angle(degrees + 90.0)
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn hue_from_pointer_event(
-    track: &leptos::web_sys::Element,
-    ev: &leptos::ev::PointerEvent,
-) -> Option<f64> {
-    let rect = track.get_bounding_client_rect();
-
-    Some(pointer_to_hue_angle(
-        ev.client_x() as f64,
-        ev.client_y() as f64,
-        rect.left(),
-        rect.top(),
-        rect.width(),
-        rect.height(),
-    ))
+    primitives::pointer_to_hue_angle(
+        client_x,
+        client_y,
+        rect_left,
+        rect_top,
+        rect_width,
+        rect_height,
+    )
 }
 
 #[cfg(test)]

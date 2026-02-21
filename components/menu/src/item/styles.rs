@@ -4,10 +4,11 @@ pub const CSS: &str = r#"
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   width: 100%;
-  padding: 6px 10px;
-  border-radius: 10px;
+  padding: var(--ui-space-xs, var(--ui-fallback-space-xs))
+    var(--ui-space-sm, var(--ui-fallback-space-sm));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
   cursor: default;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -28,22 +29,30 @@ pub const CSS: &str = r#"
 
 .ui-menu-item--checkable,
 .ui-menu-item[data-checkable="true"] {
-  padding-inline-start: 8px;
+  padding-inline-start: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-menu-item--checked,
 .ui-menu-item[data-checked="true"] {
-  color: color-mix(in oklab, var(--ui-fg) 92%, var(--ui-accent) 8%);
+  color: color-mix(
+    in oklab,
+    var(--ui-fg, var(--ui-fallback-fg)) 92%,
+    var(--ui-accent, var(--ui-fallback-accent)) 8%
+  );
 }
 
 .ui-menu-item--focused,
 .ui-menu-item[data-focused="true"] {
-  background: color-mix(in oklab, var(--ui-bg-muted) 82%, var(--ui-accent) 18%);
+  background: color-mix(
+    in oklab,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted)) 82%,
+    var(--ui-accent, var(--ui-fallback-accent)) 18%
+  );
 }
 
 .ui-menu-item--disabled,
 .ui-menu-item[data-disabled="true"] {
-  opacity: 0.52;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
   cursor: not-allowed;
 }
 
@@ -51,7 +60,7 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
+  width: var(--ui-icon-size-100, var(--ui-fallback-icon-size-100));
   min-height: 1lh;
   flex-shrink: 0;
 }
@@ -61,7 +70,7 @@ pub const CSS: &str = r#"
   flex: 1;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-menu-item__submenu-indicator {
@@ -69,15 +78,19 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  color: color-mix(in oklab, var(--ui-fg-muted) 88%, var(--ui-accent) 12%);
+  width: var(--ui-icon-size-100, var(--ui-fallback-icon-size-100));
+  color: color-mix(
+    in oklab,
+    var(--ui-fg-muted, var(--ui-fallback-fg-muted)) 88%,
+    var(--ui-accent, var(--ui-fallback-accent)) 12%
+  );
 }
 
 .ui-menu-item__selection-sr {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
+  width: var(--ui-border-width, var(--ui-fallback-border-width));
+  height: var(--ui-border-width, var(--ui-fallback-border-width));
+  margin: calc(-1 * var(--ui-border-width, var(--ui-fallback-border-width)));
   padding: 0;
   border: 0;
   overflow: hidden;
@@ -87,11 +100,16 @@ pub const CSS: &str = r#"
 
 .ui-menu-item--submenu,
 .ui-menu-item[data-has-submenu="true"] {
-  padding-inline-end: 12px;
+  padding-inline-end: var(--ui-space-md, var(--ui-fallback-space-md));
 }
 
 .ui-menu-item--custom-class,
 .ui-menu-item[data-custom-class="true"] {
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ui-border) 70%, var(--ui-accent) 30%) inset;
+  box-shadow: 0 0 0 var(--ui-border-width, var(--ui-fallback-border-width))
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border)) 70%,
+      var(--ui-accent, var(--ui-fallback-accent)) 30%
+    ) inset;
 }
 "#;

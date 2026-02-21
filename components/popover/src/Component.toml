@@ -1,0 +1,97 @@
+schema_version = "1"
+
+[component]
+name = "Popover"
+crate = "ui-popover"
+
+[[inputs]]
+name = "open"
+ty = "leptos::prelude::Signal<bool>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "anchor_ref"
+ty = "leptos::prelude::NodeRef<leptos::html::Button>"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "on_close"
+ty = "ui_headless::OnPress"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "children"
+ty = "leptos::children::ChildrenFn"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "placement"
+ty = "ui_headless::PopoverPlacement"
+default = "PopoverPlacement::default()"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "PopoverMotion"
+default = "PopoverMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "is_modal"
+ty = "bool"
+default = "true"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_exit_complete"
+ty = "Option<leptos::prelude::Callback<()>>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-open + data-closed + data-modal + data-placement + data-*-source"
+scope = "popover-root/panel"
+
+[[outputs]]
+name = "on_close"
+ty = "ui_headless::OnPress"
+scope = "popover-dismiss"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "position_measurement_rectification"
+enabled = true
+
+[[capabilities]]
+name = "focus_trap_restore_policy"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-contract"

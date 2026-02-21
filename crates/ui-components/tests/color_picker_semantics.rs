@@ -1,6 +1,9 @@
 use std::fs;
 use std::path::Path;
 
+#[path = "../../../components/color-picker/test/semantics.rs"]
+mod color_picker_local_semantics;
+
 fn resolve_source_path(rel_path: &str) -> Option<std::path::PathBuf> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let workspace_dir = manifest_dir
@@ -117,7 +120,13 @@ fn color_picker_uses_logic_state_model() {
         "pub const DEFAULT_LABEL",
         "pub const DEFAULT_ARIA_LABEL",
         "pub struct ColorPickerIds",
+        "pub struct ColorPickerDerivedStateInput",
         "pub fn sanitize_selected_color(",
+        "pub fn resolve_default_selected_color(",
+        "pub fn resolve_is_disabled(",
+        "pub fn resolve_selected_color_axis<",
+        "pub fn resolve_selected_change_axis<",
+        "pub fn resolve_derived_state(",
         "pub fn resolve_ids(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
@@ -132,7 +141,7 @@ fn color_picker_uses_logic_state_model() {
         "overlay_open::use_controllable_state(",
         "overlay_open::use_controllable_open_state_traced(",
         "use_presence(open)",
-        "logic::resolve_state(ColorPickerStateInput {",
+        "logic::resolve_derived_state(logic::ColorPickerDerivedStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
         "<Popover",
         "motion=motion.popover",
@@ -196,6 +205,30 @@ fn color_picker_styles_include_open_disabled_and_custom_contracts() {
 }
 
 #[test]
+fn color_picker_styles_consume_ui_theme_variables_without_private_token_namespace() {
+    let source = load_source("../../components/color-picker/src/styles.rs");
+
+    for needle in [
+        "var(--ui-space-xs)",
+        "var(--ui-font-size-150",
+        "var(--ui-line-height-150",
+        "var(--ui-overlay-panel-min-width, 240px)",
+        "var(--ui-radius-md)",
+        "var(--ui-shadow-md)",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorPicker styles should consume ui-theme variables via `{needle}`."
+        );
+    }
+
+    assert!(
+        !source.contains("--ui-color-picker-custom-motion"),
+        "ColorPicker should not introduce a component-private token namespace in styles.rs."
+    );
+}
+
+#[test]
 fn color_picker_exposes_motion_contract_and_internal_module() {
     let mod_source = load_source("../../components/color-picker/src/mod.rs");
     let motion_source = load_source("../../components/color-picker/src/motion.rs");
@@ -244,6 +277,7 @@ fn color_picker_docs_page_covers_primary_playgrounds() {
         "pub(super) fn color_picker() -> AnyView",
         "title=\"ColorPicker\"",
         "slug=\"color-picker\"",
+        "title=\"Hello World（默认路径）\"",
         "title=\"Controlled Color + Controlled Open\"",
         "title=\"Disabled + Default Open + Custom Class\"",
     ] {
@@ -259,6 +293,9 @@ fn color_picker_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
+        "<Playground title=\"Hello World（默认路径）\" code_signal=hello_code>",
+        "id_base=\"docs-color-picker-hello\".to_string()",
+        "<ColorPicker id_base=\"docs-color-picker-hello\".to_string()>",
         "<Playground title=\"Controlled Color + Controlled Open\" code_signal=basic_code>",
         "id_base=\"docs-color-picker-basic\".to_string()",
         "selected_color=selected_color_signal",
@@ -269,7 +306,7 @@ fn color_picker_docs_playgrounds_lock_state_matrix_contract_values() {
         "<Playground title=\"Disabled + Default Open + Custom Class\" code_signal=states_code>",
         "id_base=\"docs-color-picker-disabled\".to_string()",
         "default_selected_color=\"#0ea5e9\".to_string()",
-        "disabled=true",
+        "is_disabled=true",
         "class_name=\"docs-color-picker-custom\".to_string()",
         "id_base=\"docs-color-picker-open\".to_string()",
         "default_selected_color=\"#8b5cf6\".to_string()",
@@ -307,6 +344,13 @@ fn color_picker_view_mounts_locale_and_headless_a11y_contracts() {
         "let locale = locale_attrs(lang, dir);",
         "lang=locale.lang.clone()",
         "dir=locale.dir",
+        "popup_trigger_attrs(",
+        "overlay_dialog_attrs(",
+        "use_button(ButtonOptions {",
+        "use_focus_ring(FocusRingOptions {",
+        "use_hover(HoverOptions {",
+        "trigger_aria.handlers.press.on_key_down.run(key)",
+        "trigger_aria.handlers.press.on_key_up.run(key)",
         "ui_headless::aria_controls_when_open(open, panel_id.get_value())",
         "aria-haspopup=\"dialog\"",
         "role=\"dialog\"",
@@ -314,6 +358,71 @@ fn color_picker_view_mounts_locale_and_headless_a11y_contracts() {
         assert!(
             source.contains(needle),
             "ColorPicker view should include `{needle}` for locale/a11y contract coverage."
+        );
+    }
+}
+
+#[test]
+fn color_picker_value_axis_exposes_canonical_triplet_with_legacy_alias_fallbacks() {
+    let source = load_source("../../components/color-picker/src/view.rs");
+
+    for needle in [
+        "#[prop(optional)] value: Option<Signal<Option<String>>>",
+        "#[prop(optional, into)] default_value: Option<String>",
+        "#[prop(optional)] on_value_change: Option<Callback<Option<String>>>",
+        "#[prop(optional)] selected_color: Option<Signal<Option<String>>>",
+        "#[prop(optional, into)] default_selected_color: Option<String>",
+        "#[prop(optional)] on_selected_change: Option<Callback<Option<String>>>",
+        "let selected_color = logic::resolve_selected_color_axis(value, selected_color);",
+        "logic::resolve_default_selected_color(default_value, default_selected_color);",
+        "let on_selected_change = logic::resolve_selected_change_axis(on_value_change, on_selected_change);",
+        "let is_disabled = logic::resolve_is_disabled(is_disabled, disabled);",
+        "logic::resolve_derived_state(logic::ColorPickerDerivedStateInput {",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorPicker value axis contract should include `{needle}`.",
+        );
+    }
+
+    assert!(
+        !source.contains("default_value.or(default_selected_color)"),
+        "ColorPicker should keep default value priority normalization in logic.rs.",
+    );
+    assert!(
+        !source.contains("has_selection: selected_color.get().is_some()"),
+        "ColorPicker should keep state derivation in logic.rs.",
+    );
+    assert!(
+        !source.contains("#[prop(optional)] state:"),
+        "ColorPicker should not require an internal state object prop for baseline usage.",
+    );
+}
+
+#[test]
+fn color_picker_discrete_axes_are_type_constrained_with_enums() {
+    let source = load_source("../../components/color-picker/src/view.rs");
+
+    for needle in [
+        "#[prop(optional)] placement: PopoverPlacement",
+        "#[prop(optional)] swatch_size: ColorSwatchSize",
+        "#[prop(optional)] swatch_rounding: ColorSwatchRounding",
+        "#[prop(optional)] swatch_shape: ColorSwatchShape",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorPicker discrete axis should use enum type `{needle}`.",
+        );
+    }
+
+    for forbidden in [
+        "variant: Option<String>",
+        "mode: Option<String>",
+        "status: Option<String>",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "ColorPicker should not expose free-form discrete string axis `{forbidden}`.",
         );
     }
 }

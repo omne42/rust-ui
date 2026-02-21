@@ -10,6 +10,8 @@ use leptos::{html, prelude::*};
     target_arch = "wasm32"
 ))]
 use std::borrow::Cow;
+#[cfg(feature = "component-button_group")]
+use ui_headless::labeled_group_attrs;
 use ui_headless::{
     A11yDirection, ButtonOptions, CommonStrings, FocusRingOptions, HoverOptions, OnPress,
     popup_trigger_attrs, use_button, use_focus_ring, use_hover, use_ui_i18n,
@@ -771,8 +773,10 @@ pub fn Button(
     let class = view_state.class_name;
     let start_content = start_content.map(StoredValue::new);
     let end_content = end_content.map(StoredValue::new);
+    let normalized_schema = logic::normalize_schema_json_input(schema_json);
     let has_popup_trigger = aria_haspopup.is_some();
     let agent_contract = logic::resolve_agent_contract(state, has_popup_trigger);
+    let output_status = logic::resolve_output_status(state, normalized_button_type);
     let popup_a11y = popup_trigger_attrs(
         aria_haspopup,
         aria_controls,
@@ -898,11 +902,17 @@ pub fn Button(
             data-label-source=normalized_aria_label_source.as_attr()
             data-color=state.color_attr
             data-radius=state.radius_attr
-            data-ui-schema=schema_json
+            data-ui-schema=agent_contract.schema_name
+            data-ui-schema-version=agent_contract.schema_version.as_str()
+            data-ui-schema-payload=normalized_schema.schema_json
+            data-ui-schema-input-source=normalized_schema.source.as_attr()
             data-ui-agent-schema=agent_contract.schema_name
             data-ui-agent-schema-version=agent_contract.schema_version.as_str()
             data-ui-intent=agent_contract.intent.as_str()
+            data-ui-action=agent_contract.action.as_str()
             data-ui-state=agent_contract.state.as_str()
+            data-ui-source=agent_contract.source.as_str()
+            data-ui-output-status=output_status.as_attr()
             data-ui-capability-press=agent_contract.capabilities.can_press.then_some("true")
             data-ui-capability-focus=agent_contract.capabilities.can_focus.then_some("true")
             data-ui-capability-hover=agent_contract.capabilities.can_hover.then_some("true")
@@ -947,29 +957,22 @@ pub fn Button(
 #[leptos::component]
 pub fn ButtonGroup(
     #[prop(optional)] orientation: logic::ButtonGroupOrientation,
-    #[prop(optional)] attached: bool,
+    #[prop(optional)] is_attached: bool,
     #[prop(optional)] motion: motion::ButtonGroupMotion,
     #[prop(optional)] node_ref: NodeRef<html::Div>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
     let (aria_label, has_explicit_label) = logic::normalize_button_group_aria_label(aria_label);
+    let group_a11y = labeled_group_attrs(aria_label, lang, dir);
+    let class_name = logic::normalize_optional_text(class_name);
     let state = Memo::new(move |_| {
-        logic::resolve_button_group_state(orientation, attached, has_explicit_label)
+        logic::resolve_button_group_state(orientation, is_attached, has_explicit_label)
     });
-
-    let base_class = format!("ui-button-group {}", orientation.class_name());
-    let base_class = if attached {
-        format!("{base_class} ui-button-group--attached")
-    } else {
-        base_class
-    };
-
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class = logic::compose_button_group_class_name(class_name, orientation, is_attached);
 
     motion::attach_button_group_motion(node_ref, motion);
 
@@ -994,8 +997,10 @@ pub fn ButtonGroup(
             data-has-fallback-label=move || state.get().has_fallback_label.then_some("true")
             data-motion-source=motion_source
             data-custom-motion=custom_motion
-            role="group"
-            aria-label=aria_label
+            role=group_a11y.role
+            aria-label=group_a11y.aria_label.clone()
+            lang=group_a11y.lang.clone()
+            dir=group_a11y.dir
         >
             {children()}
         </div>

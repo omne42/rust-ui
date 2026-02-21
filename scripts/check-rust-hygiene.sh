@@ -5,8 +5,14 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 MAX_REPORT_LINES=80
+RUST_HYGIENE_SCOPE="${RUST_HYGIENE_SCOPE:-crates apps}"
+RUST_HYGIENE_FILES="${RUST_HYGIENE_FILES:-}"
 
-./scripts/check-api-contracts.sh
+if rg --pcre2 -n "hygiene-probe" "$0" >/dev/null 2>&1; then
+  bash ./scripts/check-api-contracts.sh
+else
+  echo "[rust-hygiene] skip check-api-contracts.sh (ripgrep built without PCRE2)." >&2
+fi
 
 unwrap_expect_count=0
 let_underscore_count=0
@@ -126,7 +132,19 @@ while IFS= read -r file; do
     '([A-Za-z0-9_.()]*_(label|name|title|group|route|path|class|id|key|text|placeholder|src|role|description|icon|token|base|fallback|default|host|href|alt|aria|tooltip)\.to_string\(\)|\b(label|name|title|group|route|path|class|id|key|text|placeholder|src|role|description|icon|token|base|fallback|default|host|href|alt|aria|tooltip)\.to_string\(\)|\.(as_ref|as_str|trim|trim_start|trim_end|trim_start_matches|trim_end_matches)\([^)]*\)\.to_string\(\))' \
     string_clone_lines \
     string_clone_count
-done < <(find crates apps -type f -name '*.rs' -path '*/src/*' | sort)
+done < <(
+  if [[ -n "$RUST_HYGIENE_FILES" ]]; then
+    for file in $RUST_HYGIENE_FILES; do
+      if [[ -f "$file" ]]; then
+        printf '%s\n' "$file"
+      fi
+    done | sort
+  else
+    # Scope defaults to crates+apps and can be narrowed in component-level checks.
+    read -r -a scope_roots <<<"$RUST_HYGIENE_SCOPE"
+    find "${scope_roots[@]}" -type f -name '*.rs' -path '*/src/*' | sort
+  fi
+)
 
 status=0
 

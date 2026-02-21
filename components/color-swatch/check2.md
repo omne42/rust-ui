@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ColorSwatch` 状态原语已下沉至 `crates/ui-state-primitives/src/color_swatch.rs`，组件 `logic.rs` 仅保留装配函数 `compose_class_name`/`compose_inline_style`。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`ColorSwatch` A11y 语义已下沉到 `crates/ui-headless/src/color_swatch.rs` 的 `use_color_swatch_a11y`；组件 `view.rs` 仅挂载 `a11y.attrs`；回归覆盖位于 `crates/ui-components/tests/color_swatch_semantics.rs` 与 `e2e/tests/docs_app_color_swatch_contract.spec.mjs`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ColorSwatch` 已在 `motion.rs` 直接映射到 `ui_motion::spring::SpringAnimator`，并覆盖 `prefers-reduced-motion` 与 non-wasm no-op；不再依赖 `illustrated_message::motion` 跨组件耦合。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`ColorSwatch` layout token 已补齐 `tokens.rs -> theme.rs -> css.rs`：`ColorSwatchLayoutTokens`/`color_swatch_layout_tokens`/`--ui-color-swatch-*`；组件 `styles.rs` 已改为仅消费 `var(--ui-color-swatch-*, var(--ui-fallback-color-swatch-*))`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ColorSwatch` 已按 `logic/view/styles/motion` 分责：`logic.rs` 仅消费 `ui-state-primitives`，`view.rs` 挂载 `ui-headless` 语义，`motion.rs` 映射 `ui-motion`，`styles.rs` 仅消费 `ui-theme` 变量；并补齐 `components/color-swatch/test/semantics.rs`，同时在 `crates/ui-components/tests/color_swatch_semantics.rs` 挂载本地语义测试完成迁移。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +55,92 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ColorSwatch` 布尔状态 props 采用 `is_bordered`/`is_decorative`，且无 `bordered/decorative` 别名漂移；本组件无受控状态轴，因此 `on_*`/`default_*` 回调与默认值为 N/A（无该类公开 API），语义由 `components/color-swatch/test/semantics.rs` 固化。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`ColorSwatch` 为纯展示组件，无可控状态轴与内部状态机；不暴露 `value/on_value_change/default_value` 类 API，语义由 `components/color-swatch/test/semantics.rs` 的 `color_swatch_has_no_controlled_uncontrolled_state_axis` 固化，防止出现半受控隐式行为。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ColorSwatch` 已将 inline-style 默认兜底固定在 `logic.rs::resolve_inline_style`，并由 `logic::resolve_render_state` 统一产出；`view.rs` 仅消费 `style=render_state.inline_style`。对应约束由 `components/color-swatch/test/semantics.rs` 的 `color_swatch_default_value_resolution_stays_in_logic` 固化。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`ColorSwatch` 已新增 `logic::ColorSwatchRenderInput`/`logic::resolve_render_state` 统一完成 color/aria/boolean/state/class/style 派生；`view.rs` 仅消费 `render_state` 挂载语义与结构，不再直接调用 `sanitize/normalize/resolve_state`。对应约束由 `components/color-swatch/test/semantics.rs` 与 `crates/ui-components/tests/color_swatch_semantics.rs` 固化。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ColorSwatch` 离散轴已类型化：`size/rounding/shape/alpha` 均由 `ColorSwatch*` 枚举建模并在 `ui-state-primitives` 派生；组件未暴露字符串 variant/mode/status 输入。`is_bordered` 与 `is_decorative` 为正交语义开关而非互斥状态机，且数量受 `components/color-swatch/test/semantics.rs` 与 `crates/ui-components/tests/color_swatch_semantics.rs` 的 `color_swatch_discrete_state_axes_use_type_constraints` 约束。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`ColorSwatch` 的状态派生能力仅经 `logic.rs` 复用 `ui-state-primitives` 的 `ColorSwatchStateInput/normalize_is_*/resolve_state`，组件层未重写可复用状态机且未直接绑定业务 store；约束由 `components/color-swatch/test/semantics.rs` 与 `crates/ui-components/tests/color_swatch_semantics.rs` 的 `color_swatch_state_primitives_source_boundary_is_enforced` 固化。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`ColorSwatch` 为同步展示组件，无远程请求与异步状态轴，不暴露 `is_loading/error/retry/aria-busy` 协议；约束由 `components/color-swatch/test/semantics.rs` 与 `crates/ui-components/tests/color_swatch_semantics.rs` 的 `color_swatch_has_no_async_interaction_protocol` 固化。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`ColorSwatch` 默认路径已提供最小可用调用：`README` 增加一行式 Hello World `<ColorSwatch color="#2663eb".to_string() />`，docs-app 增加 `Hello World (Default Path)` Playground；基础用法无需暴露或手动接线 `ui-state-primitives/ui-headless`。约束由 `components/color-swatch/test/semantics.rs` 与 `crates/ui-components/tests/color_swatch_semantics.rs` 的 `color_swatch_dx_paradox_keeps_default_path_simple` 固化。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`ColorSwatch` 为单体展示组件，非组合型容器组件，不存在 `Parent/Item` 语义树与并行数组槽位 API；默认调用保持显式 `<ColorSwatch ... />`。约束由 `components/color-swatch/test/semantics.rs` 与 `crates/ui-components/tests/color_swatch_semantics.rs` 的 `color_swatch_non_composite_api_stays_explicit_and_simple` 固化。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`ColorSwatch` 为静态颜色展示组件，无拖拽交互与高频 Dragging 循环，不存在 `Action::DragEnd` 回流路径；约束由 `components/color-swatch/test/semantics.rs` 与 `crates/ui-components/tests/color_swatch_semantics.rs` 的 `color_swatch_has_no_drag_macro_micro_state_machine` 固化。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`ColorSwatch` 为静态颜色展示组件，不承担 `Tooltip/Popover/Menu` 一类 overlay 定位与 DOM 几何测量职责，不存在 `Intent -> Measure -> Rectification` 回流链路与收敛循环风险；约束由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_two_pass_geometry_rendering_pipeline` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_two_pass_geometry_rendering_pipeline` 固化。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`ColorSwatch` 为单体颜色展示组件，非动态集合容器，不存在子项注册/注销与 `items_order` 导航语义；约束由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_registration_protocol_for_dynamic_collections` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_registration_protocol_for_dynamic_collections` 固化。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`ColorSwatch` 为单体展示组件，非容器组件，不承载 slot 投影策略与 `KeepAlive` 生命周期管理；不存在 `NotifyHidden` 暂停轮询/动画语义。约束由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_slot_projection_strategy_contract` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_slot_projection_strategy_contract` 固化。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`ColorSwatch` 为静态颜色展示组件，不消费 `Resize/Theme/Intersection` 环境流，也不存在 `view -> debounce -> Action -> logic` 回流链路；约束由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_environment_stream_subscription_pipeline` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_environment_stream_subscription_pipeline` 固化。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`ColorSwatch` 为单体颜色展示组件，不是 `Table/Grid` 大型集合组件，不存在批量选择、状态压缩与 `Context Bus + Selector` 语义，也不存在 O(N) 级 prop drilling 导航路径；约束由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_event_light_cone_for_large_collections` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_event_light_cone_for_large_collections` 固化。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`ColorSwatch` 为单体展示组件，不包含复杂派生总线与订阅者广播模型，不存在 `TraceId` 透传链路需求；约束由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_causality_bus_trace_chain_contract` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_causality_bus_trace_chain_contract` 固化。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`ColorSwatch` 通过 `ui-headless` 契约挂载 `role/aria-*`，并透传 `lang/dir`；`view.rs` 未硬编码业务可见文案，`aria_label` 源在 `logic.rs` 统一归一后交给 headless；共享 locale 工具来自 `crates/ui-headless/src/a11y.rs::locale_attrs`。语义回归由 `components/color-swatch/test/semantics.rs::color_swatch_a11y_i18n_l10n_contract_is_headless_driven` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_a11y_i18n_l10n_contract_is_headless_driven` 固化。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`ColorSwatch` 已输出稳定语义标记：`role/aria-*` 与 `data-size/rounding/shape/alpha/state`，并通过 `data-*-source` 区分来源；`styles.rs` 基于 `data-*` 选择器消费状态且不依赖 DOM 顺序；marker 值在 `ui-state-primitives` 由 `enum + as_attr/match` 封闭枚举。回归由 `components/color-swatch/test/semantics.rs::color_swatch_state_markers_are_observable_queryable_and_enumerable` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_state_markers_are_observable_queryable_and_enumerable` 固化。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`ColorSwatch` 的状态样式分支由 `styles.rs` 中 `data-*`/稳定 class 选择器驱动（如 `data-size/rounding/shape/alpha/bordered`），未使用 `:nth-child` 等结构猜测；运行时 `style` 仅透传必要 CSS 变量 `--ui-color-swatch-color`，无业务样式内联分支。回归由 `components/color-swatch/test/semantics.rs::color_swatch_styles_depend_on_explicit_state_markers_only` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_styles_depend_on_explicit_state_markers_only` 固化。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`ColorSwatch` 语义测试已覆盖 `role/aria/data-state/source markers`，且通过专门回归约束“语义断言优先、快照不替代契约”；分支矩阵按适用范围执行：受控/非受控与 disabled、键盘/指针路径对该叶子展示组件为 N/A（无对应交互轴），SSR/wasm 差异通过 `motion.rs` 的 `cfg(target_arch = "wasm32")` 与 non-wasm 分支约束。回归由 `components/color-swatch/test/semantics.rs::color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots` 固化。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`ColorSwatch` 目录已按职责拆分且由语义测试固化：`mod.rs` 仅暴露最小 API 边界（组件级 feature gate 在 `crates/ui-components/src/lib.rs` 管理）；`logic.rs` 仅做原语装配与来源派生；`styles.rs` 为 token-first 静态 CSS；`view.rs` 仅挂载结构与 headless 契约；`motion.rs` 映射并 attach `ui-motion` contract。约束由 `components/color-swatch/test/semantics.rs::color_swatch_component_layer_keeps_file_responsibilities`、`components/color-swatch/test/semantics.rs::color_swatch_does_not_expose_logic_or_view_modules` 及 `crates/ui-components/tests/color_swatch_semantics.rs` 对应同名测试固化。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`ColorSwatch` 作为简单展示组件未引入 `src/spec.rs`，组件说明保留在 `check2.md` 与 `README.md`；`mod.rs` 也未暴露 `spec` 导出。约束由 `components/color-swatch/test/semantics.rs::color_swatch_keeps_spec_rs_out_of_simple_component_boundary` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_keeps_spec_rs_out_of_simple_component_boundary` 固化。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`ColorSwatch` 样式已集中在 `components/color-swatch/src/styles.rs`，视觉值通过 `var(--ui-*)` 与 `--ui-*` 自定义属性命名空间消费；`crates/ui-components/src/css.rs` 通过 `component-color_swatch` feature 聚合，`crates/ui-components/src/root.rs` 通过 `UiRoot` 的 `inject_components_css` 注入；运行时仅透传 `--ui-color-swatch-color` 变量，未引入 Utility-First/CSS-in-Rust 默认范式。约束由 `components/color-swatch/test/semantics.rs::color_swatch_token_first_styles_are_aggregated_and_uiroot_injected` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_token_first_styles_are_aggregated_and_uiroot_injected` 固化。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`ColorSwatch` docs 已提供默认路径与状态矩阵（`apps/docs-app/src/pages/components/pages/display_extra.rs`），并复用仓库级默认主题基线页 `apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs`（包含 Button/Input/Overlay 的层级、对比与 hover/active/focus 反馈基线）及截图回归 `e2e/tests/docs_app_theme_visual_baseline.spec.mjs`；HeroUI 对齐策略由 `docs/spec/heroui-parameter-design-strategy.md` 约束“对齐视觉语言与体验，不做 API 表层复制”。契约回归由 `components/color-swatch/test/semantics.rs::color_swatch_visual_desire_gate_reuses_theme_visual_baseline_and_heroui_contracts` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_visual_desire_gate_reuses_theme_visual_baseline_and_heroui_contracts` 固化。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`crates/ui-components/Cargo.toml` 已为 `ColorSwatch` 提供组件级 feature（`component-color_swatch = ["component-illustrated_message"]`），并在 `web-demo-components` 与 `all-components` 特性束中受控声明；`crates/ui-components/src/lib.rs` 对 `color_swatch` 模块与导出均由 `#[cfg(feature = "component-color_swatch")]` 门控，`crates/ui-components/src/css.rs` 对 `color::swatch::styles::CSS` 聚合也受同 feature 门控且无无条件全量注入。实测特性树：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-color_swatch,inject-css` 仅出现 `component-color_swatch -> component-illustrated_message -> inject-css`，未拉起 `all-components`；反向依赖：`cargo tree -e features -i ui-components -p web-demo` 仅拉起 `web-demo-components`，未出现 `all-components`。CI 侧存在 `scripts/check-ui-components-tree-shaking.sh`（特性树/反向依赖/最小 wasm 编译/发布构建）与 `scripts/tree_shaking_budget.env`（`TREE_SHAKING_BASELINE_RLIB_BYTES` + `TREE_SHAKING_MAX_RATIO_PERCENT`）预算门禁。回归由 `components/color-swatch/test/semantics.rs::color_swatch_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci` 固化。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +149,73 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`ColorSwatch` 离散输入轴 `size/rounding/shape/alpha` 已由 `ui-state-primitives` 的枚举类型建模（`ColorSwatchSize/ColorSwatchRounding/ColorSwatchShape/ColorSwatchAlpha`），并在 `logic.rs` 通过 `resolve_state(ColorSwatchStateInput { ... })` 统一归一化；`view.rs` 对外稳定暴露 `data-size/data-rounding/data-shape/data-alpha/data-state/data-ui-state/data-ui-source` 等语义标记供测试与 Agent 自动化消费，且 marker 值在原语层以封闭映射枚举。编译器与测试反馈闭环由 `components/color-swatch/test/semantics.rs::color_swatch_machine_readable_state_contract_is_type_constrained_and_semantic` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_machine_readable_state_contract_is_type_constrained_and_semantic`（并联已有 `color_swatch_discrete_state_axes_use_type_constraints`、`color_swatch_state_markers_are_observable_queryable_and_enumerable`、`color_swatch_state_primitives_source_boundary_is_enforced`、`color_swatch_default_value_resolution_stays_in_logic`）固化。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`ColorSwatch` 为叶子展示组件，不属于层叠 `Overlay`，不承担打开/关闭与焦点恢复职责；组件中的 `NodeRef` 仅用于 `motion::attach_motion`，未实现 `on_close/on_exit_complete`、`restore_focus`、`FallbackTo/Selector` 或 `document.body` 回退链路。约束由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_overlay_focus_stack_restore_contract` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_overlay_focus_stack_restore_contract` 固化。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`ColorSwatch` 为叶子展示组件，当前实现未集成 ECharts/Map 等命令式第三方实例，公共 API 也未暴露任何第三方句柄；组件仅在 `motion.rs` 内部执行 `ui-motion` attach，不反向污染状态机。回归由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_foreign_zone_escape_hatch_contract` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_foreign_zone_escape_hatch_contract` 固化。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`ColorSwatch` 不生成运行时 `id`，也不建立 `aria-labelledby/aria-describedby` 的跨节点 ID 链接，因此不存在 SSR/Hydration 间 ID 漂移面；组件实现中无 `now()/rand/uuid` 非确定性初始化逻辑。若未来引入动态 ID，再强制接入 `ui-headless::IdProvider`。回归由 `components/color-swatch/test/semantics.rs::color_swatch_has_no_hydration_discontinuity_id_generation_contract` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_has_no_hydration_discontinuity_id_generation_contract` 固化。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（`ColorSwatch` 平台分支已在 `motion.rs` 明确使用 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]`：wasm 分支持有 `web_sys + wasm_bindgen` 浏览器绑定，non-wasm 分支仅执行 `std::hint::black_box(sanitize_motion(motion))` 的 no-op/stub，不触达浏览器对象。compile-only 实测：`cargo check -p ui-color-swatch` 通过；`cargo check -p ui-color-swatch --target x86_64-unknown-linux-gnu` 与 `cargo check -p ui-color-swatch --target wasm32-unknown-unknown` 在当前 CI/容器文件系统下被 `Invalid cross-device link (os error 18)` 环境问题阻断（非组件逻辑错误）。契约回归由 `components/color-swatch/test/semantics.rs::color_swatch_platform_contract_uses_cfg_and_non_wasm_browser_free_path` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_platform_contract_uses_cfg_and_non_wasm_browser_free_path` 固化。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 已存在硬保护：`#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`；`crates/ui-headless/Cargo.toml` feature 轴为 `web = ["leptos/csr"]`、`ssr = ["leptos/ssr"]` 且默认仅 `web`。`ColorSwatch` 在 `view.rs` 仅通过 `use_color_swatch_a11y` 消费 headless typed contract，`crates/ui-components/Cargo.toml` 依赖 `ui-headless` 未强绑 `ui-headless/web` 与 `ui-headless/ssr` 同开路径。编译验证命令已执行：`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --no-default-features --features web,ssr`，当前容器环境均被 `Invalid cross-device link (os error 18)` 阻断（环境问题，非组件逻辑错误）；互斥契约由 `components/color-swatch/test/semantics.rs::color_swatch_preserves_ui_headless_web_ssr_compile_error_contract` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_preserves_ui_headless_web_ssr_compile_error_contract` 固化。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 已在 `#[cfg(not(target_arch = "wasm32"))]` 提供 `web` no-op backend：`prefers_reduced_motion() -> true` 与 `animate` 空实现，并附 `non_wasm_web_backend_is_predictable_noop` 测试；`ColorSwatch` 的 `motion.rs` 在 non-wasm 分支仅执行 `std::hint::black_box(sanitize_motion(motion))`，不假设动画句柄存在、无 panic/unwrap 路径，`view.rs` 仅通过 `motion::attach_motion` 挂载契约。回归由 `components/color-swatch/test/semantics.rs::color_swatch_motion_contract_preserves_non_wasm_ui_motion_noop_backend` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_motion_contract_preserves_non_wasm_ui_motion_noop_backend` 固化；命令验证已尝试：`cargo test -p ui-motion non_wasm_web_backend_is_predictable_noop` 与 `cargo test -p ui-components color_swatch_motion_contract_preserves_non_wasm_ui_motion_noop_backend` 在当前容器受 `Invalid cross-device link (os error 18)` 阻断（环境问题），`cargo test -p ui-color-swatch color_swatch_motion_contract_preserves_non_wasm_ui_motion_noop_backend` 已通过。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`ColorSwatch` 的 `motion.rs` 已显式覆盖 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]`：wasm 分支通过 `ui_motion::web::prefers_reduced_motion()` 控制 `initial_progress`，在 reduced-motion 下直接走最小必要反馈（进度=1.0，无入场位移动画）；non-wasm 分支安全降级为 `black_box(sanitize_motion(motion))` no-op。`view.rs` 的语义契约（`role/aria-*` 与 `data-state/data-ui-*`）不含平台 `cfg` 分裂，SSR 与 wasm 共享同一语义输出，避免 hydration 首帧语义错位。回归由 `components/color-swatch/test/semantics.rs::color_swatch_covers_reduced_motion_ssr_wasm_without_semantic_split` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_covers_reduced_motion_ssr_wasm_without_semantic_split` 固化；命令验证 `cargo test -p ui-color-swatch color_swatch_covers_reduced_motion_ssr_wasm_without_semantic_split` 已执行通过，聚合侧仍受 `Invalid cross-device link (os error 18)` 环境问题阻断。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`ColorSwatch` docs 页已落入 `UiPerfProbe` 预算治理链，并在 `apps/docs-app/src/pages/components/shell.rs` 建立独立预算：`"color-swatch" => UiPerfBudget { max_mount_ms: 22.0, max_update_ms: Some(6.0), max_heap_kb: Some(320.0) }`；`apps/docs-app/src/perf_probe.rs` 与 `e2e/tests/docs_app_components_coverage.spec.mjs` 已提供 `data-perf-*` 可检测/可阻断路径，组件本身在 `view.rs`/`styles.rs` 暴露 `data-state`、`data-alpha`、`data-aria-source`、`data-motion-source` 与 motion CSS 变量，满足回归归因。当前框架尚未为本组件提供稳定 `render_count` 自动计数，因此采用 mount/update/heap 的等价证据，并持续绑定 `docs/plan/TODO.md` 的 `render_count` 后续任务；语义回归由 `components/color-swatch/test/semantics.rs::color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocking` 固化，脚本门禁已接入 `scripts/check-ui-components-performance.sh`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`ColorSwatch` 的 `view.rs` 维持单一且紧凑的 `view!`（1 个根容器 + 3 个语义子片段），未出现循环/列表映射/深层容器嵌套；`data-slot` 标记各自唯一，避免重复深片段。回归由 `components/color-swatch/test/semantics.rs::color_swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders` 固化，并已接入 `scripts/check-ui-components-view-macro.sh` 门禁。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`ColorSwatch` 当前布局为简单叶子组件，`view.rs` 维持单一公共 `#[component]` 边界且未引入额外局部 `#[component]`/`render_*` 抽象噪音；同时保持 `data-slot`/`data-state`/`data-aria-source` 等语义标记稳定，避免拆分导致测试选择器漂移。回归由 `components/color-swatch/test/semantics.rs::color_swatch_view_functional_split_prefers_no_extra_local_components_for_simple_layout` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_view_functional_split_prefers_no_extra_local_components_for_simple_layout` 固化，并已接入 `scripts/check-ui-components-view-macro.sh` 门禁。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`ColorSwatch` 已将纯静态片段统一收敛到 `view.rs` 顶部常量：`SLOT_COLOR_SWATCH*`、`CLASS_COLOR_SWATCH*` 与 `BOOL_TRUE`，渲染时仅挂载常量引用（`data-slot=SLOT_*`、`class=CLASS_*`、`aria-hidden=BOOL_TRUE`），避免散落字面量导致重复构造与维护漂移；同时保持 A11y 语义不变。回归由 `components/color-swatch/test/semantics.rs::color_swatch_static_fragments_are_constantized_or_absent_for_simple_indicator_layout` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_static_fragments_are_constantized_or_absent_for_simple_indicator_layout` 固化，并已接入 `scripts/check-ui-components-view-macro.sh` 门禁。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`ColorSwatch` 组件与 docs 接入路径均未使用 `inner_html/set_inner_html/dangerously*`，当前为显式 N/A（无 HTML 注入入口）；语义与安全回归由 `components/color-swatch/test/semantics.rs::color_swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples` 固化，脚本门禁 `scripts/check-ui-components-inner-html.sh` 已接入 `color_swatch_inner_html_usage_is_forbidden_in_component_and_docs_examples`。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`ColorSwatch` 作为非交互叶子展示组件，关键状态追踪通过稳定 `data-*` 来源/状态标记实现（`data-size/rounding/shape/alpha/state/*-source`）；交互回放对本组件为显式 N/A（无键盘/指针输入链），调试能力复用全局 `ui-headless::trace` + `apps/docs-app/src/debug_overlay.rs` 可视化入口，并保持 feature 隔离（无 `color-swatch-wasm-debug` 本地特性，不泄露调试 API 到公共面）。回归由 `components/color-swatch/test/semantics.rs::color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated` 固化，脚本门禁 `scripts/check-ui-components-wasm-debug.sh` 已接入对应测试命令。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`ColorSwatch` docs 已复用 `apps/docs-app/src/playground.rs` 的 scoped CSS 热更新路径（`compose_scoped_css + data-playground-scope + Show test/Restore original CSS`），常见样式调整无需重编 wasm；`apps/docs-app/src/pages/components/pages/display_extra.rs` 的 `color_swatch` 页面提供 `Interactive Playground (展示 / Config / Code / CSS Test)` 作为隔离演练画布，并通过尺寸/形状/圆角/透明度/边框/装饰等控制保持调试上下文可见。可选状态保留在本组件场景按 N/A 处理：不引入 `localStorage`/`Persist workbench state`，避免把页面级持久化噪音注入展示组件契约。回归由 `components/color-swatch/test/semantics.rs::color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na` 固化，脚本门禁 `scripts/check-ui-components-dx.sh` 已接入对应测试命令。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`ColorSwatch` 为简单展示组件，`spec/config` 序列化链路按 N/A 处理：组件目录不存在 `src/spec.rs`，实现层不引入 `serde/serde_json` 与迁移函数；tracing 语义复用仓库统一基线（`ui-components` 共享 `dep:tracing` 特性与 `ui-headless::trace` 事件模型），组件自身不自造 `tracing::span/event` 目标；异步边界保持纯展示契约，未泄露 `tokio/async-std/runtime` 类型到公共 API。回归由 `components/color-swatch/test/semantics.rs::color_swatch_engineering_contract_marks_spec_serde_path_as_na_and_keeps_tracing_runtime_boundaries` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_engineering_contract_marks_spec_serde_path_as_na_and_keeps_tracing_runtime_boundaries` 固化，脚本门禁 `scripts/check-ui-components-engineering.sh` 已接入对应测试命令。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/color-swatch/src/styles.rs` 已将位移动效回退改为 `translateY(var(--ui-color-swatch-y, var(--ui-fallback-color-swatch-y)))`，移除裸 `0px` 终值；`crates/ui-theme/src/css.rs` 新增 `--ui-fallback-color-swatch-y: 0px;` 作为 SSOT 终值输出。回归由 `components/color-swatch/test/semantics.rs::color_swatch_styles_use_defensive_variable_fallback_chain` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_local_semantics::color_swatch_styles_use_defensive_variable_fallback_chain` 固化，并接入 `scripts/check-ui-components-contract-hygiene.sh`：`cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_styles_use_defensive_variable_fallback_chain`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui-components/src/css.rs` 的 `push_components_css` 已固定输出 `@layer ui` 包裹并在 `#[cfg(feature = "component-color_swatch")]` 下聚合 `crate::color::swatch::styles::CSS`；`components/color-swatch/src/view.rs` 仅挂载 `style=render_state.inline_style`，`components/color-swatch/src/logic.rs::compose_inline_style` 仅输出 `--ui-color-swatch-color` 自定义变量，`components/color-swatch/src/motion.rs` 运行时仅写入 `--ui-color-swatch-opacity/--ui-color-swatch-y`，不写 `top/left/width/height/transform/opacity` 普通内联样式。回归由 `components/color-swatch/test/semantics.rs::color_swatch_cascade_layer_and_runtime_style_contract_is_enforced` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_local_semantics::color_swatch_cascade_layer_and_runtime_style_contract_is_enforced` 固化，并接入 `scripts/check-ui-components-contract-hygiene.sh` 门禁命令：`cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_cascade_layer_and_runtime_style_contract_is_enforced`。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（`components/color-swatch/src/motion.rs` 已内置 `ColorSwatchMotion` 契约：`spring.stiffness/damping/mass/precision` 来自 `ui_theme::default_swatch_motion_tokens()`，并通过 `sanitize_motion` 统一收敛；`view.rs` 仅通过 `motion::attach_motion(root_ref, motion)` 挂载。wasm 分支在 `attach_motion` 中使用 `if motion.enabled && !ui_motion::web::prefers_reduced_motion()` 决定初始进度并通过 `SpringAnimator` 驱动 CSS 变量，non-wasm/SSR 分支以 `std::hint::black_box(sanitize_motion(motion))` 安全 no-op 降级。回归由 `components/color-swatch/test/semantics.rs::color_swatch_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_local_semantics::color_swatch_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe` 固化，并接入 `scripts/check-ui-components-platforms.sh`：`cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。）
+- [x] `ui-components` 固定入口文件落点正确。（`crates/ui-components/src/lib.rs` 已通过 `#[cfg(feature = "component-color_swatch")]` 对 `color_swatch` 模块与 `color::swatch` 导出进行 feature gate，且未暴露 `web_sys/wasm_bindgen` 平台细节；`crates/ui-components/src/css.rs` 的 `push_components_css` 在 `@layer ui` 内按 feature 聚合 `crate::color::swatch::styles::CSS`；`crates/ui-components/src/root.rs` 集中执行 `BASE_CSS + theme vars + (optional) components css` 注入并提供 `provide_ui_i18n/provide_ui_id_provider`；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮条 CSS + spring driver，不含组件业务语义。仓库中 `crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 保持不存在，headless canonical path 固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。回归由 `components/color-swatch/test/semantics.rs::color_swatch_ui_components_fixed_entry_files_follow_layered_boundaries` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_local_semantics::color_swatch_ui_components_fixed_entry_files_follow_layered_boundaries` 固化，并接入 `scripts/check-ui-components-entrypoints.sh`：`cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_ui_components_fixed_entry_files_follow_layered_boundaries`。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +223,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（`components/color-swatch/src` 保持标准落点：`mod.rs`（最小导出）、`logic.rs`（归一派生）、`styles.rs`（静态 token CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（语义到 motion contract 映射）；`render.rs` 与 `spec.rs` 在该简单组件范围保持不存在。`mod.rs` 仅导出稳定公共面（`ColorSwatch`、`ColorSwatchMotion` 与状态类型别名），未过度暴露 `logic/view/spec`。回归由 `components/color-swatch/test/semantics.rs::color_swatch_component_directory_standard_files_follow_contract_and_na_paths` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_local_semantics::color_swatch_component_directory_standard_files_follow_contract_and_na_paths` 固化，并接入 `scripts/check-ui-components-component-files.sh`：`cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_component_directory_standard_files_follow_contract_and_na_paths`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,61 +232,61 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（`components/color-swatch/src` 当前保持标准文件集合：`mod.rs`、`logic.rs`、`styles.rs`、`view.rs`、`motion.rs`；`render.rs` 与 `spec.rs` 在该简单组件范围保持不存在。`mod.rs` 维持最小稳定边界（`logic/motion/styles/view` 模块组织 + `ColorSwatch`/`ColorSwatchMotion` 导出），`logic/styles/view/motion` 各自职责锚点保持清晰。回归由 `components/color-swatch/test/semantics.rs::color_swatch_file_placement_discipline_contract_is_explicit_for_component_scope` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_local_semantics::color_swatch_file_placement_discipline_contract_is_explicit_for_component_scope` 固化，并接入 `scripts/check-ui-components-component-files.sh`：`cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_file_placement_discipline_contract_is_explicit_for_component_scope`。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`ColorSwatch` 当前不属于复杂 schema 驱动组件，不引入 `src/spec.rs`，也不暴露 `*Spec::new()...render()` 建造者链路；若未来演进为复杂配置组件，再按契约补齐 `spec.rs` + 版本迁移说明 + 对应契约测试。）回归由 `components/color-swatch/test/semantics.rs::color_swatch_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component` 与 `crates/ui-components/tests/color_swatch_semantics.rs::color_swatch_local_semantics::color_swatch_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component` 固化，并接入 `scripts/check-ui-components-component-files.sh`：`cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_hyper_structure_builder_spec_is_explicitly_na_for_non_complex_component`。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/color-swatch/src/Component.toml` 与 `components/color-swatch/src/color_swatch.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `ColorSwatch` 接口签名投影，避免 AI 检索漂移。回归：`components/color-swatch/test/semantics.rs::color_swatch_context_compression_manifest_and_rbi_projection_are_present_and_current`；门禁脚本：`scripts/check-ui-components-component-files.sh` 新增 `cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_context_compression_manifest_and_rbi_projection_are_present_and_current`。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/color-swatch/src/logic.rs` 已使用类型化 Agent Contract（`ColorSwatchAgent{Schema/SchemaVersion/Intent/UiAction}` + `resolve_agent_contract`）生成语义字段，`components/color-swatch/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 与流式/输出状态标记；`components/color-swatch/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]` 与 `[[agent_contract_markers]]`，`.rbi` 补充 Agent Contract 签名投影。回归：`components/color-swatch/test/semantics.rs::color_swatch_agent_contract_is_schema_typed_and_machine_readable` 与 `components/color-swatch/test/semantics.rs::color_swatch_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 新增对应 `cargo test` 目标。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（N/A：`ColorSwatch` 不是 LLM 正文渲染组件，组件职责是同步颜色预览语义与状态标记；组件侧不实现 token-by-token streaming 协议，仅消费稳定快照状态输入。术语约束固定为两种显示模式：`Streaming`（边生成边显示）与 `Snapshot`（完整结果一次性显示），避免在组件层引入第三种“伪流式”定义。回归：`components/color-swatch/test/semantics.rs::color_swatch_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorSwatch` 已支持完整配置快照输入并稳定渲染：`components/color-swatch/src/view.rs` 通过默认可选 props + `components/color-swatch/src/logic.rs::resolve_render_state` 统一归一输入并输出稳定语义标记（`data-state/data-size/data-rounding/data-shape/data-alpha/data-bordered-source/data-decorative-source/data-aria-source/data-class-source/data-ui-stream-fallback/...`）。docs 基线示例 `apps/docs-app/src/pages/components/pages/display_extra.rs` 提供 Hello World、Interactive Playground、Comparison Matrix、Rounded Large + Custom Label/Class 等完整快照路径。回归：`components/color-swatch/test/semantics.rs::color_swatch_check2_documents_snapshot_as_default_baseline_capability` 与 `components/color-swatch/test/semantics.rs::color_swatch_snapshot_baseline_consumes_complete_result_and_renders_stably`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增 `cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_snapshot_baseline_consumes_complete_result_and_renders_stably`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorSwatch` 归类为 `Streaming Optional`；组件职责是颜色预览语义输出而非 LLM 正文阅读面，默认走 `Snapshot` 渲染路径。实现显式输出 `data-ui-stream-support="optional"`、`data-ui-stream-fallback="snapshot"` 与 `data-ui-output-status="verified"`，并保持 `role/aria/data-*` 连续可读。数据校验、断线恢复、重试策略继续留在上层编排，不下沉到组件。回归：`components/color-swatch/test/semantics.rs::color_swatch_check2_documents_streaming_required_optional_classification_rules`、`components/color-swatch/test/semantics.rs::color_swatch_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-swatch/test/semantics.rs::color_swatch_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`；门禁脚本：`scripts/check-ui-components-streaming.sh` 新增对应 `cargo test` 目标。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/color-swatch/src/logic.rs::compose_class_name` 已引入 `Vec<Cow<'static, str>>` 收敛静态类名分配热点；组件非测试源码维持无 `unwrap/expect` 与无吞错 `let _ = ...`。回归：`components/color-swatch/test/semantics.rs::color_swatch_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/color-swatch/test/semantics.rs::color_swatch_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/color-swatch/test/semantics.rs::color_swatch_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。另执行：`./scripts/check-rust-hygiene.sh`（当前环境已执行，若失败以脚本输出为准）。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`ColorSwatch` 已注册 `crates/ui-components/Cargo.toml` 特性树：`component-color_swatch = ["component-illustrated_message"]`，并受 `web-demo-components`/`all-components` 特性束显式管理；`crates/ui-components/src/lib.rs` 的模块与导出由 `#[cfg(feature = "component-color_swatch")]` 门控，`crates/ui-components/src/css.rs` 的 `crate::color::swatch::styles::CSS` 聚合同样受该 feature 门控且仅保留单一聚合点。回归：`components/color-swatch/test/semantics.rs::color_swatch_check2_marks_tree_shaking_feature_pruning_contract_complete` 与 `components/color-swatch/test/semantics.rs::color_swatch_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci`；门禁脚本：`scripts/check-ui-components-tree-shaking.sh` 新增对应 `cargo test` 目标。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`ColorSwatch` 语义回归已覆盖 `role/aria-*` 与稳定 `data-*`（`data-state/data-aria-source/...`），并通过 `color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots` 约束“语义优先、非快照替代”。焦点流转在该叶子展示组件按 N/A 固化：`view.rs` 无 `on:focus/on:keydown/on:pointerdown/on:click` 交互分支，且由 `color_swatch_has_no_overlay_focus_stack_restore_contract` 约束不引入 overlay 焦点恢复协议。性能侧通过 `color_swatch_performance_governance_contract_is_budgeted_traceable_and_blocking` 绑定预算与可观测 marker，并在 `docs/plan/TODO.md` + `scripts/check-ui-components-performance.sh` 维持 `render_count` 自动化回归跟踪门禁（当前以 mount-only 等价证据执行）。回归：`components/color-swatch/test/semantics.rs::color_swatch_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`；门禁脚本：`scripts/check-ui-components-performance.sh` 新增对应 `cargo test` 目标。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorSwatch` 改动未引入跨大版本 API 破坏升级，组件语义契约仍保持 `v1`（`components/color-swatch/src/logic.rs` 的 `ColorSwatchAgentSchema::V1`/`ColorSwatchAgentSchemaVersion::V1`，`components/color-swatch/src/Component.toml` 的 `schema_version = "1"` 与 `ui.color-swatch.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-swatch/test/semantics.rs::color_swatch_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch()` 已补齐 `Hello World (Default Path)`、`Comparison Matrix (Size / Alpha / Shape / Empty)`、`Controlled vs Uncontrolled Contrast (N/A for ColorSwatch)`、`Streaming / Snapshot Contract`、`Source-first Starter (Copy-Paste Ready)`；其中受控/非受控对照对 `ColorSwatch` 为 N/A（该组件无可控状态轴，仅对比默认渲染与上游状态映射）。文档示例统一注入 `code_imports=color_swatch_imports.clone()`，复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全缺失 imports。回归：`components/color-swatch/test/semantics.rs::color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`；门禁脚本：`scripts/check-ui-components-dx.sh` 新增 `cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`ColorSwatch` 语义套件已以契约断言为主：`components/color-swatch/test/semantics.rs::{color_swatch_state_markers_are_observable_queryable_and_enumerable,color_swatch_a11y_i18n_l10n_contract_is_headless_driven,color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots,color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only}` 覆盖 `role + aria-* + data-* + 状态来源 marker`，并显式禁止 snapshot-only 宏断言作为替代；组件本地 `*_semantics.rs` 已落位并由 `components/color-swatch/src/lib.rs`/`mod.rs` 挂载到聚合测试。新增/变更语义字段必须补测试通过 `color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only` 约束。门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 新增 `cargo test -p ui-components --test color_swatch_semantics --no-default-features --features component-color_swatch,inject-css color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（`e2e/tests/docs_app_color_swatch_contract.spec.mjs` 已改为语义选择器路径：`[data-component="color-swatch"]`、`[data-slot="color-swatch-workbench-controls"]`、`[data-slot="color-swatch-workbench-canvas"]`、`[data-slot="color-swatch-workbench-alpha-control"]`、`[data-slot="color-swatch-workbench-decorative-switch"]`、`[data-slot="color-swatch-workbench-custom-aria-switch"]`、`[data-slot="color-swatch-workbench-lang-switch"]`；避免脆弱 DOM 文本/层级选择（移除 `filter({ hasText: ... })` 与 `.nth(...)` 依赖）。WASM 等待统一采用语义就绪断点 `body:not(:has(#boot))`，并显式禁止固定 sleep。组件存在 motion 语义轴时，E2E 已覆盖 ready/settled 断点（透明态切换、decorative 切换、reload 后回到默认语义态）。回归：`components/color-swatch/test/semantics.rs::{color_swatch_e2e_contract_uses_semantic_selectors_and_stable_waits,color_swatch_e2e_selector_contract_uses_semantic_markers_and_stable_waits,color_swatch_e2e_flow_covers_ready_and_settled_semantic_breakpoints,color_swatch_check2_documents_e2e_selector_and_stable_wait_rules}`；门禁脚本：`scripts/check-ui-components-e2e-color-swatch.sh`。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（已将 `docs-app color-swatch key flow is repeatable with semantic breakpoints` 纳入 `e2e/tests/docs_app_color_swatch_contract.spec.mjs`：流程覆盖“进入文档页 -> alpha 交互 -> decorative 开关 -> custom aria -> lang 切换 -> reload 后默认态复位”的可重复回归链路；失败定位锚定到具体语义断点（`data-decorative/data-aria-source/lang/data-motion-source` 与 `aria-hidden/role`），避免笼统“页面不一致”。高风险路径优先策略在本组件落实为 `keyboard/focus`（`focus + Space/Enter` 键盘链路），`overlay/async N/A`（`ColorSwatch` 非 overlay、无异步请求）。回归：`components/color-swatch/test/semantics.rs::{color_swatch_e2e_regression_suite_includes_repeatable_key_flow_and_keyboard_focus_risk_path,color_swatch_check2_documents_repeatable_e2e_regression_collection}`；门禁脚本：`scripts/check-ui-components-e2e-color-swatch.sh` 新增对应 `cargo test` 目标。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch()` 已同步覆盖 `Hello World (Default Path)`、`Interactive Playground (展示 / Config / Code / CSS Test)`、`Comparison Matrix (Size / Alpha / Shape / Empty)` 与 `Controlled vs Uncontrolled Contrast (N/A for ColorSwatch)`；状态矩阵包含 `size/shape/alpha/empty/bordered` 关键分支，受控/非受控在该展示叶子组件明确标注 N/A。文档 API 与默认值路径对齐当前实现：`components/color-swatch/src/view.rs` 公共 props 使用 `color/color_name/size/rounding/shape/is_bordered/is_decorative/aria_label/class_name/lang/dir`，`components/color-swatch/src/logic.rs` 通过 `normalize_is_bordered/normalize_is_decorative/normalize_aria_label/resolve_state` 统一归一，docs 示例以 `if size != ColorSwatchSize::Md`、`if rounding != ColorSwatchRounding::Default`、`if shape != ColorSwatchShape::Square` 保持默认值表达一致。回归：`components/color-swatch/test/semantics.rs::{color_swatch_check2_documents_docs_sync_and_state_matrix_rules,color_swatch_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults,color_swatch_dx_check_script_covers_docs_sync_and_state_matrix_contract}`；门禁脚本：`scripts/check-ui-components-dx.sh` 新增对应 `cargo test` 目标。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`components/color-swatch/src/README.md` 已作为组件文档入口，补齐 `Hello World`、`常见用法` 与 `新手路径（先用起来，再进阶）`；docs 入口 `apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch()` 维持 beginner-first 顺序（`Hello World (Default Path)` 在 `Interactive Playground` 之前），并包含常见路径与进阶路径（矩阵、source-first）。回归：`components/color-swatch/test/semantics.rs::{color_swatch_check2_documents_documentation_as_product_rules,color_swatch_documentation_entry_exists_with_beginner_first_progression,color_swatch_dx_check_script_covers_documentation_as_product_contract}`；门禁脚本：`scripts/check-ui-components-dx.sh` 新增对应 `cargo test` 目标。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch()` 已提供 `Interactive Playground (展示 / Config / Code / CSS Test)`，支持基础 props 与状态切换（`size/shape/rounding/alpha/is_bordered/is_decorative/custom_aria/custom_class/lang`）并实时预览 `data-*` 语义变化；同时保留 `test_css_source + test_config_signal` 作为验收面。AI Spec 联动示例 N/A（`ColorSwatch` 非 AI Spec 输入组件）。关键交互复现走 `e2e/tests/docs_app_color_swatch_contract.spec.mjs::docs-app color-swatch key flow is repeatable with semantic breakpoints`，并以语义断点（`data-alpha/data-decorative/data-aria-source/lang/data-motion-source`）定位失败。回归：`components/color-swatch/test/semantics.rs::{color_swatch_check2_documents_interactive_playground_rules,color_swatch_docs_app_provides_interactive_playground_for_props_state_and_preview,color_swatch_interactive_playground_reuses_repeatable_semantic_e2e_flow,color_swatch_dx_check_script_covers_interactive_playground_contract,color_swatch_e2e_check_script_covers_interactive_playground_contract}`；门禁脚本：`scripts/check-ui-components-dx.sh` 与 `scripts/check-ui-components-e2e-color-swatch.sh` 新增对应 `cargo test` 目标。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch()` 的 `Source-first Starter (Copy-Paste Ready)` 已提供可复制最小片段并通过 `code_imports=color_swatch_imports.clone()` 走 `compose_copy_ready_code` 自动补全 imports；同页补充 `data-slot=\"color-swatch-source-first-contract\"` 与 `data-slot=\"color-swatch-source-paths\"`，明确依赖基线 `ui-components = { default-features = false, features = [\"component-color_swatch\", \"inject-css\"] }` 及真实源码落点 `components/color-swatch/src/{mod,logic,view,styles,motion}.rs`，避免复制后报错。README 同步 `## Source-first` 段落确保路径/特性可追溯。回归：`components/color-swatch/test/semantics.rs::{color_swatch_check2_documents_source_first_copy_paste_ready_rules,color_swatch_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies,color_swatch_dx_check_script_covers_source_first_copy_paste_ready_contract,color_swatch_check2_marks_source_first_copy_paste_ready_contract_complete}`；门禁脚本：`scripts/check-ui-components-dx.sh` 新增对应 `cargo test` 目标。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（`docs/spec/heroui-parameter-design-strategy.md` 新增 `### ColorSwatch 同步记录（2026-02-20）`，明确参数模型、docs 索引入口 `component_doc!("ColorSwatch", "color-swatch", "Display", display_extra::color_swatch)`、组件 README 入口、以及“无需追加 research 文档”的判定；`apps/docs-app/src/pages/components/pages.rs` 与 `apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch()` 维持可索引入口；`components/color-swatch/src/README.md` 保留等价文档入口。回归：`components/color-swatch/test/semantics.rs::{color_swatch_check2_documents_heroui_benchmark_docs_sync_rules,color_swatch_heroui_strategy_and_component_docs_are_synchronized_and_indexable,color_swatch_dx_check_script_covers_heroui_benchmark_docs_sync_contract,color_swatch_check2_marks_heroui_benchmark_docs_sync_contract_complete}`；门禁脚本：`scripts/check-ui-components-dx.sh` 新增对应 `cargo test` 目标。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

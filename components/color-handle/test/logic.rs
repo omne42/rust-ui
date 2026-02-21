@@ -27,10 +27,10 @@ fn normalize_aria_label_uses_default_or_custom_values() {
 #[test]
 fn resolve_state_and_class_name_track_sources_and_flags() {
     let state = resolve_state(ColorHandleStateInput {
-        disabled: false,
-        focused: true,
-        dragging: true,
-        show_loupe: true,
+        is_disabled: false,
+        is_focused: true,
+        is_dragging: true,
+        is_loupe_visible: true,
         has_color: true,
         has_custom_aria_label: true,
         has_custom_class_name: true,
@@ -47,4 +47,30 @@ fn resolve_state_and_class_name_track_sources_and_flags() {
     assert!(class_name.contains("ui-color-handle--dragging"));
     assert!(class_name.contains("ui-color-handle--custom-class"));
     assert!(class_name.contains("docs-color-handle"));
+}
+
+#[test]
+fn resolve_agent_contract_is_schema_typed_and_traceable() {
+    let state = resolve_state(ColorHandleStateInput {
+        is_disabled: false,
+        is_focused: true,
+        is_dragging: true,
+        is_loupe_visible: true,
+        has_color: true,
+        has_custom_aria_label: false,
+        has_custom_class_name: true,
+    });
+    let contract = resolve_agent_contract(state, "custom");
+
+    assert_eq!(contract.schema_name, "ui.color-handle.agent-contract");
+    assert_eq!(contract.schema_version.as_str(), "1");
+    assert_eq!(contract.intent.as_str(), "color-selection");
+    assert_eq!(contract.action.as_str(), "drag-update");
+    assert_eq!(contract.state.as_str(), "dragging");
+    assert_eq!(contract.source.as_str(), "drag-interaction");
+    assert_eq!(contract.stream_support.as_str(), "optional");
+    assert_eq!(contract.stream_fallback.as_str(), "snapshot");
+    assert_eq!(contract.output_status.as_str(), "submittable");
+    assert!(contract.capabilities.can_drag);
+    assert!(contract.capabilities.can_focus);
 }

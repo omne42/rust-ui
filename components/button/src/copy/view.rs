@@ -195,17 +195,15 @@ pub fn ButtonCopy(
         logic::normalize_optional_text(Some(strings.copy_button_label.as_ref().into()));
     let default_copied_label =
         logic::normalize_optional_text(Some(strings.copied_status_text.as_ref().into()));
-    let copy_failed_status_text =
-        logic::normalize_optional_text(Some(strings.copy_failed_status_text.as_ref().into()))
-            .or_else(|| {
-                logic::normalize_optional_text(Some(
-                    super::i18n::ButtonCopyStrings::default()
-                        .copy_failed_status_text
-                        .as_ref()
-                        .to_string(),
-                ))
-            })
-            .unwrap_or_default();
+    let copy_failed_status_text = logic::resolve_copy_failed_status_text(
+        Some(strings.copy_failed_status_text.as_ref().into()),
+        Some(
+            super::i18n::ButtonCopyStrings::default()
+                .copy_failed_status_text
+                .as_ref()
+                .to_string(),
+        ),
+    );
     let has_custom_label = label.is_some();
     let has_custom_copied_label = copied_label.is_some();
     let has_custom_aria_label = aria_label.is_some();
@@ -230,9 +228,11 @@ pub fn ButtonCopy(
         label,
         copied_label,
         aria_label,
-    } = logic::resolve_text_contract(
-        label.or(default_label),
-        copied_label.or(default_copied_label),
+    } = logic::resolve_text_contract_with_defaults(
+        label,
+        default_label,
+        copied_label,
+        default_copied_label,
         aria_label,
     );
 

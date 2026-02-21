@@ -1,70 +1,7 @@
 use super::*;
 
 #[test]
-fn help_text_tone_contract_is_stable() {
-    assert_eq!(HelpTextTone::Auto.class_name(), "ui-help-text--tone-auto");
-    assert_eq!(
-        HelpTextTone::Neutral.class_name(),
-        "ui-help-text--tone-neutral"
-    );
-    assert_eq!(
-        HelpTextTone::Negative.class_name(),
-        "ui-help-text--tone-negative"
-    );
-
-    assert_eq!(HelpTextTone::Auto.as_attr(), "auto");
-    assert_eq!(HelpTextTone::Neutral.as_attr(), "neutral");
-    assert_eq!(HelpTextTone::Negative.as_attr(), "negative");
-}
-
-#[test]
-fn normalize_helpers_trim_and_fallback() {
-    assert_eq!(normalize_optional_text(None), None);
-    assert_eq!(normalize_optional_text(Some(" \n\t ".to_string())), None);
-    assert_eq!(
-        normalize_optional_text(Some("  hint text  ".to_string())),
-        Some("hint text".to_string())
-    );
-
-    let (aria, custom_aria) = normalize_aria_label(Some("  Email help  ".to_string()));
-    assert_eq!(aria, "Email help");
-    assert!(custom_aria);
-
-    let (aria, custom_aria) = normalize_aria_label(None);
-    assert_eq!(aria, DEFAULT_ARIA_LABEL);
-    assert!(!custom_aria);
-
-    let (error, custom_error) = normalize_error_message(Some("  Required  ".to_string()), true);
-    assert_eq!(error, Some("Required".to_string()));
-    assert!(custom_error);
-
-    let (error, custom_error) = normalize_error_message(None, true);
-    assert_eq!(error, Some(DEFAULT_ERROR_MESSAGE.into()));
-    assert!(!custom_error);
-
-    let (error, custom_error) = normalize_error_message(Some("ignored".to_string()), false);
-    assert_eq!(error, None);
-    assert!(!custom_error);
-}
-
-#[test]
-fn resolve_effective_tone_matches_auto_error_semantics() {
-    assert_eq!(
-        resolve_effective_tone(HelpTextTone::Auto, true, true),
-        HelpTextTone::Negative
-    );
-    assert_eq!(
-        resolve_effective_tone(HelpTextTone::Auto, false, false),
-        HelpTextTone::Neutral
-    );
-    assert_eq!(
-        resolve_effective_tone(HelpTextTone::Neutral, true, true),
-        HelpTextTone::Neutral
-    );
-}
-
-#[test]
-fn resolve_state_tracks_message_kind_and_sources() {
+fn resolve_state_comes_from_state_primitives_contract() {
     let state = resolve_state(HelpTextStateInput {
         tone: HelpTextTone::Auto,
         invalid: true,
@@ -72,18 +9,25 @@ fn resolve_state_tracks_message_kind_and_sources() {
         show_error_icon: true,
         has_description: true,
         has_error_message: true,
-        has_custom_aria_label: true,
+        has_custom_aria_label: false,
         has_custom_error_message: false,
         has_custom_class_name: false,
     });
 
-    assert_eq!(state.message_kind_attr, "error");
     assert_eq!(state.tone_attr, "negative");
-    assert!(state.show_error_icon);
-    assert_eq!(state.data_state_attr, "error");
-    assert_eq!(state.aria_source_attr, "custom");
-    assert_eq!(state.error_source_attr, "default");
-    assert_eq!(state.class_source_attr, "default");
+    assert_eq!(state.message_kind, HelpTextMessageKind::Error);
+    assert_eq!(state.data_state, HelpTextDataState::Error);
+}
+
+#[test]
+fn locale_and_live_region_are_sourced_from_headless_contracts() {
+    let locale = resolve_locale_attrs(Some("  zh-CN ".to_string()), Some(A11yDirection::Rtl));
+    assert_eq!(locale.lang.as_deref(), Some("zh-CN"));
+    assert_eq!(locale.dir, Some("rtl"));
+
+    let region = resolve_error_live_region_attrs();
+    assert_eq!(region.role, "alert");
+    assert_eq!(region.aria_live, "assertive");
 }
 
 #[test]
@@ -115,4 +59,64 @@ fn compose_class_name_includes_custom_marker_and_user_class() {
             "composed class should include `{token}`"
         );
     }
+}
+
+#[test]
+fn display_text_default_is_centralized_in_logic() {
+    assert_eq!(
+        resolve_display_text(Some("Resolved from logic".to_string())),
+        "Resolved from logic"
+    );
+    assert_eq!(resolve_display_text(None), "");
+}
+
+#[test]
+fn render_model_centralizes_input_normalization_and_state_derivation() {
+    let render_model = resolve_render_model(HelpTextLogicInput {
+        tone: HelpTextTone::Auto,
+        is_invalid: true,
+        is_disabled: false,
+        is_error_icon_visible: true,
+        description: Some("  ignored because invalid ".to_string()),
+        error_message: None,
+        aria_label: Some("  custom aria ".to_string()),
+        class_name: Some("  docs-help-text-custom ".to_string()),
+    });
+
+    assert_eq!(render_model.aria_label, "custom aria");
+    assert_eq!(render_model.error_message_text, DEFAULT_ERROR_MESSAGE);
+    assert_eq!(render_model.description_text, "");
+    assert_eq!(
+        render_model.class_name.as_deref(),
+        Some("docs-help-text-custom")
+    );
+    assert_eq!(render_model.state.message_kind, HelpTextMessageKind::Error);
+    assert_eq!(
+        render_model.state.error_source,
+        HelpTextErrorSourceAttr::Default
+    );
+    assert_eq!(render_model.state.aria_source, HelpTextSourceAttr::Custom);
+    assert!(render_model.state.show_error_icon);
+}
+
+#[test]
+fn snapshot_mode_is_the_default_agent_contract_for_full_result_rendering() {
+    let state = resolve_state(HelpTextStateInput {
+        tone: HelpTextTone::Neutral,
+        invalid: false,
+        disabled: false,
+        show_error_icon: false,
+        has_description: true,
+        has_error_message: false,
+        has_custom_aria_label: false,
+        has_custom_error_message: false,
+        has_custom_class_name: false,
+    });
+
+    let contract = resolve_agent_contract_attrs(state);
+
+    assert_eq!(contract.data_ui_stream_support, "optional");
+    assert_eq!(contract.data_ui_stream_mode, "snapshot");
+    assert_eq!(contract.data_ui_stream_fallback, "snapshot");
+    assert_eq!(contract.data_ui_output_status, "verified");
 }

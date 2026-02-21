@@ -25,3 +25,6 @@ apps/**/gen/
 # OS / tooling
 .DS_Store
 .github-agent-data/
+
+.tmp*/
+.cargo-target/

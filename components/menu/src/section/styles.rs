@@ -1,44 +1,63 @@
 pub const CSS: &str = r#"
 .ui-menu-section {
   display: grid;
-  gap: 4px;
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 .ui-menu-section--tone-default,
 .ui-menu-section[data-tone="default"] {
-  --ui-menu-section-title-color: color-mix(in oklab, var(--ui-fg-muted) 88%, var(--ui-fg) 12%);
+  --ui-menu-section-title-color: color-mix(
+    in oklab,
+    var(--ui-fg-muted, var(--ui-fallback-fg-muted)) 88%,
+    var(--ui-fg, var(--ui-fallback-fg)) 12%
+  );
 }
 
 .ui-menu-section--tone-quiet,
 .ui-menu-section[data-tone="quiet"] {
-  --ui-menu-section-title-color: color-mix(in oklab, var(--ui-fg-muted) 96%, var(--ui-bg) 4%);
+  --ui-menu-section-title-color: color-mix(
+    in oklab,
+    var(--ui-fg-muted, var(--ui-fallback-fg-muted)) 96%,
+    var(--ui-bg, var(--ui-fallback-bg)) 4%
+  );
 }
 
 .ui-menu-section__header {
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
   font-weight: 600;
-  color: var(--ui-menu-section-title-color);
-  padding-inline: 10px;
-  padding-block: 4px;
+  color: var(--ui-menu-section-title-color, var(--ui-fallback-fg-muted));
+  padding-inline: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  padding-block: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 .ui-menu-section__header[data-sticky="true"] {
   position: sticky;
   top: 0;
   z-index: 1;
-  backdrop-filter: blur(6px);
-  background: color-mix(in oklab, var(--ui-bg) 88%, transparent 12%);
+  backdrop-filter: blur(
+    var(--ui-underlay-backdrop-blur, var(--ui-fallback-underlay-backdrop-blur))
+  );
+  background: color-mix(
+    in oklab,
+    var(--ui-bg, var(--ui-fallback-bg)) 88%,
+    transparent 12%
+  );
 }
 
 .ui-menu-section__items {
   display: grid;
-  gap: 4px;
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 .ui-menu-section__divider {
-  border-bottom: 1px solid color-mix(in oklab, var(--ui-border) 88%, var(--ui-bg-muted) 12%);
-  margin-inline: 10px;
+  border-bottom: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border)) 88%,
+      var(--ui-bg-muted, var(--ui-fallback-bg-muted)) 12%
+    );
+  margin-inline: var(--ui-space-sm, var(--ui-fallback-space-sm));
 }
 
 .ui-menu-section--empty,
@@ -53,17 +72,18 @@ pub const CSS: &str = r#"
 
 .ui-menu-section--sticky-heading,
 .ui-menu-section[data-sticky-heading="true"] {
-  gap: 2px;
+  gap: var(--ui-space-3xs, var(--ui-fallback-space-3xs));
 }
 
 .ui-menu-section--divided,
 .ui-menu-section[data-divided="true"] {
-  padding-bottom: 4px;
+  padding-bottom: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 .ui-menu-section--custom-class,
 .ui-menu-section[data-custom-class="true"] {
-  outline: 1px solid color-mix(in oklab, var(--ui-accent) 26%, transparent);
-  outline-offset: 2px;
+  outline: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(in oklab, var(--ui-accent, var(--ui-fallback-accent)) 26%, transparent);
+  outline-offset: var(--ui-space-3xs, var(--ui-fallback-space-3xs));
 }
 "#;

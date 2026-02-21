@@ -215,6 +215,8 @@ pub(super) fn field_group() -> AnyView {
 }
 
 pub(super) fn date_input_group() -> AnyView {
+    let date_input_group_imports = "use leptos::prelude::*;\nuse ui_components::{DateField, DateFieldTone, DateInputGroup, DateInputGroupVariant, TimeField, TimeFieldTone};".to_string();
+
     let (invoice_date, set_invoice_date) = signal(Some("2026-03-14".to_string()));
     let on_invoice_date_change = Callback::new(move |next: Option<String>| {
         set_invoice_date.set(next);
@@ -225,15 +227,40 @@ pub(super) fn date_input_group() -> AnyView {
         set_ship_window.set(next);
     });
 
-    let code = Signal::derive(move || {
+    let (controlled_date, set_controlled_date) = signal(Some("2026-04-01".to_string()));
+    let on_controlled_date_change = Callback::new(move |next: Option<String>| {
+        set_controlled_date.set(next);
+    });
+
+    let (requested_stream_mode, set_requested_stream_mode) = signal("streaming".to_string());
+    let (requested_output_status, set_requested_output_status) = signal("draft".to_string());
+
+    let hello_code = Signal::derive(move || {
+        r#"<DateInputGroup>
+  <DateField id_base="hello-date".to_string() />
+</DateInputGroup>"#
+            .to_string()
+    });
+
+    let state_matrix_code = Signal::derive(move || {
         r#"let (invoice_date, set_invoice_date) = signal(Some("2026-03-14".to_string()));
 let on_invoice_date_change = Callback::new(move |next: Option<String>| {
   set_invoice_date.set(next);
 });
 
+let (ship_window, set_ship_window) = signal(Some("18:30".to_string()));
+let on_ship_window_change = Callback::new(move |next: Option<String>| {
+  set_ship_window.set(next);
+});
+
+<div class="docs-stack">
+  <DateInputGroup>
+    <DateField id_base="matrix-default-date".to_string() />
+  </DateInputGroup>
+
 <DateInputGroup
   aria_label="Invoice date controls".to_string()
-  segmented=true
+  is_segmented=true
   prefix=move || view! { <span>"📅"</span> }
   suffix=move || view! { <span>"UTC+0"</span> }
 >
@@ -244,21 +271,13 @@ let on_invoice_date_change = Callback::new(move |next: Option<String>| {
     value=invoice_date
     on_value_change=on_invoice_date_change
   />
-</DateInputGroup>"#
-            .to_string()
-    });
-
-    let states_code = Signal::derive(move || {
-        r#"let (ship_window, set_ship_window) = signal(Some("18:30".to_string()));
-let on_ship_window_change = Callback::new(move |next: Option<String>| {
-  set_ship_window.set(next);
-});
+</DateInputGroup>
 
 <DateInputGroup
-  full_width=true
+  is_full_width=true
   variant=DateInputGroupVariant::Secondary
-  invalid=true
-  segmented=true
+  is_invalid=true
+  is_segmented=true
   aria_label="Ship window controls".to_string()
   class_name="docs-date-input-group-custom".to_string()
   prefix=move || view! { <span>"🕒"</span> }
@@ -272,6 +291,64 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
     value=ship_window
     on_value_change=on_ship_window_change
   />
+</DateInputGroup>
+</div>"#
+            .to_string()
+    });
+
+    let controlled_vs_uncontrolled_code = Signal::derive(move || {
+        r#"let (controlled_date, set_controlled_date) = signal(Some("2026-04-01".to_string()));
+let on_controlled_date_change = Callback::new(move |next: Option<String>| {
+  set_controlled_date.set(next);
+});
+
+<div class="docs-stack">
+  <DateInputGroup aria_label="Controlled date field".to_string()>
+    <DateField
+      id_base="controlled-date".to_string()
+      label="Controlled".to_string()
+      tone=DateFieldTone::Quiet
+      value=controlled_date
+      on_value_change=on_controlled_date_change
+    />
+  </DateInputGroup>
+
+  <DateInputGroup aria_label="Uncontrolled date field".to_string()>
+    <DateField
+      id_base="uncontrolled-date".to_string()
+      label="Uncontrolled".to_string()
+      tone=DateFieldTone::Quiet
+      default_value=Some("2026-04-09".to_string())
+    />
+  </DateInputGroup>
+</div>"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<DateInputGroup aria_label="LLM date result".to_string() is_segmented=true>
+  <DateField id_base="streaming-contract-date".to_string() />
+</DateInputGroup>
+
+// requested mode: streaming
+// requested output status: draft
+// effective component markers: data-ui-stream-mode=snapshot data-ui-stream-fallback=snapshot data-ui-output-status=verified"#.to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"// Cargo.toml dependency baseline:
+// ui-components = { default-features = false, features = ["component-date_input_group", "inject-css"] }
+// Source paths:
+// components/date-input-group/src/{mod,logic,view,styles,motion}.rs
+// apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group
+
+<DateInputGroup is_segmented=true>
+  <DateField
+    id_base="source-first-date".to_string()
+    label="Invoice date".to_string()
+    tone=DateFieldTone::Quiet
+    default_value=Some("2026-03-14".to_string())
+  />
 </DateInputGroup>"#
             .to_string()
     });
@@ -283,11 +360,29 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
             group="Forms"
             description="baseline-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers."
         >
-            <Playground title="DateField + Prefix/Suffix" code_signal=code>
-                <div class="docs-stack">
+            <Playground
+                title="Hello World (Default API)"
+                description="Minimal path: no manual wiring to ui-state-primitives/ui-headless state machines."
+                code_signal=hello_code
+                code_imports=date_input_group_imports.clone()
+            >
+                <DateInputGroup>
+                    <DateField id_base="docs-date-input-group-hello".to_string() />
+                </DateInputGroup>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Default / Prefix-Suffix / Secondary+Invalid)"
+                code_signal=state_matrix_code
+                code_imports=date_input_group_imports.clone()
+            >
+                <div class="docs-stack" data-slot="date-input-group-state-matrix">
+                    <DateInputGroup>
+                        <DateField id_base="docs-date-input-group-matrix-default".to_string() />
+                    </DateInputGroup>
                     <DateInputGroup
                         aria_label="Invoice date controls".to_string()
-                        segmented=true
+                        is_segmented=true
                         prefix=move || view! { <span>"📅"</span> }
                         suffix=move || view! { <span>"UTC+0"</span> }
                     >
@@ -303,16 +398,11 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
                         "invoice date: "
                         {move || invoice_date.get().unwrap_or_else(|| "none".to_string())}
                     </span>
-                </div>
-            </Playground>
-
-            <Playground title="Secondary + Full Width + Invalid" code_signal=states_code>
-                <div class="docs-stack">
                     <DateInputGroup
-                        full_width=true
+                        is_full_width=true
                         variant=DateInputGroupVariant::Secondary
-                        invalid=true
-                        segmented=true
+                        is_invalid=true
+                        is_segmented=true
                         aria_label="Ship window controls".to_string()
                         class_name="docs-date-input-group-custom".to_string()
                         prefix=move || view! { <span>"🕒"</span> }
@@ -333,6 +423,138 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
                     </span>
                 </div>
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Child Field Axis)"
+                code_signal=controlled_vs_uncontrolled_code
+                code_imports=date_input_group_imports.clone()
+            >
+                <div class="docs-stack" data-slot="date-input-group-controlled-matrix">
+                    <DateInputGroup aria_label="Controlled date field".to_string()>
+                        <DateField
+                            id_base="docs-date-input-group-controlled".to_string()
+                            label="Controlled".to_string()
+                            tone=DateFieldTone::Quiet
+                            value=controlled_date
+                            on_value_change=on_controlled_date_change
+                        />
+                    </DateInputGroup>
+                    <span class="ui-muted">
+                        "controlled date: "
+                        {move || controlled_date.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
+
+                    <DateInputGroup aria_label="Uncontrolled date field".to_string()>
+                        <DateField
+                            id_base="docs-date-input-group-uncontrolled".to_string()
+                            label="Uncontrolled".to_string()
+                            tone=DateFieldTone::Quiet
+                            default_value="2026-04-09".to_string()
+                        />
+                    </DateInputGroup>
+                    <span class="ui-muted">
+                        "uncontrolled DateField uses default_value and internal state after mount."
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Streaming is optional; fallback stays snapshot."
+                code_signal=stream_snapshot_code
+                code_imports=date_input_group_imports.clone()
+            >
+                <div class="docs-stack" data-slot="date-input-group-streaming-contract">
+                    <label class="docs-subtitle">
+                        "requested mode: "
+                        <select
+                            class="docs-select"
+                            data-slot="date-input-group-requested-stream-mode"
+                            prop:value=move || requested_stream_mode.get()
+                            on:change=move |ev| set_requested_stream_mode.set(event_target_value(&ev))
+                        >
+                            <option value="streaming">"streaming"</option>
+                            <option value="snapshot">"snapshot"</option>
+                        </select>
+                    </label>
+
+                    <label class="docs-subtitle">
+                        "requested output status: "
+                        <select
+                            class="docs-select"
+                            data-slot="date-input-group-requested-output-status"
+                            prop:value=move || requested_output_status.get()
+                            on:change=move |ev| set_requested_output_status.set(event_target_value(&ev))
+                        >
+                            <option value="draft">"draft"</option>
+                            <option value="verified">"verified"</option>
+                        </select>
+                    </label>
+
+                    <DateInputGroup aria_label="LLM date result".to_string() is_segmented=true>
+                        <DateField id_base="docs-date-input-group-streaming".to_string() />
+                    </DateInputGroup>
+
+                    <span class="ui-muted" data-slot="date-input-group-streaming-requested-state">
+                        "requested mode: "
+                        {move || requested_stream_mode.get()}
+                        " · requested output status: "
+                        {move || requested_output_status.get()}
+                    </span>
+                    <span class="ui-muted" data-slot="date-input-group-streaming-effective-state">
+                        "effective component markers: data-ui-stream-mode=snapshot data-ui-stream-fallback=snapshot data-ui-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                code_signal=source_first_code
+                code_imports=date_input_group_imports
+            >
+                <div class="docs-stack" data-slot="date-input-group-source-first">
+                    <DateInputGroup is_segmented=true>
+                        <DateField
+                            id_base="docs-date-input-group-source-first".to_string()
+                            label="Invoice date".to_string()
+                            tone=DateFieldTone::Quiet
+                            default_value="2026-03-14".to_string()
+                        />
+                    </DateInputGroup>
+                    <span class="ui-muted">
+                        "Copy action auto-injects missing imports for direct run."
+                    </span>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="date-input-group-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p data-slot="date-input-group-source-first-contract">
+                    "Use "
+                    <code>"Show code"</code>
+                    " + copy from the Source-first Playground. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p data-slot="date-input-group-source-first-dependency-baseline">
+                    "Dependency baseline (Cargo.toml): "
+                    <code>
+                        "ui-components = { default-features = false, features = [\"component-date_input_group\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <ul data-slot="date-input-group-source-prerequisites">
+                    <li><code>"component-date_input_group"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+                <ul data-slot="date-input-group-source-paths">
+                    <li><code>"components/date-input-group/src/mod.rs"</code></li>
+                    <li><code>"components/date-input-group/src/logic.rs"</code></li>
+                    <li><code>"components/date-input-group/src/view.rs"</code></li>
+                    <li><code>"components/date-input-group/src/styles.rs"</code></li>
+                    <li><code>"components/date-input-group/src/motion.rs"</code></li>
+                    <li><code>"apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()

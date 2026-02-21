@@ -37,6 +37,28 @@ fn live_region_attrs_maps_priority_to_role_and_aria_live() {
 }
 
 #[test]
+fn error_view_attrs_maps_live_region_visibility_and_locale() {
+    let (is_visible, set_is_visible) = signal(false);
+    let attrs = error_view_attrs(
+        is_visible.into(),
+        " Email error ".to_string(),
+        Some("  zh-CN ".to_string()),
+        Some(A11yDirection::Rtl),
+    );
+
+    assert_eq!(attrs.role, "alert");
+    assert_eq!(attrs.aria_live.get_untracked(), "off");
+    assert_eq!(attrs.aria_hidden.get_untracked(), Some("true"));
+    assert_eq!(attrs.aria_label, " Email error ");
+    assert_eq!(attrs.lang.as_deref(), Some("zh-CN"));
+    assert_eq!(attrs.dir, Some("rtl"));
+
+    set_is_visible.set(true);
+    assert_eq!(attrs.aria_live.get_untracked(), "assertive");
+    assert_eq!(attrs.aria_hidden.get_untracked(), None);
+}
+
+#[test]
 fn region_attrs_maps_role_label_and_locale() {
     let attrs = region_attrs(
         "Notifications".to_string(),
@@ -47,6 +69,36 @@ fn region_attrs_maps_role_label_and_locale() {
     assert_eq!(attrs.role, "region");
     assert_eq!(attrs.aria_label, "Notifications");
     assert_eq!(attrs.lang.as_deref(), Some("en-US"));
+    assert_eq!(attrs.dir, Some("rtl"));
+}
+
+#[test]
+fn navigation_attrs_maps_label_and_locale_without_overriding_role() {
+    let attrs = navigation_attrs(
+        "Breadcrumb".to_string(),
+        Some("  en-US ".to_string()),
+        Some(A11yDirection::Ltr),
+    );
+
+    assert_eq!(attrs.aria_label, "Breadcrumb");
+    assert_eq!(attrs.lang.as_deref(), Some("en-US"));
+    assert_eq!(attrs.dir, Some("ltr"));
+}
+
+#[test]
+fn fieldset_attrs_maps_label_state_and_locale() {
+    let attrs = fieldset_attrs(
+        "Notification group".to_string(),
+        true,
+        false,
+        Some("  zh-CN ".to_string()),
+        Some(A11yDirection::Rtl),
+    );
+
+    assert_eq!(attrs.aria_label, "Notification group");
+    assert_eq!(attrs.aria_disabled, Some("true"));
+    assert_eq!(attrs.aria_invalid, None);
+    assert_eq!(attrs.lang.as_deref(), Some("zh-CN"));
     assert_eq!(attrs.dir, Some("rtl"));
 }
 
@@ -155,6 +207,24 @@ fn labeled_group_attrs_exposes_typed_group_role_label_and_locale() {
 }
 
 #[test]
+fn labeled_toolbar_attrs_exposes_toolbar_role_state_and_locale() {
+    let attrs = labeled_toolbar_attrs(
+        "Formatting".to_string(),
+        "vertical",
+        true,
+        Some(" zh-CN ".to_string()),
+        Some(A11yDirection::Ltr),
+    );
+
+    assert_eq!(attrs.role, "toolbar");
+    assert_eq!(attrs.aria_label, "Formatting");
+    assert_eq!(attrs.aria_orientation, "vertical");
+    assert_eq!(attrs.aria_disabled, Some("true"));
+    assert_eq!(attrs.lang.as_deref(), Some("zh-CN"));
+    assert_eq!(attrs.dir, Some("ltr"));
+}
+
+#[test]
 fn overlay_dialog_attrs_trims_ids_and_maps_locale() {
     let attrs = overlay_dialog_attrs(
         Some(" dialog-title ".to_string()),
@@ -185,4 +255,17 @@ fn overlay_dialog_attrs_drops_blank_optional_ids() {
     assert_eq!(attrs.aria_describedby, None);
     assert_eq!(attrs.lang, None);
     assert_eq!(attrs.dir, None);
+}
+
+#[test]
+fn focusable_element_kind_covers_tag_and_tabindex_rules() {
+    assert!(is_focusable_element_kind("button", false, false, None));
+    assert!(is_focusable_element_kind("a", true, false, None));
+    assert!(!is_focusable_element_kind("a", false, false, None));
+    assert!(is_focusable_element_kind("div", false, true, None));
+    assert!(is_focusable_element_kind("div", false, false, Some("0")));
+    assert!(is_focusable_element_kind("div", false, false, Some(" 2 ")));
+    assert!(!is_focusable_element_kind("div", false, false, Some("-1")));
+    assert!(!is_focusable_element_kind("div", false, false, Some("")));
+    assert!(!is_focusable_element_kind("div", false, false, Some("abc")));
 }

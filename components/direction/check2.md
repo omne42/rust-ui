@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,15 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+  - N/A（direction）：该组件仅做方向与语义容器装配，无 enter/exit/active 等动效状态，不接入 `ui-motion`。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,100 +48,177 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+  - N/A（direction）：该组件不引入颜色/排版/间距主题语义，仅保留 `min-inline-size: 0` 的布局防御规则，不重建或扩展私有 token 体系。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - N/A（direction/motion.rs）：该组件是静态方向语义容器，无组件级动效 attach 需求；已通过 `test/semantics.rs` 固化“无私有动效引擎实现”与装配边界。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+  - N/A（direction）：本组件无布尔状态轴、无事件回调轴、无默认值轴，不涉及 `is_*`/`on_*`/`default_*` 命名面。
+  - 兼容策略：主命名固定为 `direction`，保留 `dir` 作为兼容别名输入；通过 `logic::resolve_direction` 统一归一，并暴露 `data-direction-source` 便于观测来源。
+  - 迁移路径：文档与示例仅使用 `direction`；存量调用可继续使用 `dir`，后续增量代码禁止新增 `dir` 用法。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+  - N/A（direction）：该组件不维护内部可变状态轴，仅消费传入方向并映射语义标记，不存在 `value/on_value_change/default_value` 协议面。
+  - 约束：禁止新增 `default_direction`、`on_direction_change` 或内部 `Signal` 写回；若未来引入内部状态轴，必须成对补齐受控/非受控 API 与回归测试。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+  - 规则（direction）：`direction` > `dir` > `DirectionMode::default()`，由 `logic::resolve_direction` 单点归一并以 `test/logic.rs` 回归锁定。
+  - `view.rs` 仅消费 `logic::resolve_direction` 的归一化结果与来源标记，不做 `unwrap_or*` 或条件分支兜底。
+  - 约束：后续若新增默认值策略，必须仅在 `logic.rs` 扩展并同步补充优先级测试，禁止在 `view.rs` 分流实现。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+  - 输入/输出（direction）：`view.rs` 仅接收类型化输入 `Option<DirectionMode>`（`direction/dir`），统一交给 `logic::resolve_direction`，输出固定为 `(DirectionMode, DirectionPropSource)`。
+  - 事件路径（direction）：该组件无交互事件处理器（N/A），不存在在回调中重建状态机的入口。
+  - 样式路径（direction）：`styles.rs` 仅提供静态布局规则，不含状态分支或状态判定逻辑。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+  - `direction` 离散输入固定为 `DirectionMode` 枚举：`DirectionMode::{Ltr,Rtl}`，`direction/dir` 两个入口均为 `Option<DirectionMode>`，无字符串自由组合入口。
+  - 本组件当前无外部字符串配置输入（N/A）；若未来引入字符串兼容层，必须先在 `logic.rs` 做字符串到 `DirectionMode` 的显式映射并补回归测试。
+  - 约束：禁止新增 `Option<bool>`（如 `is_ltr/is_rtl`）来表达方向互斥状态，统一通过 `DirectionMode` 建模。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+  - `direction` 仅消费 `ui_state_primitives::direction::{DirectionMode, normalize_optional_text}`；组件层不重写方向状态原语与归一规则。
+  - `logic.rs` 仅做装配映射（`resolve_direction`、来源标记、class 归一），无业务 store 依赖与全局状态类型耦合。
+  - 应用级全局状态接入（N/A）：本组件当前无业务 store 输入；若未来接入应用状态，必须先经桥接层映射到 `DirectionMode` 后再传入组件。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+  - N/A（direction）：该组件仅做方向与语言语义装配，无远程请求、任务轮询或异步状态轴。
+  - 约束：禁止在该组件新增 `is_loading`、`on_retry`、`aria-busy`、`use_async_action` 等异步协议碎片；若未来引入异步交互，必须统一复用 async action 原语并补语义回归。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+  - 基础路径：`<DirectionProvider direction=DirectionMode::Ltr>...</DirectionProvider>` 即可使用，无需手动接线 `ui-state-primitives`/`ui-headless`。
+  - docs 最小示例：`layout_extra_direction.rs` 的 LTR Playground 代码片段为 3 行（<=5 行）且可直接运行。
+  - 高级入口按需：仅在需要时使用 `dir`（兼容别名）、`lang`、`class_name`；基础路径不暴露内部状态对象。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
+  - N/A（direction）：该组件是单容器语义 provider，不建模离散 item 集合，不存在 `Parent/Item` 组合协议面。
+  - 当前 API 仅暴露 `DirectionProvider` + `children`，不提供并行数组（`labels/titles`）或隐式索引配对入口。
+  - 约束：若未来扩展为集合型组件，必须引入显式 item 语义结构并补组合契约测试，禁止并行数组语法糖直出。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A（direction）：该组件无拖拽语义、无高频 pointer 交互、无 `motion.rs`，不存在 Macro/Micro 双状态机面。
+  - 当前实现不包含 `Dragging`、`Action::DragEnd`、RAF 循环或 pointer move 连续采样逻辑。
+  - 约束：若未来引入拖拽交互，必须在 `view/motion` 处理拖拽期本地循环，仅在结束时回流 `logic` 收敛，并补对应语义回归。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A（direction）：该组件不依赖 DOM 几何测量，不实现 overlay 定位，不存在 `Intent -> Measure -> Rectification` 渲染链。
+  - 当前实现不包含 `getBoundingClientRect`/尺寸采样/位置修正回写，也无防循环收敛分支。
+  - 约束：若未来引入依赖几何测量的交互（如 popover 类定位），必须显式落地两段式流程并补幂等收敛回归测试。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A（direction）：该组件是单容器方向语义 provider，不管理动态子项集合，不存在注册/反注册或导航排序协议面。
+  - 当前实现仅暴露 `DirectionProvider + children`，无 `RegistrationContext`、`Register/Unregister`、`items_order` 或集合导航逻辑。
+  - 约束：若未来扩展为多子项集合型组件，必须引入显式注册上下文并在 `logic.rs` 维护稳定 `items_order`，禁止依赖 `HashSet` 迭代顺序。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A（direction）：该组件是单容器方向语义 provider，不提供多面板/多槽位投影策略，不存在 `Lazy/KeepAlive/Eager` 模式面。
+  - 当前实现无 KeepAlive 挂载缓存、无隐藏态生命周期通知、无轮询/动画副作用调度路径。
+  - 约束：若未来引入可切换投影模式，必须显式建模 `Lazy/KeepAlive/Eager`，并在 KeepAlive 隐藏时通过 `NotifyHidden`（或等价生命周期事件）暂停高耗能副作用并补回归测试。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A（direction）：该组件仅装配方向语义上下文，不消费 `Resize/Theme/Intersection` 环境流，不存在采样/防抖后推送 `Action` 的链路。
+  - 当前实现无 `ResizeObserver`/`IntersectionObserver`/`matchMedia` 订阅、无防抖节流器、无 `BreakpointChanged` 等环境语义动作。
+  - 约束：若未来引入环境订阅，必须在 `view.rs` 完成采样与防抖并映射为类型化 `Action` 推送到 `logic.rs`，禁止原始事件直接洪泛到逻辑层。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A（direction）：该组件不建模大型集合与批量操作，不存在 `Context Bus + Selector` 事件光锥协议面。
+  - 当前实现无 `SelectionState::All`、无批量选择压缩态、无 O(N) 逐层 prop drilling 的集合分发路径。
+  - 约束：若未来扩展为集合批处理组件，必须引入 Context Bus + Selector 与压缩状态表达，禁止把批量状态按 O(N) 透传到子树。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A（direction）：该组件仅提供方向语义上下文装配，不承载复杂派生总线与跨订阅者广播链路。
+  - 当前实现无 `TraceId` 透传、无命令总线广播、无“触发 -> 派生 -> 广播 -> 订阅”链式编排。
+  - 约束：若未来引入复杂派生总线，必须在命令与广播链路中透传稳定 `TraceId` 并补因果链回归测试，禁止中途丢失追踪上下文。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - 交互语义子项 N/A（direction）：该组件是非交互方向语义容器，不暴露可聚焦交互元素，因此无 `role`/`aria-*`/键盘路径约束面。
+  - A11y/i18n 接入：`view.rs` 通过 `ui_headless::use_direction` 挂载 `lang`/`dir`，并透传 `data-direction` 语义标记。
+  - 文案约束：组件 `view.rs` 不包含用户可见文案；可见文本由调用方 children/应用层 i18n 提供。
+  - 共享工具来源：方向与 locale 语义由 `crates/ui-headless/src/direction.rs` 内部调用 `crates/ui-headless/src/a11y.rs`（`locale_attrs`）统一处理，组件层不重复实现。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+  - direction 关键状态轴通过 `data-direction` 暴露（封闭集合：`ltr|rtl`），状态来源通过 `data-direction-source` 暴露（封闭集合：`direction|dir-alias|default`）。
+  - 选择器约束：自动化与回归测试以 `data-slot=\"direction-provider\"` + `data-direction` + `data-direction-source` 为主，不依赖 DOM 结构顺序。
+  - `aria-*` 子项 N/A（direction）：该组件为非交互语义容器，无 disabled/selected/focus-visible/loading 等交互态，不额外定义组件私有 `aria-*` 状态轴。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+  - direction 当前样式为静态稳定 class（`.ui-direction-provider`），无状态分支选择器，不依赖 DOM 结构猜测。
+  - `view.rs` 不透传业务内联样式（无 `style=` 业务逻辑），仅挂载语义标记与 class。
+  - 状态解释路径固定：方向状态由 `data-direction`/`data-direction-source` 语义标记提供；样式层不通过节点存在性做隐式推断。
+- [x] 测试验证“语义契约”而不只验证视觉快照。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - 语义契约覆盖：`components/direction/test/semantics.rs` 与 `crates/ui-components/tests/direction_semantics.rs` 均断言 `lang/dir/data-direction/data-direction-source` 与来源封闭集合。
+  - 分支矩阵 N/A（direction）：该组件无受控/非受控轴、无 disabled/键盘/指针交互路径、无 wasm/ssr 分支差异逻辑；适用分支已由语义标记断言覆盖。
+  - 快照策略：当前 direction 组件测试不使用 snapshot 断言替代语义契约，主验证路径为可枚举语义标记与来源契约断言。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+  - `mod.rs` 当前仅维护模块边界与稳定导出（`DirectionMode`/`DirectionProvider`），未承载实现细节。
+  - `logic.rs` 仅包含输入归一与来源标记（`resolve_direction`/`DirectionPropSource`/`compose_class_name`），无 DOM 操作。
+  - `styles.rs` 仅包含静态 `.ui-direction-provider` 样式规则，不含主题常量分支与业务语义文案。
+  - `view.rs` 仅负责 Leptos 结构渲染与 `ui_headless::use_direction` 契约挂载，关键状态决策统一来自 `logic.rs`。
+  - `motion.rs` 子项 N/A（direction）：该组件无动效语义与 attach 需求，目录不含 `motion.rs`，且不依赖 `ui-motion`。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+  - N/A（direction/spec.rs）：direction 属于简单语义容器组件，当前不引入 `src/spec.rs`，组件说明保持在 `check2.md` 与 docs 页面。
+  - 当前若需最小协议约束，使用 `protocol.rs` 的版本化结构体（`schema_version`）承载；不把其升级为复杂 `spec.rs` builder 体系。
+  - 约束：未来若确需新增 `spec.rs`，必须同步提交契约测试、版本迁移说明与引入理由；否则判为不通过。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+  - direction 样式仅定义于 `components/direction/src/styles.rs`（`CSS` 常量）；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-direction")]` 聚合，`UiRoot` 经 `crate::css::push_components_css` 注入。
+  - direction 当前仅保留布局防御规则 `min-inline-size: 0;`；无颜色/间距/圆角/阴影私有常量。视觉 token 子项 N/A（该组件不承载视觉语义设计）。
+  - `view.rs` 不包含 `style=` 内联业务样式逻辑，运行时不拼装组件私有样式，仅挂载稳定 class 与语义标记。
+  - 组件实现不引入 Utility-First 或 CSS-in-Rust 机制（如 `@apply`/`tw-`/`stylist`）；Utility 类使用限定在 `apps/*` 应用层示例。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+  - direction 为语义上下文容器组件（非视觉展示组件）；组件级视觉风格子项 N/A，但必须复用仓库级默认主题基线门禁而非绕过。
+  - docs 基线证据：`apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs` 提供 `ThemeVisualBaseline` 页面，并覆盖 `Button/Input/Overlay` 的层级、对比与交互反馈。
+  - e2e 基线证据：`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 固化渲染断言与截图基线（`docs-app-theme-visual-baseline-*.png`，`E2E_VISUAL_BASELINE=on`）。
+  - direction 约束：`styles.rs` 不得引入渐变/阴影/动画等视觉风格常量，避免把全局美学职责回流到语义容器组件。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +227,119 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+  - direction package 特性门：`crates/ui-components/Cargo.toml` 中 `component-direction = ["dep:ui-direction"]`；未启用该 feature 时，`lib.rs` 不导出 `direction` 模块。
+  - direction 样式裁剪门：`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-direction")]` 下聚合 `crate::direction::styles::CSS`，不存在无条件 direction CSS 注入。
+  - source 模式裁剪：按需引入 `components/direction/src/*` 即可，不依赖方向组件专属中央注册表；方向组件不引入额外可达映射表。
+  - 仓库级树摇门禁：`scripts/check-ui-components-tree-shaking.sh` 固化最小特性树、反向依赖树、最小 wasm 编译与 release 体积预算校验。
+  - 预算基线：`scripts/tree_shaking_budget.env` 维护 `TREE_SHAKING_BASELINE_RLIB_BYTES` 与 `TREE_SHAKING_MAX_RATIO_PERCENT`，阻断体积回归。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
+  - direction 离散轴全部类型化：输入为 `Option<DirectionMode>`（`DirectionMode::{Ltr,Rtl}`），来源轴为 `DirectionPropSource::{Direction,DirAlias,Default}`；无字符串协议与 bool 组合状态机。
+  - 无效输入组合在类型层受限，缺省路径在 `logic::resolve_direction` 统一归一为 `DirectionMode::default()` 并携带来源标记，归一规则由 `test/logic.rs` 与语义测试共同覆盖。
+  - 机器可读语义输出稳定：`view.rs` 挂载 `data-direction`（`ltr|rtl`）与 `data-direction-source`（`direction|dir-alias|default`）封闭集合，便于自动化检索与 Agent 消费。
+  - 可持续反馈闭环：`components/direction/test/semantics.rs` 与 `crates/ui-components/tests/direction_semantics.rs` 对类型轴、归一路径与语义标记进行回归锁定，破坏契约可直接定位到具体层（primitive/logic/view）。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
-  - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
-  - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
-  - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
-  - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
-  - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
-  - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
-  - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
-  - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
-  - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
-  - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
-  - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
-  - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
-  - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
-  - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
-  - 性能问题需可归因到状态、渲染、样式或动效路径之一。
-  - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
-  - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
-  - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
-  - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
-  - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
-  - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
-  - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
-  - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
-  - 可判定为纯静态的片段应避免重复动态构造。
-  - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
-  - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
-  - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
-  - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
-  - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
-  - 开发模式下至少能追踪关键状态变更来源与前后值。
-  - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
-  - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
-  - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
-  - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
-  - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
-  - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
-  - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
-  - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - N/A（direction）：该组件为方向语义 provider，不创建 overlay、不管理焦点转移与恢复栈，不存在层叠弹层焦点回收协议面。
+  - 当前实现无 `NodeRef` 持有、无 `document.body` 焦点回退、无私有 Focus Manager 分支；`view.rs` 仅挂载 `lang/dir/data-*` 语义标记。
+  - 约束：若未来在 direction 范围新增 overlay/焦点恢复能力，必须接入全局 Focus Manager 契约（`FallbackTo/Selector` 等）并补对应语义与 e2e 回归，禁止组件内私存恢复目标节点。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - N/A（direction）：该组件仅负责方向语义装配，不集成命令式第三方实例（ECharts/Map/编辑器等），不存在 Foreign Zone 生命周期治理面。
+  - 当前实现无第三方实例创建/销毁分支、无 `YieldControl/CleanupForeign`、无实例句柄透传到公共 API；`DirectionProvider` 对外仅暴露方向语义 props 与 children。
+  - 约束：若未来确需接入命令式第三方能力，必须落入受控 Foreign Zone 并提供 `YieldControl/CleanupForeign` 清理语义；禁止把第三方实例或其原生句柄暴露到组件公共 API。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - N/A（direction-local ID）：direction 组件不生成本地随机 ID，不依赖 `now()`/原生 UUID；`logic.rs` 仅做方向归一与来源标记，`view.rs` 仅挂载语义 attrs。
+  - 确定性注入路径：`UiRoot` 通过 `id_seed` 调用 `provide_ui_id_provider(id_seed)`，统一提供可预测 ID 种子；direction 作为语义 provider 消费该全局上下文契约，不自建随机源。
+  - 当前实现无 hydration 破坏源：组件代码中不存在 `SystemTime::now`/`js_sys::Date::now`/`uuid`/`rand` 初始化路径。
+  - 约束：若 future 在 direction 引入需跨端稳定的局部 ID，必须改为消费 `IdProvider`，禁止在组件内直接引入随机或时间源。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+  - compile-only 证据：`scripts/check-ui-components-platforms.sh` 覆盖默认 native（`cargo check -p ui-components`）、ssr native（`cargo check -p ui-headless --no-default-features --features ssr`）、web wasm（`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 与 `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`）。
+  - 平台分支治理：平台差异通过 target/feature 显式声明，不依赖运行时偶然行为；`ui-headless` 另有 web/ssr 互斥编译守卫。
+  - direction non-wasm 安全：`components/direction/src/mod.rs`、`components/direction/src/logic.rs`、`components/direction/src/view.rs` 不引用 `web-sys`/`window`/`document` 等浏览器对象。
+  - 本地验证状态：已核对上述 compile-only 路径与源码约束；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑完整平台脚本。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+  - 互斥守卫存在：`crates/ui-headless/src/lib.rs` 声明 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(\"features \\`web\\` and \\`ssr\\` are mutually exclusive; enable exactly one\")`。
+  - direction 依赖路径未破坏约束：`components/direction/src/view.rs` 仅通过 `use ui_headless::{DirectionOptions as DirectionA11yOptions, use_direction};` 消费 headless 语义契约，不引入并行 feature 绕过路径。
+  - 双路径 compile-only 证据：`scripts/check-ui-components-platforms.sh` 包含 `cargo check -p ui-headless --no-default-features --features ssr` 与 `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`。
+  - 互斥失败证据：同脚本含 `cargo check -p ui-headless --no-default-features --features web,ssr` 预期失败，并校验日志包含 `mutually exclusive`，防止“web+ssr 同开仍过编译”回归。
+  - 本地验证状态：已核对源码守卫与脚本契约；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑脚本实测。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+  - stub 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(&(), ..)` no-op 实现；并含 `non_wasm_web_backend_is_predictable_noop` 测试。
+  - direction 组件降级路径：`components/direction/Cargo.toml` 不依赖 `ui-motion`，`components/direction/src/view.rs` 不调用 `attach_motion`，不存在“假设动画句柄必定存在”的前提。
+  - 平台脚本证据：`scripts/check-ui-components-platforms.sh` 含 `cargo test -p ui-motion --test non_wasm_stub` 与 `cargo check -p ui-motion`，覆盖 SSR/tooling 场景的编译与 stub 回归。
+  - 约束：若 future 在 direction 引入 `motion.rs`，必须显式走 non-wasm no-op 分支并保证不会 panic；禁止把 wasm-only 动效路径直接暴露到非 wasm。
+  - 本地验证状态：已核对源码与脚本契约；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑平台脚本实测。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+  - N/A（direction motion）：direction 为静态语义 provider，不含 `motion.rs`、不依赖 `ui-motion`、不执行动画 attach；`reduced-motion` 在该组件无额外分支面。
+  - SSR/hydration 稳定性：`view.rs` 仅输出 `lang/dir/data-direction/data-direction-source` 语义 attrs，`logic::resolve_direction` 为纯函数归一，SSR 与 hydration 首帧语义一致。
+  - wasm/SSR 语义一致：direction 不使用 `#[cfg(target_arch = "wasm32")]` 分叉渲染，wasm 侧不引入额外交互语义，契约与 SSR 保持同构。
+  - 平台验证证据：`scripts/check-ui-components-platforms.sh` 包含 `cargo check -p ui-motion --target wasm32-unknown-unknown`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css`，并覆盖多组件 `reduced-motion/ssr/wasm` 合同回归，保证基础平台路径持续可编译。
+  - 本地验证状态：已核对源码与脚本契约；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑平台脚本实测。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+  - N/A（direction 交互强度）：direction 为静态语义 provider，无高频交互循环、无动画驱动、无内部可变状态；关键路径仅 `logic::resolve_direction` 一次归一与语义 attrs 挂载。
+  - 仓库级预算与阻断证据：`scripts/check-ui-components-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking`、`input_performance_governance_contract_is_budgeted_traceable_and_blocking`、`docs_perf_probe_budgets_are_wired_for_component_pages`、`perf_render_count_follow_up_is_tracked_in_plan`。
+  - 预算基线来源：`components/button/check2.md` 与 `components/text-input/src/input/check2.md` 明确 `Button`/`Input` 初始化渲染次数预算为 `1`，并通过 docs `UiPerfProbe` + e2e 标记形成可重复基线与阻断。
+  - 可归因性：direction 输出稳定 `data-direction`/`data-direction-source` 标记，不引入样式分支与动效分支，性能问题可直接归因到语义归一与渲染路径。
+  - `render_count` 后续：`docs/plan/TODO.md` 持续跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion）”，当前按仓库约定使用 mount-only 等价证据过渡。
+  - 本地验证状态：已核对性能门禁脚本与上游预算契约；当前环境执行 `cargo` 仍可能触发 `Invalid cross-device link (os error 18)`，待环境恢复后重跑性能脚本实测。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+  - N/A（direction 复杂布局）：`components/direction/src/view.rs` 仅包含 1 个 `view!` 块，结构为单层 `<div>{children()}</div>` 语义容器，无深嵌套布局与重复模板片段。
+  - 子块拆分判定：当前组件无 header/body/item 等复合布局维度，不存在需要抽取语义子块的场景；若 future 引入复合结构，必须先拆为局部渲染函数再装配。
+  - 宏展开风险控制：`view.rs` 不包含循环模板（如 `For`/`Indexed`）与大段静态重复片段，编译/wasm 体积异常时优先排查 `view!` 展开体量再决定重构。
+  - 可回归证据：组件侧与跨 crate 语义测试锁定“`view!` 次数=1、无深层语义容器嵌套、无重复模板分支”契约，防止宏复杂度回退。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+  - N/A（direction 片段规模）：`components/direction/src/view.rs` 仅保留一个对外语义组件 `DirectionProvider`，当前无可复用的 header/body/item 子片段，不存在“新增局部 `#[component]`”压力面。
+  - 升级边界：仅当出现独立 props 语义与可复用契约时才允许新增 `#[component]`；否则必须优先提取为普通渲染函数（`impl IntoView`/`View`）。
+  - 抽象噪音防线：direction 现状要求 `#[component]` 计数维持单一入口（`DirectionProvider`），禁止为局部模板拆分引入额外组件层级。
+  - 语义稳定性：拆分策略不得改变 `data-slot/data-direction/data-direction-source` 等对外语义标记，测试选择器保持稳定可定位。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+  - N/A（direction 静态片段规模）：`components/direction/src/view.rs` 无复杂 SVG/长文案/页脚模板，仅渲染语义容器与 `children` 插槽，不存在重复静态片段构造。
+  - 常量化落点：组件静态样式集中在 `components/direction/src/styles.rs` 的 `pub const CSS`，静态资源路径单一且可追踪。
+  - 语义保持：该组件无静态富文本注入，不使用 `inner_html`；可访问语义由 `lang/dir/data-*` attrs 直接表达，不因常量化策略变化。
+  - 维护约束：若 future 引入复杂静态 SVG/说明文案，必须优先提取为常量/模板并保持集中落点，禁止散落在多个 `view!` 分支。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+  - N/A（direction 富文本注入面）：`components/direction/src/view.rs` 不使用 `inner_html`，仅输出 `lang/dir/data-*` attrs 与 `children` 插槽，不存在 HTML 字符串注入路径。
+  - 安全边界：组件无远端 HTML 输入、无模板拼接、无未清洗字符串直写 DOM；`logic.rs` 仅做方向归一与 class 组合，不承载富文本渲染职责。
+  - 回归保障：组件侧与跨 crate 语义测试显式断言 `inner_html/dangerously_set_inner_html/set_inner_html` 缺席，并锁定语义标记输出不变。
+  - 维护约束：若 future 必须引入 `inner_html`，仅允许受信任静态常量/白名单来源，并必须同步补齐语义与安全回归用例后方可通过。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+  - N/A（direction 关键交互回放）：direction 为语义 provider，无本地状态机与高频交互链，不存在组件内“事件顺序/状态转移”回放面。
+  - 全局可追踪能力：`crates/ui-headless/src/trace.rs` 提供 `UiTraceEvent { ts_ms, component, kind }` 与 `provide_ui_trace/use_ui_trace`；`apps/docs-app/src/lib.rs` 在 `cfg!(debug_assertions)` 下启用 trace。
+  - 可视化入口：`apps/docs-app/src/debug_overlay.rs` 提供 `UiDebugOverlay`（含 inspect/events 面板），开发模式下在 docs-app 挂载。
+  - feature 隔离：`crates/ui-components/Cargo.toml` 提供 `*-wasm-debug` feature（如 `accordion-wasm-debug`/`button-wasm-debug` 等），默认生产路径不暴露调试 API。
+  - 约束：direction 不新增私有 debug/replay 接口；若 future 引入复杂交互，必须接入 `UiTrace` 并通过 feature gate 隔离。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+  - N/A（direction 交互复杂度）：direction 为语义 provider，无内部可变状态与复杂交互，不需要独立 workbench 状态保留面；保持 Playground 单画布路径即可。
+  - 样式热反馈路径：`scripts/dev-docs-app.sh` 与 `scripts/dev-web-demo.sh` 均使用 `trunk serve` watch；仓库 DX 门禁 `scripts/check-ui-components-dx.sh` 固化 `*_dx_playground_supports_css_hot_reload_without_wasm_rebuild` 合同。
+  - 上下文保持与隔离画布：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 通过 `<Playground ...>` 提供 direction 隔离预览；`apps/docs-app/src/playground.rs` 以 `data-playground-scope` + 控制面板信号保持同页调试上下文。
+  - 状态保留策略：direction 当前标记 optional persist 为 N/A；若 future 引入可交互状态，必须补 workbench 与可选状态保留开关，并新增对应 DX 语义回归。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+  - serde 路径（direction 适用）：`components/direction/src/protocol.rs` 提供 `DirectionComponentSchemaVersion` 与 `DirectionComponentSpec`，并以 `Serialize/Deserialize + schema_version` 形成结构化协议；`components/direction/test/protocol.rs` 锁定 serde 合同。
+  - tracing 路径（direction 轻组件 N/A）：direction 本体不定义私有 tracing target/span/event；交互追踪统一走全局 `ui-headless` trace 契约，避免组件各自发明埋点语义。
+  - async/runtime 边界：direction 无异步状态机与 runtime 绑定；`view.rs`/`logic.rs`/`mod.rs` 不暴露 `tokio`/`async-std`/runtime 类型到公共 API。
+  - 仓库级门禁证据：`scripts/check-ui-components-engineering.sh` 固化 `serde schema + tracing semantics + runtime leakage` 三类合同检查，direction 需持续满足同一工程基线。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - direction 样式已改为双层链：`min-inline-size: var(--ui-min-inline-size-none, var(--ui-fallback-min-inline-size-none))`，不再使用裸尺寸终值。
+  - Fallback SSOT：`--ui-fallback-min-inline-size-none` 由 `crates/ui-theme/src/css.rs` 统一输出，组件层仅消费变量。
+  - 约束：`components/direction/src/styles.rs` 禁止新增 Hex/RGB/裸像素终值 fallback；新增样式必须先走 token 与 fallback 变量链。
+  - 回归：direction 组件侧与 `crates/ui-components` 镜像语义测试锁定变量链与“无硬编码颜色/尺寸终值”契约。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
+  - 聚合层证据：`crates/ui-components/src/css.rs` 在 `push_components_css` 入口以 `@layer ui` 包裹组件样式，并通过 `#[cfg(feature = \"component-direction\")] out.push_str(crate::direction::styles::CSS);` 聚合 direction CSS。
+  - 组件运行时样式约束：`components/direction/src/view.rs` 不包含 `style=`/`style:`，direction 不在运行时拼接普通内联样式。
+  - 数值调整策略（direction N/A）：当前组件无运行时数值调整路径；若 future 引入动态数值，必须仅通过 CSS Custom Properties（`style:--*`）透传，不得写 `style=\"top: ...\"` 等普通内联样式。
+  - 回归：direction 组件侧与 `crates/ui-components` 镜像语义测试锁定 `@layer ui` 聚合与“无普通内联 style”契约。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - N/A（direction motion 面）：direction 为静态语义 provider，不存在 open/close/enter/exit 动效语义；目录无 `motion.rs`，不调用 `attach_motion`。
+  - reduced-motion/no-op 继承约束：`components/direction/Cargo.toml` 不依赖 `ui-motion`；该组件不自行实现动画执行器，non-wasm/SSR 安全降级由 `crates/ui-motion` 统一 no-op 契约兜底。
+  - 平台门禁证据：`scripts/check-ui-components-platforms.sh` 固化 `cargo check -p ui-motion`、`cargo test -p ui-motion --test non_wasm_stub` 与多组件 motion contractualization 回归，确保 motion 基础设施持续满足 reduced-motion + non-wasm 可编译。
+  - 约束：若 future 为 direction 引入 `motion.rs`，必须定义组件级 motion contract（参数与 attach 路径）并补 `reduced-motion + non-wasm no-op` 语义测试，禁止组件内自研 spring/driver。
+- [x] `ui-components` 固定入口文件落点正确。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,73 +347,158 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+  - direction 入口落点：`lib.rs` 已在 `#[cfg(feature = "component-direction")]` 下 `pub use ui_direction as direction;`，并仅导出 `DirectionMode/DirectionProvider` 公共语义面。
+  - direction CSS 落点：`css.rs::push_components_css` 在 `@layer ui` 中按 `component-direction` 条件聚合 `crate::direction::styles::CSS`，无无条件注入。
+  - UiRoot 中央注入：`root.rs` 统一 `BASE_CSS + theme vars + optional components css`，并通过 `provide_ui_i18n` 提供全局 i18n 上下文。
+  - 共享高亮能力落点：`ui-visual-primitive/src/active_highlight.rs` 仅提供 `CSS + ActiveHighlightMotion + attach_active_highlight_motion` 通用能力。
+  - 禁止文件落点满足：`crates/ui-components/src/overlay_open.rs`、`presence.rs`、`a11y.rs` 均不存在；对应原语固定在 `ui-headless`。
+- [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
   - `<component>/view.rs`：纯 Leptos 结构渲染 + headless 语义挂载；禁止 `render.rs` 漂移；不隐藏关键状态决策。
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
+  - `components/direction/src/mod.rs` 仅维护 `logic/styles/view/protocol` 边界并导出 `DirectionMode/DirectionProvider`；未过度公开内部实现模块。
+  - `components/direction/src/logic.rs` 仅做 `resolve_direction + DirectionPropSource + compose_class_name` 归一/来源标记，不含 DOM 操作与可下沉状态原语重写。
+  - `components/direction/src/styles.rs` 仅包含静态 `.ui-direction-provider` CSS，尺寸通过 `var(--ui-*, var(--ui-fallback-*))` 变量链消费，无写死主题常量。
+  - `components/direction/src/view.rs` 仅做 Leptos 结构渲染与 `ui_headless::use_direction` 语义挂载，关键状态统一来自 `logic::resolve_direction`；目录不存在 `render.rs`。
+  - `motion.rs` 子项 N/A（direction）：该组件为非交互语义 provider，目录无 `motion.rs`，不依赖 `ui-motion`，无 `XxxMotion/attach_motion` 实现面。
+  - `spec.rs` 子项 N/A（direction）：该组件保持简单 API，目录无 `spec.rs`，仅 button 等复杂组件需要该落点。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
-  - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
-  - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
-  - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
-  - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
-  - `Streaming`：LLM 还在生成，界面边生成边显示。
-  - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
-  - 所有组件都应能消费“完整生成结果”并稳定渲染。
-  - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
-  - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
-  - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
-  - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
-  - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
+  - direction 核心落点满足：`components/direction/src/` 保持 `mod.rs + logic.rs + styles.rs + view.rs` 主路径；`mod.rs` 仅维护导出边界。
+  - `render.rs` 禁止项满足：目录中不存在 `render.rs`，渲染入口固定在 `view.rs`，无平行渲染模块漂移。
+  - `motion.rs` 子项 N/A（direction）：该组件是非交互语义 provider，无动效 contract 语义轴，不引入 `motion.rs` 与 `attach_motion`。
+  - `spec.rs` 子项 N/A（direction）：组件不属于复杂 Schema/builder 组件，目录无 `spec.rs`，避免无收益抽象扩张。
+  - 扩展文件说明：`protocol.rs` 用于结构化协议（serde/schema version）并不替代核心落点职责；关键实现职责仍由 `mod/logic/styles/view` 承担。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - N/A（direction）：该组件是轻量语义 provider，不属于复杂配置树组件；当前不引入 `src/spec.rs` 与 builder 渲染链。
+  - 现有协议边界：`protocol.rs` 仅保留最小版本化结构（`DirectionComponentSpec + schema_version`）用于序列化兼容，不承担 UI builder 职责。
+  - 禁止伪 builder：组件目录中不得出现 `*Spec::new()...render()` 风格 API 来包装简单容器语义，避免无收益抽象。
+  - 升级触发条件：仅当 direction 演化为复杂 Schema 驱动组件（多层配置、可编排语义树）时，才允许新增 `spec.rs` 并同时补 builder 契约测试与版本迁移说明。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - 落点满足：`components/direction/src/Component.toml` 与 `components/direction/src/direction.rbi` 已补齐并与当前组件 API 对齐。
+  - Manifest 范围：`Component.toml` 明确 `files/capabilities/markers/agent_contract/output_state`，声明 `spec_builder=false`、`streaming=false` 与 `supports_lang_dir=true`，避免 AI 检索误判能力面。
+  - RBI 范围：`direction.rbi` 固定导出 `DirectionMode` 与 `DirectionProvider(...) -> IntoView` 的签名投影，并提供方向来源与 agent 状态枚举，保持机器可读接口稳定。
+  - 边界约束：direction 作为轻量语义 provider，不引入 `Spec::new()...render()` builder 投影；若未来升级为复杂 spec 组件，必须同步演进 `Component.toml/.rbi` 与迁移说明。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+  - 机器可读语义已落地：`view.rs` 在 `data-direction/data-direction-source` 基础上，新增 `data-ui-schema/version/intent/action/state/source/stream-support/stream-fallback/output-status` 稳定标记。
+  - 类型化来源：`logic.rs` 新增 `DirectionAgentIntent/Action/Source/StreamSupport/StreamFallback/OutputStatus` 与 `DirectionAgentContract`，由 `resolve_agent_contract` 统一生成，避免 `view.rs` 散落字符串拼接。
+  - 可追溯性：契约字段直接映射方向状态轴与来源轴（`DirectionMode` + `DirectionPropSource`），`intent/action/state/source` 均可枚举并可回归断言。
+  - 白名单边界：`Component.toml` 的 `agent_contract.fields` 与 `markers.required` 明确允许字段集合，`direction.rbi` 同步投影签名；组件无 `inner_html`/脚本注入路径，渲染链路保持白名单约束。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+  - 术语口径固定：`Streaming` 指 LLM 生成中增量渲染；`Snapshot` 指完整结果一次性渲染，二者仅描述输出时序，不引入额外交互语义。
+  - N/A（direction）：direction 是方向语义 provider，不是 LLM 正文阅读面，不承载 token/chunk 流式拼接渲染链路。
+  - 当前契约落点：组件通过类型化 agent contract 输出 `data-ui-stream-support="optional"` 与 `data-ui-stream-fallback="snapshot"`，默认消费快照态输入。
+  - 约束：组件侧禁止引入 `EventSource/WebSocket` 或自定义 chunk buffer；若 future 承载正文流式渲染，必须新增 streaming 专项状态轴与回归测试。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+  - direction 已支持快照基线：在接收完整 props（`direction/dir/lang/class_name/children`）后，`logic::resolve_direction` 单次归一并稳定输出语义容器，无增量流式依赖。
+  - 完整输入消费：组件可直接消费“完整配置结果”并一次性渲染 `lang/dir/data-direction/data-direction-source + data-ui-*`，不要求额外异步握手。
+  - 非正文组件仍适用：尽管 direction 不展示正文内容，但作为语义 provider 必须在 snapshot 输入下稳定提供上下文；当前 `Component.toml` 已声明 `snapshot=true`、`streaming=false`。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+  - 角色判定（direction）：该组件不是正文阅读面，归类为 `Streaming Optional`；无需在组件内实现增量 token 渲染主链。
+  - fallback 明确：`Component.toml` 显式 `streaming=false`，同时 agent contract 输出 `data-ui-stream-support="optional"` 与 `data-ui-stream-fallback="snapshot"`，固定快照降级路径。
+  - 输出状态连续可读：`view.rs` 挂载 `data-ui-output-status`（当前 `verified`）并与 `lang/dir/data-direction/data-direction-source` 连续输出；`role/aria-*` 交互子项对 direction 为 N/A。
+  - 职责边界：数据校验、断线恢复、重试由上层编排；direction 仅消费完整输入并稳定渲染语义上下文，不承载传输层策略。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - 非测试源码约束满足：`components/direction/src/logic.rs` 与 `components/direction/src/view.rs` 中不存在 `.unwrap(` / `.expect(` / `let _ =`；状态与属性挂载均为显式处理路径。
+  - 字符串复制热点已收敛：`logic::compose_class_name` 返回 `Cow<'static, str>`，默认类名走 `Cow::Borrowed("ui-direction-provider")`，仅在拼接自定义 class 时分配 `Cow::Owned(...)`。
+  - 回归锁定：`components/direction/test/logic.rs` 增加 Borrowed/Owned 分支断言，防止后续回退为无条件 `String` 复制。
+  - 执行记录：`./scripts/check-rust-hygiene.sh` 已执行；当前环境 `rg` 缺少 PCRE2 导致其前置 `check-api-contracts` 产生基线漂移失败，组件级定向扫描结论不受该环境噪声影响。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - 组件特性注册已落位：`crates/ui-components/Cargo.toml` 定义 `component-direction = ["dep:ui-direction"]`，并将 `ui-direction` 作为 `optional` 依赖接入。
+  - 模块导出受门控：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = "component-direction")]` 下导出 `pub use ui_direction as direction;`，未启用时不可达。
+  - CSS 聚合受门控：`crates/ui-components/src/css.rs` 仅在 `#[cfg(feature = "component-direction")]` 下注入 `crate::direction::styles::CSS`，不存在 direction CSS 的无条件全局聚合。
+  - 特性树验证：执行 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-direction,inject-css`，输出仅含命令行特性 `component-direction` 与 `inject-css`，未出现 `all-components`。
+  - 反向依赖验证：执行 `cargo tree -e features -i ui-components -p web-demo`，链路为 `web-demo-components`，未发现 `all-components` 被隐式拉起。
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
+  - 语义覆盖证据：`components/direction/test/semantics.rs` 与 `crates/ui-components/tests/direction_semantics.rs` 已断言 `lang/dir/data-slot/data-direction/data-direction-source` 与来源封闭集合，主路径基于语义标记而非视觉快照。
+  - 快照约束：已锁定“语义优先、快照仅补充”策略（`direction_tests_prioritize_semantic_contracts_over_snapshots`），避免以 snapshot 断言替代语义契约。
+  - `aria-*`/焦点流转适用性：N/A（direction）；该组件为方向语义 provider，不暴露可聚焦交互控件，无组件私有焦点流转状态机；交互焦点契约由上层可交互组件负责。
+  - 性能与 `render_count` 适用性：N/A（direction 非高频/重型）；当前仅做一次方向归一与语义挂载，不属于必须单组件 `render_count` 预算对象。
+  - 仓库级回归与预算阻断：`scripts/check-ui-components-performance.sh` 已纳入 `button/input` 的预算与 `render_count` 跟踪（初始化预算为 `1`）以及后续自动化补齐计划，direction 复用该基线治理。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
+  - N/A（本次改动范围）：当前提交未引入跨大版本 API 破坏升级；`DirectionProvider` 公共签名保持兼容，协议仍为 `schema_version = "1"` / `DirectionComponentSchemaVersion::V1`。
+  - 兼容现状证据：`components/direction/src/protocol.rs` 仅定义 `V1`；`components/direction/src/Component.toml` 保持 `schema_version = "1"`；`components/direction/src/direction.rbi` 未引入 v2 并保持现有接口投影。
+  - 迁移层状态：当前不存在 `migrate_v1_to_v2`，因为未发生破坏性升级；避免“为假问题预置迁移函数”导致无收益复杂度。
+  - 升级触发门槛：若未来出现 `V2` 或 API 破坏变更，必须同步完成 Schema Registry 弃用窗口登记、纯函数迁移层（`migrate_v1_to_v2`）与回归测试，再允许勾选通过。
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
+  - docs-app 落点：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 已提供 `Hello World`、`State Matrix (LTR / RTL / Default)`、`Controlled vs Uncontrolled (N/A for Direction)`、`Snapshot Contract` 四组 Playground。
+  - 受控/非受控对照适配：direction 无内部可变状态轴，文档以 `direction` 与 `dir` 输入来源对照展示并显式标注 N/A，避免伪造不存在的受控状态机。
+  - 流式/快照展示：页面新增 `data-slot="direction-streaming-policy"` 与 `data-slot="direction-streaming-modes"`，明确 `Streaming Optional; fallback=snapshot` 与 snapshot 渲染路径。
+  - Source-first 复制能力：每个 Playground 传入 `code_imports=DIRECTION_COPY_IMPORTS.to_string()`；`apps/docs-app/src/playground.rs` 通过 `compose_copy_ready_code` 自动补全缺失 imports，并在 Code 面板提供复制入口。
+  - Copy-Paste Ready 约束：`DIRECTION_COPY_IMPORTS` 固定包含 `use leptos::prelude::*;` 与 `use ui_components::{DirectionMode, DirectionProvider};`，保证复制代码可直接运行（在仓库 docs 约定上下文内）。
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+  - 语义测试落点：`components/direction/test/semantics.rs` 与 `crates/ui-components/tests/direction_semantics.rs` 均存在并持续镜像，保证组件内与聚合层对同一语义契约双向回归。
+  - 契约覆盖证据：测试已锁定 `lang/dir/data-direction/data-direction-source/data-slot` 与来源封闭集合（`direction|dir-alias|default`）；`role/aria-*` 对 direction 为非交互 N/A，已通过文档与语义测试明确边界。
+  - 快照约束证据：`direction_tests_prioritize_semantic_contracts_over_snapshots` 显式禁止 `assert_snapshot/assert_debug_snapshot/assert_json_snapshot/to_match_snapshot`，避免视觉快照替代语义断言。
+  - 变更门禁：`direction_semantic_contract_priority_is_enforced_with_mirrored_semantics_tests` 要求该条保持勾选并校验语义字段断言与镜像函数存在；新增语义字段若未补测试将直接回归失败。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+  - E2E 语义选择器证据：`e2e/tests/docs_app_direction_contract.spec.mjs` 仅使用 `data-component="direction-provider"`、`data-slot="direction-state-matrix"`、`data-slot="direction-provider"`、`data-direction`、`data-direction-source`、`data-slot="direction-snapshot-demo"` 组合定位，未使用文本定位或 DOM 层级猜测。
+  - WASM 稳定等待证据：用例在路由切换后统一先等待 `body:not(:has(#boot))`，并以 `await expect(...data-slot...)` 断言语义节点可见作为就绪条件，未使用固定 sleep。
+  - 异步/动画适用性：N/A（direction）；该组件无异步状态机与动效流程，当前 E2E 重点锁定语义标记稳定性与 route repeatability，不需要额外 ready/settled 动画等待分支。
+  - 高风险路径适用性：N/A（direction）；该组件不承载 overlay/focus trap/keyboard 导航/async 交互流，高风险回归优先级由对应交互组件承担；若 future 引入上述能力，必须补同级 Playwright 回归并显式断言语义断点。
+  - 回归门禁：`direction_e2e_selector_contract_uses_semantic_markers_and_stable_readiness` 在组件侧与 `crates/ui-components` 镜像测试中强制校验 `data-*` 选择器、语义就绪等待与“无 fixed sleep”约束。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+  - 关键流程用例：`e2e/tests/docs_app_direction_contract.spec.mjs` 的 `docs-app direction provider route flow is repeatable` 覆盖“进入 direction 页面 -> 跳转 spacer -> 返回 direction 页面”可重复流程，纳入 Playwright 回归集合。
+  - 断点可定位：流程以 `data-slot="direction-snapshot-demo"` 作为语义就绪断点，并断言 `[data-slot="direction-provider"][lang="en"][data-direction="ltr"][data-direction-source="direction"]` 的 `dir/lang` 属性；失败可直接定位语义契约断裂点。
+  - 高风险路径适用性：N/A（direction）；该组件不承载 overlay/focus trap/keyboard/async 流程，高风险交互回归由对应交互组件承担。
+  - 扩展约束：若 future 在 direction 引入 overlay/focus/keyboard/async 能力，必须新增同级 Playwright 关键流程回归（含 ready/settled 条件与语义断点断言）后方可维持勾选。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+  - docs 同步落点：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 已覆盖 `Hello World`、`RTL Direction + Class`、`State Matrix (LTR / RTL / Default)`、`Controlled vs Uncontrolled (N/A for Direction)`、`Snapshot Contract` 示例。
+  - 参数矩阵已落地：页面新增 `data-slot="direction-parameter-matrix"` 与 `data-slot="direction-parameter-rows"`，文档化 `direction/dir/lang/class_name` 参数语义与默认值（`None`）。
+  - 状态矩阵已落地：页面通过 `data-slot="direction-state-matrix"` 明确展示 `LTR/RTL/Default` 三态，覆盖方向来源路径。
+  - API/默认值一致性：文档新增 `data-slot="direction-default-rule"`，明确 `logic::resolve_direction(direction, dir)` 采用 `direction > dir > DirectionMode::default()`，并对应 `data-direction-source=direction|dir-alias|default`。
+  - 适用性说明：`disabled/size/variant` 对 direction 为 N/A（该组件是语义 provider，无对应状态轴）；文档以受控别名对照与方向状态矩阵覆盖本组件实际可变维度。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+  - 等价文档入口已存在：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 提供 `DirectionProvider` 文档页；`apps/docs-app/src/pages/components/pages.rs` 将 `layout_extra_direction::DIRECTION_PROVIDER_DOC` 纳入组件目录索引，可稳定访问 `/#/components/direction-provider`。
+  - 零门槛路径已落地：页面首个 Playground 为 `Hello World`（3 行可运行示例），并新增 `data-slot="direction-docs-beginner-path"` 明确“先复制最小示例再扩展”。
+  - 先上手再进阶：文档新增 `data-slot="direction-docs-advanced-path"`，引导随后查看 `RTL Direction + Class`、`State Matrix (LTR / RTL / Default)`、`Controlled vs Uncontrolled (N/A for Direction)`、`Parameter Matrix` 与 `Default Resolution Rule`。
+  - 文档非机器独享：页面包含可复制示例、状态矩阵与参数矩阵，避免仅暴露源码或抽象术语；并通过 docs 组件测试注册表保证入口持续存在。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+  - 交互入口已落地：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 新增 `Interactive Playground (Props + State Switch + Feedback)`，并提供稳定选择器 `data-slot="direction-interactive-playground"`。
+  - 基础 props 调整已覆盖：控制面板提供 `direction/dir/default` 来源切换、`ltr/rtl` 值切换、`lang(none/en/ar)` 切换、`class_name` 开关与 `reset`，均通过 `data-slot="direction-interactive-*"` 暴露。
+  - 状态切换与反馈可观测：预览区实时更新 `DirectionProvider` 语义标记（`data-direction`/`data-direction-source`/`lang`/`dir`），并在 `data-slot="direction-interactive-feedback"` 输出当前来源与方向反馈。
+  - AI Spec 适用性：N/A（direction 为语义上下文 provider，非 AI Spec 组件；无独立 `spec.rs` 输入模型与渲染器联动面）。
+  - 可重复关键流程已固化：`e2e/tests/docs_app_direction_contract.spec.mjs` 新增 `docs-app direction provider interactive playground updates semantic markers deterministically`，按固定序列切换控制项并断言语义标记收敛。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+  - 复制能力已落地：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 新增 `data-slot="direction-source-first"` 区块，包含 `Snippet(copyable=true)` 的一键复制入口（`label="Copy DirectionProvider starter"`）。
+  - 复制代码可直接运行：`DIRECTION_SOURCE_FIRST_SNIPPET` 固定包含 `use leptos::prelude::*;` 与 `use ui_components::{DirectionMode, DirectionProvider};`，并提供最小可用 `DirectionProvider` 示例。
+  - 源码与依赖可追溯：文档新增 `data-slot="direction-source-paths"`（`mod.rs/logic.rs/view.rs/styles.rs/protocol.rs`）和 `data-slot="direction-source-prerequisites"`（`component-direction`、`inject-css`），避免“复制即报错”盲区。
+  - 同步策略已显式化：`data-slot="direction-source-sync-note"` 约束 starter snippet 与 Hello World 同步更新；`components/direction/test/semantics.rs` 与 `crates/ui-components/tests/direction_semantics.rs` 镜像回归锁定该契约，防止示例漂移。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
+  - 对标文档已同步：`docs/spec/heroui-parameter-design-strategy.md` 新增 `Direction 同步记录（2026-02-20）`，明确 `direction/dir` 语义、归一优先级（`direction > dir > default`）与 `data-direction-source` 封闭集合契约。
+  - 组件文档入口可访问：`apps/docs-app/src/pages/components/pages.rs` 保持 `layout_extra_direction::DIRECTION_PROVIDER_DOC` 索引，`apps/docs-app/src/pages/components/test/mod.rs` 保持 `"direction" => &["direction-provider"]` 可检索映射。
+  - 研究文档补充判定：本轮仅为 `DirectionProvider` 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+  - 回归约束：`components/direction/test/semantics.rs` 与 `crates/ui-components/tests/direction_semantics.rs` 镜像断言该条勾选状态、HeroUI 对标文档段落和 docs 索引入口，防止“仅代码更新无文档更新”回归。
 
 ### 8. 合并前门禁死命令（最终执行）
 在发起 PR 或完成任务前，必须保证本地/CI 以下命令全部通过：

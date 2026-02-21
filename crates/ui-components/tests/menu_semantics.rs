@@ -133,18 +133,24 @@ fn menu_uses_logic_state_model() {
 
 #[test]
 fn menu_attaches_active_highlight_motion_driver() {
-    let source = load_source("src/menu/view.rs");
+    let view_source = load_source("src/menu/view.rs");
+    let motion_source = load_source("src/menu/motion.rs");
 
     for needle in [
-        "attach_active_highlight_motion(",
+        "crate::menu::motion::attach_motion(",
         "node_ref=items_ref",
         "node_ref=highlight_ref",
     ] {
         assert!(
-            source.contains(needle),
+            view_source.contains(needle),
             "Menu should keep active-highlight motion wiring via `{needle}`."
         );
     }
+
+    assert!(
+        motion_source.contains("attach_active_highlight_motion("),
+        "Menu motion contract should delegate to shared active-highlight driver."
+    );
 }
 
 #[test]

@@ -65,10 +65,10 @@ pub(super) fn icons_ui() -> AnyView {
             format!("  icon=\"{icon}\".into()"),
             format!("  size=IconsUiSize::{size:?}"),
             format!("  tone=IconsUiTone::{tone:?}"),
-            format!("  decorative={decorative}"),
+            format!("  is_decorative={decorative}"),
         ];
         if disabled {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
         if custom_glyph {
             lines.push(
@@ -108,8 +108,8 @@ pub(super) fn icons_ui() -> AnyView {
     });
 
     let defaults_code = Signal::derive(move || {
-        r#"<IconsUi icon="check".to_string() size=IconsUiSize::Md tone=IconsUiTone::Accent decorative=false />
-<IconsUi icon="close".to_string() size=IconsUiSize::Md tone=IconsUiTone::Danger decorative=false />"#.to_string()
+        r#"<IconsUi icon="check".to_string() size=IconsUiSize::Md tone=IconsUiTone::Accent is_decorative=false />
+<IconsUi icon="close".to_string() size=IconsUiSize::Md tone=IconsUiTone::Danger is_decorative=false />"#.to_string()
     });
 
     let custom_code = Signal::derive(move || {
@@ -118,7 +118,7 @@ pub(super) fn icons_ui() -> AnyView {
   glyphs=vec![IconsetGlyph::new("ui:save", "💾").with_aria_label("UI Save")]
   size=IconsUiSize::Lg
   tone=IconsUiTone::Default
-  decorative=false
+  is_decorative=false
   class_name="docs-icons-ui-custom".to_string()
 />"#
         .to_string()
@@ -130,7 +130,7 @@ pub(super) fn icons_ui() -> AnyView {
   glyphs=vec![IconsetGlyph::new("ui:help", "?").with_aria_label("UI Help")]
   size=IconsUiSize::Lg
   tone=IconsUiTone::Muted
-  decorative=false
+  is_decorative=false
   aria_label="Explicit UI help icon".to_string()
   class_name="docs-icons-ui-state".to_string()
 />"#
@@ -150,13 +150,13 @@ pub(super) fn icons_ui() -> AnyView {
                         icon="check".to_string()
                         size=IconsUiSize::Md
                         tone=IconsUiTone::Accent
-                        decorative=false
+                        is_decorative=false
                     />
                     <IconsUi
                         icon="close".to_string()
                         size=IconsUiSize::Md
                         tone=IconsUiTone::Danger
-                        decorative=false
+                        is_decorative=false
                     />
                 </div>
             </Playground>
@@ -224,8 +224,8 @@ pub(super) fn icons_ui() -> AnyView {
                             icon=workbench_icon.get()
                             size=workbench_size.get()
                             tone=workbench_tone.get()
-                            disabled=workbench_disabled.get()
-                            decorative=workbench_decorative.get()
+                            is_disabled=workbench_disabled.get()
+                            is_decorative=workbench_decorative.get()
                             aria_label=if workbench_custom_aria.get() {
                                 "Workbench icon".to_string()
                             } else {
@@ -250,7 +250,7 @@ pub(super) fn icons_ui() -> AnyView {
                         glyphs=vec![IconsetGlyph::new("ui:save", "💾").with_aria_label("UI Save")]
                         size=IconsUiSize::Lg
                         tone=IconsUiTone::Default
-                        decorative=false
+                        is_decorative=false
                         class_name="docs-icons-ui-custom".to_string()
                     />
                 </div>
@@ -269,7 +269,7 @@ pub(super) fn icons_ui() -> AnyView {
                         ]
                         size=IconsUiSize::Lg
                         tone=IconsUiTone::Muted
-                        decorative=false
+                        is_decorative=false
                         aria_label="Explicit UI help icon".to_string()
                         class_name="docs-icons-ui-state".to_string()
                     />

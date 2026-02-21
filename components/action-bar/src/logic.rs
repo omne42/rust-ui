@@ -1,4 +1,5 @@
 use crate::ActionBarStrings;
+use std::borrow::Cow;
 
 pub use ui_state_primitives::action_bar::{
     ActionBarPhase, ActionBarPosition, ActionBarSelectionKind, ActionBarState, ActionBarStateInput,
@@ -63,40 +64,47 @@ pub fn resolve_selection_text(
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ActionBarState) -> String {
     let mut classes = vec![
-        "ui-action-bar".to_string(),
-        state.position_class.into(),
-        state.phase_class.into(),
-        state.selection_class.into(),
+        Cow::Borrowed("ui-action-bar"),
+        Cow::Borrowed(state.position_class),
+        Cow::Borrowed(state.phase_class),
+        Cow::Borrowed(state.selection_class),
     ];
 
     if state.has_clear_action {
-        classes.push("ui-action-bar--clearable".to_string());
+        classes.push(Cow::Borrowed("ui-action-bar--clearable"));
     }
 
     if state.has_custom_label {
-        classes.push("ui-action-bar--label-custom".to_string());
+        classes.push(Cow::Borrowed("ui-action-bar--label-custom"));
     }
 
     if state.selection_source_attr == "custom" {
-        classes.push("ui-action-bar--selection-custom".to_string());
+        classes.push(Cow::Borrowed("ui-action-bar--selection-custom"));
     }
 
     if state.clear_label_source_attr == "custom" {
-        classes.push("ui-action-bar--clear-label-custom".to_string());
+        classes.push(Cow::Borrowed("ui-action-bar--clear-label-custom"));
     }
 
     if state.motion_source_attr == "custom" {
-        classes.push("ui-action-bar--motion-custom".to_string());
+        classes.push(Cow::Borrowed("ui-action-bar--motion-custom"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-action-bar--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-action-bar--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    let mut out = String::new();
+    for (index, class_name) in classes.iter().enumerate() {
+        if index > 0 {
+            out.push(' ');
+        }
+        out.push_str(class_name.as_ref());
+    }
+    out
 }
 
 #[cfg(test)]

@@ -19,10 +19,7 @@ pub fn normalize_href(href: String) -> Option<String> {
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    ui_state_primitives::button::normalize_optional_text(value)
 }
 
 pub fn resolve_rel(target: Option<&'static str>, rel: Option<String>) -> Option<String> {

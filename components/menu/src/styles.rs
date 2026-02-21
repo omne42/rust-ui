@@ -14,7 +14,7 @@ pub const CSS: &str = r#"
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 .ui-menu__item {
@@ -22,23 +22,24 @@ pub const CSS: &str = r#"
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 10px;
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  padding: var(--ui-space-xs, var(--ui-fallback-space-xs))
+    var(--ui-space-sm, var(--ui-fallback-space-sm));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
   cursor: default;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
 .ui-menu__item[data-disabled=\"true\"] {
-  opacity: 0.5;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
 }
 
 .ui-menu__indicator {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
+  width: var(--ui-icon-size-100, var(--ui-fallback-icon-size-100));
   flex-shrink: 0;
 }
 "#;

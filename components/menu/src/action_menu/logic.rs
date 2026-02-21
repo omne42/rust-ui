@@ -3,14 +3,36 @@ use crate::action_menu::{
     ActionMenuActionMode, ActionMenuDisabledState, ActionMenuIds, ActionMenuItemSpec,
     ActionMenuPartState, ActionMenuPartStateInput, ActionMenuSlot, MenuOpenFocusStrategy,
 };
+use leptos::prelude::*;
 use ui_headless::PopoverPlacement;
 use ui_state_primitives::action_menu as action_menu_state;
+use ui_state_primitives::menu as menu_state;
 
 pub const DEFAULT_ID_BASE: &str = action_menu_state::DEFAULT_ID_BASE;
 pub const DEFAULT_TRIGGER_ARIA_LABEL: &str = action_menu_state::DEFAULT_TRIGGER_ARIA_LABEL;
 pub const DEFAULT_DISABLED: bool = action_menu_state::DEFAULT_DISABLED;
 pub const DEFAULT_CLOSE_ON_ACTION: bool = action_menu_state::DEFAULT_CLOSE_ON_ACTION;
 pub const DEFAULT_PLACEMENT: PopoverPlacement = PopoverPlacement::BottomStart;
+
+#[derive(Clone)]
+pub struct ActionMenuOpenStateInput {
+    pub is_open: Option<Signal<bool>>,
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+}
+
+#[derive(Clone)]
+pub struct ActionMenuOpenState {
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+    pub has_custom_open: bool,
+    pub has_custom_default_open: bool,
+    pub has_custom_on_open_change: bool,
+    #[cfg(test)]
+    pub is_controlled: bool,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ActionMenuDiscreteProps {
@@ -126,6 +148,24 @@ pub fn normalize_menu_items(input: ActionMenuItemsInput) -> ActionMenuItemsOutpu
         item_count,
         item_kinds: input.item_kinds,
         disabled_indices,
+    }
+}
+
+pub fn normalize_open_state(input: ActionMenuOpenStateInput) -> ActionMenuOpenState {
+    let open = menu_state::normalize_controlled_prop_alias(input.is_open, input.open);
+    let has_custom_open = menu_state::is_controlled_prop(&open);
+    let has_custom_default_open = input.default_open.is_some();
+    let has_custom_on_open_change = input.on_open_change.is_some();
+
+    ActionMenuOpenState {
+        open,
+        default_open: input.default_open,
+        on_open_change: input.on_open_change,
+        has_custom_open,
+        has_custom_default_open,
+        has_custom_on_open_change,
+        #[cfg(test)]
+        is_controlled: has_custom_open,
     }
 }
 
@@ -280,6 +320,14 @@ pub fn resolve_trigger_press(
 
 pub fn resolve_action_open_change(action_mode: ActionMenuActionMode) -> Option<bool> {
     action_mode.is_close_on_action().then_some(false)
+}
+
+pub fn resolve_open_focus_strategy(
+    key: &str,
+    trigger_disabled: bool,
+    current_open: bool,
+) -> Option<MenuOpenFocusStrategy> {
+    ui_headless::menu_trigger_open_focus_strategy(key, trigger_disabled, current_open)
 }
 
 fn source_attr(is_custom: bool) -> &'static str {

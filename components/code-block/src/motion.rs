@@ -109,11 +109,19 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
 
-        drop(style.set_property("--ui-code-block-copy-flash", "0"));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-code-block-copy-flash",
+            "0"
+        );
         let driver_instance = Rc::new(RefCell::new(CopyFlashDriver::new(config, {
             let style = style.clone();
             move |v| {
-                drop(style.set_property("--ui-code-block-copy-flash", &format!("{v}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style),
+                    "--ui-code-block-copy-flash",
+                    &format!("{v}")
+                );
             }
         })));
 

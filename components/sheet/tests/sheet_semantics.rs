@@ -397,13 +397,15 @@ fn sheet_styles_consume_ui_theme_overlay_tokens() {
     let styling_spec = load_source("../../docs/spec/styling.md");
 
     for needle in [
-        "z-index: var(--ui-overlay-z-index);",
-        "left: var(--ui-overlay-viewport-inset);",
-        "right: var(--ui-overlay-viewport-inset);",
-        "bottom: var(--ui-overlay-viewport-inset);",
-        "max-height: calc(100vh - var(--ui-overlay-viewport-inset) * 2);",
-        "calc(var(--ui-overlay-panel-min-width) + var(--ui-space-lg) * 8)",
-        "calc(100vw - var(--ui-overlay-viewport-inset) * 2)",
+        "z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index));",
+        "left: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));",
+        "right: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));",
+        "bottom: var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset));",
+        "100vh",
+        "100vw",
+        "var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset))",
+        "var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))",
+        "var(--ui-space-lg, var(--ui-fallback-space-lg)) * 8",
     ] {
         assert!(
             styles.contains(needle),
@@ -586,13 +588,13 @@ fn sheet_token_first_static_css_contract_is_wired_through_ui_root() {
 
     for needle in [
         "pub const CSS: &str = r#\"",
-        "background: var(--ui-bg);",
-        "color: var(--ui-fg);",
-        "border: 1px solid var(--ui-border);",
-        "box-shadow: var(--ui-shadow-lg, var(--ui-shadow-sm));",
-        "padding: var(--ui-space-lg);",
-        "border-top-left-radius: var(--ui-radius-lg);",
-        "border-top-right-radius: var(--ui-radius-lg);",
+        "background: var(--ui-bg, var(--ui-fallback-bg));",
+        "color: var(--ui-fg, var(--ui-fallback-fg));",
+        "border: var(--ui-border-width, var(--ui-fallback-border-width)) solid",
+        "box-shadow: var(--ui-shadow-lg, var(--ui-fallback-shadow-sm));",
+        "padding: var(--ui-space-lg, var(--ui-fallback-space-lg));",
+        "border-top-left-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));",
+        "border-top-right-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));",
     ] {
         assert!(
             styles.contains(needle),

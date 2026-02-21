@@ -155,7 +155,7 @@ fn avatar_a11y_i18n_l10n_contract_is_headless_driven_and_no_view_hardcoded_copy(
         "use ui_headless::{A11yDirection, image_fallback_attrs, locale_attrs};",
         "let i18n = i18n::use_ui_i18n();",
         "let common = i18n.strings::<CommonStrings>();",
-        "common.avatar_fallback_aria_label.as_ref().to_string()",
+        "common.avatar_fallback_aria_label.as_ref().into()",
         "let locale = locale_attrs(logic::normalize_lang(lang), dir);",
         "lang=locale.lang.clone()",
         "dir=locale.dir",
@@ -279,6 +279,61 @@ fn avatar_styles_include_dual_state_marker_contracts() {
 }
 
 #[test]
+fn avatar_styles_use_defensive_variable_fallback_chains() {
+    let avatar_styles = load_source("src/avatar/styles.rs");
+    let theme_css = load_source("../ui-theme/src/css.rs");
+
+    for required in [
+        "var(--ui-avatar-size, var(--ui-fallback-avatar-size-md))",
+        "var(--ui-avatar-size-sm, var(--ui-fallback-avatar-size-sm))",
+        "var(--ui-avatar-size-md, var(--ui-fallback-avatar-size-md))",
+        "var(--ui-avatar-size-lg, var(--ui-fallback-avatar-size-lg))",
+        "var(--ui-avatar-radius, var(--ui-fallback-avatar-radius, var(--ui-button-radius-full, var(--ui-fallback-button-radius-full))))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-bg-muted, var(--ui-fallback-bg-muted))",
+        "var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border))",
+        "var(--ui-line-height-100, var(--ui-fallback-line-height-100))",
+    ] {
+        assert!(
+            avatar_styles.contains(required),
+            "Avatar styles should keep defensive token fallback chain `{required}`."
+        );
+    }
+
+    for required in [
+        "  --ui-fallback-bg: {};",
+        "  --ui-fallback-button-radius-full: {}px;",
+        "  --ui-avatar-size-sm: 24px;",
+        "  --ui-avatar-size-md: 32px;",
+        "  --ui-avatar-size-lg: 40px;",
+        "  --ui-fallback-avatar-size-sm: 24px;",
+        "  --ui-fallback-avatar-size-md: 32px;",
+        "  --ui-fallback-avatar-size-lg: 40px;",
+        "  --ui-avatar-radius: {}px;",
+        "  --ui-fallback-avatar-radius: {}px;",
+    ] {
+        assert!(
+            theme_css.contains(required),
+            "ui-theme css output should provide Avatar defensive variable `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "var(--ui-avatar-size, 32px)",
+        "--ui-avatar-size: 24px;",
+        "--ui-avatar-size: 32px;",
+        "--ui-avatar-size: 40px;",
+        "line-height: var(--ui-line-height-100, 16px);",
+        "border: 1px solid var(--ui-border);",
+    ] {
+        assert!(
+            !avatar_styles.contains(forbidden),
+            "Avatar styles should not fall back to raw component constants `{forbidden}`."
+        );
+    }
+}
+
+#[test]
 fn avatar_docs_page_covers_primary_playgrounds() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
@@ -288,8 +343,11 @@ fn avatar_docs_page_covers_primary_playgrounds() {
         "slug=\"avatar\"",
         "Playground title=\"Hello World\"",
         "Playground title=\"Image + Fallback\"",
-        "Playground title=\"Sizes + Label Sources\"",
+        "Playground title=\"State Matrix\"",
         "Playground title=\"Custom Class + Normalized Props\"",
+        "Playground title=\"Controlled vs Uncontrolled (N/A)\"",
+        "Playground title=\"Streaming Optional / Snapshot\"",
+        "Playground title=\"Interactive Playground (Props + State Preview)\"",
     ] {
         assert!(
             source.contains(needle),
@@ -304,15 +362,36 @@ fn avatar_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "let hello_code = Signal::derive(move || r#\"<Avatar />\"#.to_string());",
-        "<Playground title=\"Hello World\" code_signal=hello_code>",
+        "title=\"Hello World\"",
+        "code_signal=hello_code",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::Avatar;\".to_string()",
+        "test_source_path=\"components/avatar/src/view.rs\".to_string()",
         "<Avatar />",
         "title=\"Image + Fallback\"",
-        "<Avatar name=\"Ada Lovelace\".to_string() src=src.to_string() size=AvatarSize::Md />",
-        "<Avatar name=\"Grace Hopper\".to_string() size=AvatarSize::Md />",
-        "title=\"Sizes + Label Sources\"",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::{Avatar, AvatarSize};\".to_string()",
+        "let state_matrix_code = Signal::derive(move || {",
+        "title=\"State Matrix\"",
         "alt=\"Profile photo\".to_string()",
         "<Avatar alt=\"Anonymous collaborator\".to_string() size=AvatarSize::Sm />",
         "<Avatar size=AvatarSize::Lg />",
+        "let controlled_contrast_code = Signal::derive(move || {",
+        "title=\"Controlled vs Uncontrolled (N/A)\"",
+        "Avatar has no internal controlled/uncontrolled state axis",
+        "let stream_snapshot_code = Signal::derive(move || {",
+        "title=\"Streaming Optional / Snapshot\"",
+        "Streaming Optional; fallback=snapshot.",
+        "data-slot=\"avatar-streaming-policy\"",
+        "data-slot=\"avatar-copy-ready-hint\"",
+        "title=\"Interactive Playground (Props + State Preview)\"",
+        "data-slot=\"avatar-workbench-controls\"",
+        "data-slot=\"avatar-workbench-preview\"",
+        "data-slot=\"avatar-workbench-configured\"",
+        "data-slot=\"avatar-workbench-state\"",
+        "id_base=\"docs-avatar-workbench-mode\".to_string()",
+        "id_base=\"docs-avatar-workbench-size\".to_string()",
+        "\"Use alt label\"",
+        "\"Custom class\"",
+        "\"RTL direction\"",
         "title=\"Custom Class + Normalized Props\"",
         "class_name=\"docs-avatar-custom\".to_string()",
         "src=\"   \".to_string()",
@@ -325,12 +404,111 @@ fn avatar_docs_playgrounds_lock_state_matrix_contract_values() {
 }
 
 #[test]
+fn avatar_docs_interactive_playground_supports_live_prop_controls_and_preview_feedback() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "let workbench_mode_options = vec![",
+        "let workbench_size_options = vec![\"sm\".to_string(), \"md\".to_string(), \"lg\".to_string()];",
+        "let (workbench_mode_index, set_workbench_mode_index) = signal(Some(0_usize));",
+        "let (workbench_size_index, set_workbench_size_index) = signal(Some(1_usize));",
+        "let (workbench_use_alt, set_workbench_use_alt) = signal(false);",
+        "let (workbench_custom_class, set_workbench_custom_class) = signal(false);",
+        "let (workbench_rtl, set_workbench_rtl) = signal(false);",
+        "title=\"Interactive Playground (Props + State Preview)\"",
+        "test_config_signal=workbench_config",
+        "data-slot=\"avatar-workbench-controls\"",
+        "data-slot=\"avatar-workbench-preview\"",
+        "data-slot=\"avatar-workbench-configured\"",
+        "data-slot=\"avatar-workbench-state\"",
+        "id_base=\"docs-avatar-workbench-mode\".to_string()",
+        "id_base=\"docs-avatar-workbench-size\".to_string()",
+        "<Switch checked=workbench_use_alt set_checked=set_workbench_use_alt>",
+        "<Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>",
+        "<Switch checked=workbench_rtl set_checked=set_workbench_rtl>",
+        "expected: state={expected_state}, label_source={expected_label_source}, size={expected_size}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Avatar interactive docs playground should include `{needle}`."
+        );
+    }
+
+    for forbidden in ["ui_state_primitives::", "ui_headless::", "state=..."] {
+        assert!(
+            !source.contains(forbidden),
+            "Avatar interactive docs path should not require internal wiring token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_docs_parameter_and_state_matrices_match_logic_defaults() {
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+
+    for needle in [
+        "data-slot=\"avatar-state-matrix\"",
+        "data-slot=\"avatar-state-rows\"",
+        "data-state\"</code>\" = image | fallback\"",
+        "data-label-source\"</code>\" = alt | name | fallback\"",
+        "data-size\"</code>\" = sm | md | lg\"",
+        "data-slot=\"avatar-parameter-matrix\"",
+        "data-slot=\"avatar-parameter-rows\"",
+        "name / src / alt / class_name / lang: Option&lt;String&gt;",
+        "default = None; blank strings are normalized away by normalize_input/normalize_lang",
+        "size: AvatarSize",
+        "default = AvatarSize::Md",
+        "dir: Option&lt;A11yDirection&gt;",
+        "default = None (inherits locale direction/context)",
+        "label source priority\"</code>\" = alt -> name -> fallback\"",
+        "render mode\"</code>\" = image when src is present and no image error, else fallback\"",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "Avatar docs matrix should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub fn normalize_input(",
+        "pub fn normalize_lang(",
+        "let image_src = src.clone().unwrap_or_default();",
+        "pub fn resolve_state(",
+        "pub fn resolve_image_render_state(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Avatar logic should keep default/normalization contract token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "#[prop(optional, into)] name: Option<String>",
+        "#[prop(optional, into)] src: Option<String>",
+        "#[prop(optional)] size: AvatarSize",
+        "#[prop(optional, into)] alt: Option<String>",
+        "#[prop(optional, into)] class_name: Option<String>",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Avatar API surface should keep docs-synced prop token `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn avatar_docs_expose_hello_world_path_without_state_machine_wiring() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
         "let hello_code = Signal::derive(move || r#\"<Avatar />\"#.to_string());",
-        "<Playground title=\"Hello World\" code_signal=hello_code>",
+        "title=\"Hello World\"",
+        "code_signal=hello_code",
+        "code_imports=\"use leptos::prelude::*;\\nuse ui_components::Avatar;\".to_string()",
         "<Avatar />",
     ] {
         assert!(
@@ -343,6 +521,99 @@ fn avatar_docs_expose_hello_world_path_without_state_machine_wiring() {
         assert!(
             !source.contains(forbidden),
             "Avatar docs minimal usage should not require internal wiring token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_docs_source_first_copy_paste_ready_contract_is_present_and_synced() {
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "let source_first_code = Signal::derive(move || {",
+        "data-slot=\"avatar-source-first\"",
+        "\"Source-first / Copy-Paste Ready\"",
+        "apps/docs-app/src/playground.rs::compose_copy_ready_code",
+        "data-slot=\"avatar-source-prerequisites\"",
+        "\"component-avatar\"",
+        "\"UiRoot\"",
+        "\"inject-css\"",
+        "label=\"Copy avatar starter\".to_string()",
+        "copyable=true",
+        "class_name=\"docs-avatar-source-copy\".to_string()",
+        "use ui_components::{Avatar, AvatarSize};",
+        "<Avatar name=\"Ada Lovelace\".to_string() size=AvatarSize::Md />",
+        "data-slot=\"avatar-source-paths\"",
+        "components/avatar/src/mod.rs",
+        "components/avatar/src/logic.rs",
+        "components/avatar/src/view.rs",
+        "components/avatar/src/styles.rs",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "Avatar source-first docs contract should contain `{needle}`."
+        );
+    }
+
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    for rel_path in [
+        "../../components/avatar/src/mod.rs",
+        "../../components/avatar/src/logic.rs",
+        "../../components/avatar/src/view.rs",
+        "../../components/avatar/src/styles.rs",
+    ] {
+        assert!(
+            manifest_dir.join(rel_path).exists(),
+            "Avatar source-first docs should point to real source path `{rel_path}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_heroui_alignment_and_component_docs_entry_stay_in_sync() {
+    let heroui_doc = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
+    let pages_registry = load_source("../../apps/docs-app/src/pages/components/pages.rs");
+    let docs_display_page =
+        load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+    let avatar_readme = load_source("../../components/avatar/src/README.md");
+
+    for needle in [
+        "### Avatar 同步记录（2026-02-20）",
+        "`Avatar` 参数主轴保持 `name/src/alt/size/class_name/lang/dir`",
+        "component_doc!(\"Avatar\", \"avatar\", \"Display\", display::avatar)",
+        "`#/components/avatar`",
+        "`components/avatar/src/README.md`",
+        "`apps/docs-app/src/pages/components/pages/display.rs::avatar()`",
+        "`Source-first / Copy-Paste Ready`",
+        "`component-avatar`",
+        "不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`",
+        "仅代码更新无文档更新在接口变更场景下不允许合入",
+    ] {
+        assert!(
+            heroui_doc.contains(needle),
+            "Avatar HeroUI alignment doc should include `{needle}`."
+        );
+    }
+
+    assert!(
+        pages_registry
+            .contains("component_doc!(\"Avatar\", \"avatar\", \"Display\", display::avatar)"),
+        "Docs registry should expose Avatar route through component_doc entry."
+    );
+    for needle in [
+        "title=\"Avatar\"",
+        "slug=\"avatar\"",
+        "pub(super) fn avatar() -> AnyView",
+    ] {
+        assert!(
+            docs_display_page.contains(needle),
+            "Avatar docs page should keep discoverable entry token `{needle}`."
+        );
+    }
+    for needle in ["# Avatar", "<Avatar />"] {
+        assert!(
+            avatar_readme.contains(needle),
+            "Avatar README should keep beginner entry token `{needle}`."
         );
     }
 }
@@ -895,6 +1166,8 @@ fn avatar_semantics_suite_prioritizes_contract_assertions_over_snapshots() {
         "fn avatar_has_no_controllable_state_axis_and_no_half_controlled_api()",
         "fn avatar_has_no_async_loading_protocol_and_keeps_sync_error_fallback_contract()",
         "fn avatar_stays_static_and_delegates_motion_runtime_to_ui_motion_layer()",
+        "fn avatar_semantics_cover_aria_data_and_explicit_non_interactive_focus_flow()",
+        "fn avatar_performance_baseline_uses_static_render_equivalent_instead_of_runtime_render_count()",
     ] {
         assert!(
             suite_source.contains(required),
@@ -920,6 +1193,211 @@ fn avatar_semantics_suite_prioritizes_contract_assertions_over_snapshots() {
             "Avatar semantics suite should not depend on snapshot token `{forbidden}`."
         );
     }
+}
+
+#[test]
+fn avatar_semantics_cover_aria_data_and_explicit_non_interactive_focus_flow() {
+    let view_source = load_source("src/avatar/view.rs");
+
+    for required in [
+        "data-slot=\"avatar\"",
+        "data-state=move || render_state.get().mode.as_str()",
+        "data-image=move || render_state.get().mode.image_attr()",
+        "data-fallback=move || render_state.get().mode.fallback_attr()",
+        "data-label-source=state.label_source.as_str()",
+        "role=move || image_fallback_attrs(render_state.get().mode.shows_image(), aria_label.get_value()).role",
+        "aria-label=move || image_fallback_attrs(render_state.get().mode.shows_image(), aria_label.get_value()).aria_label",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "Avatar semantics contract should include aria/data token `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "tabindex=",
+        "autofocus",
+        "on:focus",
+        "on:blur",
+        "on:keydown",
+        "on:keyup",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Avatar is non-interactive and should keep focus flow explicit N/A without `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_e2e_selectors_are_semantic_and_wasm_ready_wait_is_stable() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_avatar_contract.spec.mjs");
+
+    for required in [
+        "await page.goto(\"/#/components/avatar\");",
+        "body:not(:has(#boot))",
+        "[data-component=\"avatar\"]",
+        "[data-slot=\"avatar\"][data-ui-schema=\"ui.avatar.agent.v1\"][data-intent=\"display-identity\"][data-state]",
+        "[data-slot=\"avatar\"][data-has-src=\"true\"][data-state=\"image\"][data-image=\"true\"]",
+        "[data-slot=\"avatar\"][data-state=\"fallback\"][data-fallback=\"true\"][data-label-source=\"fallback\"]",
+        "toHaveAttribute(\"data-action\", \"image-fallback-on-error\")",
+        "toHaveAttribute(\"data-action\", \"passive-fallback\")",
+        "toHaveAttribute(\"role\", \"img\")",
+        "toHaveAttribute(\"aria-label\", /.+/)",
+    ] {
+        assert!(
+            e2e_source.contains(required),
+            "Avatar e2e contract should assert semantic selector/wait token `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "waitForTimeout(",
+        "setTimeout(",
+        "sleep(",
+        "getByText(",
+        "locator(\"section.playground\")",
+        "locator(\".docs-row\")",
+    ] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "Avatar e2e contract should avoid fragile selector/wait token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_e2e_regression_contains_repeatable_key_flow_with_semantic_breakpoints() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_avatar_contract.spec.mjs");
+
+    for required in [
+        "test(\"docs-app avatar flow is repeatable via semantic breakpoints\"",
+        "await page.reload();",
+        "[data-slot=\"avatar\"][data-custom-class=\"true\"][data-label-source=\"alt\"]",
+        "toHaveAttribute(\"data-state\", \"fallback\")",
+        "toHaveAttribute(\"data-fallback\", \"true\")",
+        "toHaveAttribute(\"data-source\", \"alt\")",
+    ] {
+        assert!(
+            e2e_source.contains(required),
+            "Avatar key-flow regression should keep semantic breakpoint token `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "toHaveScreenshot(",
+        "page.screenshot(",
+        "expect(page).toHaveScreenshot(",
+        "toMatchSnapshot(",
+        "page.content(",
+    ] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "Avatar key-flow regression should fail on semantic contract breakpoints, not visual token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_e2e_interactive_playground_flow_is_semantic_and_repeatable() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_avatar_contract.spec.mjs");
+
+    for required in [
+        "docs-app avatar interactive playground updates state markers with semantic controls",
+        "[data-slot=\"avatar-workbench-controls\"]",
+        "[data-slot=\"avatar-workbench-configured\"] [data-slot=\"avatar\"]",
+        "toHaveAttribute(\"data-state\", \"image\")",
+        "toHaveAttribute(\"data-state\", \"fallback\")",
+        "toHaveAttribute(\"data-label-source\", \"fallback\")",
+        "toHaveAttribute(\"data-label-source\", \"alt\")",
+        "toHaveAttribute(\"data-size\", \"sm\")",
+        "toHaveAttribute(\"data-custom-class\", \"true\")",
+        "await page.reload();",
+    ] {
+        assert!(
+            e2e_source.contains(required),
+            "Avatar interactive e2e flow should include semantic token `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "waitForTimeout(",
+        "setTimeout(",
+        "sleep(",
+        "getByText(",
+        "locator(\".docs-row\")",
+        "toHaveScreenshot(",
+    ] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "Avatar interactive e2e flow should avoid fragile selector/wait token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_e2e_source_first_copy_ready_section_uses_semantic_contract_markers() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_avatar_contract.spec.mjs");
+
+    for required in [
+        "docs-app avatar source-first section exposes copy-ready starter and source anchors",
+        "[data-slot=\"avatar-source-first\"]",
+        "[data-slot=\"snippet\"]",
+        "toHaveAttribute(\"data-copyable\", \"true\")",
+        "[data-slot=\"snippet-copy-button\"]",
+        "[data-slot=\"snippet-pre\"]",
+        "toContainText(\"component-avatar\")",
+        "toContainText(\"inject-css\")",
+        "toContainText(\"UiRoot\")",
+        "[data-slot=\"avatar-source-paths\"]",
+        "toContainText(\"components/avatar/src/view.rs\")",
+        "toContainText(\"components/avatar/src/logic.rs\")",
+    ] {
+        assert!(
+            e2e_source.contains(required),
+            "Avatar source-first e2e contract should include semantic token `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "waitForTimeout(",
+        "setTimeout(",
+        "sleep(",
+        "getByText(",
+        "toHaveScreenshot(",
+    ] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "Avatar source-first e2e contract should avoid fragile token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_performance_baseline_uses_static_render_equivalent_instead_of_runtime_render_count() {
+    let view_source = load_source("src/avatar/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+
+    for forbidden in [
+        "create_effect(",
+        "create_render_effect(",
+        "create_memo(",
+        "spawn_local(",
+        "set_timeout(",
+        "set_interval(",
+        "request_animation_frame(",
+    ] {
+        assert!(
+            !view_source.contains(forbidden) && !logic_source.contains(forbidden),
+            "Avatar performance baseline should avoid render-churn primitive `{forbidden}`."
+        );
+    }
+
+    assert_eq!(
+        view_source.matches("Signal::derive(").count(),
+        2,
+        "Avatar static render path should keep a stable two-derive baseline (render state + agent contract)."
+    );
 }
 
 #[test]
@@ -1073,6 +1551,250 @@ fn avatar_spec_rs_is_reserved_for_complex_schema_components_only() {
             "Schema-bearing contract should stay centralized in button spec via `{required}`."
         );
     }
+}
+
+#[test]
+fn avatar_manifest_and_rbi_contracts_are_present_and_aligned() {
+    let manifest_source = load_source("src/avatar/Component.toml");
+    let rbi_source = load_source("src/avatar/avatar.rbi");
+    let mod_source = load_source("src/avatar/mod.rs");
+    let view_source = load_source("src/avatar/view.rs");
+
+    for required in [
+        "schema_version = \"1\"",
+        "[component]",
+        "name = \"Avatar\"",
+        "crate = \"ui-avatar\"",
+        "[[inputs]]",
+        "name = \"name\"",
+        "name = \"src\"",
+        "name = \"size\"",
+        "name = \"alt\"",
+        "name = \"class_name\"",
+        "name = \"lang\"",
+        "name = \"dir\"",
+        "[[capabilities]]",
+        "name = \"image_fallback\"",
+        "name = \"a11y_i18n_l10n\"",
+        "name = \"agent_contract_schema\"",
+    ] {
+        assert!(
+            manifest_source.contains(required),
+            "Avatar Component.toml should keep manifest token `{required}`."
+        );
+    }
+
+    for required in [
+        "pub enum AvatarSize {",
+        "Sm,",
+        "Md,",
+        "Lg,",
+        "pub fn Avatar(",
+        "name: Option<String>",
+        "src: Option<String>",
+        "size: AvatarSize",
+        "alt: Option<String>",
+        "class_name: Option<String>",
+        "lang: Option<String>",
+        "dir: Option<ui_headless::A11yDirection>",
+        ") -> impl leptos::prelude::IntoView;",
+    ] {
+        assert!(
+            rbi_source.contains(required),
+            "Avatar RBI should keep API projection token `{required}`."
+        );
+    }
+
+    for required in ["pub use logic::AvatarSize;", "pub use view::Avatar;"] {
+        assert!(
+            mod_source.contains(required),
+            "Avatar module exports should align with RBI projection via `{required}`."
+        );
+    }
+
+    for required in [
+        "#[prop(optional, into)] name: Option<String>",
+        "#[prop(optional, into)] src: Option<String>",
+        "#[prop(optional)] size: AvatarSize",
+        "#[prop(optional, into)] alt: Option<String>",
+        "#[prop(optional, into)] class_name: Option<String>",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "Avatar view props should stay aligned with manifest/RBI token `{required}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_snapshot_contract_accepts_complete_props_without_streaming_protocol() {
+    let manifest_source = load_source("../../components/avatar/src/Component.toml");
+    let rbi_source = load_source("../../components/avatar/src/avatar.rbi");
+    let view_source = load_source("src/avatar/view.rs");
+
+    for required in [
+        "name = \"name\"",
+        "name = \"src\"",
+        "name = \"size\"",
+        "name = \"alt\"",
+        "name = \"class_name\"",
+        "name = \"lang\"",
+        "name = \"dir\"",
+        "pub fn Avatar(",
+        "name: Option<String>",
+        "src: Option<String>",
+        "size: AvatarSize",
+        "alt: Option<String>",
+        "class_name: Option<String>",
+        "lang: Option<String>",
+        "dir: Option<ui_headless::A11yDirection>",
+        "#[prop(optional, into)] name: Option<String>",
+        "#[prop(optional, into)] src: Option<String>",
+        "#[prop(optional)] size: AvatarSize",
+        "#[prop(optional, into)] alt: Option<String>",
+        "#[prop(optional, into)] class_name: Option<String>",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let normalized = logic::normalize_input(name, src, alt, class_name);",
+    ] {
+        assert!(
+            manifest_source.contains(required)
+                || rbi_source.contains(required)
+                || view_source.contains(required),
+            "Avatar should keep complete snapshot input contract token `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "name = \"is_streaming\"",
+        "name = \"stream\"",
+        "name = \"snapshot\"",
+        "is_streaming",
+        "on_stream",
+        "streaming_state",
+        "token_delta",
+    ] {
+        assert!(
+            !manifest_source.contains(forbidden)
+                && !rbi_source.contains(forbidden)
+                && !view_source.contains(forbidden),
+            "Avatar should not require streaming-only protocol token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_streaming_optional_contract_is_snapshot_fallback_with_semantic_continuity() {
+    let readme_source = load_source("../../components/avatar/src/README.md");
+    let view_source = load_source("src/avatar/view.rs");
+
+    for required in [
+        "Streaming: Optional",
+        "fallback=snapshot",
+        "draft`/`verified`/`submittable",
+        "role`/`aria-*`/`data-*",
+    ] {
+        assert!(
+            readme_source.contains(required),
+            "Avatar README should define streaming fallback boundary via `{required}`."
+        );
+    }
+
+    for required in [
+        "data-state=move || render_state.get().mode.as_str()",
+        "data-label-source=state.label_source.as_str()",
+        "role=move || image_fallback_attrs(render_state.get().mode.shows_image(), aria_label.get_value()).role",
+        "aria-label=move || image_fallback_attrs(render_state.get().mode.shows_image(), aria_label.get_value()).aria_label",
+    ] {
+        assert!(
+            view_source.contains(required),
+            "Avatar should keep semantic continuity marker `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "is_streaming",
+        "on_stream",
+        "token_delta",
+        "streaming_state",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Avatar should not depend on streaming protocol token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_readme_is_beginner_friendly_with_default_first_and_advanced_later() {
+    let readme_source = load_source("../../components/avatar/src/README.md");
+
+    for required in [
+        "# Avatar",
+        "## Quick Start (Hello World)",
+        "use ui_components::Avatar;",
+        "<Avatar />",
+        "No state machine wiring is required.",
+        "## Common Usage",
+        "Name + image (automatic fallback)",
+        "Name only",
+        "Size variants",
+        "defaults to `AvatarSize::Md`",
+        "## Advanced Options",
+        "These options are optional. Start with the default call path above.",
+    ] {
+        assert!(
+            readme_source.contains(required),
+            "Avatar README should include beginner-friendly doc token `{required}`."
+        );
+    }
+
+    let quick_start_pos = readme_source
+        .find("## Quick Start (Hello World)")
+        .expect("README should include Quick Start section");
+    let advanced_pos = readme_source
+        .find("## Advanced Options")
+        .expect("README should include Advanced Options section");
+    assert!(
+        quick_start_pos < advanced_pos,
+        "README should present default quick-start path before advanced options."
+    );
+
+    for forbidden in ["ui_state_primitives::", "ui_headless::", "state=..."] {
+        assert!(
+            !readme_source.contains(forbidden),
+            "Avatar README starter path should not require internal layering token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn avatar_non_test_sources_follow_rust_hygiene_contract() {
+    let logic_source = load_source("src/avatar/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
+    let mod_source = load_source("src/avatar/mod.rs");
+
+    for forbidden in [".unwrap(", ".unwrap_err(", ".expect(", "let _ ="] {
+        assert!(
+            !logic_source.contains(forbidden)
+                && !view_source.contains(forbidden)
+                && !styles_source.contains(forbidden)
+                && !mod_source.contains(forbidden),
+            "Avatar non-test source should not contain rust hygiene violation `{forbidden}`."
+        );
+    }
+
+    assert!(
+        !view_source.contains("common.avatar_fallback_aria_label.as_ref().to_string()"),
+        "Avatar should avoid string clone hotspot `as_ref().to_string()` in view."
+    );
+    assert!(
+        view_source.contains("common.avatar_fallback_aria_label.as_ref().into()"),
+        "Avatar should use low-churn fallback aria label conversion."
+    );
 }
 
 #[test]
@@ -1341,8 +2063,15 @@ fn avatar_machine_readable_contract_uses_typed_inputs_and_semantic_markers() {
         "pub use ui_state_primitives::avatar::{",
         "AvatarStateInput",
         "AvatarImageRenderInput",
+        "AvatarRenderMode",
         "resolve_state",
         "resolve_image_render_state",
+        "AVATAR_AGENT_SCHEMA",
+        "pub enum AvatarAgentIntent",
+        "pub enum AvatarAgentAction",
+        "pub enum AvatarAgentSource",
+        "pub struct AvatarAgentContract",
+        "pub fn resolve_agent_contract(",
     ] {
         assert!(
             logic_source.contains(required),
@@ -1354,6 +2083,9 @@ fn avatar_machine_readable_contract_uses_typed_inputs_and_semantic_markers() {
         "pub enum AvatarRenderMode { Image(String)",
         "data-state=move || format!",
         "data-label-source=move || format!",
+        "data-intent=move || format!",
+        "data-action=move || format!",
+        "data-source=move || format!",
     ] {
         assert!(
             !logic_source.contains(forbidden) && !view_source.contains(forbidden),
@@ -1362,6 +2094,10 @@ fn avatar_machine_readable_contract_uses_typed_inputs_and_semantic_markers() {
     }
 
     for required in [
+        "data-ui-schema=move || agent_contract.get().schema",
+        "data-intent=move || agent_contract.get().intent.as_str()",
+        "data-action=move || agent_contract.get().action.as_str()",
+        "data-source=move || agent_contract.get().source.as_str()",
         "data-state=move || render_state.get().mode.as_str()",
         "data-image=move || render_state.get().mode.image_attr()",
         "data-fallback=move || render_state.get().mode.fallback_attr()",
@@ -1372,6 +2108,19 @@ fn avatar_machine_readable_contract_uses_typed_inputs_and_semantic_markers() {
         assert!(
             view_source.contains(required),
             "Avatar should expose machine-readable semantic markers via `{required}`."
+        );
+    }
+
+    for forbidden in [
+        "inner_html",
+        "set_inner_html",
+        "dangerously_set_inner_html",
+        "<script",
+        "javascript:",
+    ] {
+        assert!(
+            !view_source.contains(forbidden) && !logic_source.contains(forbidden),
+            "Avatar contract render path should remain whitelist-safe and avoid `{forbidden}`."
         );
     }
 

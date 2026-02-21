@@ -49,6 +49,44 @@ pub struct AutocompleteState {
     pub is_uncontrolled: bool,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct AutocompleteInputState {
+    pub query: String,
+    pub has_typed: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum AutocompleteInputEvent {
+    SyncFromSelection { selected_label: Option<String> },
+    InputChanged { query: String },
+    OptionCommitted { selected_label: String },
+    InputBlurred,
+}
+
+pub fn reduce_input_state(
+    current: AutocompleteInputState,
+    event: AutocompleteInputEvent,
+) -> AutocompleteInputState {
+    match event {
+        AutocompleteInputEvent::SyncFromSelection { selected_label } => AutocompleteInputState {
+            query: selected_label.unwrap_or_default(),
+            has_typed: false,
+        },
+        AutocompleteInputEvent::InputChanged { query } => AutocompleteInputState {
+            query,
+            has_typed: true,
+        },
+        AutocompleteInputEvent::OptionCommitted { selected_label } => AutocompleteInputState {
+            query: selected_label,
+            has_typed: false,
+        },
+        AutocompleteInputEvent::InputBlurred => AutocompleteInputState {
+            query: current.query,
+            has_typed: false,
+        },
+    }
+}
+
 pub fn normalize_label(label: String) -> String {
     let trimmed = label.trim();
     if trimmed.is_empty() {

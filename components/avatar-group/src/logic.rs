@@ -1,5 +1,9 @@
+use std::borrow::Cow;
+
 pub use ui_avatar::AvatarSize;
 pub use ui_state_primitives::avatar_group::{AvatarGroupRenderState, AvatarGroupStateInput};
+
+pub const AVATAR_GROUP_AGENT_SCHEMA: &str = "ui.avatar-group.agent.v1";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AvatarGroupNormalizedInput {
@@ -19,6 +23,127 @@ pub struct AvatarGroupItemFields {
     pub has_name: bool,
     pub has_src: bool,
     pub has_alt: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarGroupAgentIntent {
+    DisplayIdentityCollection,
+}
+
+impl AvatarGroupAgentIntent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::DisplayIdentityCollection => "display-identity-collection",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarGroupAgentAction {
+    RenderStableRoster,
+    RenderOverflowSummary,
+}
+
+impl AvatarGroupAgentAction {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::RenderStableRoster => "render-stable-roster",
+            Self::RenderOverflowSummary => "render-overflow-summary",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarGroupAgentStateAxis {
+    Stable,
+    Overflow,
+    Empty,
+}
+
+impl AvatarGroupAgentStateAxis {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Stable => "stable",
+            Self::Overflow => "overflow",
+            Self::Empty => "empty",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarGroupAgentSourceAxis {
+    DefaultOnly,
+    PropOrCustom,
+}
+
+impl AvatarGroupAgentSourceAxis {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::DefaultOnly => "default-only",
+            Self::PropOrCustom => "prop-or-custom",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarGroupAgentStreamSupport {
+    Required,
+    Optional,
+}
+
+impl AvatarGroupAgentStreamSupport {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Required => "required",
+            Self::Optional => "optional",
+        }
+    }
+}
+const _: [AvatarGroupAgentStreamSupport; 2] = [
+    AvatarGroupAgentStreamSupport::Required,
+    AvatarGroupAgentStreamSupport::Optional,
+];
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarGroupAgentStreamFallback {
+    Snapshot,
+}
+
+impl AvatarGroupAgentStreamFallback {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarGroupAgentOutputStatus {
+    Draft,
+    Verified,
+    Submittable,
+}
+
+impl AvatarGroupAgentOutputStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Draft => "draft",
+            Self::Verified => "verified",
+            Self::Submittable => "submittable",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AvatarGroupAgentContract {
+    pub schema: &'static str,
+    pub intent: AvatarGroupAgentIntent,
+    pub action: AvatarGroupAgentAction,
+    pub state: AvatarGroupAgentStateAxis,
+    pub source: AvatarGroupAgentSourceAxis,
+    pub stream_support: AvatarGroupAgentStreamSupport,
+    pub stream_fallback: AvatarGroupAgentStreamFallback,
+    pub output_status: AvatarGroupAgentOutputStatus,
 }
 
 pub fn normalize_avatar_group_optional_text(value: Option<String>) -> Option<String> {
@@ -94,21 +219,113 @@ pub fn compose_avatar_group_class_name(
     base_class_name: Option<String>,
     state: AvatarGroupRenderState,
 ) -> String {
-    let mut classes = vec![
-        "ui-avatar-group".to_string(),
-        format!("ui-avatar-group--size-{}", state.size_attr),
-        state.visual_state.class_name().into(),
-        state.aria_label_source.class_name().into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-avatar-group"),
+        Cow::Owned(format!("ui-avatar-group--size-{}", state.size_attr)),
+        Cow::Borrowed(visual_state_class_name(state.visual_state)),
+        Cow::Borrowed(aria_label_source_class_name(state.aria_label_source)),
     ];
 
     if state.class_source.is_custom() {
-        classes.push("ui-avatar-group--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-avatar-group--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .into_iter()
+        .map(Cow::into_owned)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+pub fn resolve_avatar_group_agent_state_axis(
+    state: AvatarGroupRenderState,
+) -> AvatarGroupAgentStateAxis {
+    match state.visual_state {
+        ui_state_primitives::avatar_group::AvatarGroupVisualState::Stable => {
+            AvatarGroupAgentStateAxis::Stable
+        }
+        ui_state_primitives::avatar_group::AvatarGroupVisualState::Overflow => {
+            AvatarGroupAgentStateAxis::Overflow
+        }
+        ui_state_primitives::avatar_group::AvatarGroupVisualState::Empty => {
+            AvatarGroupAgentStateAxis::Empty
+        }
+    }
+}
+
+pub fn resolve_avatar_group_agent_source_axis(
+    state: AvatarGroupRenderState,
+) -> AvatarGroupAgentSourceAxis {
+    if state.aria_label_source.is_custom() || state.class_source.is_custom() {
+        AvatarGroupAgentSourceAxis::PropOrCustom
+    } else {
+        AvatarGroupAgentSourceAxis::DefaultOnly
+    }
+}
+
+pub fn resolve_avatar_group_agent_output_status(
+    state: AvatarGroupRenderState,
+) -> AvatarGroupAgentOutputStatus {
+    if state.visual_state.is_empty() {
+        AvatarGroupAgentOutputStatus::Draft
+    } else if state.aria_label_source.is_custom() || state.class_source.is_custom() {
+        AvatarGroupAgentOutputStatus::Submittable
+    } else {
+        AvatarGroupAgentOutputStatus::Verified
+    }
+}
+
+pub fn resolve_avatar_group_agent_contract(
+    state: AvatarGroupRenderState,
+) -> AvatarGroupAgentContract {
+    let action = if state.visual_state.has_overflow() {
+        AvatarGroupAgentAction::RenderOverflowSummary
+    } else {
+        AvatarGroupAgentAction::RenderStableRoster
+    };
+
+    AvatarGroupAgentContract {
+        schema: AVATAR_GROUP_AGENT_SCHEMA,
+        intent: AvatarGroupAgentIntent::DisplayIdentityCollection,
+        action,
+        state: resolve_avatar_group_agent_state_axis(state),
+        source: resolve_avatar_group_agent_source_axis(state),
+        stream_support: AvatarGroupAgentStreamSupport::Optional,
+        stream_fallback: AvatarGroupAgentStreamFallback::Snapshot,
+        output_status: resolve_avatar_group_agent_output_status(state),
+    }
+}
+
+fn visual_state_class_name(
+    state: ui_state_primitives::avatar_group::AvatarGroupVisualState,
+) -> &'static str {
+    match state {
+        ui_state_primitives::avatar_group::AvatarGroupVisualState::Stable => {
+            "ui-avatar-group--stable"
+        }
+        ui_state_primitives::avatar_group::AvatarGroupVisualState::Overflow => {
+            "ui-avatar-group--overflow"
+        }
+        ui_state_primitives::avatar_group::AvatarGroupVisualState::Empty => {
+            "ui-avatar-group--empty"
+        }
+    }
+}
+
+fn aria_label_source_class_name(
+    source: ui_state_primitives::avatar_group::AvatarGroupAriaLabelSource,
+) -> &'static str {
+    match source {
+        ui_state_primitives::avatar_group::AvatarGroupAriaLabelSource::Default => {
+            "ui-avatar-group--label-source-default"
+        }
+        ui_state_primitives::avatar_group::AvatarGroupAriaLabelSource::Custom => {
+            "ui-avatar-group--label-source-custom"
+        }
+    }
 }
 
 #[cfg(test)]

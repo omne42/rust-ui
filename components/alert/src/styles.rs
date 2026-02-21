@@ -7,12 +7,13 @@ pub const CSS: &str = r#"
   padding: var(--ui-space-md, var(--ui-fallback-space-md));
 
   border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
-  border: 1px solid var(--ui-border, var(--ui-fallback-border));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
   background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
   color: var(--ui-fg, var(--ui-fallback-fg));
   box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 
-  opacity: var(--ui-alert-opacity, 1);
+  opacity: var(--ui-alert-opacity, var(--ui-fallback-alert-opacity));
   transform: translateY(
       var(--ui-alert-translate-y, var(--ui-fallback-alert-translate-y))
     )

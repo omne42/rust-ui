@@ -178,7 +178,7 @@ fn share_button_component_files_follow_layered_responsibilities() {
 
     for needle in [
         "<FlipButton",
-        "<ButtonGroup attached=true>",
+        "<ButtonGroup is_attached=true>",
         "<Button",
         "data-slot=\"share-button\"",
     ] {
@@ -258,7 +258,7 @@ fn share_button_directory_uses_standard_component_file_layout() {
         );
     }
 
-    for needle in ["<FlipButton", "<ButtonGroup attached=true>", "<Button"] {
+    for needle in ["<FlipButton", "<ButtonGroup is_attached=true>", "<Button"] {
         assert!(
             view_source.contains(needle),
             "ShareButton view should reuse button composition capability via `{needle}`."
@@ -392,7 +392,7 @@ fn share_button_state_normalization_is_centralized_in_logic_layer() {
         "logic::resolve_label_with_fallback(normalized_label, common.share_button_label.as_ref())",
         "let class = logic::compose_class_name(class_name, state);",
         "<FlipButton",
-        "<ButtonGroup attached=true>",
+        "<ButtonGroup is_attached=true>",
         "<Button",
     ] {
         assert!(
@@ -473,7 +473,7 @@ fn share_button_uses_flip_button_and_button_group_composition() {
         "back=move ||",
         "start_content=move || view!",
         "end_content=move || view!",
-        "<ButtonGroup attached=true>",
+        "<ButtonGroup is_attached=true>",
         "data-slot=\"share-button-front\"",
         "data-slot=\"share-button-back\"",
     ] {
@@ -1773,7 +1773,7 @@ fn share_button_reduced_motion_ssr_wasm_branches_are_covered_via_flip_and_motion
         "dir=group_a11y.dir",
         "<FlipButton",
         "motion=motion.flip",
-        "<ButtonGroup attached=true>",
+        "<ButtonGroup is_attached=true>",
     ] {
         assert!(
             share_view_source.contains(needle),

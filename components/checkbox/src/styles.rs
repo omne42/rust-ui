@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-checkbox {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ui-checkbox-gap, var(--ui-fallback-checkbox-gap));
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   --ui-checkbox-scale: 1;
@@ -28,19 +28,21 @@ pub const CSS: &str = r#"
   --ui-checkbox-indicator: 1;
 }
 
-.ui-checkbox:not(:disabled) {
+.ui-checkbox[data-enabled="true"] {
   cursor: pointer;
 }
 
-.ui-checkbox:disabled {
-  opacity: 0.5;
+.ui-checkbox[data-disabled="true"] {
+  opacity: var(--ui-checkbox-disabled-opacity, var(--ui-fallback-checkbox-disabled-opacity));
   cursor: not-allowed;
 }
 
-.ui-checkbox--focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
-  border-radius: var(--ui-radius-md);
+.ui-checkbox--focus-visible,
+.ui-checkbox[data-focus-visible="true"] {
+  outline: var(--ui-checkbox-focus-outline-width, var(--ui-fallback-checkbox-focus-outline-width)) solid
+    var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(--ui-checkbox-focus-outline-offset, var(--ui-fallback-checkbox-focus-outline-offset));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
 }
 
 .ui-checkbox__box {
@@ -49,15 +51,19 @@ pub const CSS: &str = r#"
   justify-content: center;
   flex-shrink: 0;
 
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-  color: var(--ui-accent-fg);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-accent-fg, var(--ui-fallback-accent-fg));
 
   box-sizing: border-box;
   transition:
-    background-color 200ms ease,
-    border-color 200ms ease,
-    color 200ms ease;
+    background-color var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))
+      var(--ui-text-field-motion-easing, var(--ui-fallback-text-field-motion-easing)),
+    border-color var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))
+      var(--ui-text-field-motion-easing, var(--ui-fallback-text-field-motion-easing)),
+    color var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))
+      var(--ui-text-field-motion-easing, var(--ui-fallback-text-field-motion-easing));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -67,18 +73,18 @@ pub const CSS: &str = r#"
 }
 
 .ui-checkbox[data-state="checked"] .ui-checkbox__box {
-  background: var(--ui-accent);
-  border-color: var(--ui-accent);
+  background: var(--ui-accent, var(--ui-fallback-accent));
+  border-color: var(--ui-accent, var(--ui-fallback-accent));
 }
 
 .ui-checkbox[data-state="unchecked"] .ui-checkbox__box {
-  background: var(--ui-bg);
-  border-color: var(--ui-border);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  border-color: var(--ui-border, var(--ui-fallback-border));
   color: transparent;
 }
 
 .ui-checkbox--variant-accent[data-state="unchecked"] .ui-checkbox__box {
-  background: var(--ui-bg-muted);
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
 }
 
 .ui-checkbox__indicator {
@@ -96,40 +102,40 @@ pub const CSS: &str = r#"
 }
 
 .ui-checkbox__label {
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
 }
 
 .ui-checkbox--size-default .ui-checkbox__box {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
+  width: var(--ui-checkbox-size-default, var(--ui-fallback-checkbox-size-default));
+  height: var(--ui-checkbox-size-default, var(--ui-fallback-checkbox-size-default));
+  border-radius: var(--ui-checkbox-radius-default, var(--ui-fallback-checkbox-radius-default));
 }
 
 .ui-checkbox--size-default .ui-checkbox__indicator svg {
-  width: 14px;
-  height: 14px;
+  width: var(--ui-checkbox-indicator-size-default, var(--ui-fallback-checkbox-indicator-size-default));
+  height: var(--ui-checkbox-indicator-size-default, var(--ui-fallback-checkbox-indicator-size-default));
 }
 
 .ui-checkbox--size-sm .ui-checkbox__box {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
+  width: var(--ui-checkbox-size-sm, var(--ui-fallback-checkbox-size-sm));
+  height: var(--ui-checkbox-size-sm, var(--ui-fallback-checkbox-size-sm));
+  border-radius: var(--ui-checkbox-radius-sm, var(--ui-fallback-checkbox-radius-sm));
 }
 
 .ui-checkbox--size-sm .ui-checkbox__indicator svg {
-  width: 12px;
-  height: 12px;
+  width: var(--ui-checkbox-indicator-size-sm, var(--ui-fallback-checkbox-indicator-size-sm));
+  height: var(--ui-checkbox-indicator-size-sm, var(--ui-fallback-checkbox-indicator-size-sm));
 }
 
 .ui-checkbox--size-lg .ui-checkbox__box {
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
+  width: var(--ui-checkbox-size-lg, var(--ui-fallback-checkbox-size-lg));
+  height: var(--ui-checkbox-size-lg, var(--ui-fallback-checkbox-size-lg));
+  border-radius: var(--ui-checkbox-radius-lg, var(--ui-fallback-checkbox-radius-lg));
 }
 
 .ui-checkbox--size-lg .ui-checkbox__indicator svg {
-  width: 16px;
-  height: 16px;
+  width: var(--ui-checkbox-indicator-size-lg, var(--ui-fallback-checkbox-indicator-size-lg));
+  height: var(--ui-checkbox-indicator-size-lg, var(--ui-fallback-checkbox-indicator-size-lg));
 }
 "#;

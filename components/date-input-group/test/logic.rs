@@ -1,72 +1,86 @@
 use super::*;
 
 #[test]
-fn variant_contract_is_stable() {
-    assert_eq!(
-        DateInputGroupVariant::Primary.class_name(),
-        "ui-date-input-group--variant-primary"
-    );
-    assert_eq!(
-        DateInputGroupVariant::Secondary.class_name(),
-        "ui-date-input-group--variant-secondary"
-    );
-
-    assert_eq!(DateInputGroupVariant::Primary.as_attr(), "primary");
-    assert_eq!(DateInputGroupVariant::Secondary.as_attr(), "secondary");
-}
-
-#[test]
-fn normalize_helpers_trim_and_fallback() {
-    assert_eq!(normalize_optional_text(None), None);
-    assert_eq!(normalize_optional_text(Some(" \n\t ".to_string())), None);
-    assert_eq!(
-        normalize_optional_text(Some("  Booking controls  ".to_string())),
-        Some("Booking controls".to_string())
-    );
-
-    assert_eq!(
-        normalize_aria_label(Some("  Date segments  ".to_string())),
-        ("Date segments".to_string(), true)
-    );
-    assert_eq!(
-        normalize_aria_label(Some("  ".to_string())),
-        (DEFAULT_ARIA_LABEL.into(), false)
-    );
-}
-
-#[test]
-fn resolve_state_tracks_markers() {
-    let state = resolve_state(DateInputGroupStateInput {
+fn logic_resolve_state_delegates_to_ui_state_primitives() {
+    let input = DateInputGroupStateInput {
         variant: DateInputGroupVariant::Secondary,
-        full_width: true,
-        disabled: false,
-        invalid: true,
+        width: DateInputGroupWidth::Full,
+        status: DateInputGroupStatus::Invalid,
         segmented: true,
         has_prefix: true,
         has_suffix: false,
         has_custom_aria_label: true,
         has_custom_class_name: true,
-    });
+    };
 
-    assert_eq!(state.variant_attr, "secondary");
-    assert_eq!(state.width_attr, "full");
-    assert_eq!(state.data_state_attr, "invalid");
-    assert!(state.is_full_width);
-    assert!(state.is_invalid);
-    assert!(state.is_segmented);
-    assert!(state.has_prefix);
-    assert!(!state.has_suffix);
-    assert_eq!(state.aria_source_attr, "custom");
-    assert_eq!(state.class_source_attr, "custom");
+    assert_eq!(
+        resolve_state(input),
+        ui_state_primitives::date_input_group::resolve_state(input)
+    );
+}
+
+#[test]
+fn resolve_width_and_status_use_enum_constraints() {
+    assert_eq!(
+        resolve_width(false),
+        ui_state_primitives::date_input_group::resolve_width(false)
+    );
+    assert_eq!(
+        resolve_width(true),
+        ui_state_primitives::date_input_group::resolve_width(true)
+    );
+    assert_eq!(
+        resolve_status(false, false),
+        ui_state_primitives::date_input_group::resolve_status(false, false)
+    );
+    assert_eq!(
+        resolve_status(false, true),
+        ui_state_primitives::date_input_group::resolve_status(false, true)
+    );
+    assert_eq!(
+        resolve_status(true, false),
+        ui_state_primitives::date_input_group::resolve_status(true, false)
+    );
+    assert_eq!(
+        resolve_status(true, true),
+        ui_state_primitives::date_input_group::resolve_status(true, true)
+    );
+}
+
+#[test]
+fn derive_state_centralizes_state_normalization_input_mapping() {
+    let input = DateInputGroupStateDeriveInput {
+        variant: DateInputGroupVariant::Secondary,
+        width: DateInputGroupWidth::Full,
+        status: DateInputGroupStatus::Invalid,
+        is_segmented: true,
+        has_prefix: true,
+        has_suffix: false,
+        has_custom_aria_label: true,
+        has_custom_class_name: true,
+    };
+
+    assert_eq!(
+        derive_state(input),
+        resolve_state(DateInputGroupStateInput {
+            variant: DateInputGroupVariant::Secondary,
+            width: DateInputGroupWidth::Full,
+            status: DateInputGroupStatus::Invalid,
+            segmented: true,
+            has_prefix: true,
+            has_suffix: false,
+            has_custom_aria_label: true,
+            has_custom_class_name: true,
+        })
+    );
 }
 
 #[test]
 fn compose_class_name_includes_state_markers() {
     let state = resolve_state(DateInputGroupStateInput {
         variant: DateInputGroupVariant::Primary,
-        full_width: false,
-        disabled: true,
-        invalid: false,
+        width: DateInputGroupWidth::Fit,
+        status: DateInputGroupStatus::Disabled,
         segmented: true,
         has_prefix: true,
         has_suffix: true,
@@ -92,4 +106,25 @@ fn compose_class_name_includes_state_markers() {
             "composed class name should include `{token}`"
         );
     }
+}
+
+#[test]
+fn resolve_motion_source_attrs_marks_default_motion() {
+    let (motion_source_attr, custom_motion_attr) =
+        resolve_motion_source_attrs(crate::DateInputGroupMotion::default());
+
+    assert_eq!(motion_source_attr, "default");
+    assert_eq!(custom_motion_attr, None);
+}
+
+#[test]
+fn resolve_motion_source_attrs_marks_custom_motion() {
+    let motion = crate::DateInputGroupMotion {
+        enter_scale: 1.02,
+        ..crate::DateInputGroupMotion::default()
+    };
+    let (motion_source_attr, custom_motion_attr) = resolve_motion_source_attrs(motion);
+
+    assert_eq!(motion_source_attr, "custom");
+    assert_eq!(custom_motion_attr, Some("true"));
 }

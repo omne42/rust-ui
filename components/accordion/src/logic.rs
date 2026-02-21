@@ -1,7 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use ui_state_primitives::expansion::{
-    ExpansionMode, ExpansionSummary, normalize_open_indices, summarize, toggle_open_indices,
+    ExpansionMode, ExpansionOpenCommitPlan, ExpansionSummary, apply_external_open_key_sync,
+    normalize_default_open_keys, normalize_open_keys,
+    plan_open_commit as plan_expansion_open_commit, summarize, toggle_open_key,
 };
 
 pub type AccordionSelectionMode = ExpansionMode;
@@ -24,6 +26,51 @@ impl AccordionVariant {
             Self::Bordered => "bordered",
             Self::Splitted => "splitted",
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum AccordionSlotProjection {
+    Lazy,
+    #[default]
+    KeepAlive,
+    Eager,
+}
+
+impl AccordionSlotProjection {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Lazy => "lazy",
+            Self::KeepAlive => "keep-alive",
+            Self::Eager => "eager",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AccordionPanelLifecycleEvent {
+    NotifyShown,
+    NotifyHidden,
+}
+
+impl AccordionPanelLifecycleEvent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::NotifyShown => "notify-shown",
+            Self::NotifyHidden => "notify-hidden",
+        }
+    }
+}
+
+pub fn should_render_panel_surface(
+    projection: AccordionSlotProjection,
+    is_open: bool,
+    has_opened_once: bool,
+) -> bool {
+    match projection {
+        AccordionSlotProjection::Lazy => is_open,
+        AccordionSlotProjection::KeepAlive => is_open || has_opened_once,
+        AccordionSlotProjection::Eager => true,
     }
 }
 
@@ -75,20 +122,10 @@ pub fn apply_external_item_sync(
     key: usize,
     should_open: bool,
 ) -> BTreeSet<usize> {
-    let mut next = current.clone();
-    if should_open {
-        next.insert(key);
-    } else {
-        next.remove(&key);
-    }
-    next
+    apply_external_open_key_sync(current, key, should_open)
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AccordionOpenCommitPlan {
-    pub next: BTreeSet<usize>,
-    pub changed_by_key: BTreeMap<usize, bool>,
-}
+pub type AccordionOpenCommitPlan = ExpansionOpenCommitPlan<usize>;
 
 pub fn plan_open_commit(
     mode: AccordionSelectionMode,
@@ -98,25 +135,14 @@ pub fn plan_open_commit(
     callback_keys: &[usize],
     disallow_empty_selection: bool,
 ) -> Option<AccordionOpenCommitPlan> {
-    let next = normalize_open_for_items(mode, requested_next, item_keys, disallow_empty_selection);
-    if before == &next {
-        return None;
-    }
-
-    let changed_by_key = callback_keys
-        .iter()
-        .copied()
-        .filter_map(|key| {
-            let before_open = before.contains(&key);
-            let after_open = next.contains(&key);
-            (before_open != after_open).then_some((key, after_open))
-        })
-        .collect::<BTreeMap<_, _>>();
-
-    Some(AccordionOpenCommitPlan {
-        next,
-        changed_by_key,
-    })
+    plan_expansion_open_commit(
+        mode,
+        before,
+        requested_next,
+        item_keys,
+        callback_keys,
+        disallow_empty_selection,
+    )
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -143,6 +169,69 @@ pub fn resolve_item_key(key: Option<usize>, fallback_key: usize) -> usize {
     key.unwrap_or(fallback_key)
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AccordionRegistrationAction {
+    Register { registration_id: usize },
+    Unregister { registration_id: usize },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct AccordionRegistrationState {
+    pub items_order: Vec<usize>,
+}
+
+pub fn apply_registration_action(
+    state: &mut AccordionRegistrationState,
+    action: AccordionRegistrationAction,
+) {
+    match action {
+        AccordionRegistrationAction::Register { registration_id } => {
+            if !state.items_order.contains(&registration_id) {
+                state.items_order.push(registration_id);
+            }
+        }
+        AccordionRegistrationAction::Unregister { registration_id } => {
+            state.items_order.retain(|id| *id != registration_id);
+        }
+    }
+}
+
+pub fn reduce_registration_actions(
+    actions: &[AccordionRegistrationAction],
+) -> AccordionRegistrationState {
+    let mut state = AccordionRegistrationState::default();
+    for action in actions {
+        apply_registration_action(&mut state, *action);
+    }
+    state
+}
+
+pub fn resolve_registered_item_keys(
+    actions: &[AccordionRegistrationAction],
+    registration_key_pairs: &[(usize, usize)],
+) -> Vec<usize> {
+    let items_order = reduce_registration_actions(actions).items_order;
+    let mut key_by_registration_id = BTreeMap::new();
+    for (registration_id, key) in registration_key_pairs {
+        key_by_registration_id.insert(*registration_id, *key);
+    }
+
+    let mut resolved = Vec::with_capacity(registration_key_pairs.len());
+    for registration_id in items_order {
+        if let Some(key) = key_by_registration_id.get(&registration_id).copied()
+            && !resolved.contains(&key)
+        {
+            resolved.push(key);
+        }
+    }
+    for (_, key) in registration_key_pairs {
+        if !resolved.contains(key) {
+            resolved.push(*key);
+        }
+    }
+    resolved
+}
+
 pub fn assign_item_keys(configured_keys: &[Option<usize>]) -> Vec<usize> {
     let mut used = Vec::<usize>::new();
     let mut next_auto = 0_usize;
@@ -164,29 +253,6 @@ pub fn assign_item_keys(configured_keys: &[Option<usize>]) -> Vec<usize> {
             }
             resolved
         })
-        .collect()
-}
-
-fn key_to_index_map(item_keys: &[usize]) -> BTreeMap<usize, usize> {
-    item_keys
-        .iter()
-        .copied()
-        .enumerate()
-        .map(|(index, key)| (key, index))
-        .collect()
-}
-
-fn open_indices_from_keys(open: &BTreeSet<usize>, item_keys: &[usize]) -> BTreeSet<usize> {
-    let key_to_index = key_to_index_map(item_keys);
-    open.iter()
-        .filter_map(|key| key_to_index.get(key).copied())
-        .collect()
-}
-
-fn open_keys_from_indices(open_indices: &BTreeSet<usize>, item_keys: &[usize]) -> BTreeSet<usize> {
-    open_indices
-        .iter()
-        .filter_map(|index| item_keys.get(*index).copied())
         .collect()
 }
 
@@ -479,12 +545,7 @@ pub fn normalize_open_for_items(
     item_keys: &[usize],
     disallow_empty_selection: bool,
 ) -> BTreeSet<usize> {
-    let open_indices = open_indices_from_keys(open, item_keys);
-    let mut normalized_indices = normalize_open_indices(mode, &open_indices, item_keys.len());
-    if disallow_empty_selection && normalized_indices.is_empty() && !item_keys.is_empty() {
-        normalized_indices.insert(0);
-    }
-    open_keys_from_indices(&normalized_indices, item_keys)
+    normalize_open_keys(mode, open, item_keys, disallow_empty_selection)
 }
 
 pub fn normalize_default_open_for_items(
@@ -493,8 +554,7 @@ pub fn normalize_default_open_for_items(
     item_keys: &[usize],
     disallow_empty_selection: bool,
 ) -> BTreeSet<usize> {
-    let default_open = default_open.cloned().unwrap_or_default();
-    normalize_open_for_items(mode, &default_open, item_keys, disallow_empty_selection)
+    normalize_default_open_keys(mode, default_open, item_keys, disallow_empty_selection)
 }
 
 pub fn toggle_open_for_items(
@@ -504,24 +564,7 @@ pub fn toggle_open_for_items(
     item_keys: &[usize],
     disallow_empty_selection: bool,
 ) -> BTreeSet<usize> {
-    let key_to_index = key_to_index_map(item_keys);
-    let Some(index) = key_to_index.get(&key).copied() else {
-        return normalize_open_for_items(mode, open, item_keys, disallow_empty_selection);
-    };
-    let open_indices = open_indices_from_keys(open, item_keys);
-    let normalized_indices = normalize_open_indices(mode, &open_indices, item_keys.len());
-    if disallow_empty_selection
-        && normalized_indices.len() == 1
-        && normalized_indices.contains(&index)
-    {
-        return open_keys_from_indices(&normalized_indices, item_keys);
-    }
-    let next_indices = toggle_open_indices(mode, &normalized_indices, index);
-    let mut next = open_keys_from_indices(&next_indices, item_keys);
-    if disallow_empty_selection && next.is_empty() && !item_keys.is_empty() {
-        next.insert(item_keys[0]);
-    }
-    next
+    toggle_open_key(mode, open, key, item_keys, disallow_empty_selection)
 }
 
 #[cfg(test)]

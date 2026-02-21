@@ -38,6 +38,39 @@ fn selected_color_sanitization_and_ids_are_stable() {
 }
 
 #[test]
+fn default_selected_color_priority_is_normalized_in_logic() {
+    assert_eq!(
+        resolve_default_selected_color(Some("  #0ea5e9 ".to_string()), Some("#8b5cf6".to_string())),
+        Some("#0ea5e9".to_string())
+    );
+    assert_eq!(
+        resolve_default_selected_color(None, Some(" #8b5cf6 ".to_string())),
+        Some("#8b5cf6".to_string())
+    );
+    assert_eq!(
+        resolve_default_selected_color(
+            Some("javascript:alert(1)".to_string()),
+            Some("#22c55e".to_string())
+        ),
+        None
+    );
+}
+
+#[test]
+fn axis_aliases_and_disabled_priority_are_normalized_in_logic() {
+    assert_eq!(
+        resolve_selected_color_axis(Some("canonical"), Some("legacy")),
+        Some("canonical")
+    );
+    assert_eq!(
+        resolve_selected_change_axis::<&str>(Some("canonical"), Some("legacy")),
+        Some("canonical")
+    );
+    assert!(resolve_is_disabled(false, Some(true)));
+    assert!(!resolve_is_disabled(false, None));
+}
+
+#[test]
 fn resolve_state_and_class_name_track_markers() {
     let state = resolve_state(ColorPickerStateInput {
         disabled: false,
@@ -60,4 +93,22 @@ fn resolve_state_and_class_name_track_markers() {
     assert!(class.contains("ui-color-picker--open"));
     assert!(class.contains("ui-color-picker--custom-class"));
     assert!(class.contains("docs-custom"));
+}
+
+#[test]
+fn resolve_derived_state_maps_selection_and_source_flags() {
+    let state = resolve_derived_state(ColorPickerDerivedStateInput {
+        is_disabled: false,
+        is_open: false,
+        selected_color: Some("#0ea5e9".to_string()),
+        has_custom_label: false,
+        has_custom_aria_label: true,
+        has_custom_class_name: false,
+        is_open_controlled: false,
+    });
+
+    assert_eq!(state.data_state_attr, "selected");
+    assert_eq!(state.open_mode_attr, "uncontrolled");
+    assert_eq!(state.label_source_attr, "default");
+    assert_eq!(state.aria_source_attr, "custom");
 }

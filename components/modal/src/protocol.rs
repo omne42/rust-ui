@@ -11,7 +11,6 @@ pub enum ModalComponentSchemaVersion {
     V1,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct ModalComponentSpec {
     #[serde(default)]

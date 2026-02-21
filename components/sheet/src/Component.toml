@@ -1,0 +1,110 @@
+schema_version = "1"
+
+[component]
+name = "Sheet"
+crate = "ui-sheet"
+
+[[inputs]]
+name = "open"
+ty = "leptos::prelude::Signal<bool>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "on_close"
+ty = "ui_headless::OnPress"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "children"
+ty = "leptos::children::ChildrenFn"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "placement"
+ty = "SheetPlacement"
+default = "SheetPlacement::default()"
+controlled = false
+
+[[inputs]]
+name = "aria_labelledby"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_describedby"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_dismissable"
+ty = "bool"
+default = "true"
+controlled = false
+
+[[inputs]]
+name = "is_keyboard_dismiss_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "SheetMotion"
+default = "SheetMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "on_exit_complete"
+ty = "Option<leptos::prelude::Callback<()>>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-open + data-closed + data-placement + data-dismiss + data-keyboard-dismiss + data-*-source"
+scope = "sheet-root/panel/backdrop"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "overlay_dialog_a11y_attrs"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-contract"

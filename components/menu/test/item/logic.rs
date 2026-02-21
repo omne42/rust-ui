@@ -119,3 +119,26 @@ fn checked_and_aria_checked_reflect_kind_state() {
     assert!(!resolve_checked(MenuItemKind::Action));
     assert_eq!(resolve_aria_checked(MenuItemKind::Action), None);
 }
+
+#[test]
+fn normalize_interaction_centralizes_disabled_and_callback_defaults() {
+    let normalized = normalize_interaction(MenuItemInteractionInput {
+        is_disabled: Some(true),
+        disabled: false,
+        on_pointer_move: None,
+        on_press: None,
+    });
+
+    assert!(normalized.disabled);
+    normalized.on_pointer_move.run(());
+    normalized.on_press.run(());
+}
+
+#[test]
+fn runtime_helpers_are_centralized() {
+    assert_eq!(resolve_tabindex(true), Some(-1));
+    assert_eq!(resolve_tabindex(false), Some(0));
+    assert!(should_ignore_interaction(true));
+    assert_eq!(resolve_selection_sr_text(true), "selected");
+    assert_eq!(resolve_selection_sr_text(false), "not selected");
+}

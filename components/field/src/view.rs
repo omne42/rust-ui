@@ -1,53 +1,131 @@
+use std::borrow::Cow;
+
 use crate::{
     FieldMotion, FieldStateInput,
     logic::{self, FieldOrientation, FieldTone},
     motion,
 };
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, FieldOptions, use_field};
+
+const REQUIRED_INDICATOR_TEXT: &str = "*";
+const REQUIRED_INDICATOR_ARIA_HIDDEN: &str = "true";
+
+fn render_required_indicator() -> impl IntoView {
+    view! {
+        <span class="ui-field__required-indicator" data-slot="field-required" aria-hidden=REQUIRED_INDICATOR_ARIA_HIDDEN>
+            {REQUIRED_INDICATOR_TEXT}
+        </span>
+    }
+}
+
+fn render_field_label(
+    has_label: Signal<bool>,
+    is_required: Signal<bool>,
+    label_text: StoredValue<Cow<'static, str>>,
+) -> impl IntoView {
+    view! {
+        <Show when=move || has_label.get()>
+            <label class="ui-field__label" data-slot="field-label">
+                {move || label_text.get_value()}
+                <Show when=move || is_required.get()>
+                    {render_required_indicator()}
+                </Show>
+            </label>
+        </Show>
+    }
+}
+
+fn render_field_description(
+    shows_description: Signal<bool>,
+    description_text: StoredValue<Cow<'static, str>>,
+) -> impl IntoView {
+    view! {
+        <Show when=move || shows_description.get()>
+            <p class="ui-field__description" data-slot="field-description">
+                {move || description_text.get_value()}
+            </p>
+        </Show>
+    }
+}
+
+fn render_field_error(
+    shows_error: Signal<bool>,
+    error_message_text: StoredValue<Cow<'static, str>>,
+) -> impl IntoView {
+    view! {
+        <Show when=move || shows_error.get()>
+            <p class="ui-field__error" data-slot="field-error" role="alert">
+                {move || error_message_text.get_value()}
+            </p>
+        </Show>
+    }
+}
 
 #[component]
 pub fn Field(
     #[prop(optional)] orientation: FieldOrientation,
     #[prop(optional)] tone: FieldTone,
-    #[prop(optional)] required: bool,
-    #[prop(optional)] disabled: bool,
-    #[prop(optional)] invalid: bool,
+    #[prop(optional)] is_required: Option<bool>,
+    #[prop(optional)] required: Option<bool>,
+    #[prop(optional)] is_disabled: Option<bool>,
+    #[prop(optional)] disabled: Option<bool>,
+    #[prop(optional)] is_invalid: Option<bool>,
+    #[prop(optional)] invalid: Option<bool>,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error_message: Option<String>,
     #[prop(optional)] motion: FieldMotion,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+    let required_source = logic::resolve_required_source(is_required, required);
+    let required_source_attr = required_source.as_data_attr();
+    let is_required = logic::resolve_is_required(is_required, required);
+    let disabled_source = logic::resolve_disabled_source(is_disabled, disabled);
+    let disabled_source_attr = disabled_source.as_data_attr();
+    let is_disabled = logic::resolve_is_disabled(is_disabled, disabled);
+    let invalid_source = logic::resolve_invalid_source(is_invalid, invalid);
+    let invalid_source_attr = invalid_source.as_data_attr();
+    let is_invalid = logic::resolve_is_invalid(is_invalid, invalid);
 
-    let label = logic::normalize_optional_text(label);
-    let description = logic::normalize_optional_text(description);
-    let (error_message, has_custom_error_message) =
-        logic::normalize_error_message(error_message, invalid);
+    let content = logic::resolve_content(logic::FieldContentInput {
+        label,
+        description,
+        error_message,
+        aria_label,
+        lang,
+        class_name,
+        is_invalid,
+    });
 
-    let has_label = label.is_some();
-    let has_description = description.is_some();
-    let has_error_message = error_message.is_some();
+    let has_label = content.has_label;
+    let has_description = content.has_description;
+    let has_error_message = content.has_error_message;
+    let has_custom_aria_label = content.has_custom_aria_label;
+    let has_custom_error_message = content.has_custom_error_message;
+    let has_custom_class_name = content.has_custom_class_name;
 
-    let label = StoredValue::new(label);
-    let description = StoredValue::new(description);
-    let error_message = StoredValue::new(error_message);
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let class_name = StoredValue::new(class_name);
+    let label_text = StoredValue::new(content.label_text);
+    let description_text = StoredValue::new(content.description_text);
+    let error_message_text = StoredValue::new(content.error_message_text);
+    let class_name = StoredValue::new(content.class_name.map(std::borrow::Cow::into_owned));
+    let aria_label = StoredValue::new(content.aria_label.into_owned());
+    let lang = StoredValue::new(content.lang.map(std::borrow::Cow::into_owned));
     let motion = motion::sanitize_motion(motion);
-    let has_custom_motion = motion != FieldMotion::default();
+    let motion_source_attr = motion::source_attr(motion);
+    let motion_style = StoredValue::new(motion::attach_motion(motion));
 
     let state = Memo::new(move |_| {
         logic::resolve_state(FieldStateInput {
             orientation,
             tone,
-            required,
-            disabled,
-            invalid,
+            required: is_required,
+            disabled: is_disabled,
+            invalid: is_invalid,
             has_label,
             has_description,
             has_error_message,
@@ -58,57 +136,85 @@ pub fn Field(
     });
 
     let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+    let has_label_state = Signal::derive(move || state.get().has_label);
+    let is_required_state = Signal::derive(move || state.get().is_required);
+    let shows_description = Signal::derive(move || state.get().message_kind_attr == "description");
+    let shows_error = Signal::derive(move || state.get().message_kind_attr == "error");
+    let headless = Memo::new(move |_| {
+        use_field(FieldOptions {
+            state: state.get(),
+            aria_label: aria_label.get_value(),
+            lang: lang.get_value(),
+            dir,
+        })
+    });
+    let agent_contract = Memo::new(move |_| {
+        logic::resolve_agent_contract(
+            state.get(),
+            required_source,
+            disabled_source,
+            invalid_source,
+            motion_source_attr,
+        )
+    });
 
     view! {
         <div
             class=move || class.get()
+            style=move || motion_style.get_value()
             data-slot="field"
-            data-motion-source=if has_custom_motion { "custom" } else { "default" }
-            data-custom-motion=has_custom_motion.then_some("true")
-            data-orientation=move || state.get().orientation_attr
-            data-tone=move || state.get().tone_attr
-            data-state=move || state.get().data_state_attr
-            data-message-kind=move || state.get().message_kind_attr
-            data-required=move || state.get().is_required.then_some("true")
-            data-disabled=move || state.get().is_disabled.then_some("true")
-            data-invalid=move || state.get().is_invalid.then_some("true")
-            data-has-label=move || state.get().has_label.then_some("true")
-            data-has-description=move || state.get().has_description.then_some("true")
-            data-has-error=move || state.get().has_error_message.then_some("true")
-            data-aria-source=move || state.get().aria_source_attr
-            data-error-source=move || state.get().error_source_attr
-            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
-            data-class-source=move || state.get().class_source_attr
-            aria-label=aria_label
-            aria-disabled=move || state.get().is_disabled.then_some("true")
-            aria-invalid=move || state.get().is_invalid.then_some("true")
+            data-motion-source=motion_source_attr
+            data-custom-motion=(motion_source_attr == "custom").then_some("true")
+            data-orientation=move || headless.get().attrs.data_orientation
+            data-tone=move || headless.get().attrs.data_tone
+            data-state=move || headless.get().attrs.data_state
+            data-message-kind=move || headless.get().attrs.data_message_kind
+            data-required=move || headless.get().attrs.data_required
+            data-disabled=move || headless.get().attrs.data_disabled
+            data-invalid=move || headless.get().attrs.data_invalid
+            data-required-source=required_source_attr
+            data-disabled-source=disabled_source_attr
+            data-invalid-source=invalid_source_attr
+            data-has-label=move || headless.get().attrs.data_has_label
+            data-has-description=move || headless.get().attrs.data_has_description
+            data-has-error=move || headless.get().attrs.data_has_error
+            data-aria-source=move || headless.get().attrs.data_aria_source
+            data-error-source=move || headless.get().attrs.data_error_source
+            data-custom-class=move || headless.get().attrs.data_custom_class
+            data-class-source=move || headless.get().attrs.data_class_source
+            data-ui-schema=move || agent_contract.get().schema
+            data-ui-schema-version=move || agent_contract.get().schema_version
+            data-ui-intent=move || agent_contract.get().intent
+            data-ui-action=move || agent_contract.get().action
+            data-ui-state=move || agent_contract.get().state
+            data-ui-source=move || agent_contract.get().source
+            data-ui-source-required=move || agent_contract.get().source_required
+            data-ui-source-disabled=move || agent_contract.get().source_disabled
+            data-ui-source-invalid=move || agent_contract.get().source_invalid
+            data-ui-source-motion=move || agent_contract.get().source_motion
+            data-ui-source-aria=move || agent_contract.get().source_aria
+            data-ui-source-error=move || agent_contract.get().source_error
+            data-ui-source-class=move || agent_contract.get().source_class
+            data-ui-stream-mode=move || agent_contract.get().stream_mode
+            data-ui-stream-support=move || agent_contract.get().stream_support
+            data-ui-stream-fallback=move || agent_contract.get().stream_fallback
+            data-ui-output-mode=move || agent_contract.get().output_mode
+            data-ui-output-status=move || agent_contract.get().output_status
+            aria-label=move || headless.get().attrs.aria_label
+            aria-disabled=move || headless.get().attrs.aria_disabled
+            aria-invalid=move || headless.get().attrs.aria_invalid
+            lang=move || headless.get().attrs.lang
+            dir=move || headless.get().attrs.dir
         >
-            <Show when=move || state.get().has_label>
-                <label class="ui-field__label" data-slot="field-label">
-                    {move || label.get_value().unwrap_or_default()}
-                    <Show when=move || state.get().is_required>
-                        <span class="ui-field__required-indicator" data-slot="field-required" aria-hidden="true">
-                            "*"
-                        </span>
-                    </Show>
-                </label>
-            </Show>
+            {render_field_label(has_label_state, is_required_state, label_text)}
 
             <div class="ui-field__control" data-slot="field-control">
                 {children()}
             </div>
 
-            <Show when=move || state.get().message_kind_attr == "description">
-                <p class="ui-field__description" data-slot="field-description">
-                    {move || description.get_value().unwrap_or_default()}
-                </p>
-            </Show>
+            {render_field_description(shows_description, description_text)}
 
-            <Show when=move || state.get().message_kind_attr == "error">
-                <p class="ui-field__error" data-slot="field-error" role="alert">
-                    {move || error_message.get_value().unwrap_or_default()}
-                </p>
-            </Show>
+            {render_field_error(shows_error, error_message_text)}
         </div>
     }
 }

@@ -20,6 +20,35 @@ impl ImageStatus {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ImageStatusEvent {
+    LoadStarted,
+    LoadSucceeded,
+    LoadFailed,
+    SourceCleared,
+}
+
+pub fn derive_initial_status(src: Option<&str>) -> ImageStatus {
+    if src.is_some_and(|value| !value.trim().is_empty()) {
+        ImageStatus::Loading
+    } else {
+        ImageStatus::Idle
+    }
+}
+
+pub fn reduce_status(status: ImageStatus, event: ImageStatusEvent) -> ImageStatus {
+    match (status, event) {
+        (_, ImageStatusEvent::SourceCleared) => ImageStatus::Idle,
+        (_, ImageStatusEvent::LoadStarted) => ImageStatus::Loading,
+        (ImageStatus::Loading, ImageStatusEvent::LoadSucceeded) => ImageStatus::Loaded,
+        (ImageStatus::Loaded, ImageStatusEvent::LoadSucceeded) => ImageStatus::Loaded,
+        (ImageStatus::Idle | ImageStatus::Error, ImageStatusEvent::LoadSucceeded) => {
+            ImageStatus::Loaded
+        }
+        (_, ImageStatusEvent::LoadFailed) => ImageStatus::Error,
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ImageRadius {
     Sm,

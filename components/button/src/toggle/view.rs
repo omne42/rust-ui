@@ -5,17 +5,18 @@ use super::{ToggleMotion, ToggleSize, ToggleStateInput, ToggleVariant, logic};
 use leptos::{html, prelude::*};
 #[cfg(feature = "component-toggle_group")]
 use std::collections::BTreeSet;
-#[cfg(feature = "component-toggle_group")]
 use ui_headless as overlay_open;
+#[cfg(feature = "component-toggle_group")]
+use ui_headless::{A11yDirection, labeled_group_attrs};
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, use_button, use_focus_ring, use_hover,
 };
 
 #[component]
 pub fn Toggle(
-    pressed: ReadSignal<bool>,
-    set_pressed: WriteSignal<bool>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_pressed: Option<Signal<bool>>,
+    #[prop(optional)] default_pressed: Option<bool>,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] variant: ToggleVariant,
     #[prop(optional)] size: ToggleSize,
     #[prop(optional)] motion: ToggleMotion,
@@ -27,49 +28,47 @@ pub fn Toggle(
 ) -> impl IntoView {
     let class_name = logic::normalize_optional_text(class_name);
     let aria_label = logic::normalize_optional_text(aria_label);
+    let has_on_pressed_change = on_pressed_change.is_some();
+
+    let pressed_state =
+        overlay_open::use_controllable_state(is_pressed, default_pressed, on_pressed_change);
+    let pressed = pressed_state.value;
+    let request_pressed_change = pressed_state.request_change;
 
     let has_custom_class_name = class_name.is_some();
     let has_custom_motion = motion != ToggleMotion::default();
     let has_custom_aria_label = aria_label.is_some();
-    let has_on_pressed_change = on_pressed_change.is_some();
 
     let on_press = Callback::new(move |_| {
         let next = !pressed.get_untracked();
-        set_pressed.set(next);
-        if let Some(on_pressed_change) = on_pressed_change {
-            on_pressed_change.run(next);
-        }
+        request_pressed_change.run(next);
     });
 
     let aria = use_button(ButtonOptions {
-        is_disabled: disabled,
+        is_disabled,
         on_press: Some(on_press),
         ..Default::default()
     });
 
-    let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: disabled,
-    });
-    let hover = use_hover(HoverOptions {
-        is_disabled: disabled,
-    });
+    let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
+    let hover = use_hover(HoverOptions { is_disabled });
 
     motion::attach_motion(
         node_ref,
         hover.is_hovered,
         aria.is_pressed,
-        disabled,
+        is_disabled,
         motion,
     );
 
     let state = Memo::new(move |_| {
         logic::resolve_state(ToggleStateInput {
             selected: pressed.get(),
-            disabled,
-            hovered: !disabled && hover.is_hovered.get(),
-            pressed_interaction: !disabled && aria.is_pressed.get(),
-            focused: !disabled && focus_ring.is_focused.get(),
-            focus_visible: !disabled && focus_ring.is_focus_visible.get(),
+            disabled: is_disabled,
+            hovered: !is_disabled && hover.is_hovered.get(),
+            pressed_interaction: !is_disabled && aria.is_pressed.get(),
+            focused: !is_disabled && focus_ring.is_focused.get(),
+            focus_visible: !is_disabled && focus_ring.is_focus_visible.get(),
             variant,
             size,
             has_custom_class_name,
@@ -86,8 +85,8 @@ pub fn Toggle(
             type="button"
             node_ref=node_ref
             class=class
-            class:ui-toggle-button--focus-visible=move || !disabled && focus_ring.is_focus_visible.get()
-            disabled=disabled
+            class:ui-toggle-button--focus-visible=move || !is_disabled && focus_ring.is_focus_visible.get()
+            disabled=is_disabled
             data-slot="toggle"
             data-state=move || state.get().state_attr
             data-interaction=move || state.get().interaction_attr
@@ -158,19 +157,21 @@ pub fn ToggleGroup(
     #[prop(optional)] default_selected_ids: Option<BTreeSet<String>>,
     #[prop(optional)] on_selected_ids_change: Option<Callback<BTreeSet<String>>>,
     #[prop(optional)] on_action: Option<Callback<String>>,
-    #[prop(optional)] disabled: bool,
-    #[prop(optional)] attached: bool,
+    #[prop(optional)] is_disabled: bool,
+    #[prop(optional)] is_attached: bool,
     #[prop(optional)] orientation: logic::ToggleGroupOrientation,
     #[prop(optional)] variant: ToggleButtonVariant,
     #[prop(optional)] size: ToggleButtonSize,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let items = logic::normalize_toggle_group_items(items);
     let item_ids = logic::collect_toggle_group_item_ids(&items);
 
-    let default_selected_ids = logic::sanitize_toggle_group_selected_ids(
-        default_selected_ids.unwrap_or_default(),
+    let default_selected_ids = logic::normalize_toggle_group_default_selected_ids(
+        default_selected_ids,
         &item_ids,
         &items,
         selection_mode,
@@ -185,6 +186,7 @@ pub fn ToggleGroup(
     let request_selected_ids_change = selected_state.request_change;
 
     let (aria_label, has_custom_aria_label) = logic::normalize_toggle_group_aria_label(aria_label);
+    let group_a11y = labeled_group_attrs(aria_label, lang, dir);
 
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -208,8 +210,8 @@ pub fn ToggleGroup(
         logic::resolve_toggle_group_state(super::ToggleGroupStateInput {
             orientation,
             selection_mode,
-            disabled,
-            attached,
+            disabled: is_disabled,
+            attached: is_attached,
             item_count: items_value.len(),
             selected_count: resolved_selected_ids.get().len(),
             disabled_item_count: items_value.iter().filter(|item| item.disabled).count(),
@@ -241,8 +243,10 @@ pub fn ToggleGroup(
             data-aria-source=move || state.get().aria_source_attr
             data-class-source=move || state.get().class_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
-            role="group"
-            aria-label=aria_label
+            role=group_a11y.role
+            aria-label=group_a11y.aria_label.clone()
+            lang=group_a11y.lang.clone()
+            dir=group_a11y.dir
         >
             <div class="ui-toggle-group__items" data-slot="toggle-group-items">
                 <For
@@ -251,19 +255,11 @@ pub fn ToggleGroup(
                     children=move |item| {
                         let item_id = item.id.clone();
                         let item_label = item.label.clone();
-                        let item_is_disabled = disabled || item.disabled;
-
-                        let (item_selected, set_item_selected) = signal(
-                            resolved_selected_ids.get_untracked().contains(&item_id),
-                        );
-
-                        {
-                            let item_id = item_id.clone();
-                            Effect::new(move |_| {
-                                let next = resolved_selected_ids.get().contains(&item_id);
-                                set_item_selected.set(next);
-                            });
-                        }
+                        let item_is_disabled = is_disabled || item.disabled;
+                        let item_id_for_selected = item_id.clone();
+                        let item_selected = Signal::derive(move || {
+                            resolved_selected_ids.get().contains(&item_id_for_selected)
+                        });
 
                         let on_item_change = {
                             let item_id = item_id.clone();
@@ -290,12 +286,11 @@ pub fn ToggleGroup(
 
                         view! {
                             <ToggleButton
-                                selected=item_selected
-                                set_selected=set_item_selected
-                                disabled=item_is_disabled
+                                is_pressed=item_selected
+                                is_disabled=item_is_disabled
                                 variant=variant
                                 size=size
-                                on_change=on_item_change
+                                on_pressed_change=on_item_change
                                 class_name="ui-toggle-group__item".to_string()
                                 aria_label=item_label.clone()
                             >

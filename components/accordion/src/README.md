@@ -30,7 +30,7 @@
 | Prop | Type | Default |
 | --- | --- | --- |
 | `children` | `Children` | required |
-| `id_base` | `Option<String>` | `None`（自动生成） |
+| `id_base` | `Option<String>` | `None`（由 `UiRoot` 注入的 `IdProvider` 自动生成） |
 | `selection_mode` | `AccordionSelectionMode` (`Single` / `Multiple`) | `Multiple` |
 | `variant` | `AccordionVariant` (`Light` / `Shadow` / `Bordered` / `Splitted`) | `Light` |
 | `disallow_empty_selection` | `bool` | `false` |

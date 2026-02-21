@@ -1,0 +1,82 @@
+schema_version = "1"
+
+[component]
+name = "OverlaysRoot"
+crate = "ui-overlays"
+
+[[inputs]]
+name = "id_base"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_open"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_modal"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "children"
+ty = "leptos::children::Children"
+default = "required"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-open + data-closed + data-layer + data-*-source + role + aria-* + lang + dir"
+scope = "overlays-root"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "overlay_family_composition"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-primitive"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"

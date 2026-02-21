@@ -13,7 +13,7 @@ macro_rules! wasm_debug_proxy {
 
 pub(crate) use wasm_debug_proxy;
 
-mod logic;
+pub mod logic;
 mod motion;
 #[cfg(target_arch = "wasm32")]
 mod observability;
@@ -22,7 +22,10 @@ mod streaming;
 pub mod styles;
 mod view;
 
-pub use logic::{AccordionSelectionMode, AccordionVariant, open_set};
+pub use logic::{
+    AccordionPanelLifecycleEvent, AccordionSelectionMode, AccordionSlotProjection,
+    AccordionVariant, open_set,
+};
 pub use motion::AccordionMotion;
 pub use protocol::{
     ACCORDION_COMPONENT_SCHEMA_NAME, AccordionComponentItemSpec, AccordionComponentSchemaVersion,

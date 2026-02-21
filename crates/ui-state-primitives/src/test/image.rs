@@ -14,6 +14,36 @@ fn status_attr_is_closed_set() {
 }
 
 #[test]
+fn derives_initial_status_from_source_presence() {
+    assert_eq!(
+        derive_initial_status(Some("cover.jpg")),
+        ImageStatus::Loading
+    );
+    assert_eq!(derive_initial_status(Some("  ")), ImageStatus::Idle);
+    assert_eq!(derive_initial_status(None), ImageStatus::Idle);
+}
+
+#[test]
+fn reduces_status_from_typed_events() {
+    assert_eq!(
+        reduce_status(ImageStatus::Idle, ImageStatusEvent::LoadStarted),
+        ImageStatus::Loading
+    );
+    assert_eq!(
+        reduce_status(ImageStatus::Loading, ImageStatusEvent::LoadSucceeded),
+        ImageStatus::Loaded
+    );
+    assert_eq!(
+        reduce_status(ImageStatus::Loaded, ImageStatusEvent::LoadFailed),
+        ImageStatus::Error
+    );
+    assert_eq!(
+        reduce_status(ImageStatus::Error, ImageStatusEvent::SourceCleared),
+        ImageStatus::Idle
+    );
+}
+
+#[test]
 fn radius_and_shadow_contracts_are_stable() {
     assert_eq!(ImageRadius::Sm.class_name(), "ui-image--radius-sm");
     assert_eq!(ImageRadius::Full.class_name(), "ui-image--radius-full");

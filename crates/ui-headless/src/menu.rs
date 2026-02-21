@@ -70,6 +70,19 @@ pub fn menu_trigger_open_focus_strategy_for_key(key: &str) -> Option<MenuOpenFoc
     }
 }
 
+pub fn context_menu_open_focus_strategy_for_key(
+    key: &str,
+    shift_key: bool,
+) -> Option<MenuOpenFocusStrategy> {
+    match key {
+        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
+        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
+        "ContextMenu" => Some(MenuOpenFocusStrategy::First),
+        "F10" if shift_key => Some(MenuOpenFocusStrategy::First),
+        _ => None,
+    }
+}
+
 pub fn menu_trigger_open_focus_strategy(
     key: &str,
     is_disabled: bool,
@@ -79,6 +92,70 @@ pub fn menu_trigger_open_focus_strategy(
         return None;
     }
     menu_trigger_open_focus_strategy_for_key(key)
+}
+
+pub fn context_menu_open_focus_strategy(
+    key: &str,
+    shift_key: bool,
+    is_disabled: bool,
+    is_open: bool,
+) -> Option<MenuOpenFocusStrategy> {
+    if is_disabled || is_open {
+        return None;
+    }
+    context_menu_open_focus_strategy_for_key(key, shift_key)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MenubarKeyCommand {
+    OpenFirst,
+    OpenLast,
+    MoveNext,
+    MovePrevious,
+    Close,
+}
+
+pub fn menubar_key_command(key: &str, is_disabled: bool) -> Option<MenubarKeyCommand> {
+    if is_disabled {
+        return None;
+    }
+
+    match key {
+        "ArrowDown" => Some(MenubarKeyCommand::OpenFirst),
+        "ArrowUp" => Some(MenubarKeyCommand::OpenLast),
+        "ArrowRight" => Some(MenubarKeyCommand::MoveNext),
+        "ArrowLeft" => Some(MenubarKeyCommand::MovePrevious),
+        "Escape" => Some(MenubarKeyCommand::Close),
+        _ => None,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NavigationMenuKeyCommand {
+    MoveNext,
+    MovePrevious,
+    First,
+    Last,
+    Activate,
+}
+
+pub fn navigation_menu_key_command(
+    key: &str,
+    is_disabled: bool,
+) -> Option<NavigationMenuKeyCommand> {
+    if is_disabled {
+        return None;
+    }
+
+    match key {
+        "ArrowRight" => Some(NavigationMenuKeyCommand::MoveNext),
+        "ArrowLeft" => Some(NavigationMenuKeyCommand::MovePrevious),
+        "Home" => Some(NavigationMenuKeyCommand::First),
+        "End" => Some(NavigationMenuKeyCommand::Last),
+        "Enter" => Some(NavigationMenuKeyCommand::Activate),
+        key if is_space_key(key) => Some(NavigationMenuKeyCommand::Activate),
+        _ => None,
+    }
 }
 
 #[derive(Clone)]

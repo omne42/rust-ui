@@ -6,31 +6,42 @@ pub const CSS: &str = r#"
 
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
   align-items: start;
   min-width: 0;
-  margin-top: var(--ui-space-2xs);
-  padding: var(--ui-space-xs) var(--ui-space-sm);
-  border-radius: var(--ui-radius-md);
-  border: 1px solid transparent;
+  margin-top: var(--ui-border-width, var(--ui-fallback-border-width));
+  padding: var(--ui-space-xs, var(--ui-fallback-space-xs))
+    var(--ui-space-sm, var(--ui-fallback-space-sm));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid transparent;
   background: transparent;
-  color: color-mix(in oklab, var(--ui-danger) 74%, var(--ui-fg) 26%);
+  color: color-mix(
+    in oklab,
+    var(--ui-danger, var(--ui-fallback-danger)) 74%,
+    var(--ui-fg, var(--ui-fallback-fg)) 26%
+  );
   opacity: var(--ui-error-view-opacity);
   transform: translateY(var(--ui-error-view-translate-y)) scale(var(--ui-error-view-scale));
   transform-origin: top left;
-  max-height: 12rem;
+  max-height: calc(
+    var(--ui-component-height-100, var(--ui-fallback-component-height-100)) * 6
+  );
   overflow: hidden;
   will-change: transform, opacity;
 }
 
 .ui-error-view--tone-negative,
 .ui-error-view[data-tone="negative"] {
-  color: color-mix(in oklab, var(--ui-danger) 74%, var(--ui-fg) 26%);
+  color: color-mix(
+    in oklab,
+    var(--ui-danger, var(--ui-fallback-danger)) 74%,
+    var(--ui-fg, var(--ui-fallback-fg)) 26%
+  );
 }
 
 .ui-error-view--tone-neutral,
 .ui-error-view[data-tone="neutral"] {
-  color: var(--ui-fg-muted);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-error-view--visible,
@@ -51,16 +62,25 @@ pub const CSS: &str = r#"
 
 .ui-error-view--compact,
 .ui-error-view[data-compact="true"] {
-  gap: var(--ui-space-2xs);
-  padding: var(--ui-space-2xs) var(--ui-space-xs);
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
+  padding: var(--ui-space-2xs, var(--ui-fallback-space-2xs))
+    var(--ui-space-xs, var(--ui-fallback-space-xs));
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
 }
 
 .ui-error-view--bordered,
 .ui-error-view[data-bordered="true"] {
-  border-color: color-mix(in oklab, var(--ui-danger) 26%, var(--ui-border));
-  background: color-mix(in oklab, var(--ui-danger) 8%, var(--ui-bg-muted));
+  border-color: color-mix(
+    in oklab,
+    var(--ui-danger, var(--ui-fallback-danger)) 26%,
+    var(--ui-border, var(--ui-fallback-border))
+  );
+  background: color-mix(
+    in oklab,
+    var(--ui-danger, var(--ui-fallback-danger)) 8%,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted))
+  );
 }
 
 .ui-error-view__icon {
@@ -68,7 +88,7 @@ pub const CSS: &str = r#"
   align-items: center;
   justify-content: center;
   line-height: 1;
-  margin-top: 0.0625rem;
+  margin-top: var(--ui-border-width, var(--ui-fallback-border-width));
 }
 
 .ui-error-view__content {
@@ -78,15 +98,15 @@ pub const CSS: &str = r#"
 .ui-error-view__text {
   margin: 0;
   min-width: 0;
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
 }
 
 .ui-error-view__actions {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--ui-space-2xs);
+  gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
 }
 
 .ui-error-view--with-actions,
@@ -101,12 +121,13 @@ pub const CSS: &str = r#"
 
 .ui-error-view--with-children,
 .ui-error-view[data-content="children"] {
-  line-height: var(--ui-line-height-100, 16px);
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
 }
 
 .ui-error-view--custom-class,
 .ui-error-view[data-custom-class="true"] {
-  outline: 1px solid color-mix(in oklab, var(--ui-accent) 24%, transparent);
-  outline-offset: 2px;
+  outline: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(in oklab, var(--ui-accent, var(--ui-fallback-accent)) 24%, transparent);
+  outline-offset: calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 2);
 }
 "#;

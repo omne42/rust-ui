@@ -1,8 +1,10 @@
 pub const CSS: &str = r#"
 .ui-empty {
+  --ui-empty-gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  --ui-empty-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-empty-gap);
 }
 
 .ui-empty[data-state="root"] {
@@ -49,6 +51,6 @@ pub const CSS: &str = r#"
 
 .ui-empty--custom-class,
 .ui-empty[data-custom-class="true"] {
-  border-radius: inherit;
+  border-radius: var(--ui-empty-radius);
 }
 "#;

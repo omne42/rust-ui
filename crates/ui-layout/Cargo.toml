@@ -71,6 +71,7 @@ component-well = []
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../ui-headless" }
 ui-motion = { path = "../ui-motion" }
+ui-observability = { path = "../ui-observability" }
 ui-visual-primitive = { path = "../ui-visual-primitive", optional = true }
 ui-state-primitives = { path = "../ui-state-primitives" }
 ui-theme = { path = "../ui-theme" }

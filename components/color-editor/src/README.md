@@ -25,14 +25,14 @@
 | `id_base` | `String` | required |
 | `label` | `Option<String>` | `None`（回退到 `DEFAULT_LABEL`） |
 | `aria_label` | `Option<String>` | `None`（优先回退到 `label`，再回退 `DEFAULT_ARIA_LABEL`） |
-| `disabled` | `bool` | `false` |
+| `is_disabled` | `bool` | `false` |
 | `selected_color` | `Option<Signal<Option<String>>>` | `None` |
 | `default_selected_color` | `Option<String>` | `None` |
 | `on_selected_change` | `Option<Callback<Option<String>>>` | `None` |
 | `format` | `Option<Signal<ColorEditorFormat>>` | `None` |
 | `default_format` | `Option<ColorEditorFormat>` | `None`（回退到 `ColorEditorFormat::default()`） |
 | `on_format_change` | `Option<Callback<ColorEditorFormat>>` | `None` |
-| `hide_alpha_channel` | `bool` | `false` |
+| `is_alpha_channel_hidden` | `bool` | `false` |
 | `default_hue` | `Option<f64>` | `None`（回退到 `DEFAULT_HUE`） |
 | `default_alpha` | `Option<f64>` | `None`（回退到 `DEFAULT_ALPHA`） |
 | `default_area` | `Option<(f32, f32)>` | `None`（回退到 `DEFAULT_AREA`） |
@@ -63,6 +63,12 @@
 
 - 默认路径无需手动接线 `ui-state-primitives` / `ui-headless`。
 - 进阶需求再按需开启受控值、格式切换、alpha 隐藏、motion 与 locale。
+
+## API 命名迁移
+
+- `disabled` 已统一为 `is_disabled`。
+- `hide_alpha_channel` 已统一为 `is_alpha_channel_hidden`。
+- 迁移路径：将调用点中的旧布尔参数替换为新前缀参数，事件与默认值参数保持 `on_*` / `default_*` 约定不变。
 
 ## Semantics and Accessibility
 

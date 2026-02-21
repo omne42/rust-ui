@@ -90,8 +90,16 @@ pub fn attach_clear_button_motion(
             // compatibility marker for source-contract tests:
             // let _ = style.set_property("--ui-time-field-clear-opacity", &format!("{reveal}"));
             // let _ = style.set_property("--ui-time-field-clear-scale", &format!("{scale}"));
-            drop(style.set_property("--ui-time-field-clear-opacity", &format!("{reveal}")));
-            drop(style.set_property("--ui-time-field-clear-scale", &format!("{scale}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-time-field-clear-opacity",
+                &format!("{reveal}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-time-field-clear-scale",
+                &format!("{scale}")
+            );
         });
         return;
     }
@@ -120,11 +128,16 @@ pub fn attach_clear_button_motion(
         interaction_value.set_value(1.0);
 
         let initial_scale = mix(config.hidden_scale, 1.0, initial_reveal);
-        drop(style.set_property(
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
             "--ui-time-field-clear-opacity",
             &format!("{initial_reveal}"),
-        ));
-        drop(style.set_property("--ui-time-field-clear-scale", &format!("{initial_scale}")));
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-time-field-clear-scale",
+            &format!("{initial_scale}")
+        );
         let style_for_reveal = style.clone();
         let reveal_value_for_cb = reveal_value;
         let interaction_value_for_cb = interaction_value;
@@ -134,13 +147,15 @@ pub fn attach_clear_button_motion(
                 let value = value.clamp(0.0, 1.0);
                 reveal_value_for_cb.set_value(value);
                 let scale = mix(hidden_scale, 1.0, value) * interaction_value_for_cb.get_value();
-                drop(
-                    style_for_reveal
-                        .set_property("--ui-time-field-clear-opacity", &format!("{value}")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_reveal),
+                    "--ui-time-field-clear-opacity",
+                    &format!("{value}")
                 );
-                drop(
-                    style_for_reveal
-                        .set_property("--ui-time-field-clear-scale", &format!("{scale}")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_reveal),
+                    "--ui-time-field-clear-scale",
+                    &format!("{scale}")
                 );
             });
 
@@ -155,9 +170,10 @@ pub fn attach_clear_button_motion(
                 let reveal = reveal_value_for_interaction.get_value().clamp(0.0, 1.0);
                 let base_scale = mix(hidden_scale_for_interaction, 1.0, reveal);
                 let scale = base_scale * value;
-                drop(
-                    style_for_interaction
-                        .set_property("--ui-time-field-clear-scale", &format!("{scale}")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_interaction),
+                    "--ui-time-field-clear-scale",
+                    &format!("{scale}")
                 );
             });
 

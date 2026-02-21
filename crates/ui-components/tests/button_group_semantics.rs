@@ -43,6 +43,7 @@ fn button_group_uses_logic_state_model() {
         "pub struct ButtonGroupState",
         "pub fn normalize_button_group_aria_label(",
         "pub fn resolve_button_group_state(",
+        "pub fn compose_button_group_class_name(",
         "pub is_attached: bool",
         "pub has_explicit_label: bool",
     ] {
@@ -54,8 +55,11 @@ fn button_group_uses_logic_state_model() {
 
     for needle in [
         "let (aria_label, has_explicit_label) = logic::normalize_button_group_aria_label(aria_label);",
+        "let group_a11y = labeled_group_attrs(aria_label, lang, dir);",
+        "let class_name = logic::normalize_optional_text(class_name);",
         "let state = Memo::new(move |_|",
-        "logic::resolve_button_group_state(orientation, attached, has_explicit_label)",
+        "logic::resolve_button_group_state(orientation, is_attached, has_explicit_label)",
+        "let class = logic::compose_button_group_class_name(class_name, orientation, is_attached);",
     ] {
         assert!(
             view_source.contains(needle),
@@ -77,6 +81,10 @@ fn button_group_emits_baseline_style_state_data_attributes() {
         "data-detached=move || state.get().is_detached.then_some(\"true\")",
         "data-has-explicit-label=move || state.get().has_explicit_label.then_some(\"true\")",
         "data-has-fallback-label=move || state.get().has_fallback_label.then_some(\"true\")",
+        "role=group_a11y.role",
+        "aria-label=group_a11y.aria_label.clone()",
+        "lang=group_a11y.lang.clone()",
+        "dir=group_a11y.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -117,8 +125,8 @@ fn button_group_docs_page_covers_playground_contracts() {
         "<Playground title=\"Attached horizontal\" code_signal=code>",
         "<Playground title=\"Vertical + detached\" code_signal=states_code>",
         "<ButtonGroup",
-        "attached=true",
-        "attached=false",
+        "is_attached=true",
+        "is_attached=false",
         "orientation=ButtonGroupOrientation::Vertical",
     ] {
         assert!(
@@ -133,7 +141,7 @@ fn button_group_docs_attached_and_vertical_playgrounds_lock_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "<ButtonGroup attached=true>",
+        "<ButtonGroup is_attached=true>",
         "<Button variant=ButtonVariant::Secondary>\"Left\"</Button>",
         "<Button variant=ButtonVariant::Secondary>\"Middle\"</Button>",
         "<Button variant=ButtonVariant::Secondary>\"Right\"</Button>",
@@ -175,10 +183,10 @@ fn button_group_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "<Playground title=\"Attached horizontal\" code_signal=code>",
-        "<ButtonGroup attached=true orientation=ButtonGroupOrientation::Horizontal>",
+        "<ButtonGroup is_attached=true orientation=ButtonGroupOrientation::Horizontal>",
         "\"left/middle/right clicks: \"",
         "<Playground title=\"Vertical + detached\" code_signal=states_code>",
-        "attached=false",
+        "is_attached=false",
         "orientation=ButtonGroupOrientation::Vertical",
         "aria_label=\"Document actions\".to_string()",
         "<Button variant=ButtonVariant::Outline is_disabled=true>",

@@ -132,3 +132,43 @@ fn resolve_image_render_state_tracks_image_and_fallback_markers() {
     assert_eq!(fallback.mode.image_attr(), None);
     assert_eq!(fallback.mode.fallback_attr(), Some("true"));
 }
+
+#[test]
+fn resolve_aria_label_uses_i18n_fallback_only_for_fallback_label_source() {
+    assert_eq!(
+        resolve_aria_label(
+            AvatarLabelSource::Fallback,
+            "Avatar".to_string(),
+            "头像".to_string()
+        ),
+        "头像"
+    );
+
+    assert_eq!(
+        resolve_aria_label(
+            AvatarLabelSource::Name,
+            "Ada Lovelace".to_string(),
+            "头像".to_string()
+        ),
+        "Ada Lovelace"
+    );
+}
+
+#[test]
+fn resolve_agent_contract_maps_intent_action_source_without_string_concat() {
+    let image = resolve_agent_contract(AvatarLabelSource::Alt, AvatarRenderMode::Image);
+    assert_eq!(image.schema, AVATAR_AGENT_SCHEMA);
+    assert_eq!(image.intent, AvatarAgentIntent::DisplayIdentity);
+    assert_eq!(image.action, AvatarAgentAction::ImageFallbackOnError);
+    assert_eq!(image.source, AvatarAgentSource::Alt);
+    assert_eq!(image.intent.as_str(), "display-identity");
+    assert_eq!(image.action.as_str(), "image-fallback-on-error");
+    assert_eq!(image.source.as_str(), "alt");
+
+    let fallback = resolve_agent_contract(AvatarLabelSource::Fallback, AvatarRenderMode::Fallback);
+    assert_eq!(fallback.schema, AVATAR_AGENT_SCHEMA);
+    assert_eq!(fallback.intent, AvatarAgentIntent::DisplayIdentity);
+    assert_eq!(fallback.action, AvatarAgentAction::PassiveFallback);
+    assert_eq!(fallback.source, AvatarAgentSource::Fallback);
+    assert_eq!(fallback.source.as_str(), "fallback");
+}

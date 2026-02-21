@@ -35,6 +35,28 @@ pub enum ErrorMessageElement {
     Div,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct ErrorMessageStateFlagsInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: Option<bool>,
+    pub is_truncated: Option<bool>,
+    pub truncate: Option<bool>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ErrorMessageStateFlags {
+    pub disabled: bool,
+    pub truncate: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum ErrorMessageStatus {
+    #[default]
+    Default,
+    Truncate,
+    Disabled,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ErrorMessageStateInput {
     pub tone: ErrorMessageTone,
@@ -57,6 +79,27 @@ pub struct ErrorMessageState {
     pub aria_source_attr: &'static str,
     pub class_source_attr: &'static str,
     pub has_custom_class_name: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ErrorMessageModelInput {
+    pub tone: ErrorMessageTone,
+    pub is_disabled: Option<bool>,
+    pub disabled: Option<bool>,
+    pub is_truncated: Option<bool>,
+    pub truncate: Option<bool>,
+    pub text: Option<String>,
+    pub aria_label: Option<String>,
+    pub class_name: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ErrorMessageModel {
+    pub text: String,
+    pub aria_label: String,
+    pub class_name: Option<String>,
+    pub status: ErrorMessageStatus,
+    pub state: ErrorMessageState,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -87,6 +130,40 @@ pub fn resolve_effective_tone(requested_tone: ErrorMessageTone) -> ErrorMessageT
         ErrorMessageTone::Auto => ErrorMessageTone::Negative,
         ErrorMessageTone::Neutral => ErrorMessageTone::Neutral,
         ErrorMessageTone::Negative => ErrorMessageTone::Negative,
+    }
+}
+
+pub fn normalize_state_flags(input: ErrorMessageStateFlagsInput) -> ErrorMessageStateFlags {
+    ErrorMessageStateFlags {
+        disabled: input.is_disabled.or(input.disabled).unwrap_or(false),
+        truncate: input.is_truncated.or(input.truncate).unwrap_or(false),
+    }
+}
+
+pub fn resolve_status(flags: ErrorMessageStateFlags) -> ErrorMessageStatus {
+    if flags.disabled {
+        ErrorMessageStatus::Disabled
+    } else if flags.truncate {
+        ErrorMessageStatus::Truncate
+    } else {
+        ErrorMessageStatus::Default
+    }
+}
+
+pub fn status_to_primitive_flags(status: ErrorMessageStatus) -> ErrorMessageStateFlags {
+    match status {
+        ErrorMessageStatus::Default => ErrorMessageStateFlags {
+            disabled: false,
+            truncate: false,
+        },
+        ErrorMessageStatus::Truncate => ErrorMessageStateFlags {
+            disabled: false,
+            truncate: true,
+        },
+        ErrorMessageStatus::Disabled => ErrorMessageStateFlags {
+            disabled: true,
+            truncate: false,
+        },
     }
 }
 
@@ -130,6 +207,38 @@ pub fn resolve_state(input: ErrorMessageStateInput) -> ErrorMessageState {
         aria_source_attr,
         class_source_attr,
         has_custom_class_name: input.has_custom_class_name,
+    }
+}
+
+pub fn resolve_model(input: ErrorMessageModelInput) -> ErrorMessageModel {
+    let state_flags = normalize_state_flags(ErrorMessageStateFlagsInput {
+        is_disabled: input.is_disabled,
+        disabled: input.disabled,
+        is_truncated: input.is_truncated,
+        truncate: input.truncate,
+    });
+    let status = resolve_status(state_flags);
+    let primitive_flags = status_to_primitive_flags(status);
+
+    let (text, has_custom_message) = normalize_message(input.text);
+    let (aria_label, has_custom_aria_label) = normalize_aria_label(input.aria_label);
+    let class_name = normalize_optional_text(input.class_name);
+    let has_custom_class_name = class_name.is_some();
+    let state = resolve_state(ErrorMessageStateInput {
+        tone: input.tone,
+        disabled: primitive_flags.disabled,
+        truncate: primitive_flags.truncate,
+        has_custom_message,
+        has_custom_aria_label,
+        has_custom_class_name,
+    });
+
+    ErrorMessageModel {
+        text,
+        aria_label,
+        class_name,
+        status,
+        state,
     }
 }
 

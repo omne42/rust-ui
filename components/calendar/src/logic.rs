@@ -1,32 +1,10 @@
-pub use ui_logic_calendar::calendar::{
-    CalendarFirstWeekday, CalendarGridCell, CalendarState, CalendarStateInput, CalendarTone,
-    DEFAULT_ARIA_LABEL, build_month_grid, month_title, normalize_aria_label, normalize_month,
-    normalize_optional_text, normalize_selected_day, resolve_state, weekday_labels,
+pub use ui_state_primitives::calendar::{
+    CalendarFirstWeekday, CalendarGridCell, CalendarSelectedDayMode, CalendarSelectedDaySource,
+    CalendarState, CalendarStateInput, CalendarTone, DEFAULT_ARIA_LABEL, build_month_grid,
+    month_title, normalize_aria_label, normalize_is_show_outside_days, normalize_month,
+    normalize_optional_text, normalize_selected_day_axis, resolve_effective_selected_day,
+    resolve_selected_day_press_update, resolve_state, weekday_labels,
 };
-
-pub fn compose_class_name(base_class_name: Option<String>, state: CalendarState) -> String {
-    let mut classes = vec![
-        "ui-calendar".to_string(),
-        state.tone_class.into(),
-        state.first_weekday_class.into(),
-    ];
-
-    if state.show_outside_days {
-        classes.push("ui-calendar--outside-days".to_string());
-    }
-    if state.has_selected_day {
-        classes.push("ui-calendar--has-selection".to_string());
-    }
-
-    if state.has_custom_class_name {
-        classes.push("ui-calendar--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
-
-    classes.join(" ")
-}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CalendarAgentAction {

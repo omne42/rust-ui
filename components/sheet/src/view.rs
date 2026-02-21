@@ -1,38 +1,13 @@
+use std::borrow::Cow;
+
 use crate::{SheetMotion, SheetPlacement, logic, motion};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use ui_headless::{
-    A11yDirection, FocusTrapOptions, ModalOptions, OnPress, OverlayDialogA11yAttrs,
+    A11yDirection, FocusTrapOptions, ModalOptions, OnPress, OverlayDialogA11yAttrs, RestorePolicy,
     overlay_dialog_attrs, use_focus_trap, use_modal, use_overlay_stack_registration,
 };
 
-#[derive(Clone, Copy)]
-struct SheetStateInputs {
-    placement: SheetPlacement,
-    is_dismissable: bool,
-    is_keyboard_dismiss_disabled: bool,
-    has_custom_motion: bool,
-    has_custom_aria_labelledby: bool,
-    has_custom_aria_describedby: bool,
-    has_on_exit_complete: bool,
-}
-
-fn resolve_part_state(
-    slot: logic::SheetSlot,
-    open: bool,
-    inputs: SheetStateInputs,
-) -> logic::SheetPartState {
-    logic::resolve_state(logic::SheetPartStateInput {
-        slot,
-        open,
-        placement: inputs.placement,
-        is_dismissable: inputs.is_dismissable,
-        is_keyboard_dismiss_disabled: inputs.is_keyboard_dismiss_disabled,
-        has_custom_motion: inputs.has_custom_motion,
-        has_custom_aria_labelledby: inputs.has_custom_aria_labelledby,
-        has_custom_aria_describedby: inputs.has_custom_aria_describedby,
-        has_on_exit_complete: inputs.has_on_exit_complete,
-    })
-}
+const FOCUS_FALLBACK_SELECTOR: &str = r#"[data-slot="ui-root"] [tabindex]:not([tabindex="-1"]), [data-slot="ui-root"] button:not([disabled]), [data-slot="ui-root"] a[href], [data-slot="ui-root"] input:not([disabled]), [data-slot="ui-root"] select:not([disabled]), [data-slot="ui-root"] textarea:not([disabled])"#;
 
 fn render_backdrop(
     backdrop_state: logic::SheetPartState,
@@ -130,28 +105,26 @@ pub fn Sheet(
     );
     let has_custom_motion = motion != SheetMotion::default();
 
-    let state_inputs = SheetStateInputs {
+    let state_inputs = logic::SheetStateInputs {
+        open: open.get_untracked(),
         placement,
-        is_dismissable,
-        is_keyboard_dismiss_disabled,
+        dismiss_mode: logic::SheetDismissMode::from_is_dismissable(is_dismissable),
+        keyboard_dismiss_mode: logic::SheetKeyboardDismissMode::from_is_disabled(
+            is_keyboard_dismiss_disabled,
+        ),
         has_custom_motion,
         has_custom_aria_labelledby: panel_a11y.aria_labelledby.is_some(),
         has_custom_aria_describedby: panel_a11y.aria_describedby.is_some(),
         has_on_exit_complete: on_exit_complete.is_some(),
     };
     let agent_contract = logic::agent_contract();
-
-    let root_state = resolve_part_state(logic::SheetSlot::Root, open.get_untracked(), state_inputs);
-    let root_class = logic::compose_class_name(root_state);
-    let root_class = StoredValue::new(root_class);
-
-    let backdrop_state = resolve_part_state(logic::SheetSlot::Backdrop, false, state_inputs);
-    let backdrop_class = logic::compose_class_name(backdrop_state);
-    let backdrop_class = StoredValue::new(backdrop_class);
-
-    let panel_state = resolve_part_state(logic::SheetSlot::Panel, false, state_inputs);
-    let panel_class = logic::compose_class_name(panel_state);
-    let panel_class = StoredValue::new(panel_class);
+    let resolved_states = logic::resolve_states(state_inputs);
+    let root_state = resolved_states.root_state;
+    let backdrop_state = resolved_states.backdrop_state;
+    let panel_state = resolved_states.panel_state;
+    let root_class = StoredValue::new(logic::compose_class_name(root_state));
+    let backdrop_class = StoredValue::new(logic::compose_class_name(backdrop_state));
+    let panel_class = StoredValue::new(logic::compose_class_name(panel_state));
 
     let panel_lang = StoredValue::new(panel_a11y.lang);
     let panel_dir = panel_a11y.dir;
@@ -160,11 +133,19 @@ pub fn Sheet(
     let children = StoredValue::new(children);
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
-    let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
+    let on_exit_complete = logic::normalize_on_exit_complete(on_exit_complete);
     motion::attach_motion(root_ref, open, placement, on_exit_complete, motion);
 
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
-    let focus_trap = use_focus_trap(FocusTrapOptions::enabled(panel_ref));
+    let focus_fallback_selector: Cow<'static, str> = Cow::Borrowed(FOCUS_FALLBACK_SELECTOR);
+    let focus_trap = use_focus_trap(
+        FocusTrapOptions::enabled(panel_ref)
+            .with_scope_id("sheet")
+            .with_restore_policy(RestorePolicy::FallbackTo(
+                focus_fallback_selector.clone().into_owned(),
+            ))
+            .with_fallback_selector(FOCUS_FALLBACK_SELECTOR),
+    );
     let on_close_for_backdrop = on_close;
 
     let on_key_down = {

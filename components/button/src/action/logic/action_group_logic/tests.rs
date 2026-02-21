@@ -93,6 +93,39 @@ fn toggle_selected_id_respects_selection_mode() {
 }
 
 #[test]
+fn item_render_state_and_transition_are_centralized_in_logic() {
+    let item_state = resolve_item_render_state(false, true, true);
+    assert!(item_state.is_disabled);
+    assert!(item_state.is_selected);
+    assert_eq!(
+        item_state.class_name,
+        "ui-action-group__item ui-action-group__item--selected ui-action-group__item--disabled"
+    );
+
+    let item_ids = BTreeSet::from(["a".to_string(), "b".to_string()]);
+    let next = resolve_next_selected_ids(
+        BTreeSet::from(["a".to_string()]),
+        "b",
+        &item_ids,
+        ActionGroupSelectionMode::Multiple,
+        false,
+    );
+    assert_eq!(
+        next,
+        Some(BTreeSet::from(["a".to_string(), "b".to_string()]))
+    );
+
+    let next = resolve_next_selected_ids(
+        BTreeSet::from(["a".to_string()]),
+        "b",
+        &item_ids,
+        ActionGroupSelectionMode::Multiple,
+        true,
+    );
+    assert_eq!(next, None);
+}
+
+#[test]
 fn resolve_state_and_class_name_track_markers() {
     let state = resolve_state(ActionGroupStateInput {
         tone: ActionGroupTone::Strong,

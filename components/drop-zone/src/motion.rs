@@ -1,3 +1,5 @@
+use ui_theme::default_drop_zone_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DropZoneMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -8,16 +10,17 @@ pub struct DropZoneMotion {
 
 impl Default for DropZoneMotion {
     fn default() -> Self {
+        let tokens = default_drop_zone_motion_tokens();
         Self {
             spring: ui_motion::spring::SpringConfig {
-                stiffness: 260.0,
-                damping: 18.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
-            hover_scale: 1.01,
-            drop_scale: 1.02,
-            hover_highlight: 0.35,
+            hover_scale: tokens.hover_scale,
+            drop_scale: tokens.drop_scale,
+            hover_highlight: tokens.hover_highlight,
         }
     }
 }
@@ -27,30 +30,7 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
 }
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = DropZoneMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
+    ui_motion::spring::sanitize_config(value, DropZoneMotion::default().spring)
 }
 
 pub fn sanitize_motion(motion: DropZoneMotion) -> DropZoneMotion {
@@ -82,6 +62,48 @@ pub fn attach_motion(
     }
 
     let motion = StoredValue::new(sanitize_motion(motion));
+    if ui_motion::web::prefers_reduced_motion() {
+        Effect::new(move |_| {
+            let Some(div) = node_ref.get() else {
+                return;
+            };
+            let element: leptos::web_sys::HtmlElement = div.unchecked_into();
+            let style = element.style();
+
+            let motion = motion.get_value();
+            let hovered = is_hovered.get();
+            let drop_target = is_drop_target.get();
+            let focused = is_focused.get();
+
+            let scale_target = if drop_target {
+                motion.drop_scale
+            } else if hovered || focused {
+                motion.hover_scale
+            } else {
+                1.0
+            };
+            let highlight_target = if drop_target {
+                1.0
+            } else if hovered {
+                motion.hover_highlight
+            } else {
+                0.0
+            };
+
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-drop-zone-scale",
+                &format!("{scale_target}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-drop-zone-highlight",
+                &format!("{highlight_target}")
+            );
+        });
+        return;
+    }
+
     let last_state = StoredValue::new(None::<(bool, bool, bool)>);
     let springs = StoredValue::new_local(
         None::<(
@@ -102,18 +124,30 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
 
-        drop(style.set_property("--ui-drop-zone-scale", "1"));
-        drop(style.set_property("--ui-drop-zone-highlight", "0"));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-drop-zone-scale", "1");
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-drop-zone-highlight",
+            "0"
+        );
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(1.0, config, move |v| {
             let v = v.clamp(0.0, 10.0);
-            drop(style_for_scale.set_property("--ui-drop-zone-scale", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_scale),
+                "--ui-drop-zone-scale",
+                &format!("{v}")
+            );
         });
 
         let style_for_highlight = style.clone();
         let highlight = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_highlight.set_property("--ui-drop-zone-highlight", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_highlight),
+                "--ui-drop-zone-highlight",
+                &format!("{v}")
+            );
         });
 
         let springs_for_cleanup = springs;

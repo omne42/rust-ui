@@ -2,15 +2,44 @@
 
 `Description` is a text helper primitive with typed tone/element contracts and stable source markers.
 
+## Quick Start (Use First)
+
+Start with the default API path first. Move to advanced props only when needed.
+
+### Hello World
+
+```rust
+<Description text="This appears below the field.".to_string() />
+```
+
+### Common Usage
+
+```rust
+<Description
+    text="Password must contain at least 12 characters.".to_string()
+    tone=DescriptionTone::Muted
+/>
+```
+
+See the interactive docs entry at
+`apps/docs-app/src/pages/components/pages/forms_extra.rs::description()`.
+
+## Advanced Controls (Use When Needed)
+
+- `tone`: `Default` / `Muted` / `Negative`.
+- `element`: `Paragraph` / `Span` / `Div`.
+- `is_disabled` and `is_truncated`: state markers for style and semantics.
+- `aria_label`, `class_name`, `lang`, `dir`: optional overrides.
+
 ## Goals / Non-goals / Risk Boundary
 
 - Goal: provide predictable helper-text rendering with tone and truncation state.
 - Non-goal: no field orchestration or form validation ownership in this component.
-- Risk boundary: state priority (`disabled` vs `truncate`) must stay centralized in `logic.rs`.
+- Risk boundary: state priority (`disabled` vs `truncate`) must stay centralized in `ui-state-primitives`.
 
 ## Architecture Layers
 
-- `logic.rs`: normalizes text/aria values and resolves `DescriptionState`.
+- `logic.rs`: consumes `ui-state-primitives::description` and performs component-level class assembly.
 - `view.rs`: renders element variant (`span`/`p`/`div`) and mounts semantic markers.
 - `styles.rs`: token-first static styles keyed by tone/state markers.
 - `mod.rs`: exports minimal public API and state contracts.
@@ -21,19 +50,19 @@
 | --- | --- | --- |
 | `text` | `String` | required (`DEFAULT_TEXT` fallback after normalization) |
 | `tone` | `DescriptionTone` (`Default` / `Muted` / `Negative`) | `Default` |
-| `disabled` | `bool` | `false` |
-| `truncate` | `bool` | `false` |
+| `is_disabled` | `bool` | `false` |
+| `is_truncated` | `bool` | `false` |
 | `element` | `DescriptionElement` (`Span` / `Paragraph` / `Div`) | `Paragraph` |
 | `aria_label` | `Option<String>` | `DEFAULT_ARIA_LABEL` |
 | `class_name` | `Option<String>` | `None` |
+| `lang` | `Option<String>` | `None` |
+| `dir` | `Option<A11yDirection>` (`Ltr` / `Rtl`) | `None` |
 
 Events: none.
 
-## Hello World
-
-```rust
-<Description text="This appears below the field.".to_string() />
-```
+Migration note: `disabled` / `truncate` props were renamed to
+`is_disabled` / `is_truncated` to align with the shared `is_*` boolean API
+contract.
 
 ## Docs Playground（展示区）
 
@@ -46,7 +75,7 @@ Events: none.
 
 - `Tone`：`default / muted / negative`。
 - `Element`：`paragraph / span / div`。
-- `Disabled`、`Truncate`、`Custom aria label`、`Custom class`。
+- `is_disabled`、`is_truncated`、`Custom aria label`、`Custom class`。
 
 ### code
 
@@ -67,6 +96,7 @@ Events: none.
 
 - Exposes stable semantic markers: `data-tone`, `data-state`, `data-disabled`, `data-truncate`, `data-aria-source`, `data-class-source`.
 - `aria_label` supports custom label override; default label is normalized in logic.
+- Locale attrs use `ui-headless` a11y contract (`lang` / `dir` via `locale_attrs`).
 - Slot contract is stable via `data-slot="description"` and `slot="description"`.
 
 ## Motion and Fallback

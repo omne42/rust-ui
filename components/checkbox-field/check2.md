@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +55,92 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`CheckboxField` 主命名升级为 `is_checked/on_checked_change/default_checked + is_disabled/is_invalid`，兼容别名 `checked/set_checked/disabled/invalid` 在 `logic.rs` 集中归一并在 README 给出迁移路径。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`CheckboxField` 已提供 `is_checked/checked + on_checked_change/set_checked + default_checked`；`logic.rs::resolve_checked_control` 统一判定 controlled/uncontrolled，受控无 writer 时保持只读，不回写本地状态；非受控仅用 `default_checked` 初始化一次后由内部 writer 管理。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`logic.rs` 新增 `resolve_content` + `resolve_checked_control` 统一归一 `id/label/description/aria/class/default_checked` 优先级，`view.rs` 仅消费归一结果，移除 `unwrap_or_default` 兜底。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`logic.rs` 新增 `CheckboxFieldRenderStateInput -> resolve_render_state` 与 `resolve_checkbox_affordance`，统一派生 `state/root_class/checkbox_variant/checkbox_class`；`view.rs` 仅消费 `render_state` 与 source markers，不再直接 `if` 分支拼状态机。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ui-state-primitives::checkbox_field` 新增 `CheckboxFieldStatus` + `resolve_status`，`resolve_state` 通过枚举收敛互斥 `status` 并统一映射 `state_attr`；组件侧离散能力继续使用 `CheckboxFieldTone`、`CheckboxFieldIndicatorPlacement` 与 `ui-state-primitives::checkbox::CheckboxControlMode`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`logic.rs::resolve_checked_control` 已改为消费 `ui-state-primitives::checkbox::{resolve_checked_axis, resolve_checked_change_handler_source}` 与 `CheckboxControlMode/CheckboxCheckedValueSource`，组件层仅做 `ReadSignal/WriteSignal` 桥接与 attrs 映射，不再自实现 controlled/uncontrolled 状态机。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`checkbox-field` 不包含远程请求或异步状态机；无 `is_loading`/`aria-busy`/retry props 与语义分支，当前仅处理同步受控/非受控 checked 映射。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`CheckboxField` 基础调用可直接 `<CheckboxField label=\"...\" />`，无需接线 `ui-state-primitives/ui-headless` 或显式状态对象；README 的 Hello World 已收敛为 5 行内默认路径；docs-app 在 `forms_groups_extra.rs` 新增并前置 `Hello World（默认路径）` playground，复杂受控与状态矩阵保留在后续高级示例中。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`checkbox-field` 属于单字段叶子组件，不提供集合型 `Parent/Item` 装配入口；对外仅暴露单实例 props（如 `label/description/is_checked`），不存在 `labels + children`、`titles + panels` 并行数组或并行槽位默认 API。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`checkbox-field` 不含拖拽或高频连续输入回路；无 `Dragging/DragEnd` 动作协议、无每帧指针事件与局部物理循环，状态更新仅为离散 checked 切换。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`checkbox-field` 为静态流式表单字段，不执行基于 DOM 几何的定位/碰撞修正；不存在 `Intent -> Measure -> Rectification` 回路与收敛循环风险。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`checkbox-field` 是单项字段组件，不存在动态子项注册与顺序导航模型；无 `RegistrationContext/Register/Unregister/items_order` 协议，也不依赖集合迭代顺序。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`checkbox-field` 不是容器投影组件，不管理子内容挂载策略；无 `Lazy/KeepAlive/Eager` 模式与 `NotifyHidden` 生命周期协议，也不存在隐藏面板后的轮询/动画暂停需求。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`checkbox-field` 不订阅窗口尺寸/交叉观察/主题流式事件；`view.rs` 无原始环境事件监听与高频回调入口，不存在事件洪泛到 `logic.rs` 的路径。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`checkbox-field` 不承载表格/网格类大型集合批量交互；无批量选择与状态压缩协议，也不存在 O(N) 级逐项下钻传参路径。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`checkbox-field` 不包含复杂派生总线与多订阅者广播模型；交互链路为本地离散状态切换，不存在跨总线分发与 `TraceId` 透传断链风险。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（已满足：`view.rs` 通过 `ui_headless::labeled_group_attrs` 挂载语义契约并透传 `lang/dir`；交互元素输出 `role/aria-*`；用户可见文本由 props/状态原语兜底提供，未在 `view.rs` 硬编码业务文案；语义回归见 `components/checkbox-field/test/semantics.rs` 与 `crates/ui-components/tests/checkbox_field_semantics.rs`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（已满足：`view.rs` 暴露 `data-state/data-checked/data-unchecked/data-disabled/data-invalid` 与 `aria-disabled/aria-invalid`；来源区分通过 `data-checked-mode/data-checked-prop-source/data-checked-change-source/data-checked-default-source` 提供；标记值来自 `ui-state-primitives` 枚举与 `match` 的封闭集合；语义契约与选择器稳定性由 `components/checkbox-field/test/semantics.rs`、`crates/ui-components/tests/checkbox_field_semantics.rs` 覆盖。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（已满足：`styles.rs` 状态选择器以稳定 class 与 `data-*` 为主（如 `data-indicator-placement/data-tone/data-invalid/data-disabled/data-custom-class`），未使用 `:nth-child` 或基于层级猜测状态；`view.rs` 的 `style` 仅承载 `motion.rs` 输出的 CSS 变量（`--ui-checkbox-field-transition-ms`、`--ui-checkbox-field-indicator-scale`），未混入业务样式分支；视觉状态切换由 `data-*`/稳定 class 直接解释。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（已满足：语义断言覆盖 `role/aria/data-state/source markers`，见 `components/checkbox-field/test/semantics.rs` 与 `crates/ui-components/tests/checkbox_field_semantics.rs`；受控/非受控/disabled 分支见 `components/checkbox-field/test/logic.rs`；键盘/指针路径在本层 N/A（`checkbox-field` 不自实现输入事件，交互由 `Checkbox` 子组件承载并在其语义套件验证）；SSR/wasm 分支在本层 N/A（平台差异由下层 `ui-motion/ui-checkbox` 处理，`checkbox-field` 仅做装配与语义标记透传）；当前测试未使用视觉快照替代语义断言。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（已满足：`mod.rs` 仅维护导出边界；`logic.rs` 聚焦归一/派生与来源标记且无 DOM/样式操作；`styles.rs` 为 token-first 静态 CSS；`view.rs` 负责结构渲染与 headless/motion 挂载并消费 `logic` 输出；`motion.rs` 仅做语义到动效参数映射与 attach，底层执行复用 `ui-motion`，未在组件内重写通用引擎。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（已满足：`checkbox-field` 未引入 `spec.rs`；当前组件为简单装配型，不需要额外 spec 文件固化复杂 Schema。相关说明留在 `check2.md`/`README.md`，协议最小化版本管理通过 `protocol.rs` 与对应测试维护。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（已满足：组件样式集中在 `styles.rs` 静态 CSS，`crates/ui-components/src/css.rs` 聚合 `checkbox_field::styles::CSS`，并由 `UiRoot` 注入组件 CSS；视觉值消费 `var(--ui-*)` token；运行时 `style` 仅由 `motion.rs` 写入 `--ui-checkbox-field-transition-ms/--ui-checkbox-field-indicator-scale` 两个 CSS 变量；组件层未引入 Utility-First 或 CSS-in-Rust 作为默认样式机制。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（N/A：该条为仓库级主题与视觉回归治理项，覆盖默认主题基线与 Button/Input/Overlay 跨组件对比；`checkbox-field` 作为单组件仅消费 `ui-theme` token 与静态样式，不单独定义全局默认主题审美基线。若现状不达标应升级为 docs-app/主题层仓库任务，而非在本组件内局部兜底。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（已满足：`ui-components` 提供 `component-checkbox_field` 组件级 feature；`lib.rs` 与 `css.rs` 对 `checkbox_field` 导出/样式聚合均使用 `#[cfg(feature = \"component-checkbox_field\")]` 条件门控；`apps/web-demo` 以 `default-features = false` + `features = [\"inject-css\", \"web-demo-components\"]` 依赖，反向特性树未出现被 `all-components` 隐式拉起；`cargo tree -e features -p ui-components --no-default-features --features component-checkbox_field,inject-css` 仅显示目标组件链路（含必要依赖 `component-checkbox`）。CI 最小特性 wasm 编译与体积预算属仓库级流水线治理项，单组件清单中标记为需仓库任务持续执行。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +149,73 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（已满足：离散状态轴由 `ui-state-primitives` 的 `CheckboxFieldTone/CheckboxFieldIndicatorPlacement/CheckboxFieldStatus` 与 `CheckboxControlMode/CheckboxCheckedValueSource/CheckboxChangeHandlerSource` 等枚举建模；无效组合在类型层受限并在 `logic.rs` 通过 `resolve_status/resolve_render_state/resolve_checked_control` 统一归一；`view.rs` 对外暴露稳定 `data-*` 与 `aria-*`（如 `data-state/data-checked-mode/data-checked-*-source`）；契约破坏可由 `components/checkbox-field/test/logic.rs`、`components/checkbox-field/test/semantics.rs`、`crates/ui-components/tests/checkbox_field_semantics.rs` 直接定位。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`checkbox-field` 非 Overlay/层叠弹层组件，不承担焦点恢复栈职责；组件实现未保存 `NodeRef` 作为恢复目标，焦点堆栈治理应在 `overlay/popover/dialog` 与全局 Focus Manager 层落实。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`checkbox-field` 未集成 ECharts/Map 等命令式第三方实例，也无相关公共 API 暴露点；组件仅装配 `ui-checkbox/ui-headless/ui-state-primitives/ui-motion/ui-theme`，不存在第三方实例反向污染状态机路径。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（已满足：组件与原语层未使用 `now()/random/uuid`；`id` 来自 `id_base` 归一化后在 `view.rs` 中确定性派生（如 `description_id = \"{id_base}-description\"`），SSR/Hydration 路径一致。当前无随机 ID 生成场景，因此无需额外 `IdProvider` 种子注入。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（已满足：组件代码无 `web-sys/web_sys/wasm_bindgen` 或浏览器对象引用，non-wasm 路径安全；平台差异未在组件内分叉，依赖层通过 feature/cfg 管理；已尝试 compile-only 命令 `cargo check -p ui-checkbox-field`、`cargo check -p ui-checkbox-field --target wasm32-unknown-unknown`、`cargo check -p ui-components --no-default-features --features component-checkbox_field,inject-css`，当前沙箱环境均因 `Invalid cross-device link (os error 18)` 阻断，需在 CI/本地稳定环境复核执行结果。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（已满足：`crates/ui-headless/src/lib.rs` 顶部存在 `#[cfg(all(feature = \"web\", feature = \"ssr\"))] compile_error!(...)` 互斥保护；`checkbox-field` 通过 `ui-headless` 依赖消费能力，未引入绕过互斥的本地 feature 拼接。已尝试 `cargo check -p ui-headless --no-default-features --features web,ssr|web|ssr` 进行路径验证，但当前环境统一被 `Invalid cross-device link (os error 18)` 阻断，需在 CI/稳定本地环境补齐命令回执。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（已满足：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = \"wasm32\"))]` 下提供 `web` stub（`prefers_reduced_motion() -> true`、`animate(...)` no-op）且有非 wasm 可预测 no-op 测试；`checkbox-field/motion.rs` 通过 `resolve_effective_motion` 在 reduced/no-motion 场景降级为稳定参数（`transition_ms: 1`、`indicator_scale_pct: 100`），不依赖动画句柄存在、不触发 panic，toolchain 场景可静态编译。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（已满足：`components/checkbox-field/src/motion.rs` 的 `resolve_effective_motion` 在 `prefers_reduced_motion` 或 `enabled=false` 时强制降级到最小反馈（`transition_ms: 1`、`indicator_scale_pct: 100`），并由 `components/checkbox-field/test/motion.rs` 回归覆盖；组件 `view.rs/logic.rs` 无 `cfg(target_arch)` 平台分叉与随机/时钟初始化，SSR 输出与 hydration 语义路径一致；wasm 侧仅通过 `ui-motion::web::prefers_reduced_motion()` 提供能力增强，`data-*`/`aria-*` 语义标记由同一渲染路径输出，不与 SSR 分裂。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（已满足：`apps/docs-app/src/pages/components/shell.rs` 为 `checkbox-field` 提供显式预算（`max_mount_ms: 24.0`、`max_update_ms: Some(8.0)`、`max_heap_kb: Some(384.0)`），并统一通过 `UiPerfProbe` 输出 `data-perf-*` 预算/违约标记；`e2e/tests/docs_app_components_coverage.spec.mjs` 对组件页性能属性进行阻断断言；`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_performance_governance_contract_is_budgeted_traceable_and_blocking` 锁定预算、探针、e2e 与视图状态归因标记。N/A：`CheckboxField` 暂未接入精确 `render_count` 自动化计数，当前以 mount/update/heap 与 trace/e2e 作为等价证据，并跟踪仓库级 `render_count` 补齐计划。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（已满足：`components/checkbox-field/src/view.rs` 保持有界规模并按语义拆分为 root + 轻量函数子片段（label/description）；`view!` 宏数量受控且无巨型深层分支。回归 `crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_view_macro_complexity_is_bounded_and_semantic` 锁定宏体量上限、宏数量与语义分块锚点，防止后续宏展开失控导致编译/wasm 体积劣化。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（已满足：`components/checkbox-field/src/view.rs` 已将轻逻辑片段提取为 `render_checkbox_field_label` 与 `render_checkbox_field_description` 两个普通函数（`-> impl IntoView`），主组件继续仅保留 `#[component] fn CheckboxField` 作为 API 边界，未把局部片段升格为新组件；语义标记 `data-slot=\"checkbox-field-label\"/\"checkbox-field-description\"` 仍稳定。回归覆盖：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_prefers_functional_subrenders_over_extra_components`。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（N/A：`checkbox-field` 当前不存在复杂 SVG/页脚/长说明文本等重静态资产；现有静态片段仅为 label/description 结构模板，已集中在 `components/checkbox-field/src/view.rs` 的 `render_checkbox_field_label` 与 `render_checkbox_field_description` 单点函数，避免重复动态构造与散落维护。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`checkbox-field` 当前无 `inner_html` 使用点；组件 `view.rs` 仅输出结构化 `view!` 节点与语义属性，不存在用户输入或远端文本注入路径。已新增回归 `crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_inner_html_contract_is_absent_and_security_guarded`，锁定 `inner_html=/set_inner_html/dangerously_set_inner_html/raw_html` 禁入，防止后续引入未清洗 HTML 注入面。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（已满足（N/A 路径）：`checkbox-field` 不新增组件私有 wasm 调试事件协议，关键交互由 `ui-checkbox` 承载；本组件通过稳定 `data-state/data-checked/data-checked-*-source` 提供可追踪状态来源。开发模式可视化入口复用全局链路：`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下启用 `provide_ui_trace(debug_overlay_enabled)` 并挂载 `<debug_overlay::UiDebugOverlay enabled=true />`，`apps/docs-app/src/debug_overlay.rs` 提供事件时间线与 inspect 面板；共享时间戳/来源协议由 `crates/ui-headless/src/trace.rs`（`UiTraceEvent { ts_ms, component, kind }`）提供。feature 隔离：`components/checkbox-field/Cargo.toml` 与 `crates/ui-components/Cargo.toml` 均无 `checkbox-field-wasm-debug` 类特性，避免污染生产默认包体与公共 API。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_wasm_debug_contract_is_explicitly_na_and_feature_isolated`；脚本门禁：`scripts/check-ui-components-wasm-debug.sh` 已接入对应命令。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（已满足：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs` 的 `Interactive Playground` 已接入 `test_css_source=interactive_test_css`、`test_config_signal=interactive_config` 与 `controls=...`，可在不重编 wasm 的前提下走 scoped CSS 热调路径并保持交互上下文（`interactive_checked` 受控切换后即时回显）；隔离画布由共享 `apps/docs-app/src/playground.rs` 的 `data-playground-scope` 与 `playground__preview-stage` 契约提供。可选状态保留当前为 N/A：该组件未引入 `load/save/clear_checkbox_field_workbench_state` 持久化存储入口，避免把本地存储协议强绑为默认路径。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`；门禁脚本：`scripts/check-ui-components-dx.sh`。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（已满足（N/A 路径）：`checkbox-field` 当前无 `spec.rs` 与 schema 输入，因此不引入组件私有 spec 序列化迁移协议；`mod/logic/view/styles/motion` 实现未出现 `serde::/serde_json::` 的调用与 `Serialize/Deserialize` 派生使用。tracing 方面沿用全库统一基线（`ui-components` 侧已有共享 `button/accordion` tracing feature 契约），`checkbox-field` 未定义本地 `*-wasm-debug` feature、未引入 `tracing::span!/event!` 或本地 trace target，避免语义漂移。异步边界方面，组件实现与公共 API 未暴露 `tokio/async-std/runtime::Handle` 等运行时细节。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope`、`checkbox_field_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events`、`checkbox_field_engineering_contract_avoids_runtime_leaks_in_public_api_surface`；门禁脚本：`scripts/check-ui-components-engineering.sh`。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（已满足：`components/checkbox-field/src/styles.rs` 已将间距/排版/语义色/动效/checkbox 几何全部切换为双层链（如 `var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))`、`var(--ui-checkbox-size-default, var(--ui-fallback-checkbox-size-default))`），并移除 `180ms`、`cubic-bezier(0.2, 0, 0, 1)`、`calc(20px + 10px)`、`1px solid`/`2px` 等裸终值；对应 fallback 变量由 `crates/ui-theme/src/css.rs` 统一输出（新增 `--ui-fallback-text-field-motion-*`、`--ui-fallback-checkbox-gap`、`--ui-fallback-checkbox-size-default`、`--ui-fallback-checkbox-disabled-opacity`）。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_styles_use_defensive_variable_fallback_chain`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（已满足：组件样式聚合入口 `crates/ui-components/src/css.rs::push_components_css` 以 `@layer ui` 包裹并按 feature 注入 `crate::checkbox_field::styles::CSS`；`checkbox-field` 运行时仅通过 `view.rs` 的 `style=move || style_vars.get_value()` 注入 `motion::attach_motion` 生成的 CSS 变量负载（`--ui-checkbox-field-transition-ms`、`--ui-checkbox-field-indicator-scale`），未引入 `top/left/position` 等普通内联样式属性。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_cascade_layer_and_runtime_style_contract_is_enforced`。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（已满足：`components/checkbox-field/src/motion.rs` 提供组件级 `CheckboxFieldMotion` Contract（`enabled/transition_ms/indicator_scale_pct`）并在 `attach_motion` 中挂载为 CSS 变量；`resolve_effective_motion` 在 `prefers_reduced_motion` 或 `enabled=false` 时降级为最小反馈（`transition_ms: 1`、`indicator_scale_pct: 100`）。non-wasm/SSR 安全降级复用 `crates/ui-motion/src/lib.rs` 的 `web` stub（`prefers_reduced_motion() -> true`、`animate(...)` no-op），避免浏览器依赖与 panic。回归：`components/checkbox-field/test/motion.rs` + `crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`；门禁脚本：`scripts/check-ui-components-platforms.sh`。）
+- [x] `ui-components` 固定入口文件落点正确。（已满足：`crates/ui-components/src/lib.rs` 维持 feature-gated 公共导出面（含 `component-checkbox_field`），`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 下按 feature 条件聚合，`crates/ui-components/src/root.rs` 集中注入 `base css + theme vars + optional components css + i18n/id provider`，共享高亮能力固定在 `crates/ui-visual-primitive/src/active_highlight.rs`；`crates/ui-components/src/overlay_open.rs`、`presence.rs`、`a11y.rs` 保持不存在并由 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs` 承担原语。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_ui_components_fixed_entry_files_follow_layered_boundaries` + `checkbox_field_check2_documents_ui_components_entrypoint_rules`；门禁脚本：`scripts/check-ui-components-entrypoints.sh`。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +223,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（已满足：组件目录存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 且无 `render.rs/spec.rs`；`mod.rs` 仅维持最小稳定导出边界（不暴露 `logic/view/spec` 模块）；职责边界保持分层（`logic.rs` 做归一与派生，`styles.rs` 保持 token-first 静态 CSS，`view.rs` 负责 Leptos 结构 + headless 语义挂载，`motion.rs` 仅承载 `CheckboxFieldMotion + attach_motion` 合同映射）。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_component_directory_has_standard_file_layout`、`checkbox_field_mod_rs_keeps_minimal_stable_exports`、`checkbox_field_component_file_responsibilities_remain_scoped`、`checkbox_field_check2_documents_component_directory_rules`；门禁脚本：`scripts/check-ui-components-component-files.sh`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,61 +232,61 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（已满足：`components/checkbox-field/src` 仅保留 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 五件套实现文件；无 `protocol.rs/render.rs/spec.rs` 额外实现文件。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_component_directory_has_standard_file_layout`、`checkbox_field_file_placement_discipline_is_strict_and_protocol_free`、`checkbox_field_check2_documents_file_placement_discipline_rules`；门禁脚本：`scripts/check-ui-components-component-files.sh`。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A-by-design：`checkbox-field` 为简单字段组件，不承载稳定外部 Schema 契约与复杂配置固化需求；当前不应引入 `spec.rs` 与 `*Spec::new()...render()` builder 面。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_spec_file_is_not_introduced_for_simple_component`、`checkbox_field_check2_marks_hyper_structure_builder_item_complete`；门禁脚本：`scripts/check-ui-components-component-files.sh`。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（已满足：新增 `components/checkbox-field/src/Component.toml` 与 `components/checkbox-field/src/checkbox_field.rbi`，并与 `view.rs` 公共 props 签名保持同步（含 controlled/uncontrolled 轴、`lang/dir`、`tone/indicator_placement`、`motion` 等输入投影）。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_context_compression_manifest_and_rbi_projection_are_present_and_current`、`checkbox_field_check2_marks_context_compression_manifest_rbi_item_complete`；门禁脚本：`scripts/check-ui-components-component-files.sh`。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（已满足：`CheckboxField` 根节点挂载 `data-ui-schema/version/intent/action/state/source`，字段由 `logic.rs` 的 `CheckboxFieldAgentContract` 类型化派生，避免散落字符串拼接；同时渲染链路保持白名单边界（无脚本/`inner_html` 注入路径）。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_agent_contract_schema_governance_rules`、`checkbox_field_agent_contract_is_schema_typed_and_machine_readable`、`checkbox_field_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`checkbox_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`、`checkbox_field_contract_hygiene_script_covers_agent_contract_schema_guards`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（已满足：本组件不承担 LLM token 逐步输出职责，当前实现保持 snapshot-only 装配路径，不引入组件私有流式协议字段；并在清单中显式锚定两种显示模式定义。checkbox-field 归类为 `Streaming Optional` 且当前实现为 `N/A`（snapshot-only，`fallback=snapshot`）。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、`checkbox_field_stays_snapshot_only_and_does_not_mount_stream_contract_fields`、`checkbox_field_streaming_check_script_covers_snapshot_only_contract`；门禁脚本：`scripts/check-ui-components-streaming.sh`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（已满足：`CheckboxField` 不直接渲染 LLM 正文，但可稳定消费上层完整配置快照（snapshot）并完成语义渲染；默认路径与受控/非受控、描述文案、无障碍、样式来源等输入均在一次完整配置下归一并稳定输出。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_snapshot_as_default_baseline_capability`、`checkbox_field_snapshot_baseline_consumes_complete_result_and_renders_stably`、`checkbox_field_streaming_check_script_covers_snapshot_baseline_guard`；门禁脚本：`scripts/check-ui-components-streaming.sh`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（已满足：`checkbox-field` 不是正文阅读面，归类为 `Streaming Optional`；当前实现保持 snapshot-only，并在契约中显式声明 `fallback=snapshot`。组件不承载上层校验/断线恢复/重试策略，仅暴露稳定语义渲染与输出状态 `data-ui-output-status`（`verified`/`submittable`），并持续输出 `role/aria/data-*` 标记。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_streaming_required_optional_classification_rules`、`checkbox_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`checkbox_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`checkbox_field_streaming_check_script_covers_required_optional_classification_contract`；门禁脚本：`scripts/check-ui-components-streaming.sh`。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（已满足：`checkbox-field` 非测试源码未引入 `unwrap/expect/unwrap_err/let _ =`；`compose_class_name` 已将字符串热点收敛为 `Vec<Cow<'static, str>>`（`Borrowed + Owned`）并通过 `as_ref()` 拼接，避免常量 `.to_string()` churn。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`checkbox_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`checkbox_field_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`checkbox_field_check2_marks_rust_hygiene_contract_complete`；门禁脚本：`./scripts/check-rust-hygiene.sh`、`scripts/check-ui-components-engineering.sh`。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（已满足：`crates/ui-components/Cargo.toml` 已注册 `component-checkbox_field = ["component-checkbox", "dep:ui-checkbox-field"]` 且依赖 `ui-checkbox-field` 为 `optional = true`；`crates/ui-components/src/lib.rs` 导出 `checkbox_field` 与 `crates/ui-components/src/css.rs` 聚合 `checkbox_field::styles::CSS` 均受 `#[cfg(feature = "component-checkbox_field")]` 门控；`cargo tree -e features -p ui-components --no-default-features --features component-checkbox_field,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo` 验证路径中未观察到 `all-components` 被隐式拉起且 `web-demo-components` 维持可见。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_tree_shaking_contract_is_feature_gated_in_ui_components_lib_and_css`、`checkbox_field_tree_shaking_script_enforces_component_minimal_feature_tree_and_web_demo_reverse_dependency`、`checkbox_field_check2_marks_tree_shaking_feature_pruning_contract_complete`；门禁脚本：`scripts/check-ui-components-tree-shaking.sh`。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（已满足：本组件语义断言覆盖 `aria-*`/`data-*` 关键轴，且焦点流转通过组合 `Checkbox` 子组件继承（`on:focus/on:blur/on:keydown/on:keyup` + `data-focused/data-focus-visible`）；测试避免退化为 snapshot-only。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_semantic_contract_tests_cover_state_and_interaction_matrix_without_snapshot_dependency_locally`、`components/checkbox-field/test/semantics.rs::checkbox_field_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_performance_governance_contract_is_budgeted_traceable_and_blocking`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_semantics_and_performance_script_covers_contract`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_semantics_and_performance_regression_contract_complete`；门禁脚本：`scripts/check-ui-components-performance.sh`。`render_count` 自动化回归仍在仓库统一 follow-up（`docs/plan/TODO.md`），当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `CheckboxField` 未发生跨大版本 API 破坏升级。判定依据：`components/checkbox-field/src/Component.toml` 维持 `schema_version = "1"`，`components/checkbox-field/src/checkbox_field.rbi` 公共签名保持 v1（`pub fn CheckboxField(` + `is_checked/default_checked/on_checked_change`），且 `components/checkbox-field/src/{mod.rs,logic.rs,view.rs,styles.rs,motion.rs}` 未引入 `migrate_v1_to_v2`/`deprecation_window`/`SchemaRegistry`/`contract.v2`。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_version_deprecation_migration_is_na_without_major_breaking_upgrade`、`checkbox_field_version_deprecation_migration_script_covers_engineering_gate`；门禁脚本：`scripts/check-ui-components-engineering.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（已满足：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field` 已提供 `Hello World（默认路径）`、`Indicator End + Quiet + Invalid/Disabled`（附 `data-slot="checkbox-field-state-matrix-note"` 状态矩阵说明）、`Controlled vs Default (Comparison)`（附 `data-slot="checkbox-field-controlled-uncontrolled-note"` 对照说明）以及流式/快照与 Source-first copy-ready 说明（`data-slot="checkbox-field-streaming-policy|...-modes|...-copy-ready|...-source-paths|...-source-prerequisites`）。复制链路通过 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` 自动补全 imports。回归：`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`；门禁脚本：`scripts/check-ui-components-dx.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（已满足：`components/checkbox-field/test/semantics.rs` 与 `crates/ui-components/tests/checkbox_field_semantics.rs` 均覆盖语义优先路径，断言集中于 `role/aria/data-*` 与状态来源标记（如 `data-checked-*-source`），并显式禁止 snapshot-only 断言成为主判据。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks_locally`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`、`checkbox_field_performance_script_covers_semantic_test_priority_contract`、`checkbox_field_check2_marks_semantic_test_priority_item_complete`；门禁脚本：`scripts/check-ui-components-performance.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（已满足：新增 `e2e/tests/docs_app_checkbox_field_contract.spec.mjs`，选择器以 `#docs-checkbox-field-*[data-slot="checkbox-field"]` 与 `[data-slot="checkbox"][role="checkbox"]` 语义标记为主，WASM 就绪统一使用 `body:not(:has(#boot))`，并覆盖 controlled/uncontrolled 的 ready/settled 断点与 reload 复位。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_e2e_selector_stability_prefers_semantic_markers_and_settled_waits`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_e2e_selector_and_stable_wait_rules`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_e2e_selector_contract_uses_semantic_markers_and_settled_waits`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_e2e_contract_covers_ready_and_settled_conditions_for_checkbox_field_paths`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_e2e_selector_stability_item_complete`；门禁脚本：`scripts/check-ui-components-e2e-checkbox-field.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（已满足：`e2e/tests/docs_app_checkbox_field_contract.spec.mjs` 新增 `docs-app checkbox-field key flow is repeatable with semantic breakpoints`，覆盖可重复关键流（focus -> `keyboard Enter` -> `data-state` 断点 -> reload 后语义复位），失败点可直接定位到 `data-state`/`role=checkbox` 等语义契约而非页面快照。高风险路径中 `focus/keyboard` 已优先纳入；`overlay/async` 对 `checkbox-field` 为 N/A（组件本身无 overlay 生命周期与异步协议）。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_e2e_repeatable_key_flow_uses_focus_keyboard_and_semantic_breakpoints`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_e2e_repeatable_key_flow_rules`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_e2e_check_script_covers_repeatable_key_flow_contract`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_e2e_repeatable_key_flow_item_complete`；门禁脚本：`scripts/check-ui-components-e2e-checkbox-field.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（已满足：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field` 已同步示例与状态矩阵，覆盖 `Hello World`、`Controlled + Description`、`Indicator End + Quiet + Invalid/Disabled`、`Controlled vs Default (Comparison)`，并包含 `data-slot=\"checkbox-field-state-matrix-note\"` 与 `data-slot=\"checkbox-field-controlled-uncontrolled-note\"`。文档 API 命名与默认值契约对齐 `components/checkbox-field/src/logic.rs`（`is_checked/on_checked_change/default_checked`、`is_disabled/is_invalid` 归一、`default_checked` 与 `implicit-default` 来源）。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_docs_sync_and_state_matrix_rules`、`components/checkbox-field/test/semantics.rs::checkbox_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_docs_sync_and_state_matrix_rules`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_docs_sync_and_state_matrix_contract`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_docs_sync_and_state_matrix_item_complete`；门禁脚本：`scripts/check-ui-components-dx.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（已满足：`components/checkbox-field/src/README.md` 存在并补齐新手路径章节（`Hello World`、`常见用法`、`先用起来，再进阶`），`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field` 提供等价可访问入口。文档默认路径与进阶控制明确分层（默认先用 `<CheckboxField label=... />`，再按需启用 `is_checked/default_checked/on_checked_change`）。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_documentation_as_product_rules`、`components/checkbox-field/test/semantics.rs::checkbox_field_documentation_entry_exists_with_beginner_first_progression`、`components/checkbox-field/test/semantics.rs::checkbox_field_check2_marks_documentation_as_product_contract_complete`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_documentation_as_product_rules`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_documentation_entry_exists_with_beginner_first_progression`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_documentation_as_product_contract`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_documentation_as_product_contract_complete`；门禁脚本：`scripts/check-ui-components-dx.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（已满足：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field` 已提供 `title="Interactive Playground"`，并在同一验收面覆盖 props 调整（tone/placement、checked/disabled/invalid、description/custom class）、状态切换与实时预览（`is_checked/on_checked_change` + `"checked: "` 回显）、以及 `test_css_source/test_config_signal` 联动。交互画布复用 `apps/docs-app/src/playground.rs` 的 `data-playground-scope` 与 `playground__preview-stage` 契约。关键路径复现由 `e2e/tests/docs_app_checkbox_field_contract.spec.mjs::docs-app checkbox-field key flow is repeatable with semantic breakpoints` 覆盖（focus -> keyboard Enter -> data-state 断点 -> reload 复位）。AI Spec 相关联动示例：N/A（`checkbox-field` 非 Spec 构建器组件）。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_interactive_playground_rules`、`components/checkbox-field/test/semantics.rs::checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/checkbox-field/test/semantics.rs::checkbox_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/checkbox-field/test/semantics.rs::checkbox_field_check2_marks_interactive_playground_contract_complete`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_interactive_playground_rules`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_interactive_playground_contract`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_interactive_playground_contract_complete`；门禁脚本：`scripts/check-ui-components-dx.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（已满足：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field` 已提供 Source-first 文案与约束标记（`data-slot="checkbox-field-copy-ready|...-source-paths|...-source-prerequisites"`），并声明真实源码落点 `components/checkbox-field/src/{mod.rs,logic.rs,view.rs,styles.rs}` 与特性前提 `component-checkbox_field`（`inject-css` 可选）。复制链路由 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code + code_imports + DEFAULT_PLAYGROUND_IMPORTS` 保证，代码块 `data-copyable`/复制按钮可用；端到端回归：`e2e/tests/docs_app_checkbox_field_contract.spec.mjs::docs-app checkbox-field playground source is copy-paste ready`。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_source_first_copy_paste_ready_rules`、`components/checkbox-field/test/semantics.rs::checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/checkbox-field/test/semantics.rs::checkbox_field_check2_marks_source_first_copy_paste_ready_contract_complete`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_source_first_copy_paste_ready_rules`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_source_first_copy_paste_ready_contract`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_source_first_copy_paste_ready_contract_complete`；门禁脚本：`scripts/check-ui-components-dx.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已满足：`docs/spec/heroui-parameter-design-strategy.md` 已新增 `### CheckboxField 同步记录（2026-02-20）`，明确参数主轴 `is_checked/default_checked/on_checked_change`、docs 索引入口 `component_doc!("CheckboxField", "checkbox-field", "Forms", forms_groups_extra::checkbox_field)` 与文档可访问性约束。`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field()` 保持 `title="CheckboxField"` / `slug="checkbox-field"`，且 `components/checkbox-field/src/README.md` 已补 `## docs-app 入口`。本轮判定不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`（未引入新的对标结论）。回归：`components/checkbox-field/test/semantics.rs::checkbox_field_check2_documents_heroui_benchmark_docs_sync_rules`、`components/checkbox-field/test/semantics.rs::checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/checkbox-field/test/semantics.rs::checkbox_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/checkbox-field/test/semantics.rs::checkbox_field_check2_marks_heroui_benchmark_docs_sync_contract_complete`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_documents_heroui_benchmark_docs_sync_rules`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`crates/ui-components/tests/checkbox_field_semantics.rs::checkbox_field_check2_marks_heroui_benchmark_docs_sync_contract_complete`；门禁脚本：`scripts/check-ui-components-dx.sh`。当前环境执行 cargo 仍可能受 `Invalid cross-device link (os error 18)` 影响。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

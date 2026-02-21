@@ -2,16 +2,42 @@
 
 `Dialog` 是基于 `Overlay` 组合的弹层面板组件，提供标题/描述/正文/页脚与稳定语义标记。
 
+## Hello World
+
+默认路径：不需要先理解 primitives/headless 分层，先用起来。
+
+```rust
+<Dialog id_base="docs-dialog-hello".to_string() title="Hello dialog".to_string() default_open=Some(true)>
+    <div>"Hello dialog body"</div>
+</Dialog>
+```
+
+## 常见用法
+
+- 基础开关：通过 `is_open/open` + `on_open_change` 走受控。
+- 非受控初始化：使用 `default_open` 一次性初始化。
+- 常见视觉配置：`size`、`is_close_button_visible`、`show_close_button`、`close_label`。
+
+## 先用起来，再进阶
+
+- 默认路径：`Hello World -> Dialog`（先跑通）
+- 状态与来源：`State Matrix -> State + Source Markers`
+- 行为对照：`Controlled vs Uncontrolled`
+- 进阶调参：`Interactive Playground -> Scenario Comparison`
+
 ## 展示区（Display）
 
 docs-app 页面：`/#/components/dialog`
 
-当前提供四组 Playground：
+当前提供七组 Playground：
 
-1. `Dialog`：基础打开/关闭流程。
-2. `State + Source Markers`：状态来源标记（`data-*-source`）校验。
-3. `Interactive Playground`：展示 / Config / Code / CSS Test 一体工作台。
-4. `Scenario Comparison`：多状态对比（默认 / 紧凑标题态 / 自定义动效）。
+1. `Hello World`：默认路径最小可用示例。
+2. `Dialog`：基础打开/关闭流程。
+3. `State Matrix`：受控/非受控 + size + close-button 可见性矩阵。
+4. `State + Source Markers`：状态来源标记（`data-*-source`）校验。
+5. `Controlled vs Uncontrolled`：默认值与受控路径差异对照。
+6. `Interactive Playground`：展示 / Config / Code / CSS Test 一体工作台。
+7. `Scenario Comparison`：多状态对比（默认 / 紧凑标题态 / 自定义动效）。
 
 ## Config 区
 
@@ -30,18 +56,9 @@ Playground 的 `code_signal` 会按当前配置生成可复制代码。
 最小示例：
 
 ```rust
-let (open_raw, set_open_raw) = signal(false);
-
-view! {
-    <Dialog
-        open=Signal::derive(move || open_raw.get())
-        on_close=Callback::new(move |_| set_open_raw.set(false))
-        id_base="docs-dialog".to_string()
-        title="Dialog title".to_string()
-    >
-        <div>"Dialog body"</div>
-    </Dialog>
-}
+<Dialog id_base="docs-dialog-hello".to_string() title="Hello dialog".to_string() default_open=Some(true)>
+    <div>"Hello dialog body"</div>
+</Dialog>
 ```
 
 ## CSS Test 区

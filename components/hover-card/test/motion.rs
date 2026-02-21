@@ -1,12 +1,14 @@
 use super::*;
+use ui_theme::default_overlay_layout_tokens;
 
 #[test]
 fn default_motion_uses_slide_spring_contract() {
     let motion = HoverCardMotion::default();
+    let overlay = default_overlay_layout_tokens();
 
     assert_eq!(motion.spring, ui_motion::presets::spring_slide());
-    assert_eq!(motion.initial_scale, 0.98);
-    assert_eq!(motion.offset_y_px, 8.0);
+    assert_eq!(motion.initial_scale, overlay.enter_scale);
+    assert_eq!(motion.offset_y_px, f64::from(overlay.enter_offset_y_px));
 }
 
 #[test]

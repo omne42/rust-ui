@@ -322,7 +322,7 @@
 - [x] Tree-shaking 结论：`ui-components` 通过 `component-flip_card -> dep:ui-flip-card` 接线，最小特性链路无隐式全量组件拉起。
 
 #### 10.1 门禁与验证命令（逐条执行）
-- [x] `rustfmt --edition 2024 --check components/flip-card/src/mod.rs components/flip-card/src/logic.rs components/flip-card/src/view.rs components/flip-card/src/styles.rs components/flip-card/src/motion.rs components/flip-card/tests/flip_card_semantics.rs`
+- [x] `rustfmt --edition 2024 --check components/flip-card/src/mod.rs components/flip-card/src/logic.rs components/flip-card/src/view.rs components/flip-card/src/styles.rs components/flip-card/src/motion.rs components/flip-card/test/semantics.rs`
 - [x] `cargo check -p ui-flip-card`
-- [x] `cargo test -p ui-flip-card --test flip_card_semantics`
-- [x] `cargo clippy -p ui-flip-card --test flip_card_semantics --no-deps -- -D warnings`
+- [x] `cargo test -p ui-flip-card`
+- [x] `cargo clippy -p ui-flip-card --all-targets --no-deps -- -D warnings`

@@ -15,6 +15,14 @@ view! {
 }
 ```
 
+## 新手路径（先用起来，再进阶）
+
+- 第一步：先复制上面的 `Hello World（最小可用）`，只传 `front/back` 跑起来。
+- 第二步：再看 docs-app 的状态矩阵与受控/非受控对照，按需加 `is_disabled`、`is_flip_on_hover`、`is_flipped`、`on_is_flipped_change`。
+- 不需要先理解 `ui-state-primitives` / `ui-headless` 分层细节，默认 API 路径即可完成基础交互。
+
+阅读顺序建议：先用起来，再进阶。
+
 ## docs-app 展示区（类似 button）
 
 入口：`apps/docs-app/src/pages/components/pages/display_extra.rs::flip_card()`
@@ -24,6 +32,42 @@ view! {
 - `State + Source Markers`
 - `Comparison Matrix (Default / Hover / Disabled / Dramatic Motion)`
 - `Disabled`
+
+## 常见用法（进阶）
+
+### 受控翻转
+
+```rust
+let (is_flipped, set_is_flipped) = signal(false);
+
+view! {
+    <FlipCard
+        is_flipped=Signal::derive(move || is_flipped.get())
+        on_is_flipped_change=Callback::new(move |next| set_is_flipped.set(next))
+        front=move || view! { <div>"Controlled front"</div> }
+        back=move || view! { <div>"Controlled back"</div> }
+    />
+}
+```
+
+### Hover 翻转 + 禁用态
+
+```rust
+view! {
+    <>
+        <FlipCard
+            is_flip_on_hover=true
+            front=move || view! { <div>"Hover front"</div> }
+            back=move || view! { <div>"Hover back"</div> }
+        />
+        <FlipCard
+            is_disabled=true
+            front=move || view! { <div>"Disabled front"</div> }
+            back=move || view! { <div>"Disabled back"</div> }
+        />
+    </>
+}
+```
 
 ## 展示区
 
@@ -35,9 +79,9 @@ view! {
 在 Interactive Playground 里提供可调配置：
 
 - `motion preset`（default / gentle / dramatic）
-- `default_flipped`
-- `flip_on_hover`
-- `disabled`
+- `default_is_flipped`
+- `flip_mode`（Toggle / Hover）
+- `is_disabled`
 - `custom id`
 - `custom class`
 
@@ -67,16 +111,22 @@ view! {
 | --- | --- | --- |
 | `front` | `ViewFn` | required |
 | `back` | `ViewFn` | required |
-| `default_flipped` | `bool` | `false` |
-| `disabled` | `bool` | `false` |
-| `flip_on_hover` | `bool` | `false` |
+| `is_flipped` | `Option<Signal<bool>>` | `None` |
+| `default_is_flipped` | `bool` | `false` |
+| `on_is_flipped_change` | `Option<Callback<bool>>` | `None` |
+| `is_disabled` | `bool` | `false` |
+| `flip_mode` | `Option<FlipCardFlipMode>` (`Toggle`/`Hover`) | `None` (`Toggle`) |
+| `is_flip_on_hover` | `bool` | `false` |
 | `motion` | `FlipCardMotion` | `FlipCardMotion::default()` |
 | `class_name` | `Option<String>` | `None` |
 | `id` | `Option<String>` | `None`（自动生成） |
 
-事件说明：
+状态轴说明：
 
-- 当前不暴露 `on_*` 回调；状态通过稳定语义标记对外可观测。
+- 翻转状态支持受控/非受控成对：`is_flipped + on_is_flipped_change + default_is_flipped`。
+- 受控模式下，外部 `is_flipped` 是单一事实来源；组件只通过 `on_is_flipped_change` 请求变更，不写本地状态。
+- 离散状态优先类型化：推荐使用 `flip_mode`（`FlipCardFlipMode::Toggle | ::Hover`）表达互斥模式。
+- 兼容迁移：旧命名 `default_flipped` / `disabled` / `flip_on_hover` 仍可用，优先读取新命名并建议迁移到 `default_is_flipped` / `is_disabled` / `flip_mode`。
 
 ## 语义与样式契约
 

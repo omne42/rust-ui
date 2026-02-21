@@ -10,5 +10,5 @@ pub fn sanitize_motion(motion: DrawerMotion) -> DrawerMotion {
 }
 
 #[cfg(test)]
-#[path = "test/motion.rs"]
+#[path = "../test/motion.rs"]
 mod tests;

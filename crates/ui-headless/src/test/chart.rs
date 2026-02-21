@@ -51,4 +51,28 @@ fn chart_handlers_map_keyboard_to_semantic_intents() {
         handlers.on_key_down("Escape", 1, 3, false),
         ChartKeyAction::Noop
     );
+    assert_eq!(
+        handlers.on_key_down("Enter", 0, 0, false),
+        ChartKeyAction::Noop
+    );
+}
+
+#[test]
+fn chart_handlers_normalize_pointer_focus_and_click_interactions() {
+    let handlers = ChartHandlers;
+
+    assert_eq!(
+        handlers.on_pointer_enter(2, 4, false),
+        ChartKeyAction::MoveTo(2)
+    );
+    assert_eq!(handlers.on_focus(7, 4, false), ChartKeyAction::MoveTo(3));
+    assert_eq!(handlers.on_click(1, 4, false), ChartKeyAction::Activate(1));
+    assert_eq!(handlers.on_pointer_enter(1, 0, false), ChartKeyAction::Noop);
+    assert_eq!(handlers.on_click(1, 4, true), ChartKeyAction::Noop);
+}
+
+#[test]
+fn chart_handlers_build_accessible_point_labels() {
+    let handlers = ChartHandlers;
+    assert_eq!(handlers.point_aria_label("Q1", 42.0), "Q1 42.00");
 }

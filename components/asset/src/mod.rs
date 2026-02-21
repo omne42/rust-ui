@@ -1,4 +1,5 @@
-pub use ui_thumbnail::ThumbnailSize as AssetSize;
+pub use ui_state_primitives::asset::AssetVariant;
+pub use ui_state_primitives::thumbnail::ThumbnailSize as AssetSize;
 
 mod logic;
 pub mod motion;
@@ -9,20 +10,6 @@ mod view;
 pub use motion::AssetMotion;
 pub use view::Asset;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum AssetVariant {
-    File,
-    Folder,
-    #[default]
-    Custom,
-}
-
-impl AssetVariant {
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            AssetVariant::File => "file",
-            AssetVariant::Folder => "folder",
-            AssetVariant::Custom => "custom",
-        }
-    }
-}
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

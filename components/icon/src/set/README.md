@@ -24,8 +24,8 @@
 | `glyphs` | `Vec<IconsetGlyph>` | `[]` |
 | `size` | `IconsetSize` | `IconsetSize::default()` |
 | `tone` | `IconsetTone` | `IconsetTone::default()` |
-| `disabled` | `bool` | `false` |
-| `decorative` | `bool` | `true` |
+| `is_disabled` | `bool` | `false` |
+| `is_decorative` | `bool` | `true` |
 | `aria_label` | `Option<String>` | `None` |
 | `class_name` | `Option<String>` | `None` |
 
@@ -44,7 +44,7 @@
 ### 展示 (Display)
 
 - workbench 预览命中注册表与 fallback 两条渲染路径。
-- 直接观察 icon/tone/size/decorative/disabled 对 UI 的影响。
+- 直接观察 icon/tone/size/is_decorative/is_disabled 对 UI 的影响。
 
 ### config
 

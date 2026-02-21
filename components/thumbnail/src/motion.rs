@@ -116,20 +116,36 @@ pub fn attach_motion(
             0.0
         };
 
-        drop(style.set_property("--ui-thumbnail-scale", &format!("{initial_scale}")));
-        drop(style.set_property("--ui-thumbnail-ring-opacity", &format!("{initial_ring}")));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-thumbnail-scale",
+            &format!("{initial_scale}")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-thumbnail-ring-opacity",
+            &format!("{initial_ring}")
+        );
         let style_scale = style.clone();
         let scale =
             ui_motion::spring::SpringAnimator::new(initial_scale, motion.spring, move |next| {
                 let next = next.clamp(0.9, 1.2);
-                drop(style_scale.set_property("--ui-thumbnail-scale", &format!("{next}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_scale),
+                    "--ui-thumbnail-scale",
+                    &format!("{next}")
+                );
             });
 
         let style_ring = style.clone();
         let ring =
             ui_motion::spring::SpringAnimator::new(initial_ring, motion.spring, move |next| {
                 let next = next.clamp(0.0, 1.0);
-                drop(style_ring.set_property("--ui-thumbnail-ring-opacity", &format!("{next}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_ring),
+                    "--ui-thumbnail-ring-opacity",
+                    &format!("{next}")
+                );
             });
 
         let springs_for_cleanup = springs;

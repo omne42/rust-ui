@@ -14,6 +14,8 @@ fn normalize_and_parse_helpers_trim_values() {
         (Some("workflow".to_string()), "check".to_string())
     );
     assert_eq!(parse_icon_reference("alert"), (None, "alert".to_string()));
+    assert_eq!(normalize_icon_name(" alert ".to_string()), "alert");
+    assert_eq!(normalize_icon_name("  ".to_string()), DEFAULT_ICON_NAME);
 }
 
 #[test]

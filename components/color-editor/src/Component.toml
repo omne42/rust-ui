@@ -1,0 +1,316 @@
+schema_version = "1"
+
+[component]
+name = "ColorEditor"
+crate = "ui-color-editor"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "selected_color"
+ty = "Option<Signal<Option<String>>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_selected_color"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_selected_change"
+ty = "Option<Callback<Option<String>>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "format"
+ty = "Option<Signal<ColorEditorFormat>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_format"
+ty = "Option<ColorEditorFormat>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_format_change"
+ty = "Option<Callback<ColorEditorFormat>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "is_alpha_channel_hidden"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "default_hue"
+ty = "Option<f64>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "default_alpha"
+ty = "Option<f64>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "default_area"
+ty = "Option<(f32, f32)>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "area_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "area_aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "hue_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "alpha_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "value_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "format_aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "preview_color"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ColorEditorMotion"
+default = "ColorEditorMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-disabled + data-format + data-alpha + data-motion-source + data-label-source + data-aria-source + data-class-source + role + aria-* + lang + dir"
+
+[[outputs]]
+name = "format-change-callback"
+ty = "Callback<ColorEditorFormat>"
+scope = "component-event"
+
+[[outputs]]
+name = "selected-change-callback"
+ty = "Callback<Option<String>>"
+scope = "component-event"
+
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-stream-support + data-ui-stream-fallback + data-ui-stream-mode + data-ui-output-status + data-ui-selection-source + data-ui-format-source + data-ui-motion-source + data-ui-label-source + data-ui-aria-source + data-ui-class-source"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_selection_and_format"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-contract"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[[dependencies]]
+name = "ui-color-area"
+kind = "composed-control"
+
+[[dependencies]]
+name = "ui-color-slider"
+kind = "composed-control"
+
+[[dependencies]]
+name = "ui-color-field"
+kind = "composed-control"
+
+[[agent_contract]]
+schema = "ui.color-editor.agent-contract.v1"
+intent = "color.editing"
+action = "snapshot-render | field-input | area-drag-update | hue-drag-update | alpha-drag-update | format-change"
+state_axes = ["disabled", "empty", "ready"]
+source_axes = [
+  "state-primitives",
+  "selection-source",
+  "format-source",
+  "motion-source",
+  "label-source",
+  "aria-source",
+  "class-source",
+]
+
+[[agent_contract_markers]]
+name = "schema"
+attr = "data-ui-schema"
+values = ["ui.color-editor.agent-contract"]
+
+[[agent_contract_markers]]
+name = "schema_version"
+attr = "data-ui-schema-version"
+values = ["v1"]
+
+[[agent_contract_markers]]
+name = "intent"
+attr = "data-ui-intent"
+values = ["color.editing"]
+
+[[agent_contract_markers]]
+name = "action"
+attr = "data-ui-action"
+values = [
+  "snapshot-render",
+  "field-input",
+  "area-drag-update",
+  "hue-drag-update",
+  "alpha-drag-update",
+  "format-change",
+]
+
+[[agent_contract_markers]]
+name = "state"
+attr = "data-ui-state"
+values = ["disabled", "empty", "ready"]
+
+[[agent_contract_markers]]
+name = "source"
+attr = "data-ui-source"
+values = ["state-primitives"]
+
+[[agent_contract_markers]]
+name = "stream_support"
+attr = "data-ui-stream-support"
+values = ["unsupported"]
+
+[[agent_contract_markers]]
+name = "stream_fallback"
+attr = "data-ui-stream-fallback"
+values = ["full-snapshot"]
+
+[[agent_contract_markers]]
+name = "stream_mode"
+attr = "data-ui-stream-mode"
+values = ["snapshot"]
+
+[[agent_contract_markers]]
+name = "output_status"
+attr = "data-ui-output-status"
+values = ["verified", "submittable"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "render_editor_header()",
+  "render_editor_canvas()",
+  "render_editor_sliders()",
+  "render_format_tabs()",
+  "render_channel_rows()",
+  "render_editor_controls()",
+  "<ColorArea>",
+  "<ColorSlider>",
+  "<ColorField>",
+]
+blocked = ["inner_html", "<script", "javascript:", "eval("]

@@ -1,0 +1,87 @@
+schema_version = "1"
+
+[component]
+name = "Breadcrumb"
+crate = "ui-breadcrumb"
+
+[[inputs]]
+name = "items[].label"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "items[].href"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "separator"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-empty + data-has-items + data-has-links + data-has-current-page + data-count + data-aria-source + data-class-source + data-separator-source + data-last + aria-current + lang + dir + data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-render-mode + data-ui-stream-support + data-ui-stream-fallback + data-ui-output-status"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_snapshot_fallback"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "serde"
+kind = "protocol-serialization"

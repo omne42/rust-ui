@@ -194,6 +194,100 @@ fn labeled_value_styles_include_orientation_tone_and_source_markers() {
 }
 
 #[test]
+fn labeled_value_focus_flow_is_explicitly_non_interactive() {
+    let view_source = load_source("src/view.rs");
+    let headless_source = load_source("../ui-headless/src/labeled_value.rs");
+
+    for forbidden in [
+        "tabindex",
+        "on:focus",
+        "on:blur",
+        "on:keydown",
+        "on:keyup",
+        "on:click",
+    ] {
+        assert!(
+            !view_source.contains(forbidden),
+            "LabeledValue should stay non-interactive; found forbidden focus/input hook `{forbidden}`."
+        );
+    }
+
+    for required in [
+        "pub struct LabeledValueHandlers;",
+        "handlers: LabeledValueHandlers,",
+    ] {
+        assert!(
+            headless_source.contains(required),
+            "LabeledValue headless contract should keep empty handlers for non-interactive focus flow; missing `{required}`."
+        );
+    }
+}
+
+#[test]
+fn labeled_value_version_deprecation_migration_is_na_without_major_breaking_upgrade() {
+    let protocol_source = load_source("src/protocol.rs");
+    let manifest_source = load_source("src/Component.toml");
+    let rbi_source = load_source("src/labeled_value.rbi");
+    let mod_source = load_source("src/mod.rs");
+    let cargo_source = load_source("Cargo.toml");
+
+    for required in [
+        "pub enum LabeledValueComponentSchemaVersion",
+        "V1,",
+        "pub struct LabeledValueComponentSpec",
+        "pub schema_version: LabeledValueComponentSchemaVersion,",
+        "schema_version = \"1\"",
+        "name = \"LabeledValue\"",
+        "crate = \"ui-labeled-value\"",
+    ] {
+        assert!(
+            protocol_source.contains(required)
+                || manifest_source.contains(required)
+                || cargo_source.contains(required),
+            "labeled_value should keep stable v1 protocol token `{required}`.",
+        );
+    }
+
+    for required in [
+        "pub fn LabeledValue(",
+        "label: Option<String>",
+        "value: Option<String>",
+        "description: Option<String>",
+        "orientation: LabeledValueOrientation",
+        "tone: LabeledValueTone",
+        "aria_label: Option<String>",
+        "class_name: Option<String>",
+        "lang: Option<String>",
+        "dir: Option<ui_headless::A11yDirection>",
+        "motion: LabeledValueMotion",
+    ] {
+        assert!(
+            rbi_source.contains(required),
+            "labeled_value RBI should keep stable public API token `{required}`.",
+        );
+    }
+
+    for forbidden in [
+        "migrate_v1_to_v2",
+        "deprecated",
+        "deprecation_window",
+        "schema_version = \"2\"",
+        "contract.v2",
+        "V2",
+        "codemod_rule",
+        "schema_registry_entry",
+    ] {
+        assert!(
+            !protocol_source.contains(forbidden)
+                && !manifest_source.contains(forbidden)
+                && !rbi_source.contains(forbidden)
+                && !mod_source.contains(forbidden),
+            "labeled_value should not introduce breaking-upgrade migration token `{forbidden}` in this change.",
+        );
+    }
+}
+
+#[test]
 fn labeled_value_docs_page_covers_primary_playgrounds() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
@@ -202,8 +296,15 @@ fn labeled_value_docs_page_covers_primary_playgrounds() {
         "title=\"LabeledValue\"",
         "slug=\"labeled-value\"",
         "description=\"Label-value pair primitive with centralized orientation/tone/source state contracts and baseline-style data markers.\"",
+        "<Playground\n                title=\"Hello World (Default API)\"",
+        "<Playground\n                title=\"State Matrix\"",
         "<Playground title=\"Orientation + Tone\" code_signal=orientation_code>",
         "<Playground title=\"Description + Custom Aria/Class\" code_signal=custom_code>",
+        "<Playground\n                title=\"Controlled vs Uncontrolled (N/A)\"",
+        "<Playground\n                title=\"Streaming Optional / Snapshot\"",
+        "<Playground\n                title=\"Source-first Starter (Copy-Paste Ready)\"",
+        "<section class=\"docs-card docs-prose\" data-slot=\"labeled-value-streaming-modes\">",
+        "<section class=\"docs-card docs-prose\" data-slot=\"labeled-value-source-first\">",
         "<LabeledValue",
     ] {
         assert!(
@@ -218,6 +319,8 @@ fn labeled_value_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
+        "title=\"Hello World (Default API)\"",
+        "title=\"State Matrix\"",
         "title=\"Orientation + Tone\"",
         "label=\"Project\".to_string()",
         "value=\"Omne\".to_string()",
@@ -229,6 +332,13 @@ fn labeled_value_docs_playgrounds_lock_state_matrix_contract_values() {
         "aria_label=\"Build status\".to_string()",
         "class_name=\"docs-labeled-value-custom\".to_string()",
         "tone=LabeledValueTone::Strong",
+        "title=\"Controlled vs Uncontrolled (N/A)\"",
+        "title=\"Streaming Optional / Snapshot\"",
+        "title=\"Source-first Starter (Copy-Paste Ready)\"",
+        "code_imports=labeled_value_imports.clone()",
+        "use ui_components::{LabeledValue, LabeledValueOrientation, LabeledValueTone};",
+        "data-output-mode",
+        "data-output-status",
     ] {
         assert!(
             source.contains(needle),

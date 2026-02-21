@@ -10,3 +10,7 @@ pub use crate::tray::{Tray, TrayMotion};
 pub use logic::{OverlaysRootState, OverlaysRootStateInput, resolve_root_state};
 pub use motion::OverlaysMotion;
 pub use view::OverlaysRoot;
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

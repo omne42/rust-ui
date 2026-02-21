@@ -44,13 +44,8 @@
 ## Hello World（最小可用）
 
 ```rust
-let (value, set_value) = signal((0.6_f32, 0.4_f32));
-let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next));
-
 <ColorArea
   id_base="docs-color-area-basic".to_string()
-  value=value.into()
-  on_value_change=on_value_change
 />
 ```
 

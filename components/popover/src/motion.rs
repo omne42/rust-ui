@@ -51,6 +51,43 @@ fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
     }
 }
 
+#[cfg(any(target_arch = "wasm32", test))]
+fn values_for_state(
+    open: bool,
+    placement: PopoverPlacement,
+    motion: PopoverMotion,
+) -> (f64, f64, f64) {
+    if open {
+        return (1.0, 1.0, 0.0);
+    }
+    let offset_y = placement_offset_y(placement, motion.offset_y_px);
+    (0.0, motion.initial_scale, offset_y)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn set_style_values(
+    style: &leptos::web_sys::CssStyleDeclaration,
+    opacity: f64,
+    scale: f64,
+    y: f64,
+) {
+    ui_observability::set_css_property_observed_auto!(
+        &(style),
+        "--ui-popover-opacity",
+        &format!("{opacity}")
+    );
+    ui_observability::set_css_property_observed_auto!(
+        &(style),
+        "--ui-popover-scale",
+        &format!("{scale}")
+    );
+    ui_observability::set_css_property_observed_auto!(
+        &(style),
+        "--ui-popover-y",
+        &format!("{y}px")
+    );
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn attach_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
@@ -84,33 +121,55 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
         let motion = motion.get_value();
-        let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
-
         let open_now = is_open.get_untracked();
-        // Always initialize in the closed state so mounting while open animates in.
-        let opacity_initial = 0.0;
-        let scale_initial = motion.initial_scale;
-        let y_initial = offset_y;
+        let placement_now = placement.get_untracked();
+        let (opacity_open, scale_open, y_open) = values_for_state(true, placement_now, motion);
+        let (opacity_closed, scale_closed, y_closed) =
+            values_for_state(false, placement_now, motion);
 
-        drop(style.set_property("--ui-popover-opacity", &format!("{opacity_initial}")));
-        drop(style.set_property("--ui-popover-scale", &format!("{scale_initial}")));
-        drop(style.set_property("--ui-popover-y", &format!("{y_initial}px")));
+        if ui_motion::web::prefers_reduced_motion() {
+            let (opacity, scale, y) = if open_now {
+                (opacity_open, scale_open, y_open)
+            } else {
+                (opacity_closed, scale_closed, y_closed)
+            };
+            set_style_values(&style, opacity, scale, y);
+            return;
+        }
+
+        // Always initialize in the closed state so mounting while open animates in.
+        let opacity_initial = opacity_closed;
+        let scale_initial = scale_closed;
+        let y_initial = y_closed;
+        set_style_values(&style, opacity_initial, scale_initial, y_initial);
         let style_for_opacity = style.clone();
         let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_opacity.set_property("--ui-popover-opacity", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_opacity),
+                "--ui-popover-opacity",
+                &format!("{v}")
+            );
         });
 
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
             let v = v.clamp(0.0, 10.0);
-            drop(style_for_scale.set_property("--ui-popover-scale", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_scale),
+                "--ui-popover-scale",
+                &format!("{v}")
+            );
         });
 
         let style_for_y = style.clone();
         let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
             let v = v.clamp(-1000.0, 1000.0);
-            drop(style_for_y.set_property("--ui-popover-y", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_y),
+                "--ui-popover-y",
+                &format!("{v}px")
+            );
         });
 
         let springs_for_cleanup = springs;
@@ -123,9 +182,9 @@ pub fn attach_motion(
         });
 
         if open_now {
-            opacity.set_target(1.0);
-            scale.set_target(1.0);
-            y.set_target(0.0);
+            opacity.set_target(opacity_open);
+            scale.set_target(scale_open);
+            y.set_target(y_open);
         }
 
         springs.set_value(Some((opacity, scale, y)));
@@ -142,27 +201,42 @@ pub fn attach_motion(
         }
         last_state.set_value(Some(open));
 
+        let motion = motion.get_value();
+        let placement_now = placement.get_untracked();
+        let (target_opacity, target_scale, target_y) =
+            values_for_state(open, placement_now, motion);
+
+        if ui_motion::web::prefers_reduced_motion() {
+            let Some(div) = node_ref.get() else {
+                return;
+            };
+            let element: leptos::web_sys::HtmlElement = div.unchecked_into();
+            let style = element.style();
+            set_style_values(&style, target_opacity, target_scale, target_y);
+            if !open {
+                on_exit_complete.run(());
+            }
+            return;
+        }
+
         let Some((opacity, scale, y)) = springs.get_value() else {
             return;
         };
-
-        let motion = motion.get_value();
-        let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
 
         if open {
             opacity.clear_on_rest();
             scale.clear_on_rest();
             y.clear_on_rest();
 
-            opacity.set_target(1.0);
-            scale.set_target(1.0);
-            y.set_target(0.0);
+            opacity.set_target(target_opacity);
+            scale.set_target(target_scale);
+            y.set_target(target_y);
             return;
         }
 
-        opacity.set_target(0.0);
-        scale.set_target(motion.initial_scale);
-        y.set_target(offset_y);
+        opacity.set_target(target_opacity);
+        scale.set_target(target_scale);
+        y.set_target(target_y);
 
         let on_exit_complete = on_exit_complete.clone();
         scale.set_on_rest(move || on_exit_complete.run(()));

@@ -1,8 +1,10 @@
 # Legend
 
-`Legend` 是 `fieldset` 标题语义组件，默认走 snapshot 渲染路径，语义属性由 `ui-headless::use_legend` 提供。
+`Legend` 是 `fieldset` 标题语义组件。先从最小示例开始，不需要先理解底层分层实现。
 
-## Hello World
+## 先用起来（默认路径）
+
+### Hello World（最小可用）
 
 ```rust
 use ui_components::Legend;
@@ -14,7 +16,24 @@ view! {
 }
 ```
 
-## 状态示例
+默认 API 路径优先：只传 `text` 就能稳定渲染，适合作为新手起点。
+
+## 常见用法
+
+```rust
+use ui_components::Legend;
+
+view! {
+    <fieldset>
+        <Legend text="Notification settings".to_string() is_required=true />
+        <Legend text="Read-only group".to_string() is_disabled=true />
+    </fieldset>
+}
+```
+
+## 再进阶（高级控制）
+
+只有当你需要视觉与语义细节时，再打开高级参数（`tone`、`required_indicator`、`class_name`、`lang`、`dir`、`motion`）。
 
 ```rust
 use ui_components::{Legend, LegendTone};
@@ -24,7 +43,7 @@ view! {
         <Legend
             text="Billing preferences".to_string()
             tone=LegendTone::Muted
-            is_required=Some(true)
+            is_required=true
             required_indicator="(required)".to_string()
         />
     </fieldset>
@@ -34,9 +53,9 @@ view! {
 ## API 约定
 
 - 布尔状态：`is_required` / `is_disabled`
-- 兼容迁移：保留 `required` / `disabled`，内部统一归一为 `is_*`
 - i18n/l10n：`lang` / `dir` 透传到 headless 语义契约
 - 语义观测：根节点输出稳定 `data-*` / `aria-*` / `data-ui-*` 标记
+- 不需要用户手动接线 `ui-state-primitives` / `ui-headless`
 
 ## Source-first / Copy-Paste Ready
 

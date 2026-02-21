@@ -1,3 +1,5 @@
+use ui_state_primitives::toggle_button as toggle_button_state;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ToggleButtonVariant {
     #[default]
@@ -66,27 +68,29 @@ impl ToggleButtonSize {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ToggleButtonState {
-    pub is_selected: bool,
-    pub is_unselected: bool,
-    pub is_disabled: bool,
-    pub is_enabled: bool,
-    pub is_pressed: bool,
-    pub is_hovered: bool,
-    pub is_focused: bool,
-    pub is_focus_visible: bool,
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    ui_state_primitives::button::normalize_optional_text(value)
 }
 
-impl ToggleButtonState {
-    pub fn data_state(self) -> &'static str {
-        if self.is_selected {
-            "selected"
-        } else {
-            "unselected"
-        }
+pub fn compose_class_name(
+    base_class_name: Option<String>,
+    variant: ToggleButtonVariant,
+    size: ToggleButtonSize,
+) -> String {
+    let mut classes = vec![
+        "ui-toggle-button".to_string(),
+        variant.class_name().to_string(),
+        size.class_name().to_string(),
+    ];
+
+    if let Some(base_class_name) = base_class_name {
+        classes.push(base_class_name);
     }
+
+    classes.join(" ")
 }
+
+pub use toggle_button_state::ToggleButtonState;
 
 pub fn resolve_state(
     is_selected: bool,
@@ -96,66 +100,22 @@ pub fn resolve_state(
     is_focused: bool,
     is_focus_visible: bool,
 ) -> ToggleButtonState {
-    let is_enabled = !is_disabled;
-
-    ToggleButtonState {
+    toggle_button_state::resolve_toggle_button_state(
         is_selected,
-        is_unselected: !is_selected,
         is_disabled,
-        is_enabled,
-        is_pressed: is_pressed && is_enabled,
-        is_hovered: is_hovered && is_enabled,
-        is_focused: is_focused && is_enabled,
-        is_focus_visible: is_focus_visible && is_enabled,
-    }
+        is_pressed,
+        is_hovered,
+        is_focused,
+        is_focus_visible,
+    )
 }
 
 #[cfg(feature = "component-toggle_button_group")]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ToggleButtonGroupOrientation {
-    #[default]
-    Horizontal,
-    Vertical,
-}
-
-#[cfg(feature = "component-toggle_button_group")]
-impl ToggleButtonGroupOrientation {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            ToggleButtonGroupOrientation::Horizontal => "ui-toggle-button-group--horizontal",
-            ToggleButtonGroupOrientation::Vertical => "ui-toggle-button-group--vertical",
-        }
-    }
-
-    pub fn data_orientation(self) -> &'static str {
-        match self {
-            ToggleButtonGroupOrientation::Horizontal => "horizontal",
-            ToggleButtonGroupOrientation::Vertical => "vertical",
-        }
-    }
-}
-
-#[cfg(feature = "component-toggle_button_group")]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ToggleButtonGroupState {
-    pub is_horizontal: bool,
-    pub is_vertical: bool,
-    pub is_attached: bool,
-    pub is_detached: bool,
-    pub has_explicit_label: bool,
-    pub has_fallback_label: bool,
-}
+pub use toggle_button_state::{ToggleButtonGroupOrientation, ToggleButtonGroupState};
 
 #[cfg(feature = "component-toggle_button_group")]
 pub fn normalize_toggle_button_group_aria_label(aria_label: Option<String>) -> (String, bool) {
-    if let Some(label) = aria_label {
-        let trimmed = label.trim();
-        if !trimmed.is_empty() {
-            return (trimmed.into(), true);
-        }
-    }
-
-    ("Toggle group".to_string(), false)
+    toggle_button_state::normalize_toggle_button_group_aria_label(aria_label)
 }
 
 #[cfg(feature = "component-toggle_button_group")]
@@ -164,14 +124,33 @@ pub fn resolve_toggle_button_group_state(
     attached: bool,
     has_explicit_label: bool,
 ) -> ToggleButtonGroupState {
-    ToggleButtonGroupState {
-        is_horizontal: matches!(orientation, ToggleButtonGroupOrientation::Horizontal),
-        is_vertical: matches!(orientation, ToggleButtonGroupOrientation::Vertical),
-        is_attached: attached,
-        is_detached: !attached,
+    toggle_button_state::resolve_toggle_button_group_state(
+        orientation,
+        attached,
         has_explicit_label,
-        has_fallback_label: !has_explicit_label,
+    )
+}
+
+#[cfg(feature = "component-toggle_button_group")]
+pub fn compose_toggle_button_group_class_name(
+    base_class_name: Option<String>,
+    orientation: ToggleButtonGroupOrientation,
+    is_attached: bool,
+) -> String {
+    let mut classes = vec![
+        "ui-toggle-button-group".to_string(),
+        orientation.class_name().to_string(),
+    ];
+
+    if is_attached {
+        classes.push("ui-toggle-button-group--attached".to_string());
     }
+
+    if let Some(base_class_name) = base_class_name {
+        classes.push(base_class_name);
+    }
+
+    classes.join(" ")
 }
 
 #[cfg(test)]

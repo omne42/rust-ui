@@ -34,6 +34,16 @@ pub struct LiveRegionA11yAttrs {
 }
 
 #[derive(Clone)]
+pub struct ErrorViewA11yAttrs {
+    pub role: &'static str,
+    pub aria_live: Signal<&'static str>,
+    pub aria_hidden: Signal<Option<&'static str>>,
+    pub aria_label: String,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
+#[derive(Clone)]
 pub struct DisclosureTriggerA11yAttrs {
     pub aria_expanded: Signal<&'static str>,
     pub aria_controls: String,
@@ -64,6 +74,16 @@ pub struct LabeledGroupA11yAttrs {
     pub dir: Option<&'static str>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LabeledToolbarA11yAttrs {
+    pub role: &'static str,
+    pub aria_label: String,
+    pub aria_orientation: &'static str,
+    pub aria_disabled: Option<&'static str>,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct OverlayDialogA11yAttrs {
     pub aria_labelledby: Option<String>,
@@ -78,6 +98,45 @@ pub struct RegionA11yAttrs {
     pub aria_label: String,
     pub lang: Option<String>,
     pub dir: Option<&'static str>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NavigationA11yAttrs {
+    pub aria_label: String,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FieldsetA11yAttrs {
+    pub aria_label: String,
+    pub aria_disabled: Option<&'static str>,
+    pub aria_invalid: Option<&'static str>,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
+pub fn is_focusable_element_kind(
+    tag_name: &str,
+    has_href: bool,
+    has_contenteditable: bool,
+    tabindex: Option<&str>,
+) -> bool {
+    match tag_name {
+        "button" | "input" | "select" | "textarea" => return true,
+        "a" => return has_href,
+        _ => {}
+    }
+
+    if has_contenteditable {
+        return true;
+    }
+
+    tabindex
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .and_then(|value| value.parse::<i32>().ok())
+        .is_some_and(|value| value >= 0)
 }
 
 pub fn locale_attrs(lang: Option<String>, dir: Option<A11yDirection>) -> A11yLocaleAttrs {
@@ -102,6 +161,33 @@ pub fn live_region_attrs(priority: LiveRegionPriority) -> LiveRegionA11yAttrs {
             role: "alert",
             aria_live: "assertive",
         },
+    }
+}
+
+pub fn error_view_attrs(
+    is_visible: Signal<bool>,
+    aria_label: String,
+    lang: Option<String>,
+    dir: Option<A11yDirection>,
+) -> ErrorViewA11yAttrs {
+    let locale = locale_attrs(lang, dir);
+    let live_region = live_region_attrs(LiveRegionPriority::Assertive);
+    let visible_for_live = is_visible;
+    let visible_for_hidden = is_visible;
+
+    ErrorViewA11yAttrs {
+        role: live_region.role,
+        aria_live: Signal::derive(move || {
+            if visible_for_live.get() {
+                live_region.aria_live
+            } else {
+                "off"
+            }
+        }),
+        aria_hidden: Signal::derive(move || (!visible_for_hidden.get()).then_some("true")),
+        aria_label,
+        lang: locale.lang,
+        dir: locale.dir,
     }
 }
 
@@ -132,6 +218,25 @@ pub fn labeled_group_attrs(
     LabeledGroupA11yAttrs {
         role: "group",
         aria_label,
+        lang: locale.lang,
+        dir: locale.dir,
+    }
+}
+
+pub fn labeled_toolbar_attrs(
+    aria_label: String,
+    aria_orientation: &'static str,
+    is_disabled: bool,
+    lang: Option<String>,
+    dir: Option<A11yDirection>,
+) -> LabeledToolbarA11yAttrs {
+    let locale = locale_attrs(lang, dir);
+
+    LabeledToolbarA11yAttrs {
+        role: "toolbar",
+        aria_label,
+        aria_orientation,
+        aria_disabled: is_disabled.then_some("true"),
         lang: locale.lang,
         dir: locale.dir,
     }
@@ -170,6 +275,38 @@ pub fn region_attrs(
     RegionA11yAttrs {
         role: "region",
         aria_label,
+        lang: locale.lang,
+        dir: locale.dir,
+    }
+}
+
+pub fn navigation_attrs(
+    aria_label: String,
+    lang: Option<String>,
+    dir: Option<A11yDirection>,
+) -> NavigationA11yAttrs {
+    let locale = locale_attrs(lang, dir);
+
+    NavigationA11yAttrs {
+        aria_label,
+        lang: locale.lang,
+        dir: locale.dir,
+    }
+}
+
+pub fn fieldset_attrs(
+    aria_label: String,
+    is_disabled: bool,
+    is_invalid: bool,
+    lang: Option<String>,
+    dir: Option<A11yDirection>,
+) -> FieldsetA11yAttrs {
+    let locale = locale_attrs(lang, dir);
+
+    FieldsetA11yAttrs {
+        aria_label,
+        aria_disabled: is_disabled.then_some("true"),
+        aria_invalid: is_invalid.then_some("true"),
         lang: locale.lang,
         dir: locale.dir,
     }
@@ -224,6 +361,58 @@ pub fn popup_trigger_attrs(
         aria_expanded: resolved_expanded,
         lang: locale.lang,
         dir: locale.dir,
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn is_focusable_element(el: &leptos::web_sys::Element) -> bool {
+    let tag = el.tag_name().to_ascii_lowercase();
+    is_focusable_element_kind(
+        &tag,
+        el.has_attribute("href"),
+        el.has_attribute("contenteditable"),
+        el.get_attribute("tabindex").as_deref(),
+    )
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn should_focus_proxy_button_on_click(
+    container: &leptos::web_sys::Element,
+    event_target: Option<leptos::web_sys::EventTarget>,
+) -> bool {
+    use leptos::wasm_bindgen::JsCast;
+
+    let Some(target) = event_target else {
+        return false;
+    };
+
+    let Some(mut target) = target
+        .clone()
+        .dyn_into::<leptos::web_sys::Element>()
+        .ok()
+        .or_else(|| {
+            target
+                .dyn_into::<leptos::web_sys::Node>()
+                .ok()
+                .and_then(|node| node.parent_element())
+        })
+    else {
+        return false;
+    };
+
+    loop {
+        if is_focusable_element(&target) {
+            return false;
+        }
+
+        if target.is_same_node(Some(container)) {
+            return true;
+        }
+
+        let Some(parent) = target.parent_element() else {
+            return false;
+        };
+        target = parent;
     }
 }
 

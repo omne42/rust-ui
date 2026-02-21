@@ -17,7 +17,7 @@ pub fn PickerButton(
     children: Children,
 ) -> impl IntoView {
     let class_name = logic::normalize_optional_text(class_name);
-    let class_name_for_inner = class_name.clone().unwrap_or_default();
+    let class_name_for_inner = logic::resolve_inner_class_name(class_name.clone());
 
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let has_custom_press_handler = on_press.is_some();

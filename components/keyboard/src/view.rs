@@ -1,45 +1,55 @@
-use crate::{
-    KeyboardStateInput,
-    logic::{self, KeyboardTone},
-};
+use crate::logic::{self, KeyboardRootInput, KeyboardTone};
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, KeyboardOptions, use_keyboard};
 
 #[component]
 pub fn Keyboard(
-    #[prop(optional)] tone: KeyboardTone,
-    #[prop(optional)] is_compact: bool,
+    #[prop(optional)] tone: Option<KeyboardTone>,
+    #[prop(optional, into)] is_compact: Option<bool>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let class_name = StoredValue::new(class_name);
-
-    let state = Memo::new(move |_| {
-        logic::resolve_state(KeyboardStateInput {
+    let root_state = Memo::new(move |_| {
+        logic::normalize_root_state(KeyboardRootInput {
             tone,
-            compact: is_compact,
-            has_custom_aria_label,
-            has_custom_class_name,
+            is_compact,
+            aria_label: aria_label.clone(),
+            class_name: class_name.clone(),
+            lang: lang.clone(),
+        })
+    });
+    let semantics = Memo::new(move |_| {
+        use_keyboard(KeyboardOptions {
+            state: root_state.get().state,
+            aria_label: root_state.get().aria_label.clone(),
+            lang: root_state.get().lang.clone(),
+            dir,
         })
     });
 
-    let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
-
     view! {
         <kbd
-            class=move || class.get()
-            data-slot="keyboard"
-            data-tone=move || state.get().tone_attr
-            data-state=move || state.get().data_state_attr
-            data-compact=move || state.get().is_compact.then_some("true")
-            data-aria-source=move || state.get().aria_source_attr
-            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
-            data-class-source=move || state.get().class_source_attr
-            aria-label=aria_label
+            class=move || root_state.get().class_name.clone()
+            data-slot=move || semantics.get().attrs.data_slot
+            data-tone=move || semantics.get().attrs.data_tone
+            data-state=move || semantics.get().attrs.data_state
+            data-compact=move || semantics.get().attrs.data_compact
+            data-aria-source=move || semantics.get().attrs.data_aria_source
+            data-custom-class=move || semantics.get().attrs.data_custom_class
+            data-class-source=move || semantics.get().attrs.data_class_source
+            data-ui-schema=move || semantics.get().attrs.data_ui_schema
+            data-ui-schema-version=move || semantics.get().attrs.data_ui_schema_version
+            data-ui-intent=move || semantics.get().attrs.data_ui_intent
+            data-ui-action=move || semantics.get().attrs.data_ui_action
+            data-ui-state=move || semantics.get().attrs.data_ui_state
+            data-ui-source=move || semantics.get().attrs.data_ui_source
+            data-ui-output-status=move || semantics.get().attrs.data_ui_output_status
+            aria-label=move || semantics.get().attrs.aria_label
+            lang=move || semantics.get().attrs.lang
+            dir=move || semantics.get().attrs.dir
         >
             {children()}
         </kbd>

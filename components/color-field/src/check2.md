@@ -141,11 +141,20 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`ColorField` 为基础输入组件，当前无复杂结构化 schema/组合构建需求，按规范不引入 `spec.rs`。）
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - `components/color-field/src/styles.rs` 已将关键视觉 token 统一收敛为双层回退变量（如 `--ui-color-field-*` -> `--ui-*` -> `--ui-fallback-*`）。
+  - 组件样式中不再使用 Hex 与裸 `px/rem` 终值，尺寸终值统一由 `ui-theme` 的 fallback 变量提供。
+  - 变更路径集中在单一 `styles.rs`，避免静态样式常量散落。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。
+  - `crates/ui-components/src/css.rs` 通过 `push_components_css` 统一以 `@layer ui` 包裹组件样式，`component-color_field` 走同一聚合路径。
+  - `components/color-field/src/view.rs` 当前未使用普通内联样式属性；运行时样式调整仅保留 CSS 变量通道约束。
+  - 该约束与语义选择器策略一致，避免 `style` 字符串注入导致层叠不可控。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -183,6 +192,8 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（N/A：`ColorField` 当前不包含组件级动效 contract 与 `motion.rs` 挂载链路，仅消费静态样式与输入语义，不存在 spring 参数与运行时 attach 入口。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`ColorField` 不在组件内部生成随机/时间 ID，`view.rs` 使用外部传入的 `id_base` 通过确定性拼接生成 `label/input` 标识，不存在 hydration ID 漂移源。）
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
@@ -219,6 +230,17 @@
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
+### 4.1 高级交互与物理机制（Shell/Physics）
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`ColorField` 无拖拽/惯性等高频物理交互，仅输入与清空事件。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`ColorField` 无 overlay 定位与 DOM 几何测量回写链路，不涉及测量-校正闭环。）
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`ColorField` 不是层叠 `Overlay` 组件，不维护焦点恢复栈与全局焦点回退策略。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`ColorField` 非集合容器组件，无动态子项注册与导航顺序管理需求。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`ColorField` 非多槽位容器组件，不维护子树投影策略与隐藏态副作用治理。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`ColorField` 当前不订阅窗口尺寸/主题变更/可见性环境流，无事件洪泛风险。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`ColorField` 非大型集合批量操作组件，不存在 `Table/Grid` 级联分发与批量选择状态压缩需求。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`ColorField` 当前无跨订阅者派生总线与广播链路，不涉及 `TraceId` 透传闭环。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`ColorField` 未集成命令式第三方实例，不存在 `Foreign Zone` 控制面与实例泄漏问题。）
+
 ### 5. 文件落点检查（必须提及）
 - [x] `ui-components` 固定入口文件落点正确。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
@@ -237,6 +259,10 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - 已新增 `components/color-field/src/Component.toml`，声明输入/输出、能力位与依赖清单。
+  - 已新增 `components/color-field/src/color_field.rbi`，对外投影 `ColorField` 的稳定签名与核心类型别名。
+  - 后续 API 变更需同步更新两处文件，保持 Agent 检索与实现一致。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
@@ -259,6 +285,10 @@
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
+  - `e2e/tests/docs_app_color_field_contract.spec.mjs` 已覆盖 `aria-*` + `data-*` + 焦点流转（`input.focus()` -> `clear.focus()` -> `Shift+Tab` 回到 input）。
+  - `crates/ui-components/tests/color_field_semantics.rs` 已锁定上述语义与焦点流转断言关键片段，防止回归为仅快照检查。
+  - `ColorField` 当前归类为常规输入组件（非高频/重型组件），`render_count` 自动化断言记为 N/A；若后续引入逐帧更新或重型渲染路径，需补齐 `render_count` 基线（初始化空闲预算 = 1）。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -283,6 +313,10 @@
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
+  - `apps/docs-app/src/pages/components/pages/forms_color.rs` 的 `color_field()` 已新增 `Hello World`、`Controlled vs Uncontrolled`、`Invalid + Disabled + Custom Class`（状态矩阵）与 `Streaming Optional / Snapshot` Playground。
+  - 流式/快照在该输入组件上按 `Streaming Optional -> fallback=snapshot` 呈现，并通过 `data-ui-streaming/data-ui-fallback/data-ui-output-state` 稳定暴露。
+  - Source-first 复制链路由 docs Playground 代码块承载；`e2e/tests/docs_app_color_field_contract.spec.mjs` 已锁定 copy-ready（含 imports）与复制按钮可用性。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
@@ -306,6 +340,7 @@
   - 临时 patch 若绕开统一契约（命名/状态/语义），必须在同 PR 里修正或显式回退计划。
 - [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。
   - 一旦确认具备可复用状态不变量，应下沉至 `ui-state-primitives`/`ui-headless`，组件层仅保留装配映射。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorField` 提交未引入跨大版本破坏性 API 变更，公共 props/语义契约保持兼容，因此无需注册弃用窗口与迁移函数。）
 
 ### 9. 合并门禁（最终裁决）
 - [x] 架构正确（边界不破）。

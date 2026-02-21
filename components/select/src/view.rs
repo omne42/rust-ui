@@ -28,22 +28,22 @@ struct SelectListRenderInput {
     is_disabled: bool,
     disabled_indices: Vec<usize>,
     on_action: Callback<usize>,
-    default_index: usize,
-    sync_active_index_to_selected: bool,
+    default_active_index: usize,
+    is_active_index_synced_to_selected: bool,
 }
 
 fn resolve_list_focus_plan(
     open_focus: logic::SelectOpenFocusStrategy,
     item_count: usize,
 ) -> (usize, bool) {
-    let default_index = match open_focus {
+    let default_active_index = match open_focus {
         logic::SelectOpenFocusStrategy::Last => item_count.saturating_sub(1),
         logic::SelectOpenFocusStrategy::Selected | logic::SelectOpenFocusStrategy::First => 0,
     };
-    let sync_active_index_to_selected =
+    let is_active_index_synced_to_selected =
         matches!(open_focus, logic::SelectOpenFocusStrategy::Selected);
 
-    (default_index, sync_active_index_to_selected)
+    (default_active_index, is_active_index_synced_to_selected)
 }
 
 fn render_select_trigger(
@@ -71,6 +71,7 @@ fn render_select_trigger(
 }
 
 fn render_select_list(input: SelectListRenderInput) -> impl IntoView {
+    let set_selected_index = input.set_selected_index;
     view! {
         <List
             id_base=input.id_base
@@ -78,13 +79,13 @@ fn render_select_list(input: SelectListRenderInput) -> impl IntoView {
             aria_labelledby=input.trigger_id
             class_name=CLASS_SELECT_LISTBOX
             items=input.items
-            selected_index=input.selected_index
-            set_selected_index=input.set_selected_index
-            disabled=input.is_disabled
+            selected_index=input.selected_index.into()
+            on_selected_index_change=Callback::new(move |next| set_selected_index.set(next))
+            is_disabled=input.is_disabled
             disabled_indices=input.disabled_indices
             on_action=input.on_action
-            default_index=input.default_index
-            sync_active_index_to_selected=input.sync_active_index_to_selected
+            default_active_index=input.default_active_index
+            is_active_index_synced_to_selected=input.is_active_index_synced_to_selected
         />
     }
 }
@@ -122,7 +123,7 @@ fn render_select_panel(input: SelectPanelRenderInput) -> impl IntoView {
                 <div class=CLASS_SELECT_PANEL data-slot=SLOT_SELECT_PANEL>
                     {move || {
                         let items = input.items.get_value();
-                        let (default_index, sync_active_index_to_selected) =
+                        let (default_active_index, is_active_index_synced_to_selected) =
                             resolve_list_focus_plan(input.open_focus.get_untracked(), items.len());
                         render_select_list(SelectListRenderInput {
                             id_base: input.id_base.get_value(),
@@ -134,8 +135,8 @@ fn render_select_panel(input: SelectPanelRenderInput) -> impl IntoView {
                             is_disabled: input.is_disabled,
                             disabled_indices: input.disabled_indices.get_value(),
                             on_action: input.on_action,
-                            default_index,
-                            sync_active_index_to_selected,
+                            default_active_index,
+                            is_active_index_synced_to_selected,
                         })
                     }}
                 </div>

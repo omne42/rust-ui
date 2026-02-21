@@ -43,6 +43,15 @@ fn label_resolution_prefers_color_name() {
 }
 
 #[test]
+fn id_base_default_is_resolved_in_logic() {
+    assert_eq!(normalize_id_base(None), DEFAULT_ID_BASE);
+    assert_eq!(
+        normalize_id_base(Some("  docs-picker-id  ".to_string())),
+        "docs-picker-id".to_string()
+    );
+}
+
+#[test]
 fn resolve_state_tracks_selection_and_sources() {
     let state = resolve_state(ColorSwatchPickerStateInput {
         disabled: false,
@@ -63,4 +72,45 @@ fn resolve_state_tracks_selection_and_sources() {
     assert!(class_name.contains("ui-color-swatch-picker"));
     assert!(class_name.contains("ui-color-swatch-picker--custom-class"));
     assert!(class_name.contains("docs-picker"));
+}
+
+#[test]
+fn view_state_helpers_centralize_disabled_and_tabindex_derivation() {
+    let items = vec![
+        ColorSwatchPickerItem::new("#111111"),
+        ColorSwatchPickerItem::new("#222222").disabled(true),
+        ColorSwatchPickerItem::new("#333333"),
+    ];
+
+    assert_eq!(count_disabled_items(&items), 1);
+    assert!(!is_item_disabled_at(false, &items, 0));
+    assert!(is_item_disabled_at(false, &items, 1));
+    assert!(is_item_disabled_at(false, &items, 99));
+    assert!(is_item_disabled_at(true, &items, 0));
+
+    assert!(!resolve_option_disabled(false, false));
+    assert!(resolve_option_disabled(false, true));
+    assert!(resolve_option_disabled(true, false));
+
+    assert_eq!(resolve_option_tabindex(false, 2, 2), 0);
+    assert_eq!(resolve_option_tabindex(false, 2, 1), -1);
+    assert_eq!(resolve_option_tabindex(true, 2, 2), -1);
+}
+
+#[test]
+fn resolve_component_state_derives_render_state_from_typed_inputs() {
+    let items = vec![
+        ColorSwatchPickerItem::new("#111111"),
+        ColorSwatchPickerItem::new("#222222").disabled(true),
+        ColorSwatchPickerItem::new("#333333"),
+    ];
+
+    let state = resolve_component_state(true, &items, Some(2), true, false);
+    assert!(state.is_disabled);
+    assert_eq!(state.item_count, 3);
+    assert_eq!(state.selected_index, Some(2));
+    assert_eq!(state.disabled_item_count, 1);
+    assert_eq!(state.data_state_attr, "disabled");
+    assert_eq!(state.aria_source_attr, "custom");
+    assert_eq!(state.class_source_attr, "default");
 }

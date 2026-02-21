@@ -49,10 +49,8 @@ fn resolve_state_tracks_source_flags() {
         has_custom_class_name: true,
     });
 
-    assert_eq!(
-        state.style_vars,
-        Some("--ui-cp-size: 24px; --ui-cp-thickness: 3px;".to_string())
-    );
+    assert_eq!(state.size_px, Some(24.0));
+    assert_eq!(state.thickness_px, Some(3.0));
     assert!(state.has_custom_size);
     assert!(state.has_custom_thickness);
     assert!(state.has_custom_aria_label);
@@ -64,28 +62,18 @@ fn resolve_state_tracks_source_flags() {
 }
 
 #[test]
-fn compose_class_name_includes_state_markers() {
-    let class_name = compose_class_name(
-        Some("custom".to_string()),
-        &resolve_state(CircularProgressStateInput {
-            size_px: Some(22.0),
-            thickness_px: None,
-            has_custom_aria_label: true,
-            has_custom_class_name: true,
-        }),
-    );
+fn resolve_state_sanitizes_dimension_inputs() {
+    let state = resolve_state(CircularProgressStateInput {
+        size_px: Some(-4.0),
+        thickness_px: Some(f64::NAN),
+        has_custom_aria_label: false,
+        has_custom_class_name: false,
+    });
 
-    for token in [
-        "ui-circular-progress",
-        "ui-circular-progress--state-indeterminate",
-        "ui-circular-progress--size-custom",
-        "ui-circular-progress--label-custom",
-        "ui-circular-progress--custom-class",
-        "custom",
-    ] {
-        assert!(
-            class_name.contains(token),
-            "composed class name should include `{token}`"
-        );
-    }
+    assert_eq!(state.size_px, None);
+    assert_eq!(state.thickness_px, None);
+    assert!(!state.has_custom_size);
+    assert!(!state.has_custom_thickness);
+    assert_eq!(state.size_source_attr, "default");
+    assert_eq!(state.thickness_source_attr, "default");
 }

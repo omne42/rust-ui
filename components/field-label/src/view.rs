@@ -1,13 +1,38 @@
-use crate::logic::{self, FieldLabelStateInput, FieldLabelTone};
+use crate::logic::{self, FieldLabelLogicInput, FieldLabelTone};
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, FieldLabelOptions, use_field_label};
+
+fn render_text_slot(text: String) -> impl IntoView {
+    view! {
+        <span class="ui-field-label__text" data-slot="field-label-text">
+            {text}
+        </span>
+    }
+}
+
+fn render_required_slot(
+    required_indicator: String,
+    semantics: Memo<ui_headless::FieldLabelContract>,
+) -> impl IntoView {
+    view! {
+        <Show when=move || semantics.get().state.is_required>
+            <span
+                class="ui-field-label__required"
+                data-slot="field-label-required"
+                aria-hidden="true"
+            >
+                {required_indicator.clone()}
+            </span>
+        </Show>
+    }
+}
 
 #[component]
 pub fn FieldLabel(
     #[prop(optional, into)] text: Option<String>,
     #[prop(optional, into)] for_id: Option<String>,
-    #[prop(optional)] required: bool,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_required: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] tone: FieldLabelTone,
     #[prop(optional, into)] required_indicator: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
@@ -15,34 +40,33 @@ pub fn FieldLabel(
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let (text, has_custom_text) = logic::normalize_text(text);
-    let (required_indicator, has_custom_indicator) =
-        logic::normalize_required_indicator(required_indicator);
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
-
-    let for_id = logic::normalize_optional_text(for_id);
-    let has_for_id = for_id.is_some();
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let class_name = StoredValue::new(class_name);
-
-    let state = Memo::new(move |_| {
-        logic::resolve_state(FieldLabelStateInput {
+    let view_model = logic::derive_view_model(
+        FieldLabelLogicInput {
             tone,
-            required,
-            disabled,
-            has_for_id,
-            has_custom_text,
-            has_custom_indicator,
-            has_custom_aria_label,
-            has_custom_class_name,
-        })
-    });
-    let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+            is_required,
+            is_disabled,
+        },
+        text,
+        required_indicator,
+        aria_label,
+        for_id,
+        class_name,
+    );
+    let logic::FieldLabelViewModel {
+        text,
+        required_indicator,
+        aria_label,
+        for_id,
+        class_name,
+        state,
+    } = view_model;
+    let class_name = StoredValue::new(class_name);
+    let state = StoredValue::new(state);
+    let class =
+        Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get_value()));
     let semantics = Memo::new(move |_| {
         use_field_label(FieldLabelOptions {
-            state: state.get(),
+            state: state.get_value(),
             aria_label: aria_label.clone(),
             lang: lang.clone(),
             dir,
@@ -57,6 +81,12 @@ pub fn FieldLabel(
             aria-disabled=move || semantics.get().attrs.aria_disabled
             lang=move || semantics.get().attrs.lang
             dir=move || semantics.get().attrs.dir
+            data-ui-schema=logic::FIELD_LABEL_AGENT_SCHEMA
+            data-ui-intent=logic::FieldLabelAgentIntent::Label.as_attr()
+            data-ui-action=logic::FieldLabelAgentAction::SnapshotRender.as_attr()
+            data-ui-streaming=logic::FieldLabelAgentStreaming::Optional.as_attr()
+            data-ui-fallback=logic::FieldLabelAgentFallback::Snapshot.as_attr()
+            data-ui-output-state=logic::FieldLabelAgentOutputState::Verified.as_attr()
             data-slot="field-label"
             data-tone=move || semantics.get().attrs.data_tone
             data-state=move || semantics.get().attrs.data_state
@@ -69,19 +99,8 @@ pub fn FieldLabel(
             data-custom-class=move || semantics.get().attrs.data_custom_class
             data-class-source=move || semantics.get().attrs.data_class_source
         >
-            <span class="ui-field-label__text" data-slot="field-label-text">
-                {text}
-            </span>
-
-            <Show when=move || semantics.get().state.is_required>
-                <span
-                    class="ui-field-label__required"
-                    data-slot="field-label-required"
-                    aria-hidden="true"
-                >
-                    {required_indicator.clone()}
-                </span>
-            </Show>
+            {render_text_slot(text)}
+            {render_required_slot(required_indicator, semantics)}
         </label>
     }
 }

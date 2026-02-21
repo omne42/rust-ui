@@ -22,51 +22,91 @@
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `open` | `Signal<bool>` | required |
-| `on_close` | `OnPress` | required |
+| `is_open` | `Option<Signal<bool>>` | `None` |
+| `default_open` | `Option<bool>` | `None` (`false`) |
+| `on_open_change` | `Option<Callback<bool>>` | `None` |
+| `on_close` | `Option<OnPress>` | `None` |
 | `id_base` | `String` | required（空串会回退为 `"ui-drawer"`） |
 | `title` | `String` | required（空串会回退为 `"Drawer"`） |
 | `children` | `ChildrenFn` | required |
 | `description` | `Option<String>` | `None` |
 | `footer` | `Option<ViewFn>` | `None` |
-| `placement` | `DrawerPlacement` (`Right` / `Left` / `Bottom`) | `Right` |
+| `placement` | `Option<DrawerPlacement>` (`Right` / `Left` / `Bottom`) | `None` (`Right`) |
 | `motion` | `DrawerMotion` | `DrawerMotion::default()` |
-| `show_close_button` | `bool` | `true` |
-| `close_label` | `&'static str` | `"Close"` |
-| `on_exit_complete` | `Option<Callback<()>>` | `None` |
+| `is_close_button_visible` | `Option<bool>` | `None` (`true`) |
+| `close_label` | `Option<&'static str>` | `None` (`"Close"`) |
+| `lang` | `Option<String>` | `None` |
+| `dir` | `Option<A11yDirection>` (`Ltr` / `Rtl`) | `None` |
+| `on_exit_complete` | `Option<Callback<()>>` | `None`（内部归一为 no-op） |
 | `class_name` | `Option<String>` | `None` |
+
+### Naming Migration
+
+- `open` -> `is_open`
+- `show_close_button` -> `is_close_button_visible`
 
 ### Drawer Events
 
 | Event | Type | Default |
 | --- | --- | --- |
-| `on_close` | `OnPress` | required |
+| `on_open_change` | `Callback<bool>` | optional |
+| `on_close` | `OnPress` | optional |
 | `on_exit_complete` | `Callback<()>` | optional |
 
 ## Hello World（最小可用）
 
 ```rust
-let (open_raw, set_open_raw) = signal(false);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
-let on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-
-let id_base = "settings-drawer".to_string();
-let title = "Settings".to_string();
-
-<Drawer open=open on_close=on_close id_base=id_base title=title>
+<Drawer default_open=true id_base="settings-drawer".to_string() title="Settings".to_string()>
   <p>"Drawer content"</p>
 </Drawer>
 ```
 
-- 默认路径优先“先用起来”：只传必需参数即可工作。
-- 进阶参数（`description`/`footer`/`motion`/`on_exit_complete`）按需打开。
+## 先用起来，再进阶
+
+- 默认路径：先用 `default_open + id_base + title + on_close`
+- 进阶控制：按需启用 `is_open + default_open + on_open_change`
+- 不需要先理解 `ui-state-primitives` / `ui-headless` 内部状态机细节即可上手。
+
+## 常见用法
+
+### Uncontrolled Example（默认路径）
+
+```rust
+<Drawer
+  default_open=true
+  id_base="profile-drawer".to_string()
+  title="Profile".to_string()
+  on_close=Callback::new(|_| {})
+>
+  <p>"Uncontrolled content"</p>
+</Drawer>
+```
+
+### Controlled Example（高级入口）
+
+```rust
+let (open_raw, set_open_raw) = signal(false);
+let open = Signal::derive(move || open_raw.get());
+
+<Drawer
+  is_open=open
+  default_open=false
+  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))
+  on_close=Callback::new(move |_| set_open_raw.set(false))
+  id_base="advanced-drawer".to_string()
+  title="Advanced Drawer".to_string()
+>
+  <p>"Controlled content"</p>
+</Drawer>
+```
 
 ## Semantics and Accessibility
 
 - 通过 `Sheet` 提供模态容器语义；标题 id 固定为 `{id_base}-title`，绑定 `aria-labelledby`。
 - 仅当 `description` 存在时，才渲染描述节点并绑定 `aria-describedby={id_base}-description`。
+- `lang` / `dir` 输入透传到 `Sheet`，由 `ui-headless` 的 `overlay_dialog_attrs` 统一归一。
 - 暴露稳定插槽标记：`drawer`、`drawer-header`、`drawer-title`、`drawer-description`、`drawer-body`、`drawer-footer`、`drawer-close`。
-- 根节点输出状态/source 标记（如 `data-placement`、`data-description`、`data-footer`、`data-close-button` 与对应 `data-*-source`），便于样式与测试契约锁定。
+- 根节点输出状态/source 标记（如 `data-open-state`、`data-open-mode`、`data-open-source`、`data-open-action-source`、`data-placement`、`data-description`、`data-footer`、`data-close-button` 与对应 `data-*-source`），便于样式与测试契约锁定。
 
 ## Motion and Fallback
 

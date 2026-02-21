@@ -1,18 +1,81 @@
 use super::*;
 
 #[test]
-fn negative_tone_uses_alert_live_region() {
-    assert_eq!(AlertBannerTone::Negative.role(), "alert");
-    assert_eq!(AlertBannerTone::Negative.aria_live(), "assertive");
+fn variant_maps_to_expected_tone() {
+    assert_eq!(
+        AlertBannerVariant::Default.as_tone(),
+        AlertBannerTone::Neutral
+    );
+    assert_eq!(AlertBannerVariant::Accent.as_tone(), AlertBannerTone::Info);
+    assert_eq!(
+        AlertBannerVariant::Danger.as_tone(),
+        AlertBannerTone::Negative
+    );
 }
 
 #[test]
-fn non_negative_tones_use_status_live_region() {
-    assert_eq!(AlertBannerTone::Neutral.role(), "status");
-    assert_eq!(AlertBannerTone::Neutral.aria_live(), "polite");
-    assert_eq!(AlertBannerTone::Info.role(), "status");
-    assert_eq!(AlertBannerTone::Positive.role(), "status");
-    assert_eq!(AlertBannerTone::Notice.role(), "status");
+fn fill_attr_values_are_closed_set() {
+    assert_eq!(AlertBannerFill::Border.attr_value(), "border");
+    assert_eq!(AlertBannerFill::Subtle.attr_value(), "subtle");
+    assert_eq!(AlertBannerFill::Bold.attr_value(), "bold");
+}
+
+#[test]
+fn resolve_tone_prefers_tone_then_variant_then_default() {
+    let explicit = resolve_tone(
+        Some(AlertBannerTone::Notice),
+        Some(AlertBannerVariant::Danger),
+    );
+    assert_eq!(
+        explicit,
+        (AlertBannerTone::Notice, AlertBannerToneSource::Tone)
+    );
+
+    let from_variant = resolve_tone(None, Some(AlertBannerVariant::Danger));
+    assert_eq!(
+        from_variant,
+        (AlertBannerTone::Negative, AlertBannerToneSource::Variant)
+    );
+
+    let defaulted = resolve_tone(None, None);
+    assert_eq!(
+        defaulted,
+        (AlertBannerTone::Neutral, AlertBannerToneSource::Default)
+    );
+}
+
+#[test]
+fn normalize_fill_defaults_to_border() {
+    assert_eq!(normalize_fill(None), AlertBannerFill::Border);
+    assert_eq!(
+        normalize_fill(Some(AlertBannerFill::Bold)),
+        AlertBannerFill::Bold
+    );
+}
+
+#[test]
+fn resolve_hide_icon_prefers_is_hide_icon_then_legacy_then_default() {
+    assert_eq!(
+        resolve_hide_icon(Some(true), Some(false)),
+        AlertBannerHideIcon {
+            value: true,
+            source: AlertBannerHideIconSource::IsHideIcon,
+        }
+    );
+    assert_eq!(
+        resolve_hide_icon(None, Some(true)),
+        AlertBannerHideIcon {
+            value: true,
+            source: AlertBannerHideIconSource::HideIcon,
+        }
+    );
+    assert_eq!(
+        resolve_hide_icon(None, None),
+        AlertBannerHideIcon {
+            value: false,
+            source: AlertBannerHideIconSource::Default,
+        }
+    );
 }
 
 #[test]

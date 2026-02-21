@@ -1,8 +1,49 @@
 use crate::menu::item::{MenuItemState, MenuItemStateInput};
-use leptos::prelude::Get;
+use leptos::prelude::{Callback, Get};
 use ui_headless::MenuItemKind;
 
 pub const DEFAULT_ARIA_LABEL: &str = "Menu item";
+
+#[derive(Clone)]
+pub struct MenuItemInteractionInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
+    pub on_pointer_move: Option<Callback<()>>,
+    pub on_press: Option<Callback<()>>,
+}
+
+#[derive(Clone)]
+pub struct MenuItemInteraction {
+    pub disabled: bool,
+    pub on_pointer_move: Callback<()>,
+    pub on_press: Callback<()>,
+}
+
+pub fn normalize_interaction(input: MenuItemInteractionInput) -> MenuItemInteraction {
+    MenuItemInteraction {
+        disabled: input.is_disabled.unwrap_or(input.disabled),
+        on_pointer_move: input
+            .on_pointer_move
+            .unwrap_or_else(|| Callback::new(|()| {})),
+        on_press: input.on_press.unwrap_or_else(|| Callback::new(|()| {})),
+    }
+}
+
+pub fn resolve_tabindex(disabled: bool) -> Option<i32> {
+    if disabled { Some(-1) } else { Some(0) }
+}
+
+pub fn should_ignore_interaction(disabled: bool) -> bool {
+    disabled
+}
+
+pub fn resolve_selection_sr_text(is_checked: bool) -> &'static str {
+    if is_checked {
+        "selected"
+    } else {
+        "not selected"
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MenuItemSelectionIndicator {

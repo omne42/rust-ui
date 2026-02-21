@@ -8,3 +8,7 @@ pub use logic::{
 };
 pub use motion::LegendMotion;
 pub use view::Legend;
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

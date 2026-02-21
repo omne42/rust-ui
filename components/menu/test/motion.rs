@@ -1,5 +1,13 @@
 use super::*;
 
+type AttachMotionFn = fn(
+    leptos::prelude::NodeRef<leptos::html::Div>,
+    leptos::prelude::NodeRef<leptos::html::Div>,
+    leptos::prelude::ReadSignal<usize>,
+    leptos::prelude::Callback<usize, String>,
+    MenuMotion,
+);
+
 #[test]
 fn sanitize_motion_falls_back_for_invalid_values() {
     let motion = sanitize_motion(MenuMotion {
@@ -21,18 +29,6 @@ fn sanitize_motion_falls_back_for_invalid_values() {
 }
 
 #[test]
-fn attach_motion_returns_sanitized_highlight_motion() {
-    let attached = attach_motion(MenuMotion {
-        highlight: ActiveHighlightMotion {
-            spring: ui_motion::spring::SpringConfig {
-                stiffness: 280.0,
-                damping: 24.0,
-                mass: 1.0,
-                precision: 0.002,
-            },
-        },
-    });
-
-    assert_eq!(attached.spring.stiffness, 280.0);
-    assert_eq!(attached.spring.damping, 24.0);
+fn attach_motion_exposes_component_level_mount_signature() {
+    let _attach: AttachMotionFn = attach_motion;
 }

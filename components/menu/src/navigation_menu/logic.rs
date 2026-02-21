@@ -1,146 +1,95 @@
-use std::collections::BTreeSet;
-
 use crate::navigation_menu::{
     NavigationMenuItem, NavigationMenuItemResolved, NavigationMenuPartState,
     NavigationMenuPartStateInput, NavigationMenuSlot,
 };
+use ui_state_primitives::menu as menu_state;
 
 pub const DEFAULT_ID_BASE: &str = "navigation-menu";
 pub const DEFAULT_ARIA_LABEL: &str = "Main navigation";
 pub const DEFAULT_ACTIVATE_ON_FOCUS: bool = true;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NavigationSelectionTarget {
+    Current,
+    Index(usize),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct NavigationKeyDecision {
+    pub next_focus_index: Option<usize>,
+    pub selection_target: Option<NavigationSelectionTarget>,
+}
+
 pub fn state_attr(item_count: usize, has_selection: bool, has_focus: bool) -> &'static str {
-    if item_count == 0 {
-        "empty"
-    } else if has_selection {
-        "selected"
-    } else if has_focus {
-        "focused"
-    } else {
-        "idle"
-    }
+    menu_state::navigation_state_attr(item_count, has_selection, has_focus)
 }
 
 pub fn item_attr(item_count: usize) -> &'static str {
-    if item_count == 0 {
-        "empty"
-    } else {
-        "populated"
-    }
+    menu_state::item_attr(item_count)
 }
 
 pub fn selected_attr(has_selection: bool) -> &'static str {
-    if has_selection { "present" } else { "absent" }
+    menu_state::selected_attr(has_selection)
 }
 
 pub fn focus_attr(has_focus: bool) -> &'static str {
-    if has_focus { "present" } else { "absent" }
+    menu_state::focus_attr(has_focus)
 }
 
 pub fn focus_activation_attr(activate_on_focus: bool) -> &'static str {
-    if activate_on_focus { "auto" } else { "manual" }
+    menu_state::focus_activation_attr(activate_on_focus)
 }
 
 pub fn selection_mode_attr(is_controlled: bool) -> &'static str {
-    if is_controlled {
-        "controlled"
-    } else {
-        "uncontrolled"
-    }
+    menu_state::open_mode_attr(is_controlled)
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    menu_state::normalize_optional_text(value)
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
-}
-
-fn sanitize_token(value: &str, fallback: &str) -> String {
-    let mut out = String::new();
-    let mut last_dash = false;
-
-    for ch in value.chars() {
-        if ch.is_ascii_alphanumeric() {
-            out.push(ch.to_ascii_lowercase());
-            last_dash = false;
-            continue;
-        }
-
-        if (ch == '-' || ch == '_' || ch == ' ') && !last_dash {
-            out.push('-');
-            last_dash = true;
-        }
-    }
-
-    while out.ends_with('-') {
-        out.pop();
-    }
-
-    if out.is_empty() {
-        return fallback.into();
-    }
-
-    out
+    menu_state::normalize_id_base(id_base, DEFAULT_ID_BASE)
 }
 
 pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.into(), false)
+    menu_state::resolve_aria_label_with_fallback(value, DEFAULT_ARIA_LABEL, DEFAULT_ARIA_LABEL)
 }
 
 pub fn resolve_items(
     id_base: &str,
     items: Vec<NavigationMenuItem>,
 ) -> Vec<NavigationMenuItemResolved> {
-    let mut seen_ids = BTreeSet::new();
-    let mut resolved = Vec::new();
-
-    for (index, item) in items.into_iter().enumerate() {
-        let fallback_id = format!("item-{}", index + 1);
-        let raw_id = normalize_optional_text(Some(item.id)).unwrap_or_else(|| fallback_id.clone());
-        let base_id = sanitize_token(&raw_id, &fallback_id);
-
-        let mut unique_id = base_id.clone();
-        let mut suffix = 2;
-        while seen_ids.contains(&unique_id) {
-            unique_id = format!("{base_id}-{suffix}");
-            suffix += 1;
-        }
-        seen_ids.insert(unique_id.clone());
-
-        let label = normalize_optional_text(Some(item.label))
-            .unwrap_or_else(|| format!("Item {}", index + 1));
-
-        let href = normalize_optional_text(Some(item.href)).unwrap_or_else(|| "#".to_string());
-
-        let dom_id = format!("{id_base}-{unique_id}");
-
-        resolved.push(NavigationMenuItemResolved {
-            id: unique_id,
-            dom_id,
-            label,
-            href,
+    let primitive_items = items
+        .into_iter()
+        .map(|item| menu_state::NavigationItemInput {
+            id: item.id,
+            label: item.label,
+            href: item.href,
             disabled: item.disabled,
-        });
-    }
+        })
+        .collect();
 
-    resolved
+    menu_state::resolve_navigation_items(id_base, primitive_items)
+        .into_iter()
+        .map(|item| NavigationMenuItemResolved {
+            id: item.id,
+            dom_id: item.dom_id,
+            label: item.label,
+            href: item.href,
+            disabled: item.disabled,
+        })
+        .collect()
 }
 
 pub fn first_enabled_index(items: &[NavigationMenuItemResolved]) -> Option<usize> {
-    items.iter().position(|item| !item.disabled)
+    let disabled_flags: Vec<bool> = items.iter().map(|item| item.disabled).collect();
+    menu_state::first_enabled_index(&disabled_flags)
 }
 
 pub fn last_enabled_index(items: &[NavigationMenuItemResolved]) -> Option<usize> {
-    items.iter().rposition(|item| !item.disabled)
+    let disabled_flags: Vec<bool> = items.iter().map(|item| item.disabled).collect();
+    menu_state::last_enabled_index(&disabled_flags)
 }
 
 pub fn next_enabled_index(
@@ -148,62 +97,164 @@ pub fn next_enabled_index(
     current_index: usize,
     step: isize,
 ) -> Option<usize> {
-    if items.is_empty() || step == 0 {
-        return None;
-    }
-
-    let len = items.len() as isize;
-    let mut cursor = current_index as isize;
-
-    for _ in 0..items.len().saturating_sub(1) {
-        cursor = (cursor + step).rem_euclid(len);
-        let index = cursor as usize;
-        if !items[index].disabled {
-            return Some(index);
-        }
-    }
-
-    None
+    let disabled_flags: Vec<bool> = items.iter().map(|item| item.disabled).collect();
+    menu_state::next_enabled_index(&disabled_flags, current_index, step)
 }
 
 pub fn selected_index_for_id(
     items: &[NavigationMenuItemResolved],
     selected_id: Option<String>,
 ) -> Option<usize> {
-    let selected_id = selected_id?;
-    items
+    let primitive_items: Vec<menu_state::NavigationItemResolved> = items
         .iter()
-        .position(|item| item.id == selected_id && !item.disabled)
+        .map(|item| menu_state::NavigationItemResolved {
+            id: item.id.clone(),
+            dom_id: item.dom_id.clone(),
+            label: item.label.clone(),
+            href: item.href.clone(),
+            disabled: item.disabled,
+        })
+        .collect();
+    menu_state::selected_index_for_id(&primitive_items, selected_id)
 }
 
 pub fn sanitize_selected_id(
     selected_id: Option<String>,
     items: &[NavigationMenuItemResolved],
 ) -> Option<String> {
-    let selected_id = normalize_optional_text(selected_id)?;
-    items
+    let primitive_items: Vec<menu_state::NavigationItemResolved> = items
         .iter()
-        .find(|item| item.id == selected_id && !item.disabled)
-        .map(|item| item.id.clone())
+        .map(|item| menu_state::NavigationItemResolved {
+            id: item.id.clone(),
+            dom_id: item.dom_id.clone(),
+            label: item.label.clone(),
+            href: item.href.clone(),
+            disabled: item.disabled,
+        })
+        .collect();
+    menu_state::sanitize_selected_id(selected_id, &primitive_items)
 }
 
 pub fn sanitize_focused_index(
     focused_index: Option<usize>,
     items: &[NavigationMenuItemResolved],
 ) -> Option<usize> {
-    let index = focused_index?;
-    if index >= items.len() || items[index].disabled {
-        return None;
-    }
+    let disabled_flags: Vec<bool> = items.iter().map(|item| item.disabled).collect();
+    menu_state::sanitize_enabled_index(focused_index, &disabled_flags)
+}
 
-    Some(index)
+pub fn resolve_active_index(
+    items: &[NavigationMenuItemResolved],
+    selected_index: Option<usize>,
+    focused_index: Option<usize>,
+) -> usize {
+    selected_index
+        .or(focused_index)
+        .or_else(|| first_enabled_index(items))
+        .unwrap_or(0)
+}
+
+pub fn resolve_option_id(items: &[NavigationMenuItemResolved], index: usize) -> String {
+    items
+        .get(index)
+        .map(|item| item.dom_id.clone())
+        .unwrap_or_default()
+}
+
+pub fn resolve_item_tabindex(item_disabled: bool, is_focused: bool) -> &'static str {
+    if !item_disabled && is_focused {
+        "0"
+    } else {
+        "-1"
+    }
+}
+
+pub fn resolve_item_state_attr(
+    item_disabled: bool,
+    is_selected: bool,
+    is_focused: bool,
+) -> &'static str {
+    if item_disabled {
+        "disabled"
+    } else if is_selected {
+        "selected"
+    } else if is_focused {
+        "focused"
+    } else {
+        "idle"
+    }
+}
+
+pub fn should_ignore_item_interaction(item_disabled: bool) -> bool {
+    item_disabled
+}
+
+pub fn resolve_selected_id_for_target(
+    items: &[NavigationMenuItemResolved],
+    current_index: usize,
+    target: NavigationSelectionTarget,
+) -> Option<String> {
+    let index = match target {
+        NavigationSelectionTarget::Current => current_index,
+        NavigationSelectionTarget::Index(index) => index,
+    };
+    items.get(index).map(|item| item.id.clone())
+}
+
+pub fn resolve_key_decision(
+    key: &str,
+    item_disabled: bool,
+    current_index: usize,
+    items: &[NavigationMenuItemResolved],
+    activate_on_focus: bool,
+) -> Option<NavigationKeyDecision> {
+    let command = ui_headless::navigation_menu_key_command(key, item_disabled)?;
+    match command {
+        ui_headless::NavigationMenuKeyCommand::MoveNext => {
+            let next_index = next_enabled_index(items, current_index, 1)?;
+            Some(NavigationKeyDecision {
+                next_focus_index: Some(next_index),
+                selection_target: activate_on_focus
+                    .then_some(NavigationSelectionTarget::Index(next_index)),
+            })
+        }
+        ui_headless::NavigationMenuKeyCommand::MovePrevious => {
+            let next_index = next_enabled_index(items, current_index, -1)?;
+            Some(NavigationKeyDecision {
+                next_focus_index: Some(next_index),
+                selection_target: activate_on_focus
+                    .then_some(NavigationSelectionTarget::Index(next_index)),
+            })
+        }
+        ui_headless::NavigationMenuKeyCommand::First => {
+            let next_index = first_enabled_index(items)?;
+            Some(NavigationKeyDecision {
+                next_focus_index: Some(next_index),
+                selection_target: activate_on_focus
+                    .then_some(NavigationSelectionTarget::Index(next_index)),
+            })
+        }
+        ui_headless::NavigationMenuKeyCommand::Last => {
+            let next_index = last_enabled_index(items)?;
+            Some(NavigationKeyDecision {
+                next_focus_index: Some(next_index),
+                selection_target: activate_on_focus
+                    .then_some(NavigationSelectionTarget::Index(next_index)),
+            })
+        }
+        ui_headless::NavigationMenuKeyCommand::Activate => Some(NavigationKeyDecision {
+            next_focus_index: None,
+            selection_target: Some(NavigationSelectionTarget::Current),
+        }),
+    }
 }
 
 pub fn resolve_initial_focus_index(
     items: &[NavigationMenuItemResolved],
     selected_index: Option<usize>,
 ) -> Option<usize> {
-    sanitize_focused_index(selected_index, items).or_else(|| first_enabled_index(items))
+    let disabled_flags: Vec<bool> = items.iter().map(|item| item.disabled).collect();
+    menu_state::resolve_initial_focus_index(selected_index, &disabled_flags)
 }
 
 fn source_attr(is_custom: bool) -> &'static str {

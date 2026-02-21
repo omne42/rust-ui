@@ -1,4 +1,7 @@
-use ui_visual_primitive::active_highlight::ActiveHighlightMotion;
+use leptos::{html, prelude::*};
+use ui_visual_primitive::active_highlight::{
+    ActiveHighlightMotion, attach_active_highlight_motion,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct MenuMotion {
@@ -48,8 +51,20 @@ pub fn source_attr(motion: MenuMotion) -> &'static str {
     }
 }
 
-pub fn attach_motion(motion: MenuMotion) -> ActiveHighlightMotion {
-    sanitize_motion(motion).highlight
+pub fn attach_motion(
+    container_ref: NodeRef<html::Div>,
+    highlight_ref: NodeRef<html::Div>,
+    active_index: ReadSignal<usize>,
+    option_id: Callback<usize, String>,
+    motion: MenuMotion,
+) {
+    attach_active_highlight_motion(
+        container_ref,
+        highlight_ref,
+        active_index,
+        option_id,
+        sanitize_motion(motion).highlight,
+    );
 }
 
 #[cfg(test)]

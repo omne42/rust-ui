@@ -7,3 +7,7 @@ pub use logic::{ListItemSelectionIndicator, ListSectionHeadingTone, ListState};
 pub use motion::ListMotion;
 pub use motion::ListSectionMotion;
 pub use view::{List, ListItem, ListSection};
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

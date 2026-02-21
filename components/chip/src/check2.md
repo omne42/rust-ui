@@ -126,11 +126,16 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`Chip` 为轻量标签组件，不属于复杂配置/结构化构建场景；当前组件目录不存在 `src/spec.rs`，且 `mod.rs/logic.rs/view.rs` 不暴露 `ChipSpec` 或 `Spec::new()...render()` 入口。回归由 `components/chip/test/semantics.rs` 的 `chip_marks_hyper_structure_builder_spec_as_not_applicable` 锁定。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/chip/src/Component.toml` 与 `components/chip/src/chip.rbi` 已新增并与 `view.rs` 对齐；回归由 `components/chip/test/semantics.rs` 的 `chip_context_compression_manifest_and_rbi_are_kept_in_sync` 锁定。）
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/chip/src/styles.rs` 已将颜色、尺寸、排版入口收敛为双层回退链，并移除裸 `px` 终值；回归由 `components/chip/test/semantics.rs` 的 `chip_styles_use_defensive_variable_fallback_chains` 锁定。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style="top: 10px"`）。（`crates/ui-components/src/css.rs` 通过 `push_components_css` 统一以 `@layer ui` 聚合并按 `component-chip` feature 注入 `crate::chip::styles::CSS`；`components/chip/src/view.rs` 未使用普通 `style=...` 内联样式，约束由 `components/chip/test/semantics.rs` 的 `chip_css_is_aggregated_under_ui_layer_without_plain_inline_styles` 回归锁定。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（`components/chip/src/motion.rs` 新增 `ChipMotion` 与 `sanitize_motion/attach_motion`，在 wasm 路径使用 `ui_motion::web::prefers_reduced_motion()` 降级，在 non-wasm 路径以 no-op 安全返回；`components/chip/src/view.rs` 已通过 `chip_motion::attach_motion(node_ref, motion)` 挂载；回归由 `components/chip/test/semantics.rs` 的 `chip_motion_contract_respects_reduced_motion_and_non_wasm_noop` 与 `chip_exposes_motion_contract_with_attach_mount` 锁定。）
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -179,6 +184,15 @@
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`Chip` 不承担 overlay 定位/几何测量能力，当前 `logic.rs` 与 `view.rs` 不包含 `getBoundingClientRect`/`ResizeObserver`/`DomRect` 路径，不存在两段式几何修正循环需求；回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_depend_on_two_pass_geometry_measurement_loop` 锁定。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`Chip` 为单节点展示组件，不承载动态子项集合导航模型；当前 `logic.rs`/`view.rs` 不存在 `RegistrationContext`、`Register/Unregister`、`items_order` 与 `HashSet` 导航路径。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_collection_registration_protocol_paths` 锁定。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`Chip` 为单元素标签组件，不承担容器级 slot 投影职责；当前 `logic.rs`/`view.rs` 不存在 `Lazy/KeepAlive/Eager` 投影模式与 `NotifyHidden` 生命周期通知路径，也无隐藏态副作用调度逻辑。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_slot_projection_or_keep_alive_lifecycle_paths` 锁定。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`Chip` 不承担断点/可见性/主题环境订阅职责；当前 `logic.rs` 与 `view.rs` 不包含 `Resize/Theme/Intersection` 监听、采样/防抖与 `BreakpointChanged` 动作回流路径。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_environment_stream_sampling_or_breakpoint_actions` 锁定。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`Chip` 为单实体标签组件，不承载大型集合批量选择/广播操作；当前 `logic.rs` 与 `view.rs` 不存在 `Context Bus`、`Selector`、`SelectionState::All` 或 `Table/Grid` 级批量状态下发路径。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_event_light_cone_bulk_collection_paths` 锁定。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`Chip` 不承担复杂派生命令总线或跨订阅者广播职责；当前 `logic.rs` 与 `view.rs` 不存在 `TraceId` 透传、因果链路拼装或总线广播路径。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_causality_bus_trace_propagation_paths` 锁定。）
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`Chip` 非 overlay/portal 组件，不承担层叠焦点恢复与全局焦点栈管理；当前 `logic.rs` 与 `view.rs` 不存在 `NodeRef` 恢复缓存、`FallbackTo/Selector` 焦点回退或 `document.body` 焦点兜底路径。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_focus_stack_or_overlay_focus_restore_paths` 锁定。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`Chip` 为纯标签组件，不集成命令式第三方实例，也不承载 `Foreign Zone` 生命周期管理；当前 `logic.rs` 与 `view.rs` 不存在 `YieldControl/CleanupForeign`、`ECharts/Map` 实例管理与实例外泄公共 API 路径。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_foreign_zone_escape_hatch_paths` 锁定。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`Chip` 不生成会跨 SSR/Hydration 比对的动态 ID，也不在 `logic.rs`/`view.rs` 初始化流程中使用 `now()`、随机 UUID 或 `rand`；因此不存在 hydration ID 漂移风险。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_introduce_nondeterministic_ssr_hydration_id_paths` 锁定。）
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
@@ -203,6 +217,11 @@
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（已执行 `./scripts/check-rust-hygiene.sh`）。
+  - `components/chip/src/{mod,logic,view,motion,styles}.rs` 已确认无 `unwrap/expect` 与 `let _ = ...`；回归由 `components/chip/test/semantics.rs` 的 `chip_non_test_sources_follow_rust_hygiene_contract` 锁定。
+  - `components/chip/src/logic.rs` 的 class 拼装已改为 `Cow` 收敛静态字符串复制，避免 `to_string()` 热点。
+  - `./scripts/check-rust-hygiene.sh` 在当前环境执行到全仓 `api-contract` 基线阶段失败（`rg` 缺少 PCRE2 + 非 chip 目录基线漂移）；该失败非本组件新增，组件级 hygiene 约束已单独锁定。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Chip` 提交未引入跨大版本 API 破坏升级，也未进入版本化 schema 迁移窗口；组件层不存在 `Schema Registry` 接入与 `migrate_v1_to_v2` 迁移函数需求。回归由 `components/chip/test/semantics.rs` 的 `chip_does_not_require_versioned_schema_registry_migration_for_current_change_set` 锁定。）
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui-components` 固定入口文件落点正确。
@@ -310,25 +329,27 @@
 
 
 ### 10. 本次逐项核验记录（Chip）
-- [x] 按清单顺序逐项核验完成：先骨架（1-2），再实现细节（3-6），最后测试文档与门禁（7-9）；发现并修复 1 项 API 命名阻断。
+- [x] 按清单顺序逐项核验完成：先骨架（1-2），再实现细节（3-6），最后测试文档与门禁（7-9）；发现并修复 2 项阻断（API 命名 + Rust Hygiene）。
 - [x] 本次发现并修复的阻断项：
-  - `Chip` 公共布尔参数由 `disabled` 统一更正为 `is_disabled`（不保留兼容别名），同步更新 `view.rs`、docs playground 与 `chip_semantics` 断言。
+  - `Chip` 公共布尔参数由 `disabled` 统一更正为 `is_disabled`（不保留兼容别名），同步更新 `view.rs`、docs playground 与 `components/chip/test/semantics.rs` 断言。
+  - `Chip` class 拼装路径移除 `to_string()` 热点并改为 `Cow` 收敛，且在非测试源码层禁止 `unwrap/expect` 与 `let _ = ...`（由 `components/chip/test/semantics.rs` 锁定）。
 - [x] 结构与职责结论：`chip` 维持 `mod/logic/styles/view` 分层；`logic.rs` 仅做状态原语装配与 class 归一，`view.rs` 仅负责 Leptos 结构与语义挂载。
 - [x] 状态与类型结论：离散状态由 `ChipVariant`/`ChipSize` 建模，状态输入与输出由 `ui-state-primitives::chip::{ChipStateInput, ChipState}` 统一约束。
 - [x] A11y/i18n 与样式结论：dismiss 按钮使用 `aria-label` 且支持自定义文案；样式依赖稳定 `data-*` 与 `ui-chip--*` 状态 class，不依赖脆弱 DOM 结构。
 - [x] Async/Streaming/E2E 适用性结论：
   - Async：N/A（`Chip` 无远程请求与加载/重试状态轴）。
   - Streaming：`Chip` 非正文流式阅读面，按 `Streaming Optional` 执行，默认 `snapshot` 渲染路径成立。
-  - E2E：当前以 `chip_semantics` + docs playground 覆盖契约，未新增独立 E2E 用例。
+  - E2E：当前以 `components/chip/test/semantics.rs` + docs playground 覆盖契约，未新增独立 E2E 用例。
 - [x] 文档与示例结论：`apps/docs-app/src/pages/components/pages/display.rs` 包含 Chip 页面与四组 playground（Removable / Variants+Sizes / Custom Label+Class / Disabled+Static）。
 - [x] Tree-shaking 结论：`component-chip` 最小特性链路仅拉起 `chip` 自身 + `inject-css`，未被 `all-components` 隐式全量拉起。
 
 #### 10.1 门禁与验证命令（逐条执行）
 - [x] `CARGO_TARGET_DIR=target/chip-check cargo check -p ui-components --no-default-features --features component-chip,inject-css`
 - [x] `CARGO_TARGET_DIR=target/chip-check cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-chip,inject-css`
-- [x] `CARGO_TARGET_DIR=target/chip-check cargo clippy -p ui-components --no-default-features --features component-chip,inject-css --test chip_semantics --no-deps -- -D warnings`
-- [x] `CARGO_TARGET_DIR=target/chip-check cargo test -p ui-components --no-default-features --features component-chip,inject-css --test chip_semantics`
-- [x] `CARGO_TARGET_DIR=target/chip-check cargo test -p ui-components --no-default-features --features component-chip,inject-css --test chip_semantics <single-test> -- --exact`（6 条语义测试逐条执行，全部通过）
+- [x] `CARGO_TARGET_DIR=target/chip-check cargo clippy -p ui-chip --tests -- -D warnings`
+- [x] `CARGO_TARGET_DIR=target/chip-check cargo test -p ui-chip`
+- [x] `CARGO_TARGET_DIR=target/chip-check cargo test -p ui-chip chip_docs_playgrounds_lock_state_matrix_contract_values -- --exact`
 - [x] `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-chip,inject-css`
 - [x] `cargo tree -e features -i ui-components -p web-demo`
+- [x] `./scripts/check-rust-hygiene.sh`（已执行；当前环境在全仓 `api-contract` 基线阶段失败，失败项不位于 `components/chip`，组件级 hygiene 由 `chip_non_test_sources_follow_rust_hygiene_contract` 回归锁定）
 - [x] smoke：N/A（本次未改运行时代码与 docs 页面内容，仅完成清单核验与证据补齐）。

@@ -50,9 +50,14 @@ fn color_handle_does_not_expose_logic_or_view_modules() {
 #[test]
 fn color_handle_uses_logic_state_model() {
     let logic_source = load_source("../../components/color-handle/src/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/color_handle.rs");
+    let primitive_lib_source = load_source("../ui-state-primitives/src/lib.rs");
     let view_source = load_source("../../components/color-handle/src/view.rs");
 
     for needle in [
+        "pub use ui_state_primitives::color_handle::{",
+        "ColorHandleState",
+        "ColorHandleStateInput",
         "pub const DEFAULT_ARIA_LABEL",
         "pub fn sanitize_color(",
         "pub fn normalize_aria_label(",
@@ -66,6 +71,24 @@ fn color_handle_uses_logic_state_model() {
     }
 
     for needle in [
+        "pub struct ColorHandleStateInput",
+        "pub struct ColorHandleState",
+        "pub fn sanitize_color(",
+        "pub fn normalize_aria_label(",
+        "pub fn resolve_state(",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "ColorHandle state primitive should define `{needle}` in ui-state-primitives."
+        );
+    }
+
+    assert!(
+        primitive_lib_source.contains("pub mod color_handle;"),
+        "ui-state-primitives should export `color_handle` module."
+    );
+
+    for needle in [
         "logic::resolve_state(ColorHandleStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
         "<ColorThumb",
@@ -73,6 +96,27 @@ fn color_handle_uses_logic_state_model() {
         assert!(
             view_source.contains(needle),
             "ColorHandle view should derive state via logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn color_handle_mounts_headless_a11y_contract_with_lang_dir() {
+    let source = load_source("../../components/color-handle/src/view.rs");
+
+    for needle in [
+        "use ui_headless::{A11yDirection, labeled_group_attrs};",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "StoredValue::new(labeled_group_attrs(",
+        "role=move || a11y.get_value().role",
+        "aria-label=move || a11y.get_value().aria_label",
+        "lang=move || a11y.get_value().lang",
+        "dir=move || a11y.get_value().dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorHandle should mount headless a11y contract marker `{needle}`."
         );
     }
 }
@@ -113,6 +157,15 @@ fn color_handle_styles_include_focus_drag_disabled_and_custom_contracts() {
         ".ui-color-handle--custom-class",
         ".ui-color-handle[data-custom-class=\"true\"]",
         "--ui-color-handle-motion-duration",
+        "--ui-color-handle-motion-easing",
+        "--ui-text-field-motion-duration",
+        "--ui-text-field-motion-easing",
+        "--ui-color-handle-space: var(--ui-space-2xs, var(--ui-fallback-space-2xs));",
+        "--ui-color-handle-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));",
+        "--ui-color-handle-border: var(--ui-border, var(--ui-fallback-border));",
+        "--ui-color-handle-accent: var(--ui-accent, var(--ui-fallback-accent));",
+        "--ui-color-handle-bg: var(--ui-bg, var(--ui-fallback-bg));",
+        "--ui-color-handle-fg: var(--ui-fg, var(--ui-fallback-fg));",
     ] {
         assert!(
             source.contains(selector),
@@ -147,14 +200,14 @@ fn color_handle_docs_playgrounds_lock_state_matrix_contract_values() {
         "<Playground title=\"Focused + Dragging + Position\" code_signal=basic_code>",
         "id_base=\"docs-color-handle-idle\".to_string()",
         "id_base=\"docs-color-handle-focused\".to_string()",
-        "focused=true",
+        "is_focused=true",
         "id_base=\"docs-color-handle-dragging\".to_string()",
-        "dragging=true",
+        "is_dragging=true",
         "<Playground title=\"Disabled + Custom Class + Loupe Off\" code_signal=states_code>",
         "id_base=\"docs-color-handle-disabled\".to_string()",
-        "disabled=true",
+        "is_disabled=true",
         "id_base=\"docs-color-handle-custom\".to_string()",
-        "show_loupe=false",
+        "is_loupe_visible=false",
         "class_name=\"docs-color-handle-custom\".to_string()",
     ] {
         assert!(
@@ -218,6 +271,16 @@ fn color_handle_exposes_motion_contract_and_view_mount() {
         assert!(
             view_source.contains(needle),
             "ColorHandle view should mount motion contract marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "use ui_theme::default_text_field_motion_tokens;",
+        "let tokens = default_text_field_motion_tokens();",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ColorHandle motion contract should source defaults from theme tokens `{needle}`."
         );
     }
 }

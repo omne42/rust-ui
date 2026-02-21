@@ -1,0 +1,172 @@
+schema_version = "1"
+
+[component]
+name = "CodeBlock"
+crate = "ui-code-block"
+
+[[inputs]]
+name = "code"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "language"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::a11y::A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_copyable"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "copyable"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_copied"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "copied"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_copied"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_copied_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "output_mode"
+ty = "Option<CodeBlockAgentOutputMode>"
+default = "None (fallback: Snapshot)"
+controlled = false
+
+[[inputs]]
+name = "output_status"
+ty = "Option<CodeBlockAgentOutputStatus>"
+default = "None (fallback: Validated)"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "CodeBlockMotion"
+default = "CodeBlockMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "on_copied_change"
+ty = "Callback<bool>"
+scope = "component-event"
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-copyable + data-copied + data-copy-loading + data-copy-error + aria-busy + lang + dir"
+
+[[outputs]]
+name = "agent-contract"
+ty = "data-ui-schema + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-source-copyable + data-ui-source-copied + data-ui-source-motion + data-ui-output-mode + data-ui-output-status"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "llm_output_mode_streaming_snapshot_only"
+enabled = true
+
+[[capabilities]]
+name = "llm_output_status_explicit_state_axis"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_copy_state"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_with_non_wasm_noop"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[capabilities]]
+name = "schema_protocol_versioning"
+enabled = true
+
+[[capabilities]]
+name = "whitelist_render_policy_no_script_injection"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "serde"
+kind = "protocol-serialization"

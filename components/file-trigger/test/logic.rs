@@ -49,3 +49,79 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn resolve_props_uses_single_default_source_and_alias_precedence() {
+    let defaults = resolve_props(FileTriggerPropsInput::default());
+    assert_eq!(
+        defaults,
+        FileTriggerProps {
+            is_disabled: false,
+            selection_mode: FileTriggerSelectionMode::SingleFile,
+        }
+    );
+
+    let from_legacy_aliases = resolve_props(FileTriggerPropsInput {
+        disabled: Some(true),
+        multiple: Some(true),
+        accept_directory: Some(true),
+        ..FileTriggerPropsInput::default()
+    });
+    assert_eq!(
+        from_legacy_aliases,
+        FileTriggerProps {
+            is_disabled: true,
+            selection_mode: FileTriggerSelectionMode::Directory,
+        }
+    );
+
+    let is_prefix_wins = resolve_props(FileTriggerPropsInput {
+        is_disabled: Some(false),
+        disabled: Some(true),
+        is_multiple: Some(false),
+        multiple: Some(true),
+        is_accept_directory: Some(false),
+        accept_directory: Some(true),
+    });
+    assert_eq!(
+        is_prefix_wins,
+        FileTriggerProps {
+            is_disabled: false,
+            selection_mode: FileTriggerSelectionMode::SingleFile,
+        }
+    );
+
+    let multiple_mode = resolve_props(FileTriggerPropsInput {
+        is_multiple: Some(true),
+        ..FileTriggerPropsInput::default()
+    });
+    assert_eq!(
+        multiple_mode.selection_mode,
+        FileTriggerSelectionMode::MultipleFiles
+    );
+}
+
+#[test]
+fn resolve_render_state_centralizes_state_derivation() {
+    let render_state = resolve_render_state(FileTriggerRenderStateInput {
+        props: FileTriggerPropsInput {
+            is_disabled: Some(true),
+            disabled: Some(false),
+            is_multiple: Some(true),
+            multiple: Some(false),
+            is_accept_directory: Some(true),
+            accept_directory: Some(false),
+        },
+        has_custom_motion: true,
+    });
+
+    assert_eq!(
+        render_state.props,
+        FileTriggerProps {
+            is_disabled: true,
+            selection_mode: FileTriggerSelectionMode::Directory,
+        }
+    );
+    assert_eq!(render_state.state.state_attr, "disabled");
+    assert_eq!(render_state.state.motion_source_attr, "custom");
+}

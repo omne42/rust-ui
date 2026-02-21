@@ -54,7 +54,7 @@ fn resolve_state_tracks_trigger_items_and_strategy_flags() {
     let state = resolve_state(DropdownMenuStateInput {
         item_count: 3,
         trigger_disabled: false,
-        close_on_action: false,
+        action_mode: DropdownMenuActionMode::KeepOpenOnAction,
         has_custom_class_name: true,
         has_disabled_items: true,
         has_item_kinds: true,
@@ -84,7 +84,7 @@ fn compose_class_name_includes_state_markers() {
         resolve_state(DropdownMenuStateInput {
             item_count: 0,
             trigger_disabled: true,
-            close_on_action: false,
+            action_mode: DropdownMenuActionMode::KeepOpenOnAction,
             has_custom_class_name: true,
             has_disabled_items: false,
             has_item_kinds: false,
@@ -107,4 +107,51 @@ fn compose_class_name_includes_state_markers() {
             "composed class name should include `{token}`"
         );
     }
+}
+
+#[test]
+fn dropdown_menu_event_decision_is_centralized() {
+    assert_eq!(resolve_root_state_attr(true, false), "open");
+    assert_eq!(resolve_root_state_attr(false, true), "disabled");
+    assert_eq!(resolve_root_state_attr(false, false), "closed");
+
+    assert_eq!(
+        resolve_trigger_press(false, false),
+        Some(DropdownMenuPressResult {
+            next_open: true,
+            open_focus: Some(MenuOpenFocusStrategy::First),
+        })
+    );
+    assert_eq!(resolve_trigger_press(true, false), None);
+}
+
+#[test]
+fn normalize_discrete_props_resolves_alias_priority() {
+    assert_eq!(
+        normalize_discrete_props(DropdownMenuDiscreteInput {
+            is_disabled: Some(true),
+            disabled: false,
+            is_close_on_action: Some(false),
+            close_on_action: true,
+        }),
+        DropdownMenuDiscreteProps {
+            disabled: true,
+            action_mode: DropdownMenuActionMode::KeepOpenOnAction,
+        }
+    );
+}
+
+#[test]
+fn normalize_open_state_tracks_control_mode_and_forwards_triplet() {
+    let state = normalize_open_state(DropdownMenuOpenStateInput {
+        is_open: None,
+        open: None,
+        default_open: Some(true),
+        on_open_change: None,
+    });
+
+    assert!(!state.is_controlled);
+    assert_eq!(state.default_open, Some(true));
+    assert!(state.open.is_none());
+    assert!(state.on_open_change.is_none());
 }

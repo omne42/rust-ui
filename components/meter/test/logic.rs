@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use super::*;
 
 #[test]
@@ -62,7 +64,7 @@ fn resolve_aria_label_defaults_and_detects_custom_source() {
     );
     assert_eq!(
         resolve_aria_label(None, Some("  Completion  ".to_string())),
-        ("Completion".to_string(), true)
+        ("Completion".into(), true)
     );
     assert_eq!(
         resolve_aria_label(Some("  Meter  ".to_string()), Some("  Label  ".to_string())),
@@ -73,7 +75,7 @@ fn resolve_aria_label_defaults_and_detects_custom_source() {
             Some("  Upload progress  ".to_string()),
             Some("  Label  ".to_string())
         ),
-        ("Upload progress".to_string(), true)
+        ("Upload progress".into(), true)
     );
 }
 
@@ -166,4 +168,136 @@ fn compose_class_name_includes_state_markers() {
             "composed class name should include `{token}`"
         );
     }
+}
+
+#[test]
+fn normalize_inputs_centralizes_default_values() {
+    let normalized = normalize_inputs(MeterInputNormalizationInput::default());
+
+    assert_eq!(normalized.range, MeterRange::sanitized(0.0, 100.0));
+    assert!(normalized.is_value_label_visible);
+    assert_eq!(
+        normalized.aria_label,
+        ui_state_primitives::meter::DEFAULT_ARIA_LABEL
+    );
+    assert!(!normalized.has_custom_aria_label);
+    assert!(!normalized.has_custom_value_label);
+    assert!(!normalized.has_custom_class_name);
+}
+
+#[test]
+fn normalize_inputs_uses_is_prefix_value_visibility_priority() {
+    let normalized = normalize_inputs(MeterInputNormalizationInput {
+        is_value_label_visible: Some(false),
+        show_value_label: Some(true),
+        ..Default::default()
+    });
+
+    assert!(!normalized.is_value_label_visible);
+}
+
+#[test]
+fn resolve_aria_label_with_fallback_prefers_props_then_injected_default() {
+    assert_eq!(
+        resolve_aria_label_with_fallback(
+            Some("  Upload progress  ".to_string()),
+            Some("  Completion  ".to_string()),
+            Some("  Meter from i18n  ".to_string().into())
+        ),
+        (Cow::Owned("Upload progress".to_string()), true)
+    );
+    assert_eq!(
+        resolve_aria_label_with_fallback(
+            None,
+            Some("  Completion  ".to_string()),
+            Some("  Meter from i18n  ".to_string().into())
+        ),
+        (Cow::Owned("Completion".to_string()), true)
+    );
+    assert_eq!(
+        resolve_aria_label_with_fallback(
+            None,
+            None,
+            Some("  Meter from i18n  ".to_string().into())
+        ),
+        (Cow::Owned("Meter from i18n".to_string()), false)
+    );
+}
+
+#[test]
+fn normalize_inputs_normalizes_label_and_range_in_logic_layer() {
+    let normalized = normalize_inputs(MeterInputNormalizationInput {
+        label: Some("  Completion  ".to_string()),
+        aria_label: Some("   ".to_string()),
+        min: Some(20.0),
+        max: Some(10.0),
+        value_label: Some("  33%  ".to_string()),
+        class_name: Some("  docs-meter  ".to_string()),
+        ..Default::default()
+    });
+
+    assert_eq!(normalized.label, Some("Completion".to_string()));
+    assert_eq!(normalized.aria_label, "Completion");
+    assert!(normalized.has_custom_aria_label);
+    assert_eq!(normalized.range, MeterRange::sanitized(20.0, 10.0));
+    assert_eq!(normalized.value_label, Some("33%".to_string()));
+    assert!(normalized.has_custom_value_label);
+    assert_eq!(normalized.class_name, Some("docs-meter".to_string()));
+    assert!(normalized.has_custom_class_name);
+}
+
+#[test]
+fn normalize_inputs_uses_injected_aria_label_fallback() {
+    let normalized = normalize_inputs(MeterInputNormalizationInput {
+        default_aria_label: Some("  Meter from i18n  ".to_string().into()),
+        ..Default::default()
+    });
+
+    assert_eq!(normalized.aria_label, "Meter from i18n");
+    assert!(!normalized.has_custom_aria_label);
+}
+
+#[test]
+fn derive_render_state_concentrates_runtime_semantics() {
+    let render_state = derive_render_state(MeterRenderStateInput {
+        value: Some(25.0),
+        range: MeterRange::sanitized(0.0, 100.0),
+        is_value_label_visible: true,
+        value_label: None,
+    });
+
+    assert_eq!(render_state.clamped_value, Some(25.0));
+    assert_eq!(render_state.normalized_progress, Some(0.25));
+    assert_eq!(render_state.phase, MeterPhase::Determinate);
+    assert_eq!(render_state.aria_value_now, Some("25".to_string()));
+    assert_eq!(render_state.value_label_text, Some("25%".to_string()));
+}
+
+#[test]
+fn derive_render_state_applies_visibility_and_override_rules() {
+    let hidden = derive_render_state(MeterRenderStateInput {
+        value: Some(10.0),
+        range: MeterRange::sanitized(0.0, 100.0),
+        is_value_label_visible: false,
+        value_label: Some("forced".to_string()),
+    });
+    assert_eq!(hidden.value_label_text, None);
+
+    let override_text = derive_render_state(MeterRenderStateInput {
+        value: Some(10.0),
+        range: MeterRange::sanitized(0.0, 100.0),
+        is_value_label_visible: true,
+        value_label: Some("forced".to_string()),
+    });
+    assert_eq!(override_text.value_label_text, Some("forced".to_string()));
+
+    let indeterminate = derive_render_state(MeterRenderStateInput {
+        value: None,
+        range: MeterRange::sanitized(0.0, 100.0),
+        is_value_label_visible: true,
+        value_label: None,
+    });
+    assert_eq!(indeterminate.phase, MeterPhase::Indeterminate);
+    assert_eq!(indeterminate.aria_value_now, None);
+    assert_eq!(indeterminate.value_label_text, None);
 }

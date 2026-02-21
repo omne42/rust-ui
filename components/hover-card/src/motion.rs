@@ -1,4 +1,5 @@
 use ui_headless::PopoverPlacement;
+use ui_theme::default_overlay_layout_tokens;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct HoverCardMotion {
@@ -9,10 +10,11 @@ pub struct HoverCardMotion {
 
 impl Default for HoverCardMotion {
     fn default() -> Self {
+        let overlay = default_overlay_layout_tokens();
         Self {
             spring: ui_motion::presets::spring_slide(),
-            initial_scale: 0.98,
-            offset_y_px: 8.0,
+            initial_scale: overlay.enter_scale,
+            offset_y_px: f64::from(overlay.enter_offset_y_px),
         }
     }
 }
@@ -79,6 +81,8 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
+    let node_ref_for_init = node_ref.clone();
+    let node_ref_for_updates = node_ref;
     let motion = StoredValue::new(sanitize_motion(motion));
     let last_state = StoredValue::new(None::<bool>);
     let springs = StoredValue::new_local(
@@ -91,7 +95,7 @@ pub fn attach_motion(
 
     Effect::new(move |_| {
         let config = motion.get_value().spring;
-        let Some(div) = node_ref.get() else {
+        let Some(div) = node_ref_for_init.get() else {
             return;
         };
         if springs.get_value().is_some() {
@@ -104,29 +108,78 @@ pub fn attach_motion(
         let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
 
         let open_now = is_open.get_untracked();
+        let prefers_reduced_motion = ui_motion::web::prefers_reduced_motion();
         let opacity_initial = 0.0;
         let scale_initial = motion.initial_scale;
         let y_initial = offset_y;
 
-        drop(style.set_property("--ui-hover-card-opacity", &format!("{opacity_initial}")));
-        drop(style.set_property("--ui-hover-card-scale", &format!("{scale_initial}")));
-        drop(style.set_property("--ui-hover-card-y", &format!("{y_initial}px")));
+        if prefers_reduced_motion {
+            let (opacity_target, scale_target, y_target) = if open_now {
+                (1.0, 1.0, 0.0)
+            } else {
+                (opacity_initial, scale_initial, y_initial)
+            };
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-hover-card-opacity",
+                &format!("{opacity_target}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-hover-card-scale",
+                &format!("{scale_target}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-hover-card-y",
+                &format!("{y_target}px")
+            );
+            return;
+        }
+
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-hover-card-opacity",
+            &format!("{opacity_initial}")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-hover-card-scale",
+            &format!("{scale_initial}")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-hover-card-y",
+            &format!("{y_initial}px")
+        );
         let style_for_opacity = style.clone();
         let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_opacity.set_property("--ui-hover-card-opacity", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_opacity),
+                "--ui-hover-card-opacity",
+                &format!("{v}")
+            );
         });
 
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
             let v = v.clamp(0.0, 10.0);
-            drop(style_for_scale.set_property("--ui-hover-card-scale", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_scale),
+                "--ui-hover-card-scale",
+                &format!("{v}")
+            );
         });
 
         let style_for_y = style.clone();
         let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
             let v = v.clamp(-1000.0, 1000.0);
-            drop(style_for_y.set_property("--ui-hover-card-y", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_y),
+                "--ui-hover-card-y",
+                &format!("{v}px")
+            );
         });
 
         let springs_for_cleanup = springs;
@@ -157,6 +210,56 @@ pub fn attach_motion(
             return;
         }
         last_state.set_value(Some(open));
+
+        if ui_motion::web::prefers_reduced_motion() {
+            let Some(div) = node_ref_for_updates.get() else {
+                if !open {
+                    on_exit_complete.run(());
+                }
+                return;
+            };
+            let element: leptos::web_sys::HtmlElement = div.unchecked_into();
+            let style = element.style();
+            let motion = motion.get_value();
+            let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
+
+            if open {
+                ui_observability::set_css_property_observed_auto!(
+                    &(style),
+                    "--ui-hover-card-opacity",
+                    "1"
+                );
+                ui_observability::set_css_property_observed_auto!(
+                    &(style),
+                    "--ui-hover-card-scale",
+                    "1"
+                );
+                ui_observability::set_css_property_observed_auto!(
+                    &(style),
+                    "--ui-hover-card-y",
+                    "0px"
+                );
+                return;
+            }
+
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-hover-card-opacity",
+                "0"
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-hover-card-scale",
+                &format!("{}", motion.initial_scale),
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-hover-card-y",
+                &format!("{offset_y}px")
+            );
+            on_exit_complete.run(());
+            return;
+        }
 
         let Some((opacity, scale, y)) = springs.get_value() else {
             return;

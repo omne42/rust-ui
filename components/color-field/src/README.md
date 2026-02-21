@@ -24,11 +24,13 @@
 | `id_base` | `String` | required |
 | `label` | `Option<String>` | `"Color"` |
 | `placeholder` | `Option<String>` | `"#RRGGBB"` |
-| `disabled` | `bool` | `false` |
+| `is_disabled` | `Option<bool>` | `None` (`false`) |
+| `disabled` | `Option<bool>` | `None` (legacy alias; fallback to `is_disabled`) |
 | `value` | `Option<Signal<Option<String>>>` | `None` |
 | `default_value` | `Option<String>` | `None` |
 | `on_value_change` | `Option<Callback<Option<String>>>` | `None` |
-| `show_preview` | `bool` | `true` |
+| `is_preview_visible` | `Option<bool>` | `None` (`true`) |
+| `show_preview` | `Option<bool>` | `None` (legacy alias; fallback to `is_preview_visible`) |
 | `aria_label` | `Option<String>` | `${label} value` / `"Color value"` |
 | `class_name` | `Option<String>` | `None` |
 | `lang` | `Option<String>` | `None` |
@@ -43,6 +45,10 @@
 受控/非受控规则：
 - 受控：传入 `value + on_value_change`，外部值为单一事实来源。
 - 非受控：传入 `default_value`，后续状态由内部 controllable-state 管理。
+
+命名兼容策略：
+- 推荐使用 `is_disabled`、`is_preview_visible`。
+- 旧字段 `disabled`、`show_preview` 仍保留为兼容别名，解析优先级为 `is_*` 优先，其次旧字段。
 
 ## Hello World（最小可用）
 
@@ -69,7 +75,7 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
 - 接入 `ui_headless::locale_attrs`，支持 `lang/dir`（LTR/RTL）上下文透传。
 - 清除按钮文案与 `aria-label` 来源于 `ui_headless::CommonStrings::clear_aria_label`，不硬编码业务文本。
 - 暴露稳定语义标记（用于测试/自动化）：
-  - `data-state`: `disabled | empty | valid | invalid`
+  - `data-state`: `disabled | empty | valid | invalid`（由 `ColorFieldVisualState` enum 映射）
   - `data-label-source`: `default | custom`
   - `data-placeholder-source`: `default | custom`
   - `data-aria-source`: `default | custom`

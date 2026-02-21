@@ -34,30 +34,10 @@ impl ContextMenuSlot {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum MenuOpenFocusStrategy {
-    #[default]
-    First,
-    Last,
-}
-
-impl MenuOpenFocusStrategy {
-    pub fn default_index(self, item_count: usize) -> usize {
-        match self {
-            Self::First => 0,
-            Self::Last => item_count.saturating_sub(1),
-        }
-    }
-}
+pub type MenuOpenFocusStrategy = ui_headless::MenuOpenFocusStrategy;
 
 pub fn focus_strategy_for_open_key(key: &str, shift_key: bool) -> Option<MenuOpenFocusStrategy> {
-    match key {
-        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
-        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
-        "ContextMenu" => Some(MenuOpenFocusStrategy::First),
-        "F10" if shift_key => Some(MenuOpenFocusStrategy::First),
-        _ => None,
-    }
+    ui_headless::context_menu_open_focus_strategy_for_key(key, shift_key)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

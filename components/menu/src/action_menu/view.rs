@@ -27,6 +27,7 @@ pub fn ActionMenu(
     #[prop(optional)] is_close_on_action: Option<bool>,
     #[prop(optional)] close_on_action: Option<bool>,
     #[prop(optional)] placement: PopoverPlacement,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
@@ -38,6 +39,15 @@ pub fn ActionMenu(
     #[prop(optional)] motion: ActionMenuMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let open_state_input = logic::normalize_open_state(logic::ActionMenuOpenStateInput {
+        is_open,
+        open,
+        default_open,
+        on_open_change,
+    });
+    let has_custom_open = open_state_input.has_custom_open;
+    let has_custom_default_open = open_state_input.has_custom_default_open;
+    let has_custom_on_open_change = open_state_input.has_custom_on_open_change;
     let i18n = use_ui_i18n();
     let common = i18n.strings::<CommonStrings>();
     let locale = locale_attrs(lang, dir);
@@ -53,9 +63,6 @@ pub fn ActionMenu(
     let items: StoredValue<std::sync::Arc<[String]>> =
         StoredValue::new(normalized_items.items.into());
 
-    let has_custom_open = open.is_some();
-    let has_custom_default_open = default_open.is_some();
-    let has_custom_on_open_change = on_open_change.is_some();
     let motion = crate::action_menu::motion::sanitize_motion(motion);
     let has_custom_motion = motion != ActionMenuMotion::default();
 
@@ -113,9 +120,9 @@ pub fn ActionMenu(
 
     let open_state = overlay_open::use_controllable_open_state_traced(
         "action-menu",
-        open,
-        default_open,
-        on_open_change,
+        open_state_input.open,
+        open_state_input.default_open,
+        open_state_input.on_open_change,
     );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
@@ -180,11 +187,9 @@ pub fn ActionMenu(
     let presence = use_presence(open);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if let Some(strategy) = ui_headless::menu_trigger_open_focus_strategy(
-            &ev.key(),
-            trigger_disabled,
-            open.get_untracked(),
-        ) {
+        if let Some(strategy) =
+            logic::resolve_open_focus_strategy(&ev.key(), trigger_disabled, open.get_untracked())
+        {
             set_open_focus.set(strategy);
             request_open_change.run(true);
             ev.prevent_default();

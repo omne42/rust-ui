@@ -5,8 +5,8 @@ use ui_components::{IconsWorkflow, IconsWorkflowSize, IconsWorkflowTone, Iconset
 
 pub(super) fn icons_workflow() -> AnyView {
     let defaults_code = Signal::derive(move || {
-        r#"<IconsWorkflow icon="success".to_string() size=IconsWorkflowSize::Md tone=IconsWorkflowTone::Accent decorative=false />
-<IconsWorkflow icon="warning".to_string() size=IconsWorkflowSize::Md tone=IconsWorkflowTone::Danger decorative=false />"#.to_string()
+        r#"<IconsWorkflow icon="success".to_string() size=IconsWorkflowSize::Md tone=IconsWorkflowTone::Accent is_decorative=false />
+<IconsWorkflow icon="warning".to_string() size=IconsWorkflowSize::Md tone=IconsWorkflowTone::Danger is_decorative=false />"#.to_string()
     });
 
     let custom_code = Signal::derive(move || {
@@ -15,7 +15,7 @@ pub(super) fn icons_workflow() -> AnyView {
   glyphs=vec![IconsetGlyph::new("workflow:deploy", "🚀").with_aria_label("Workflow Deploy")]
   size=IconsWorkflowSize::Lg
   tone=IconsWorkflowTone::Default
-  decorative=false
+  is_decorative=false
   class_name="docs-icons-workflow-custom".to_string()
 />"#
         .to_string()
@@ -27,7 +27,7 @@ pub(super) fn icons_workflow() -> AnyView {
   glyphs=vec![IconsetGlyph::new("workflow:success", "✓").with_aria_label("Workflow Success")]
   size=IconsWorkflowSize::Lg
   tone=IconsWorkflowTone::Muted
-  decorative=false
+  is_decorative=false
   aria_label="Explicit workflow success icon".to_string()
   class_name="docs-icons-workflow-state".to_string()
 />"#
@@ -67,11 +67,11 @@ pub(super) fn icons_workflow() -> AnyView {
             format!("  icon=\"{icon}\".into()"),
             format!("  size=IconsWorkflowSize::{size:?}"),
             format!("  tone=IconsWorkflowTone::{tone:?}"),
-            format!("  decorative={}", interactive_decorative.get()),
+            format!("  is_decorative={}", interactive_decorative.get()),
         ];
 
         if interactive_disabled.get() {
-            snippet.push("  disabled=true".to_string());
+            snippet.push("  is_disabled=true".to_string());
         }
         if interactive_custom_aria.get() {
             snippet.push("  aria_label=\"Interactive workflow icon\".into()".to_string());
@@ -159,13 +159,13 @@ pub(super) fn icons_workflow() -> AnyView {
                         icon="success".to_string()
                         size=IconsWorkflowSize::Md
                         tone=IconsWorkflowTone::Accent
-                        decorative=false
+                        is_decorative=false
                     />
                     <IconsWorkflow
                         icon="warning".to_string()
                         size=IconsWorkflowSize::Md
                         tone=IconsWorkflowTone::Danger
-                        decorative=false
+                        is_decorative=false
                     />
                 </div>
             </Playground>
@@ -180,7 +180,7 @@ pub(super) fn icons_workflow() -> AnyView {
                         ]
                         size=IconsWorkflowSize::Lg
                         tone=IconsWorkflowTone::Default
-                        decorative=false
+                        is_decorative=false
                         class_name="docs-icons-workflow-custom".to_string()
                     />
                 </div>
@@ -200,7 +200,7 @@ pub(super) fn icons_workflow() -> AnyView {
                         ]
                         size=IconsWorkflowSize::Lg
                         tone=IconsWorkflowTone::Muted
-                        decorative=false
+                        is_decorative=false
                         aria_label="Explicit workflow success icon".to_string()
                         class_name="docs-icons-workflow-state".to_string()
                     />
@@ -290,7 +290,7 @@ pub(super) fn icons_workflow() -> AnyView {
                                     _ => "default",
                                 };
                                 format!(
-                                    "config: icon={} size={} tone={} disabled={} decorative={} custom_aria={} custom_class={} custom_glyph={}",
+                                    "config: icon={} size={} tone={} is_disabled={} is_decorative={} custom_aria={} custom_class={} custom_glyph={}",
                                     icon,
                                     if interactive_size_lg.get() { "lg" } else { "md" },
                                     tone,
@@ -354,8 +354,8 @@ pub(super) fn icons_workflow() -> AnyView {
                                         glyphs=glyphs
                                         size=size
                                         tone=tone
-                                        disabled=disabled
-                                        decorative=decorative
+                                        is_disabled=disabled
+                                        is_decorative=decorative
                                         aria_label=aria_label
                                         class_name=class_name
                                     />
@@ -366,7 +366,7 @@ pub(super) fn icons_workflow() -> AnyView {
                                         icon="success".to_string()
                                         size=IconsWorkflowSize::Md
                                         tone=IconsWorkflowTone::Accent
-                                        decorative=false
+                                        is_decorative=false
                                     />
                                 </div>
                             </div>

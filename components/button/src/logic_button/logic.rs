@@ -26,10 +26,7 @@ impl LogicButtonVariant {
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    ui_state_primitives::button::normalize_optional_text(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {

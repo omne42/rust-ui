@@ -125,6 +125,11 @@ name = "on_exit_complete"
 ty = "Option<Callback<()>>"
 scope = "overlay-exit"
 
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-config-policy + data-ui-output-status + data-output-status + data-ui-capability-* + data-ui-source-*"
+scope = "root"
+
 [[capabilities]]
 name = "overlay_alertdialog_role"
 enabled = true
@@ -147,6 +152,14 @@ enabled = true
 
 [[capabilities]]
 name = "locale_context_lang_dir_passthrough"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_whitelist_render_policy"
 enabled = true
 
 [[dependencies]]

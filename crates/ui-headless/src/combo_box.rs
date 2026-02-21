@@ -42,6 +42,16 @@ pub struct ComboBoxListBoxAttrs {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ComboBoxOptionAttrs {
+    pub role: &'static str,
+    pub aria_selected: Option<&'static str>,
+    pub aria_disabled: Option<&'static str>,
+    pub data_selected: Option<&'static str>,
+    pub data_focused: Option<&'static str>,
+    pub data_disabled: Option<&'static str>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ComboBoxKeyDownResult {
     pub handled: bool,
     pub stop_propagation: bool,
@@ -77,6 +87,7 @@ pub struct ComboBoxHandlers {
 pub struct ComboBoxAria {
     pub active_index: ReadSignal<usize>,
     pub option_id: Callback<usize, String>,
+    pub option_attrs: Callback<usize, ComboBoxOptionAttrs>,
     pub input: ComboBoxInputAttrs,
     pub listbox: ComboBoxListBoxAttrs,
     pub handlers: ComboBoxHandlers,
@@ -127,6 +138,21 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
         let id_base = id_base.clone();
         move |index: usize| format!("{id_base}-option-{index}")
     });
+    let option_attrs = {
+        let active_index = roving.active_index;
+        Callback::new(move |index: usize| {
+            let is_selected = selected_index.get() == Some(index);
+            let is_disabled = is_item_disabled.as_ref().is_some_and(|cb| cb.run(index));
+            ComboBoxOptionAttrs {
+                role: "option",
+                aria_selected: is_selected.then_some("true"),
+                aria_disabled: is_disabled.then_some("true"),
+                data_selected: is_selected.then_some("true"),
+                data_focused: (active_index.get() == index).then_some("true"),
+                data_disabled: is_disabled.then_some("true"),
+            }
+        })
+    };
 
     let aria_expanded = Memo::new(move |_| Some(if is_open.get() { "true" } else { "false" }));
 
@@ -283,6 +309,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
     ComboBoxAria {
         active_index: roving.active_index,
         option_id,
+        option_attrs,
         input: ComboBoxInputAttrs {
             id: input_id,
             role: "combobox",

@@ -85,11 +85,14 @@ pub fn attach_motion(
     is_disabled: bool,
     motion: ButtonMotion,
 ) {
-    use crate::observability::warn_js_error;
+    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
     if is_disabled {
+        return;
+    }
+    if ui_motion::web::prefers_reduced_motion() {
         return;
     }
 
@@ -113,9 +116,12 @@ pub fn attach_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(1.0, config, move |scale| {
             let scale = scale.clamp(0.0, 10.0);
-            if let Err(error) = style.set_property("--ui-button-scale", &format!("{scale}")) {
-                warn_js_error("button.motion.scale", &error);
-            }
+            set_css_property_observed(
+                &style,
+                "--ui-button-scale",
+                &format!("{scale}"),
+                "button.motion.scale",
+            );
         });
 
         let spring_for_cleanup = spring;

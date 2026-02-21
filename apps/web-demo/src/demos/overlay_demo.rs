@@ -21,7 +21,7 @@ pub fn OverlayDemo() -> impl IntoView {
         <>
             <Show when=move || is_modal_present.get()>
                 <Modal
-                    open=is_modal_open.into()
+                    is_open=is_modal_open.into()
                     id_base="demo-modal".to_string()
                     title="Overlay v2".to_string()
                     description="Esc / click outside closes. Tab is trapped; close returns focus.".to_string()

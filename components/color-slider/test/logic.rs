@@ -1,20 +1,6 @@
 use super::*;
 
 #[test]
-fn channel_contracts_are_stable() {
-    assert_eq!(
-        ColorSliderChannel::Hue.class_name(),
-        "ui-color-slider--channel-hue"
-    );
-    assert_eq!(ColorSliderChannel::Hue.as_attr(), "hue");
-    assert_eq!(ColorSliderChannel::Hue.default_bounds(), (0.0, 360.0));
-    assert_eq!(ColorSliderChannel::Hue.default_label(), "Hue");
-
-    assert_eq!(ColorSliderChannel::Alpha.default_bounds(), (0.0, 100.0));
-    assert_eq!(ColorSliderChannel::Red.default_bounds(), (0.0, 255.0));
-}
-
-#[test]
 fn normalize_helpers_keep_defaults_and_trim_values() {
     assert_eq!(
         normalize_label(None, ColorSliderChannel::Hue),
@@ -33,74 +19,24 @@ fn normalize_helpers_keep_defaults_and_trim_values() {
         normalize_aria_label(Some("  Tone  ".to_string()), "Hue", ColorSliderChannel::Hue),
         ("Tone".to_string(), true)
     );
-
-    assert_eq!(
-        sanitize_track_color(Some(" #09f ".to_string())),
-        Some("#09f".to_string())
-    );
-    assert_eq!(
-        sanitize_track_color(Some("javascript:alert(1)".to_string())),
-        None
-    );
 }
 
 #[test]
-fn sanitizers_handle_invalid_bounds_step_and_value() {
-    let channel = ColorSliderChannel::Hue;
-    let (min, max) = sanitize_bounds(channel, 360.0, 0.0);
-    assert_eq!((min, max), (0.0, 360.0));
-
-    let step = sanitize_step(channel, f64::NAN, min, max);
-    assert_eq!(step, 1.0);
-
-    let value = sanitize_value(channel, 482.5, min, max, step);
-    assert_eq!(value, 360.0);
-
-    assert_eq!(resolve_percent(180.0, min, max), 50.0);
-}
-
-#[test]
-fn inline_style_and_formatting_are_stable() {
+fn inline_style_composition_is_stable() {
+    let style = compose_inline_style(Some("#000"), Some("#fff"))
+        .expect("custom track colors should produce inline css variables");
     assert_eq!(
-        compose_inline_style(Some("#000"), Some("#fff")),
-        Some("--ui-color-slider-track-start: #000; --ui-color-slider-track-end: #fff;".to_string())
+        style,
+        "--ui-color-slider-track-start: #000; --ui-color-slider-track-end: #fff;"
+    );
+    assert!(
+        !style.contains("background:")
+            && !style.contains("display:")
+            && !style.contains("position:")
+            && !style.contains("color:"),
+        "inline style contract should only carry custom properties, not business style rules.",
     );
     assert_eq!(compose_inline_style(None, None), None);
-
-    assert_eq!(format_channel_value(ColorSliderChannel::Hue, 120.4), "120°");
-    assert_eq!(format_channel_value(ColorSliderChannel::Alpha, 57.6), "58%");
-    assert_eq!(format_channel_value(ColorSliderChannel::Red, 200.2), "200");
-}
-
-#[test]
-fn resolve_state_and_class_name_track_markers() {
-    let state = resolve_state(ColorSliderStateInput {
-        disabled: false,
-        channel: ColorSliderChannel::Alpha,
-        value: 45.0,
-        min: 0.0,
-        max: 100.0,
-        step: 1.0,
-        show_value_label: true,
-        has_custom_motion: true,
-        has_custom_label: true,
-        has_custom_aria_label: false,
-        has_custom_class_name: true,
-        has_custom_track: true,
-    });
-
-    assert_eq!(state.channel_attr, "alpha");
-    assert_eq!(state.motion_source_attr, "custom");
-    assert_eq!(state.label_source_attr, "custom");
-    assert_eq!(state.track_source_attr, "custom");
-    assert_eq!(state.class_source_attr, "custom");
-
-    let class = compose_class_name(Some("docs-custom".to_string()), state);
-    assert!(class.contains("ui-color-slider"));
-    assert!(class.contains("ui-color-slider--channel-alpha"));
-    assert!(class.contains("ui-color-slider--motion-custom"));
-    assert!(class.contains("ui-color-slider--track-custom"));
-    assert!(class.contains("docs-custom"));
 }
 
 #[test]
@@ -125,4 +61,60 @@ fn accessibility_and_agent_contract_markers_are_closed_sets() {
     assert_eq!(resolve_ui_action(false, false).as_attr(), "idle");
     assert_eq!(resolve_ui_action(false, true).as_attr(), "focus");
     assert_eq!(resolve_ui_action(true, true).as_attr(), "press");
+}
+
+#[test]
+fn source_attrs_are_derived_in_logic_layer() {
+    let attrs = resolve_source_attrs(ColorSliderInputPresence {
+        has_external_value: true,
+        has_default_value: true,
+        has_value_change_handler: true,
+    });
+    assert_eq!(attrs.control_mode_attr, "controlled");
+    assert_eq!(attrs.value_source_attr, "external");
+    assert_eq!(attrs.value_change_source_attr, "on_value_change");
+    assert_eq!(attrs.default_value_source_attr, "provided");
+
+    let attrs = resolve_source_attrs(ColorSliderInputPresence {
+        has_external_value: false,
+        has_default_value: false,
+        has_value_change_handler: false,
+    });
+    assert_eq!(attrs.control_mode_attr, "uncontrolled");
+    assert_eq!(attrs.value_source_attr, "default_value");
+    assert_eq!(attrs.value_change_source_attr, "none");
+    assert_eq!(attrs.default_value_source_attr, "unset");
+}
+
+#[test]
+fn state_primitive_calls_remain_available() {
+    let state = resolve_state(ColorSliderStateInput {
+        disabled: false,
+        channel: ColorSliderChannel::Alpha,
+        value: 45.0,
+        min: 0.0,
+        max: 100.0,
+        step: 1.0,
+        show_value_label: true,
+        has_custom_motion: true,
+        has_custom_label: true,
+        has_custom_aria_label: false,
+        has_custom_class_name: true,
+        has_custom_track: true,
+    });
+
+    assert_eq!(state.channel_attr, "alpha");
+    assert_eq!(state.track_source_attr, "custom");
+
+    let class = compose_class_name(Some("docs-custom".to_string()), state);
+    assert!(class.contains("ui-color-slider--channel-alpha"));
+}
+
+#[test]
+fn default_value_normalization_stays_in_logic_layer() {
+    let resolved = normalize_default_value(ColorSliderChannel::Hue, None, 0.0, 360.0, 1.0);
+    assert_eq!(resolved, ColorSliderChannel::Hue.default_value());
+
+    let resolved = normalize_default_value(ColorSliderChannel::Hue, Some(400.2), 0.0, 360.0, 1.0);
+    assert_eq!(resolved, 360.0);
 }

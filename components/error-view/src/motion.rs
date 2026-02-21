@@ -118,19 +118,29 @@ pub fn attach_motion(
         let initial_opacity = if open_now { 1.0 } else { motion.hidden_opacity };
         let initial_scale = if open_now { 1.0 } else { motion.hidden_scale };
 
-        drop(style.set_property(
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
             "--ui-error-view-translate-y",
             &format!("{initial_translate}px"),
-        ));
-        drop(style.set_property("--ui-error-view-opacity", &format!("{initial_opacity}")));
-        drop(style.set_property("--ui-error-view-scale", &format!("{initial_scale}")));
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-error-view-opacity",
+            &format!("{initial_opacity}")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-error-view-scale",
+            &format!("{initial_scale}")
+        );
         let style_translate = style.clone();
         let translate =
             ui_motion::spring::SpringAnimator::new(initial_translate, motion.spring, move |next| {
                 let next = next.clamp(-1000.0, 1000.0);
-                drop(
-                    style_translate
-                        .set_property("--ui-error-view-translate-y", &format!("{next}px")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_translate),
+                    "--ui-error-view-translate-y",
+                    &format!("{next}px")
                 );
             });
 
@@ -138,14 +148,22 @@ pub fn attach_motion(
         let opacity =
             ui_motion::spring::SpringAnimator::new(initial_opacity, motion.spring, move |next| {
                 let next = next.clamp(0.0, 1.0);
-                drop(style_opacity.set_property("--ui-error-view-opacity", &format!("{next}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_opacity),
+                    "--ui-error-view-opacity",
+                    &format!("{next}")
+                );
             });
 
         let style_scale = style.clone();
         let scale =
             ui_motion::spring::SpringAnimator::new(initial_scale, motion.spring, move |next| {
                 let next = next.clamp(0.5, 1.2);
-                drop(style_scale.set_property("--ui-error-view-scale", &format!("{next}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_scale),
+                    "--ui-error-view-scale",
+                    &format!("{next}")
+                );
             });
 
         let springs_for_cleanup = springs;

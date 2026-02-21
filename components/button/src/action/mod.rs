@@ -16,28 +16,7 @@ pub use logic::{ActionButtonGroupDensity, ActionButtonGroupOrientation};
 pub use logic::{ActionGroupSelectionMode, ActionGroupTone, DEFAULT_ARIA_LABEL};
 
 #[cfg(feature = "component-action_group")]
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ActionGroupItem {
-    pub id: String,
-    pub label: String,
-    pub disabled: bool,
-}
-
-#[cfg(feature = "component-action_group")]
-impl ActionGroupItem {
-    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            disabled: false,
-        }
-    }
-
-    pub fn disabled(mut self, disabled: bool) -> Self {
-        self.disabled = disabled;
-        self
-    }
-}
+pub use ui_state_primitives::action_group::ActionGroupItem;
 
 #[cfg(feature = "component-action_group")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

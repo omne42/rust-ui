@@ -1,82 +1,22 @@
 use super::*;
 
 #[test]
-fn normalize_href_trims_and_rejects_blank_values() {
-    assert_eq!(
-        normalize_href(" https://example.com/docs ".to_string()),
-        Some("https://example.com/docs".to_string())
-    );
-    assert_eq!(normalize_href("   ".to_string()), None);
-}
+fn link_logic_consumes_state_primitives() {
+    let (_, source) = normalize_is_disabled(Some(true));
+    assert_eq!(source.as_attr(), "is-prop");
 
-#[test]
-fn normalize_optional_text_trims_and_rejects_blank_values() {
-    assert_eq!(
-        normalize_optional_text(Some(" external ".to_string())),
-        Some("external".to_string())
-    );
-    assert_eq!(normalize_optional_text(Some("  ".to_string())), None);
-    assert_eq!(normalize_optional_text(None), None);
-}
+    let rel = resolve_rel(LinkTargetKind::Blank, Some("sponsored".to_string()));
+    assert_eq!(rel, Some("noopener noreferrer sponsored".to_string()));
 
-#[test]
-fn normalize_is_disabled_uses_is_prefixed_or_default() {
-    assert_eq!(
-        normalize_is_disabled(Some(true)),
-        (true, LinkDisabledSource::IsProp)
-    );
-    assert_eq!(
-        normalize_is_disabled(None),
-        (false, LinkDisabledSource::Default)
-    );
-}
-
-#[test]
-fn resolve_rel_adds_security_tokens_for_blank_targets() {
-    assert_eq!(
-        resolve_rel(Some("_blank"), Some("noopener custom".to_string())),
-        Some("custom noopener noreferrer".to_string())
-    );
-    assert_eq!(
-        resolve_rel(Some("_self"), Some("  sponsored   sponsored  ".to_string())),
-        Some("sponsored".to_string())
-    );
-    assert_eq!(resolve_rel(None, None), None);
-}
-
-#[test]
-fn resolve_state_tracks_enablement_target_and_metadata() {
-    let enabled_state = resolve_state(LinkStateInput {
+    let state = resolve_state(LinkStateInput {
         is_disabled: false,
         has_href: true,
-        target: Some("_blank"),
-        has_explicit_rel: true,
-        has_aria_label: true,
-        has_custom_class_name: true,
-    });
-
-    assert!(enabled_state.is_enabled);
-    assert!(!enabled_state.is_disabled);
-    assert!(enabled_state.has_href);
-    assert_eq!(enabled_state.target_kind, "blank");
-    assert!(enabled_state.opens_new_context);
-    assert!(enabled_state.has_explicit_rel);
-    assert!(enabled_state.has_aria_label);
-    assert!(enabled_state.has_custom_class_name);
-    assert_eq!(enabled_state.state_attr, "enabled");
-    assert_eq!(enabled_state.rel_source_attr, "provided");
-
-    let missing_state = resolve_state(LinkStateInput {
-        is_disabled: false,
-        has_href: false,
-        target: None,
+        target_kind: LinkTargetKind::Blank,
         has_explicit_rel: false,
         has_aria_label: false,
         has_custom_class_name: false,
     });
-    assert_eq!(missing_state.state_attr, "missing-href");
-    assert_eq!(missing_state.target_kind, "self");
-    assert_eq!(missing_state.rel_source_attr, "auto");
+    assert_eq!(state.state, LinkVisualState::Enabled);
 }
 
 #[test]
@@ -86,7 +26,7 @@ fn compose_class_name_includes_state_tokens() {
         resolve_state(LinkStateInput {
             is_disabled: false,
             has_href: true,
-            target: Some("_blank"),
+            target_kind: LinkTargetKind::Blank,
             has_explicit_rel: false,
             has_aria_label: true,
             has_custom_class_name: true,

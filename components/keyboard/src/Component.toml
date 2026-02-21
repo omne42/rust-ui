@@ -1,0 +1,73 @@
+schema_version = "1"
+
+[component]
+id = "ui-keyboard"
+name = "Keyboard"
+kind = "snapshot"
+manifest_version = 1
+
+[projection]
+rbi = "keyboard.rbi"
+
+[files]
+mod_rs = "mod.rs"
+logic_rs = "logic.rs"
+styles_rs = "styles.rs"
+view_rs = "view.rs"
+
+[capabilities]
+snapshot = true
+streaming = false
+spec_builder = false
+motion_runtime = false
+
+[streaming_policy]
+required = false
+fallback = "snapshot"
+owner = "upstream"
+
+[a11y]
+role = "kbd"
+supports_lang_dir = true
+
+[markers]
+required = [
+  "data-slot",
+  "data-tone",
+  "data-state",
+  "data-compact",
+  "data-aria-source",
+  "data-class-source",
+  "data-custom-class",
+  "data-ui-schema",
+  "data-ui-schema-version",
+  "data-ui-intent",
+  "data-ui-action",
+  "data-ui-state",
+  "data-ui-source",
+  "data-ui-output-status",
+]
+
+[agent_contract]
+schema = "ui.keyboard.agent-contract/v1"
+fields = [
+  "intent",
+  "action",
+  "state",
+  "source.aria",
+  "source.class",
+  "output_status",
+]
+
+[output_state]
+default = "verified"
+allowed = ["draft", "verified", "committable"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "logic::normalize_root_state",
+  "ui_headless::use_keyboard",
+  "view::Keyboard",
+]
+blocked = ["inner_html", "dangerously_set_inner_html", "<script", "javascript:"]

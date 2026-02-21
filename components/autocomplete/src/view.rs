@@ -6,9 +6,85 @@ use ui_headless::use_presence;
 use ui_headless::{
     A11yDirection, ComboBoxOptions, CommonStrings, FocusRingOptions, PopoverPlacement,
     PopoverPositionOptions, TextFieldOptions, use_combo_box, use_focus_ring, use_popover_position,
-    use_text_field, use_ui_i18n,
+    use_text_field, use_ui_i18n, use_ui_id_provider,
 };
 use ui_visual_primitive::active_highlight::ActiveHighlightMotion;
+
+#[derive(Clone)]
+struct AutocompleteOptionViewCtx {
+    id: String,
+    label: String,
+    option_attrs: Memo<ui_headless::ComboBoxOptionAttrs>,
+    on_option_pointer_move: Callback<usize>,
+    on_option_click: Callback<usize>,
+    filtered_index: usize,
+}
+
+fn render_autocomplete_option(ctx: AutocompleteOptionViewCtx) -> impl IntoView {
+    let AutocompleteOptionViewCtx {
+        id,
+        label,
+        option_attrs,
+        on_option_pointer_move,
+        on_option_click,
+        filtered_index,
+    } = ctx;
+
+    view! {
+        <div
+            id=id
+            role=move || option_attrs.get().role
+            aria-selected=move || option_attrs.get().aria_selected
+            aria-disabled=move || option_attrs.get().aria_disabled
+            class="ui-autocomplete__option"
+            data-slot="autocomplete-option"
+            data-selected=move || option_attrs.get().data_selected
+            data-focused=move || option_attrs.get().data_focused
+            data-disabled=move || option_attrs.get().data_disabled
+            on:pointermove=move |_| on_option_pointer_move.run(filtered_index)
+            on:click=move |_| on_option_click.run(filtered_index)
+        >
+            {label}
+        </div>
+    }
+}
+
+fn render_autocomplete_description(
+    description: Option<String>,
+    description_id: String,
+) -> Option<AnyView> {
+    description.map(|description| {
+        view! {
+            <div
+                class="ui-autocomplete__description"
+                id=description_id
+                data-slot="autocomplete-description"
+            >
+                {description}
+            </div>
+        }
+        .into_any()
+    })
+}
+
+fn render_autocomplete_error(
+    error: Option<String>,
+    error_id: String,
+    invalid: Signal<bool>,
+) -> Option<AnyView> {
+    error.map(|error| {
+        let error_id = StoredValue::new(error_id);
+        let error = StoredValue::new(error);
+        view! {
+            <Show when=move || invalid.get()>
+                <div class="ui-autocomplete__error" id=move || error_id.get_value() data-slot="autocomplete-error">
+                    {move || error.get_value()}
+                </div>
+            </Show>
+        }
+        .into_any()
+    })
+}
 
 #[component]
 fn AutocompletePanel(
@@ -18,8 +94,6 @@ fn AutocompletePanel(
     aria_labelledby: String,
     filtered_indices: Memo<Vec<usize>>,
     items: StoredValue<Arc<[String]>>,
-    disabled_indices: Arc<HashSet<usize>>,
-    selected_index: ReadSignal<Option<usize>>,
     empty_message: StoredValue<String>,
     motion: ActiveHighlightMotion,
     popover_motion: crate::motion::PopoverMotion,
@@ -89,11 +163,10 @@ fn AutocompletePanel(
                     <div class="ui-autocomplete__options" node_ref=options_ref data-slot="autocomplete-options">
                         <div class="ui-active-highlight" node_ref=highlight_ref data-slot="autocomplete-highlight"></div>
                         {{
-                            let disabled_indices = disabled_indices.clone();
                             let option_id = aria.option_id;
+                            let option_attrs = aria.option_attrs;
                             let on_option_pointer_move = aria.handlers.on_option_pointer_move;
                             let on_option_click = aria.handlers.on_option_click;
-                            let active_index = aria.active_index;
 
                             move || {
                                 let indices = filtered_indices.get();
@@ -105,26 +178,17 @@ fn AutocompletePanel(
                                     .map(|(filtered_index, original_index)| {
                                         let id = option_id.run(filtered_index);
                                         let label = items.get(original_index).cloned().unwrap_or_default();
-                                        let is_selected = move || selected_index.get() == Some(original_index);
-                                        let is_disabled = disabled_indices.contains(&original_index);
+                                        let option_attrs =
+                                            Memo::new(move |_| option_attrs.run(filtered_index));
 
-                                        view! {
-                                            <div
-                                                id=id
-                                                role="option"
-                                                aria-selected=move || if is_selected() { Some("true") } else { None }
-                                                aria-disabled=if is_disabled { Some("true") } else { None }
-                                                class="ui-autocomplete__option"
-                                                data-slot="autocomplete-option"
-                                                data-selected=move || if is_selected() { Some("true") } else { None }
-                                                data-focused=move || (active_index.get() == filtered_index).then_some("true")
-                                                data-disabled=if is_disabled { Some("true") } else { None }
-                                                on:pointermove=move |_| on_option_pointer_move.run(filtered_index)
-                                                on:click=move |_| on_option_click.run(filtered_index)
-                                            >
-                                                {label}
-                                            </div>
-                                        }
+                                        render_autocomplete_option(AutocompleteOptionViewCtx {
+                                            id,
+                                            label,
+                                            option_attrs,
+                                            on_option_pointer_move,
+                                            on_option_click,
+                                            filtered_index,
+                                        })
                                     })
                                     .collect_view()
                             }
@@ -146,8 +210,10 @@ pub fn Autocomplete(
     id_base: String,
     label: String,
     items: Vec<String>,
-    selected_index: ReadSignal<Option<usize>>,
-    set_selected_index: WriteSignal<Option<usize>>,
+    #[prop(optional, into)] selected_index: Option<Signal<Option<usize>>>,
+    #[prop(optional)] default_selected_index: Option<usize>,
+    #[prop(optional)] on_selected_index_change: Option<Callback<Option<usize>>>,
+    #[prop(optional)] set_selected_index: Option<WriteSignal<Option<usize>>>,
     #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
@@ -193,17 +259,42 @@ pub fn Autocomplete(
 
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
+    let selection_change = logic::normalize_selection_change(logic::SelectionChangeInput {
+        selected_index,
+        default_selected_index,
+        on_selected_index_change,
+        set_selected_index,
+        item_count,
+    });
+    let selected_source_attr = selection_change.selected_source.as_attr();
+    let selected_change_source_attr = selection_change.change_source.as_attr();
+    let is_selected_controlled = selection_change.is_controlled;
+    let selected_state = overlay_open::use_controllable_state(
+        selection_change.selected_index,
+        Some(selection_change.default_selected_index),
+        selection_change.on_selected_index_change,
+    );
+    let selected_index = selected_state.value;
+    let request_selected_index_change = selected_state.request_change;
     let i18n = use_ui_i18n();
     let common = i18n.strings::<CommonStrings>();
+    let has_custom_id_base = logic::normalize_optional_text(Some(id_base.clone())).is_some();
+    let generated_id_base = use_ui_id_provider()
+        .map(|id_provider| {
+            id_provider.next_prefixed_id(ui_state_primitives::autocomplete::DEFAULT_ID_BASE)
+        })
+        .unwrap_or_else(|| ui_state_primitives::autocomplete::DEFAULT_ID_BASE.to_string());
+    let id_base = logic::resolve_id_base(id_base, generated_id_base);
 
     let motion = crate::motion::sanitize_motion(motion);
     let has_custom_motion = motion != AutocompleteMotion::default();
     let root_state = logic::normalize_root_state(logic::RootStateInput {
         id_base,
+        has_custom_id_base,
         label,
         placeholder,
-        empty_message: empty_message
-            .or_else(|| Some(common.autocomplete_empty_message.to_string())),
+        empty_message,
+        i18n_empty_message: Some(common.autocomplete_empty_message.to_string()),
         description,
         error,
         class_name,
@@ -248,9 +339,15 @@ pub fn Autocomplete(
         if is_open.get() {
             return;
         }
-        set_has_typed.set(false);
-        let value = selected_label.get().unwrap_or_default();
-        set_query.set(value);
+        let next = logic::reduce_sync_from_selection(
+            logic::InputStateSource {
+                query: query.get_untracked(),
+                has_typed: has_typed.get_untracked(),
+            },
+            selected_label.get(),
+        );
+        set_query.set(next.query);
+        set_has_typed.set(next.has_typed);
     });
 
     let filtered_indices = Memo::new(move |_| {
@@ -297,12 +394,18 @@ pub fn Autocomplete(
         let Some(original_index) = logic::map_filtered_to_original(filtered_index, &indices) else {
             return;
         };
-        set_selected_index.set(Some(original_index));
+        request_selected_index_change.run(Some(original_index));
 
         let items = items.get_value();
-        let label = items.get(original_index).cloned().unwrap_or_default();
-        set_query.set(label);
-        set_has_typed.set(false);
+        let next = logic::reduce_after_option_commit(
+            logic::InputStateSource {
+                query: query.get_untracked(),
+                has_typed: has_typed.get_untracked(),
+            },
+            items.get(original_index).cloned().unwrap_or_default(),
+        );
+        set_query.set(next.query);
+        set_has_typed.set(next.has_typed);
     });
 
     let aria = use_combo_box(ComboBoxOptions {
@@ -337,19 +440,46 @@ pub fn Autocomplete(
     let on_blur = move |_| {
         focus_ring.handlers.on_blur.run(());
         aria.handlers.close.run(());
-        set_has_typed.set(false);
+        let next = logic::reduce_after_input_blur(logic::InputStateSource {
+            query: query.get_untracked(),
+            has_typed: has_typed.get_untracked(),
+        });
+        set_query.set(next.query);
+        set_has_typed.set(next.has_typed);
     };
 
     let on_input = move |ev| {
         if state.is_disabled {
             return;
         }
-        set_has_typed.set(true);
-        set_query.set(event_target_value(&ev));
+        let next = logic::reduce_after_input_change(
+            logic::InputStateSource {
+                query: query.get_untracked(),
+                has_typed: has_typed.get_untracked(),
+            },
+            event_target_value(&ev),
+        );
+        set_query.set(next.query);
+        set_has_typed.set(next.has_typed);
         aria.handlers.open.run(());
     };
 
     let control_ref: NodeRef<html::Div> = NodeRef::new();
+    let description_view =
+        render_autocomplete_description(description, text_field.description.id.clone());
+    let error_view = render_autocomplete_error(error, text_field.error.id.clone(), invalid);
+    let agent_contract = Signal::derive(move || {
+        logic::resolve_agent_contract(logic::AutocompleteAgentContractInput {
+            is_open: is_open.get(),
+            is_disabled: state.is_disabled,
+            has_typed: has_typed.get(),
+            has_selection: selected_index.get().is_some(),
+            is_open_controlled: normalized_open_state.is_controlled,
+            selected_source: selection_change.selected_source,
+            selected_change_source: selection_change.change_source,
+            render_state: state,
+        })
+    });
 
     view! {
         <div
@@ -399,6 +529,26 @@ pub fn Autocomplete(
             data-count=state.item_count.to_string()
             data-filtered-count=move || filtered_count.get().to_string()
             data-disabled-option-count=state.disabled_option_count.to_string()
+            data-selected-source=selected_source_attr
+            data-selected-controlled=is_selected_controlled.then_some("true")
+            data-selected-uncontrolled=(!is_selected_controlled).then_some("true")
+            data-selected-change-source=selected_change_source_attr
+            data-ui-schema=move || agent_contract.get().schema_name
+            data-ui-schema-version=move || agent_contract.get().schema_version.as_str()
+            data-ui-intent=move || agent_contract.get().intent.as_str()
+            data-ui-action=move || agent_contract.get().action.as_str()
+            data-ui-state=move || agent_contract.get().state.as_str()
+            data-ui-source=move || agent_contract.get().source.as_str()
+            data-ui-output-status=move || agent_contract.get().output_status.as_str()
+            data-ui-stream-support=move || agent_contract.get().stream_support.as_str()
+            data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()
+            data-ui-stream-mode=move || agent_contract.get().stream_mode.as_str()
+            data-ui-state-source=move || agent_contract.get().state_source
+            data-ui-motion-source=move || agent_contract.get().motion_source
+            data-ui-selected-source=move || agent_contract.get().selected_source
+            data-ui-selected-change-source=move || agent_contract.get().selected_change_source
+            data-ui-open-value-source=move || agent_contract.get().open_value_source
+            data-ui-config-policy=move || agent_contract.get().config_policy
         >
             <label
                 class="ui-autocomplete__label"
@@ -450,8 +600,6 @@ pub fn Autocomplete(
                         aria_labelledby=label_id.get_value()
                         filtered_indices=filtered_indices
                         items=items
-                        disabled_indices=disabled_indices.clone()
-                        selected_index=selected_index
                         empty_message=empty_message
                         motion=motion.highlight
                         popover_motion=motion.popover
@@ -460,35 +608,8 @@ pub fn Autocomplete(
                 </Show>
             </div>
 
-            {description.map(|description| {
-                let description_id = text_field.description.id.clone();
-                view! {
-                    <div
-                        class="ui-autocomplete__description"
-                        id=description_id
-                        data-slot="autocomplete-description"
-                    >
-                        {description}
-                    </div>
-                }
-            })}
-
-            {error.map(|error| {
-                let error_id = text_field.error.id.clone();
-                let error_id = StoredValue::new(error_id);
-                let error = StoredValue::new(error);
-                view! {
-                    <Show when=move || invalid.get()>
-                        <div
-                            class="ui-autocomplete__error"
-                            id=move || error_id.get_value()
-                            data-slot="autocomplete-error"
-                        >
-                            {move || error.get_value()}
-                        </div>
-                    </Show>
-                }
-            })}
+            {description_view}
+            {error_view}
         </div>
     }
 }

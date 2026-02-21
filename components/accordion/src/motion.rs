@@ -1,3 +1,4 @@
+use crate::logic;
 use ui_motion::spring::SpringConfig;
 use ui_theme::default_accordion_motion_tokens;
 
@@ -57,6 +58,14 @@ fn sanitize_spring(value: SpringConfig) -> SpringConfig {
         } else {
             default.precision
         },
+    }
+}
+
+fn panel_lifecycle_event_from_hidden(hidden: bool) -> logic::AccordionPanelLifecycleEvent {
+    if hidden {
+        logic::AccordionPanelLifecycleEvent::NotifyHidden
+    } else {
+        logic::AccordionPanelLifecycleEvent::NotifyShown
     }
 }
 
@@ -447,12 +456,15 @@ pub fn attach_panel_motion(
     is_open: leptos::prelude::Signal<bool>,
     is_hidden: leptos::prelude::RwSignal<bool>,
     motion: AccordionMotion,
+    slot_projection: logic::AccordionSlotProjection,
+    on_panel_lifecycle: leptos::prelude::Callback<logic::AccordionPanelLifecycleEvent>,
 ) {
     use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::{JsCast, closure::Closure};
 
     let motion = StoredValue::new(sanitize_motion(motion));
+    let last_hidden = StoredValue::new_local(None::<bool>);
     if prefers_reduced_motion() {
         Effect::new(move |_| {
             let Some(panel) = panel_ref.get() else {
@@ -463,9 +475,14 @@ pub fn attach_panel_motion(
             let style = element.style();
             let motion = motion.get_value();
             let open = is_open.get();
+            let hidden = !open;
 
-            is_hidden.set(!open);
-            element.set_hidden(!open);
+            is_hidden.set(hidden);
+            element.set_hidden(hidden);
+            if last_hidden.get_value() != Some(hidden) {
+                last_hidden.set_value(Some(hidden));
+                on_panel_lifecycle.run(panel_lifecycle_event_from_hidden(hidden));
+            }
 
             if open {
                 set_css_property_observed(
@@ -512,6 +529,8 @@ pub fn attach_panel_motion(
 
     let driver = StoredValue::new_local(None::<Rc<RefCell<PanelMotionDriver>>>);
     let resize_observer = StoredValue::new_local(None::<leptos::web_sys::ResizeObserver>);
+    let observed_surface = StoredValue::new_local(None::<leptos::web_sys::Element>);
+    let is_observing = StoredValue::new_local(false);
     let resize_closure = StoredValue::new_local(
         None::<Closure<dyn FnMut(js_sys::Array, leptos::web_sys::ResizeObserver)>>,
     );
@@ -538,6 +557,10 @@ pub fn attach_panel_motion(
             move |hidden: bool| {
                 is_hidden.set(hidden);
                 element.set_hidden(hidden);
+                if last_hidden.get_value() != Some(hidden) {
+                    last_hidden.set_value(Some(hidden));
+                    on_panel_lifecycle.run(panel_lifecycle_event_from_hidden(hidden));
+                }
             }
         };
 
@@ -594,9 +617,14 @@ pub fn attach_panel_motion(
 
         driver_instance.borrow_mut().sync_initial_state(open_now);
         driver.set_value(Some(driver_instance));
+        if last_hidden.get_value() != Some(!open_now) {
+            last_hidden.set_value(Some(!open_now));
+            on_panel_lifecycle.run(panel_lifecycle_event_from_hidden(!open_now));
+        }
 
         if resize_observer.get_value().is_none() {
             let surface_element: leptos::web_sys::Element = surface.unchecked_into();
+            observed_surface.set_value(Some(surface_element.clone()));
             let driver_for_resize = driver.get_value();
             if let Some(driver_for_resize) = driver_for_resize {
                 let closure = Closure::wrap(Box::new(
@@ -609,7 +637,13 @@ pub fn attach_panel_motion(
                 if let Ok(observer) =
                     leptos::web_sys::ResizeObserver::new(closure.as_ref().unchecked_ref())
                 {
-                    observer.observe(&surface_element);
+                    let should_observe = !(slot_projection
+                        == logic::AccordionSlotProjection::KeepAlive
+                        && !open_now);
+                    if should_observe {
+                        observer.observe(&surface_element);
+                        is_observing.set_value(true);
+                    }
                     resize_observer.set_value(Some(observer));
                     resize_closure.set_value(Some(closure));
                 }
@@ -623,7 +657,9 @@ pub fn attach_panel_motion(
             if let Some(observer) = resize_observer_for_cleanup.get_value() {
                 observer.disconnect();
             }
+            is_observing.set_value(false);
             resize_observer_for_cleanup.set_value(None);
+            observed_surface.set_value(None);
             resize_closure_for_cleanup.set_value(None);
 
             if let Some(driver) = driver_for_cleanup.get_value() {
@@ -639,6 +675,29 @@ pub fn attach_panel_motion(
         };
         driver.borrow_mut().set_open(open);
     });
+
+    if slot_projection == logic::AccordionSlotProjection::KeepAlive {
+        Effect::new(move |_| {
+            let hidden = is_hidden.get();
+            let Some(observer) = resize_observer.get_value() else {
+                return;
+            };
+            let Some(surface) = observed_surface.get_value() else {
+                return;
+            };
+
+            let observing = is_observing.get_value();
+            if hidden && observing {
+                observer.disconnect();
+                is_observing.set_value(false);
+                return;
+            }
+            if !hidden && !observing {
+                observer.observe(&surface);
+                is_observing.set_value(true);
+            }
+        });
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -648,13 +707,21 @@ pub fn attach_panel_motion(
     is_open: leptos::prelude::Signal<bool>,
     is_hidden: leptos::prelude::RwSignal<bool>,
     motion: AccordionMotion,
+    _slot_projection: logic::AccordionSlotProjection,
+    on_panel_lifecycle: leptos::prelude::Callback<logic::AccordionPanelLifecycleEvent>,
 ) {
     use leptos::prelude::*;
 
     sanitize_motion(motion);
+    let last_hidden = StoredValue::new_local(None::<bool>);
 
     Effect::new(move |_| {
-        is_hidden.set(!is_open.get());
+        let hidden = !is_open.get();
+        is_hidden.set(hidden);
+        if last_hidden.get_value() != Some(hidden) {
+            last_hidden.set_value(Some(hidden));
+            on_panel_lifecycle.run(panel_lifecycle_event_from_hidden(hidden));
+        }
     });
 }
 

@@ -800,6 +800,8 @@ dependencies = [
  "js-sys",
  "leptos",
  "pulldown-cmark",
+ "serde",
+ "serde_json",
  "ui-components",
  "ui-headless",
  "ui-layout",
@@ -4650,6 +4652,7 @@ dependencies = [
  "ui-ai-runtime",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
  "web-sys",
@@ -4664,6 +4667,7 @@ dependencies = [
  "ui-button",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -4679,15 +4683,18 @@ name = "ui-alert"
 version = "0.0.0"
 dependencies = [
  "leptos",
- "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
 [[package]]
 name = "ui-alert-dialog"
 version = "0.0.0"
+dependencies = [
+ "ui-observability",
+]
 
 [[package]]
 name = "ui-asset"
@@ -4695,6 +4702,7 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-state-primitives",
  "ui-thumbnail",
 ]
 
@@ -4706,6 +4714,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-visual-primitive",
 ]
@@ -4749,6 +4758,7 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
  "ui-state-primitives",
 ]
 
@@ -4763,6 +4773,8 @@ dependencies = [
  "tracing",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-snippet",
  "ui-state-primitives",
  "ui-theme",
  "web-sys",
@@ -4774,8 +4786,10 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "tracing",
  "ui-headless",
- "ui-logic-calendar",
+ "ui-motion",
+ "ui-state-primitives",
  "ui-theme",
 ]
 
@@ -4784,7 +4798,6 @@ name = "ui-carousel"
 version = "0.0.0"
 dependencies = [
  "leptos",
- "serde",
  "ui-headless",
  "ui-motion",
  "ui-state-primitives",
@@ -4798,6 +4811,7 @@ dependencies = [
  "leptos",
  "serde",
  "ui-headless",
+ "ui-motion",
  "ui-state-primitives",
  "ui-visual-primitive",
 ]
@@ -4810,6 +4824,8 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-state-primitives",
  "web-sys",
 ]
 
@@ -4820,6 +4836,10 @@ dependencies = [
  "leptos",
  "serde",
  "ui-checkbox",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -4828,6 +4848,9 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -4837,6 +4860,8 @@ dependencies = [
  "leptos",
  "serde",
  "ui-headless",
+ "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -4866,6 +4891,8 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -4874,8 +4901,10 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "tracing",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -4904,6 +4933,9 @@ dependencies = [
 [[package]]
 name = "ui-color-editor"
 version = "0.0.0"
+dependencies = [
+ "ui-observability",
+]
 
 [[package]]
 name = "ui-color-field"
@@ -4929,6 +4961,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
 ]
@@ -4936,6 +4969,9 @@ dependencies = [
 [[package]]
 name = "ui-color-swatch"
 version = "0.0.0"
+dependencies = [
+ "ui-observability",
+]
 
 [[package]]
 name = "ui-color-swatch-picker"
@@ -4953,6 +4989,8 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-state-primitives",
  "ui-theme",
 ]
 
@@ -4961,9 +4999,9 @@ name = "ui-combo-box"
 version = "0.0.0"
 dependencies = [
  "leptos",
- "serde",
  "ui-headless",
  "ui-motion",
+ "ui-popover",
  "ui-state-primitives",
  "ui-visual-primitive",
 ]
@@ -4975,6 +5013,7 @@ dependencies = [
  "leptos",
  "serde",
  "ui-headless",
+ "ui-state-primitives",
  "ui-visual-primitive",
 ]
 
@@ -5052,6 +5091,7 @@ dependencies = [
  "ui-meter",
  "ui-motion",
  "ui-native-select",
+ "ui-observability",
  "ui-pagination",
  "ui-popover",
  "ui-pressable-feedback",
@@ -5093,7 +5133,10 @@ name = "ui-date-input-group"
 version = "0.0.0"
 dependencies = [
  "leptos",
+ "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5102,6 +5145,8 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5114,6 +5159,8 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5126,6 +5173,7 @@ dependencies = [
  "ui-accordion",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "web-sys",
 ]
@@ -5140,6 +5188,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-sheet",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5150,6 +5199,9 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-state-primitives",
+ "ui-theme",
  "web-sys",
 ]
 
@@ -5158,6 +5210,7 @@ name = "ui-empty"
 version = "0.0.0"
 dependencies = [
  "leptos",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5167,6 +5220,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "web-sys",
 ]
@@ -5177,7 +5231,9 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "ui-headless",
+ "ui-motion",
  "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5187,6 +5243,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -5203,6 +5260,10 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5211,6 +5272,8 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5230,7 +5293,9 @@ dependencies = [
  "leptos",
  "serde",
  "ui-headless",
+ "ui-motion",
  "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5242,7 +5307,10 @@ name = "ui-flip-card"
 version = "0.0.0"
 dependencies = [
  "leptos",
+ "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5250,6 +5318,7 @@ name = "ui-form"
 version = "0.0.0"
 dependencies = [
  "leptos",
+ "ui-headless",
 ]
 
 [[package]]
@@ -5259,6 +5328,7 @@ dependencies = [
  "leptos",
  "ui-checkbox",
  "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5270,6 +5340,7 @@ dependencies = [
  "leptos",
  "send_wrapper",
  "ui-logic-calendar",
+ "ui-observability",
  "ui-state-primitives",
  "wasm-bindgen",
  "web-sys",
@@ -5281,7 +5352,10 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
  "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5292,6 +5366,9 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5300,6 +5377,7 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
 ]
 
 [[package]]
@@ -5307,7 +5385,10 @@ name = "ui-illustrated-message"
 version = "0.0.0"
 dependencies = [
  "leptos",
+ "ui-headless",
  "ui-motion",
+ "ui-observability",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5318,6 +5399,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -5327,6 +5409,7 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
 ]
 
 [[package]]
@@ -5335,6 +5418,7 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5343,6 +5427,8 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5370,6 +5456,7 @@ dependencies = [
  "tracing",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
  "ui-visual-primitive",
@@ -5383,7 +5470,9 @@ dependencies = [
  "leptos",
  "serde",
  "ui-headless",
+ "ui-motion",
  "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5393,6 +5482,7 @@ dependencies = [
  "leptos",
  "serde",
  "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -5404,6 +5494,7 @@ dependencies = [
  "ui-headless",
  "ui-illustrated-message",
  "ui-motion",
+ "ui-state-primitives",
  "ui-visual-primitive",
 ]
 
@@ -5420,6 +5511,7 @@ dependencies = [
  "ui-components",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-visual-primitive",
 ]
@@ -5430,7 +5522,9 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "serde",
+ "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -5453,6 +5547,14 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-observability"
+version = "0.0.0"
+dependencies = [
+ "leptos",
 ]
 
 [[package]]
@@ -5462,6 +5564,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
 ]
 
 [[package]]
@@ -5486,6 +5589,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
 ]
 
 [[package]]
@@ -5496,6 +5600,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-ripple",
  "ui-visual-primitive",
 ]
@@ -5508,11 +5613,15 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
 ]
 
 [[package]]
 name = "ui-preview-link-card"
 version = "0.0.0"
+dependencies = [
+ "ui-observability",
+]
 
 [[package]]
 name = "ui-progress"
@@ -5521,6 +5630,7 @@ dependencies = [
  "leptos",
  "serde",
  "ui-motion",
+ "ui-observability",
 ]
 
 [[package]]
@@ -5531,6 +5641,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -5554,6 +5665,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
 ]
@@ -5585,6 +5697,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
 ]
 
 [[package]]
@@ -5612,6 +5725,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
 ]
@@ -5624,6 +5738,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
 ]
@@ -5667,10 +5782,16 @@ dependencies = [
 [[package]]
 name = "ui-swatch"
 version = "0.0.0"
+dependencies = [
+ "ui-observability",
+]
 
 [[package]]
 name = "ui-switch"
 version = "0.0.0"
+dependencies = [
+ "ui-observability",
+]
 
 [[package]]
 name = "ui-table"
@@ -5687,6 +5808,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "web-sys",
 ]
@@ -5714,6 +5836,7 @@ name = "ui-text-input"
 version = "0.0.0"
 dependencies = [
  "ui-components",
+ "ui-observability",
 ]
 
 [[package]]
@@ -5755,6 +5878,7 @@ dependencies = [
  "leptos",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -5767,6 +5891,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
  "web-sys",
@@ -5784,6 +5909,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
  "ui-theme",
 ]
@@ -5809,6 +5935,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -5821,6 +5948,7 @@ dependencies = [
  "ui-ai-runtime",
  "ui-headless",
  "ui-motion",
+ "ui-observability",
  "ui-state-primitives",
 ]
 
@@ -5831,6 +5959,7 @@ dependencies = [
  "js-sys",
  "leptos",
  "ui-motion",
+ "ui-observability",
  "ui-theme",
  "web-sys",
 ]

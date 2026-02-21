@@ -37,6 +37,21 @@ fn normalize_name_preserves_prefix_and_applies_defaults() {
 }
 
 #[test]
+fn inner_defaults_are_resolved_in_logic() {
+    assert_eq!(resolve_inner_aria_label(None), "");
+    assert_eq!(
+        resolve_inner_aria_label(Some("icons label".to_string())),
+        "icons label"
+    );
+
+    assert_eq!(resolve_inner_class_name(None), "ui-icons");
+    assert_eq!(
+        resolve_inner_class_name(Some("docs-icons".to_string())),
+        "ui-icons docs-icons"
+    );
+}
+
+#[test]
 fn resolve_state_tracks_sources_and_state_markers() {
     let state = resolve_state(IconsStateInput {
         set: IconsSet::Workflow,

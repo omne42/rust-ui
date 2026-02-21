@@ -1,182 +1,435 @@
-use crate::{CheckboxFieldState, CheckboxFieldStateInput};
+use std::borrow::Cow;
 
-pub const DEFAULT_LABEL: &str = "Checkbox option";
-pub const DEFAULT_ARIA_LABEL: &str = "Checkbox field";
+use leptos::prelude::{GetUntracked, ReadSignal, WriteSignal, signal};
+use ui_checkbox::CheckboxVariant;
+use ui_state_primitives::checkbox::{resolve_checked_axis, resolve_checked_change_handler_source};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum CheckboxFieldTone {
-    #[default]
-    Default,
-    Quiet,
+pub use ui_state_primitives::checkbox::{
+    CheckboxChangeHandlerSource, CheckboxCheckedAxisInput, CheckboxCheckedValueSource,
+    CheckboxControlMode,
+};
+
+#[cfg(test)]
+pub use ui_state_primitives::checkbox_field::resolve_status;
+pub use ui_state_primitives::checkbox_field::{
+    CheckboxFieldIndicatorPlacement, CheckboxFieldState, CheckboxFieldStateInput,
+    CheckboxFieldStatus, CheckboxFieldTone, DEFAULT_ARIA_LABEL, DEFAULT_LABEL,
+    normalize_aria_label, normalize_id_base, normalize_label, normalize_optional_text,
+    resolve_state,
+};
+
+pub fn normalize_is_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
 }
 
-impl CheckboxFieldTone {
-    pub fn class_name(self) -> &'static str {
+pub fn normalize_is_invalid(is_invalid: Option<bool>, invalid: bool) -> bool {
+    is_invalid.unwrap_or(invalid)
+}
+
+pub struct CheckboxFieldContentInput {
+    pub id_base: Option<String>,
+    pub label: Option<String>,
+    pub description: Option<String>,
+    pub aria_label: Option<String>,
+    pub class_name: Option<String>,
+}
+
+#[derive(Clone, Debug)]
+pub struct CheckboxFieldContent {
+    pub id_base: String,
+    pub label: String,
+    pub description_text: String,
+    pub aria_label: String,
+    pub class_name: Option<String>,
+    pub has_description: bool,
+    pub has_custom_label: bool,
+    pub has_custom_aria_label: bool,
+    pub has_custom_class_name: bool,
+}
+
+pub fn resolve_content(input: CheckboxFieldContentInput) -> CheckboxFieldContent {
+    let id_base = normalize_id_base(input.id_base);
+    let (label, has_custom_label) = normalize_label(input.label);
+    let description = normalize_optional_text(input.description);
+    let has_description = description.is_some();
+    let description_text = description.unwrap_or_default();
+    let (aria_label, has_custom_aria_label) = normalize_aria_label(input.aria_label, &label);
+    let class_name = normalize_optional_text(input.class_name);
+    let has_custom_class_name = class_name.is_some();
+
+    CheckboxFieldContent {
+        id_base,
+        label,
+        description_text,
+        aria_label,
+        class_name,
+        has_description,
+        has_custom_label,
+        has_custom_aria_label,
+        has_custom_class_name,
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct CheckedControl {
+    pub checked: ReadSignal<bool>,
+    pub on_checked_change: Option<WriteSignal<bool>>,
+    pub mode: CheckboxControlMode,
+    pub checked_prop_source_attr: &'static str,
+    pub checked_change_source_attr: &'static str,
+    pub checked_default_source_attr: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CheckboxFieldAgentSchemaVersion {
+    V1,
+}
+
+impl CheckboxFieldAgentSchemaVersion {
+    pub const fn as_str(self) -> &'static str {
         match self {
-            CheckboxFieldTone::Default => "ui-checkbox-field--tone-default",
-            CheckboxFieldTone::Quiet => "ui-checkbox-field--tone-quiet",
+            Self::V1 => "1",
         }
     }
+}
 
-    pub fn as_attr(self) -> &'static str {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CheckboxFieldAgentIntent {
+    BooleanField,
+}
+
+impl CheckboxFieldAgentIntent {
+    pub const fn as_str(self) -> &'static str {
         match self {
-            CheckboxFieldTone::Default => "default",
-            CheckboxFieldTone::Quiet => "quiet",
+            Self::BooleanField => "boolean-field",
         }
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum CheckboxFieldIndicatorPlacement {
-    #[default]
-    Start,
-    End,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CheckboxFieldAgentAction {
+    ToggleControlled,
+    ToggleUncontrolled,
+    ReadOnlyControlled,
 }
 
-impl CheckboxFieldIndicatorPlacement {
-    pub fn class_name(self) -> &'static str {
+impl CheckboxFieldAgentAction {
+    pub const fn as_str(self) -> &'static str {
         match self {
-            CheckboxFieldIndicatorPlacement::Start => "ui-checkbox-field--indicator-start",
-            CheckboxFieldIndicatorPlacement::End => "ui-checkbox-field--indicator-end",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            CheckboxFieldIndicatorPlacement::Start => "start",
-            CheckboxFieldIndicatorPlacement::End => "end",
+            Self::ToggleControlled => "toggle-controlled",
+            Self::ToggleUncontrolled => "toggle-uncontrolled",
+            Self::ReadOnlyControlled => "read-only-controlled",
         }
     }
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CheckboxFieldAgentStateAxis {
+    Unchecked,
+    Checked,
+    Disabled,
+    Invalid,
+    CheckedInvalid,
 }
 
-pub fn normalize_id_base(value: Option<String>) -> String {
-    if let Some(id_base) = normalize_optional_text(value) {
-        id_base
-    } else {
-        "ui-checkbox-field".to_string()
+impl CheckboxFieldAgentStateAxis {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Unchecked => "unchecked",
+            Self::Checked => "checked",
+            Self::Disabled => "disabled",
+            Self::Invalid => "invalid",
+            Self::CheckedInvalid => "checked-invalid",
+        }
     }
 }
 
-pub fn normalize_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        (label, true)
-    } else {
-        (DEFAULT_LABEL.into(), false)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CheckboxFieldAgentSource {
+    IsCheckedProp,
+    CheckedAliasProp,
+    DefaultChecked,
+    ImplicitDefault,
+}
+
+impl CheckboxFieldAgentSource {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::IsCheckedProp => "is_checked",
+            Self::CheckedAliasProp => "checked",
+            Self::DefaultChecked => "default_checked",
+            Self::ImplicitDefault => "implicit-default",
+        }
     }
 }
 
-pub fn normalize_aria_label(value: Option<String>, fallback: &str) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        (label, true)
-    } else if !fallback.trim().is_empty() {
-        (fallback.trim().into(), false)
-    } else {
-        (DEFAULT_ARIA_LABEL.into(), false)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CheckboxFieldAgentOutputStatus {
+    Verified,
+    Submittable,
+}
+
+impl CheckboxFieldAgentOutputStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+            Self::Submittable => "submittable",
+        }
     }
 }
 
-pub fn resolve_state(input: CheckboxFieldStateInput) -> CheckboxFieldState {
-    let label_source_attr = if input.has_custom_label {
-        "custom"
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CheckboxFieldAgentContract {
+    pub schema_name: &'static str,
+    pub schema_version: CheckboxFieldAgentSchemaVersion,
+    pub intent: CheckboxFieldAgentIntent,
+    pub action: CheckboxFieldAgentAction,
+    pub state: CheckboxFieldAgentStateAxis,
+    pub source: CheckboxFieldAgentSource,
+    pub output_status: CheckboxFieldAgentOutputStatus,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CheckboxFieldAgentContractInput {
+    pub status: CheckboxFieldStatus,
+    pub checked_mode: CheckboxControlMode,
+    pub checked_prop_source_attr: &'static str,
+    pub checked_change_source_attr: &'static str,
+    pub checked_default_source_attr: &'static str,
+}
+
+fn resolve_agent_state_axis(status: CheckboxFieldStatus) -> CheckboxFieldAgentStateAxis {
+    match status {
+        CheckboxFieldStatus::Unchecked => CheckboxFieldAgentStateAxis::Unchecked,
+        CheckboxFieldStatus::Checked => CheckboxFieldAgentStateAxis::Checked,
+        CheckboxFieldStatus::Disabled => CheckboxFieldAgentStateAxis::Disabled,
+        CheckboxFieldStatus::Invalid => CheckboxFieldAgentStateAxis::Invalid,
+        CheckboxFieldStatus::CheckedInvalid => CheckboxFieldAgentStateAxis::CheckedInvalid,
+    }
+}
+
+fn resolve_agent_action(input: CheckboxFieldAgentContractInput) -> CheckboxFieldAgentAction {
+    if matches!(input.checked_mode, CheckboxControlMode::Uncontrolled) {
+        CheckboxFieldAgentAction::ToggleUncontrolled
+    } else if input.checked_change_source_attr == "none" {
+        CheckboxFieldAgentAction::ReadOnlyControlled
     } else {
-        "default"
+        CheckboxFieldAgentAction::ToggleControlled
+    }
+}
+
+fn resolve_agent_source(input: CheckboxFieldAgentContractInput) -> CheckboxFieldAgentSource {
+    if matches!(input.checked_mode, CheckboxControlMode::Controlled) {
+        match input.checked_prop_source_attr {
+            "is_checked" => CheckboxFieldAgentSource::IsCheckedProp,
+            "checked" => CheckboxFieldAgentSource::CheckedAliasProp,
+            _ => CheckboxFieldAgentSource::IsCheckedProp,
+        }
+    } else if input.checked_default_source_attr == "default_checked" {
+        CheckboxFieldAgentSource::DefaultChecked
+    } else {
+        CheckboxFieldAgentSource::ImplicitDefault
+    }
+}
+
+fn resolve_agent_output_status(
+    input: CheckboxFieldAgentContractInput,
+) -> CheckboxFieldAgentOutputStatus {
+    if matches!(input.checked_mode, CheckboxControlMode::Controlled)
+        && input.checked_change_source_attr == "none"
+    {
+        CheckboxFieldAgentOutputStatus::Verified
+    } else {
+        CheckboxFieldAgentOutputStatus::Submittable
+    }
+}
+
+pub fn resolve_agent_contract(
+    input: CheckboxFieldAgentContractInput,
+) -> CheckboxFieldAgentContract {
+    CheckboxFieldAgentContract {
+        schema_name: "ui.checkbox-field.agent-contract",
+        schema_version: CheckboxFieldAgentSchemaVersion::V1,
+        intent: CheckboxFieldAgentIntent::BooleanField,
+        action: resolve_agent_action(input),
+        state: resolve_agent_state_axis(input.status),
+        source: resolve_agent_source(input),
+        output_status: resolve_agent_output_status(input),
+    }
+}
+
+pub struct CheckboxFieldRenderStateInput {
+    pub checked: bool,
+    pub disabled: bool,
+    pub invalid: bool,
+    pub tone: CheckboxFieldTone,
+    pub indicator_placement: CheckboxFieldIndicatorPlacement,
+    pub has_description: bool,
+    pub has_custom_label: bool,
+    pub has_custom_aria_label: bool,
+    pub has_custom_class_name: bool,
+    pub class_name: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CheckboxFieldRenderState {
+    pub state: CheckboxFieldState,
+    pub root_class_name: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CheckboxFieldAffordance {
+    pub class_name: &'static str,
+    pub variant: CheckboxVariant,
+}
+
+pub fn resolve_checkbox_affordance(
+    indicator_placement: CheckboxFieldIndicatorPlacement,
+    invalid: bool,
+) -> CheckboxFieldAffordance {
+    let class_name = if matches!(indicator_placement, CheckboxFieldIndicatorPlacement::End) {
+        "ui-checkbox-field__checkbox ui-checkbox-field__checkbox--indicator-end"
+    } else {
+        "ui-checkbox-field__checkbox"
     };
 
-    let aria_source_attr = if input.has_custom_aria_label {
-        "custom"
-    } else if input.has_custom_label {
-        "label"
+    let variant = if invalid {
+        CheckboxVariant::Accent
     } else {
-        "default"
+        CheckboxVariant::Default
     };
 
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
+    CheckboxFieldAffordance {
+        class_name,
+        variant,
+    }
+}
 
-    let state_attr = if input.invalid && input.checked {
-        "checked-invalid"
-    } else if input.invalid {
-        "invalid"
-    } else if input.disabled {
-        "disabled"
-    } else if input.checked {
-        "checked"
-    } else {
-        "unchecked"
-    };
-
-    CheckboxFieldState {
-        is_checked: input.checked,
-        is_unchecked: !input.checked,
-        is_disabled: input.disabled,
-        is_invalid: input.invalid,
+pub fn resolve_render_state(input: CheckboxFieldRenderStateInput) -> CheckboxFieldRenderState {
+    let state = resolve_state(CheckboxFieldStateInput {
+        checked: input.checked,
+        disabled: input.disabled,
+        invalid: input.invalid,
         tone: input.tone,
-        tone_class: input.tone.class_name(),
-        tone_attr: input.tone.as_attr(),
         indicator_placement: input.indicator_placement,
-        indicator_placement_class: input.indicator_placement.class_name(),
-        indicator_placement_attr: input.indicator_placement.as_attr(),
         has_description: input.has_description,
-        description_attr: if input.has_description {
-            "present"
-        } else {
-            "absent"
-        },
         has_custom_label: input.has_custom_label,
-        label_source_attr,
         has_custom_aria_label: input.has_custom_aria_label,
-        aria_source_attr,
         has_custom_class_name: input.has_custom_class_name,
-        class_source_attr,
-        state_attr,
+    });
+
+    let root_class_name = compose_class_name(input.class_name, state);
+
+    CheckboxFieldRenderState {
+        state,
+        root_class_name,
+    }
+}
+
+pub fn resolve_checked_control(
+    is_checked: Option<ReadSignal<bool>>,
+    checked: Option<ReadSignal<bool>>,
+    on_checked_change: Option<WriteSignal<bool>>,
+    set_checked: Option<WriteSignal<bool>>,
+    default_checked: Option<bool>,
+) -> CheckedControl {
+    let checked_axis = resolve_checked_axis(CheckboxCheckedAxisInput {
+        is_checked: is_checked.as_ref().map(|value| value.get_untracked()),
+        checked: checked.as_ref().map(|value| value.get_untracked()),
+        default_checked,
+    });
+
+    let has_primary_on_checked_change = on_checked_change.is_some();
+    let has_alias_set_checked = set_checked.is_some();
+    let controlled_checked = is_checked.or(checked);
+    let controlled_on_checked_change = on_checked_change.or(set_checked);
+
+    let checked_prop_source_attr = match checked_axis.source {
+        CheckboxCheckedValueSource::IsChecked => "is_checked",
+        CheckboxCheckedValueSource::CheckedAlias => "checked",
+        CheckboxCheckedValueSource::DefaultChecked
+        | CheckboxCheckedValueSource::ImplicitDefault => "none",
+    };
+
+    let checked_default_source_attr = if default_checked.is_some() {
+        "default_checked"
+    } else {
+        "implicit-default"
+    };
+
+    if matches!(checked_axis.mode, CheckboxControlMode::Controlled) {
+        let checked = controlled_checked.unwrap_or_else(|| {
+            unreachable!("controlled axis requires either `is_checked` or `checked` signal")
+        });
+        let checked_change_source_attr = match resolve_checked_change_handler_source(
+            has_primary_on_checked_change,
+            has_alias_set_checked,
+        ) {
+            CheckboxChangeHandlerSource::OnCheckedChange => "on_checked_change",
+            CheckboxChangeHandlerSource::SetCheckedAlias => "set_checked",
+            CheckboxChangeHandlerSource::Missing => "none",
+        };
+
+        return CheckedControl {
+            checked,
+            on_checked_change: controlled_on_checked_change,
+            mode: checked_axis.mode,
+            checked_prop_source_attr,
+            checked_change_source_attr,
+            checked_default_source_attr,
+        };
+    }
+
+    let (checked, set_checked) = signal(checked_axis.checked);
+    CheckedControl {
+        checked,
+        on_checked_change: Some(set_checked),
+        mode: checked_axis.mode,
+        checked_prop_source_attr,
+        checked_change_source_attr: "internal",
+        checked_default_source_attr,
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: CheckboxFieldState) -> String {
-    let mut classes = vec![
-        "ui-checkbox-field".to_string(),
-        state.tone_class.into(),
-        state.indicator_placement_class.into(),
+    let mut classes: Vec<Cow<'static, str>> = vec![
+        Cow::Borrowed("ui-checkbox-field"),
+        Cow::Borrowed(state.tone_class),
+        Cow::Borrowed(state.indicator_placement_class),
     ];
 
     if state.is_checked {
-        classes.push("ui-checkbox-field--checked".to_string());
+        classes.push(Cow::Borrowed("ui-checkbox-field--checked"));
     } else {
-        classes.push("ui-checkbox-field--unchecked".to_string());
+        classes.push(Cow::Borrowed("ui-checkbox-field--unchecked"));
     }
 
     if state.is_invalid {
-        classes.push("ui-checkbox-field--invalid".to_string());
+        classes.push(Cow::Borrowed("ui-checkbox-field--invalid"));
     }
 
     if state.is_disabled {
-        classes.push("ui-checkbox-field--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-checkbox-field--disabled"));
     }
 
     if state.has_description {
-        classes.push("ui-checkbox-field--with-description".to_string());
+        classes.push(Cow::Borrowed("ui-checkbox-field--with-description"));
     } else {
-        classes.push("ui-checkbox-field--no-description".to_string());
+        classes.push(Cow::Borrowed("ui-checkbox-field--no-description"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-checkbox-field--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-checkbox-field--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(|class_name| class_name.as_ref())
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

@@ -1,7 +1,10 @@
+use std::borrow::Cow;
+
 use crate::iconset::{IconsetGlyph, IconsetState, IconsetStateInput};
 
 pub const DEFAULT_ICONSET_NAMESPACE: &str = "custom-icons";
 pub const FALLBACK_GLYPH: &str = "⬚";
+pub const DEFAULT_ICON_NAME: &str = "unknown";
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
@@ -14,12 +17,16 @@ pub fn parse_icon_reference(icon: &str) -> (Option<String>, String) {
     let trimmed = icon.trim();
 
     if let Some((iconset, icon_name)) = trimmed.split_once(':') {
-        let iconset = normalize_optional_text(Some(iconset.to_string()));
+        let iconset = normalize_optional_text(Some(iconset.into()));
         let icon_name = normalize_optional_text(Some(icon_name.into())).unwrap_or_default();
         return (iconset, icon_name);
     }
 
     (None, trimmed.into())
+}
+
+pub fn normalize_icon_name(value: String) -> String {
+    normalize_optional_text(Some(value)).unwrap_or_else(|| DEFAULT_ICON_NAME.into())
 }
 
 pub fn resolve_iconset_namespace(
@@ -64,8 +71,8 @@ pub fn resolve_registry_glyph(
         .find(|glyph| glyph_matches(&glyph.name, resolved_iconset, icon_name));
 
     if let Some(glyph) = registry_match {
-        let glyph_content = normalize_optional_text(Some(glyph.glyph))
-            .unwrap_or_else(|| FALLBACK_GLYPH.to_string());
+        let glyph_content =
+            normalize_optional_text(Some(glyph.glyph)).unwrap_or_else(|| FALLBACK_GLYPH.into());
         return (
             glyph_content,
             true,
@@ -73,7 +80,7 @@ pub fn resolve_registry_glyph(
         );
     }
 
-    (FALLBACK_GLYPH.to_string(), false, None)
+    (FALLBACK_GLYPH.into(), false, None)
 }
 
 pub fn resolve_accessible_label(
@@ -152,38 +159,42 @@ pub fn resolve_state(input: IconsetStateInput) -> IconsetState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: IconsetState) -> String {
-    let mut classes = vec!["ui-iconset".to_string()];
+    let mut classes: Vec<Cow<'static, str>> = vec![Cow::Borrowed("ui-iconset")];
 
     if state.is_disabled {
-        classes.push("ui-iconset--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-iconset--disabled"));
     }
 
     if state.is_decorative {
-        classes.push("ui-iconset--decorative".to_string());
+        classes.push(Cow::Borrowed("ui-iconset--decorative"));
     }
 
     if state.has_registry_match {
-        classes.push("ui-iconset--registry".to_string());
+        classes.push(Cow::Borrowed("ui-iconset--registry"));
     } else {
-        classes.push("ui-iconset--fallback".to_string());
+        classes.push(Cow::Borrowed("ui-iconset--fallback"));
     }
 
     if state.has_custom_size {
-        classes.push("ui-iconset--custom-size".to_string());
+        classes.push(Cow::Borrowed("ui-iconset--custom-size"));
     }
 
     if state.has_custom_tone {
-        classes.push("ui-iconset--custom-tone".to_string());
+        classes.push(Cow::Borrowed("ui-iconset--custom-tone"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-iconset--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-iconset--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

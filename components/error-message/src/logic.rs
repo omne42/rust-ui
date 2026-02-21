@@ -1,28 +1,46 @@
+use std::borrow::Cow;
+
 pub use ui_state_primitives::error_message::{
-    DEFAULT_ARIA_LABEL, DEFAULT_MESSAGE, ErrorMessageElement, ErrorMessageState,
-    ErrorMessageStateInput, ErrorMessageTone, normalize_aria_label, normalize_message,
-    normalize_optional_text, resolve_effective_tone, resolve_state,
+    DEFAULT_ARIA_LABEL, DEFAULT_MESSAGE, ErrorMessageElement, ErrorMessageModelInput,
+    ErrorMessageState, ErrorMessageTone, resolve_effective_tone, resolve_model,
+};
+#[cfg(test)]
+pub use ui_state_primitives::error_message::{
+    ErrorMessageStateFlags, ErrorMessageStateFlagsInput, ErrorMessageStateInput,
+    ErrorMessageStatus, normalize_state_flags, resolve_state, resolve_status,
+    status_to_primitive_flags,
 };
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ErrorMessageState) -> String {
-    let mut classes = vec!["ui-error-message".to_string(), state.tone_class.into()];
+    let mut classes = vec![
+        Cow::Borrowed("ui-error-message"),
+        Cow::Borrowed(state.tone_class),
+    ];
 
     if state.is_disabled {
-        classes.push("ui-error-message--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-error-message--disabled"));
     }
 
     if state.is_truncated {
-        classes.push("ui-error-message--truncate".to_string());
+        classes.push(Cow::Borrowed("ui-error-message--truncate"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-error-message--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-error-message--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    let mut class_name = String::new();
+    for token in classes {
+        if !class_name.is_empty() {
+            class_name.push(' ');
+        }
+        class_name.push_str(token.as_ref());
+    }
+
+    class_name
 }
 
 const _: Option<ErrorMessageState> = None;

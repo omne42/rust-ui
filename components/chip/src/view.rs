@@ -1,8 +1,9 @@
 use crate::{
-    ChipSize, ChipVariant,
+    ChipMotion, ChipSize, ChipVariant,
     logic::{self, ChipStateInput},
+    motion as chip_motion,
 };
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 use ui_headless::OnPress;
 
 #[component]
@@ -11,10 +12,12 @@ pub fn Chip(
     #[prop(optional)] size: ChipSize,
     #[prop(optional)] is_disabled: bool,
     #[prop(optional)] on_dismiss: Option<OnPress>,
+    #[prop(optional)] motion: ChipMotion,
     #[prop(optional, into)] dismiss_aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let motion = chip_motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let (dismiss_aria_label, has_custom_dismiss_aria_label) =
         logic::resolve_dismiss_aria_label(dismiss_aria_label);
@@ -31,10 +34,13 @@ pub fn Chip(
     let class = logic::compose_class_name(class_name, state);
     let dismiss_aria_label = StoredValue::new(dismiss_aria_label);
     let on_dismiss = StoredValue::new(on_dismiss);
+    let node_ref: NodeRef<html::Span> = NodeRef::new();
+    chip_motion::attach_motion(node_ref, motion);
 
     view! {
         <span
             class=class
+            node_ref=node_ref
             data-slot="chip"
             data-variant=state.variant_attr
             data-size=state.size_attr
@@ -47,6 +53,12 @@ pub fn Chip(
             data-dismiss-label-source=state.dismiss_label_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-class-source=state.class_source_attr
+            data-motion-source=if motion == ChipMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ChipMotion::default()).then_some("true")
         >
             <span class="ui-chip__content" data-slot="chip-content">
                 {children()}

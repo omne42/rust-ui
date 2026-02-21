@@ -1,19 +1,29 @@
 use crate::tokens::{
     ACCORDION_MOTION_TOKENS_LARGE, ACCORDION_MOTION_TOKENS_MEDIUM, AccordionMotionTokens,
     BUTTON_LAYOUT_TOKENS_LARGE, BUTTON_LAYOUT_TOKENS_MEDIUM, BUTTON_MOTION_TOKENS_LARGE,
-    BUTTON_MOTION_TOKENS_MEDIUM, ButtonLayoutTokens, ButtonMotionTokens, ColorAliasTokens,
-    ColorPaletteTokens, ColorScaleTokens, CommonColorScales, ComponentColorTokens,
-    ComponentLayoutTokens, IconTokens, LayoutSemanticTokens, LayoutTokens, OverlayLayoutTokens,
-    RadiusTokens, SLIDER_LAYOUT_TOKENS_LARGE, SLIDER_LAYOUT_TOKENS_MEDIUM,
-    SLIDER_MOTION_TOKENS_LARGE, SLIDER_MOTION_TOKENS_MEDIUM, SWATCH_MOTION_TOKENS_LARGE,
-    SWATCH_MOTION_TOKENS_MEDIUM, SWITCH_MOTION_TOKENS_LARGE, SWITCH_MOTION_TOKENS_MEDIUM,
-    SemanticColorTokens, SemanticRoleTokens, SemanticScaleTokens, ShadowTokens, SliderLayoutTokens,
-    SliderMotionTokens, SpaceTokens, SwatchMotionTokens, SwitchMotionTokens,
-    TEXT_FIELD_MOTION_TOKENS_LARGE, TEXT_FIELD_MOTION_TOKENS_MEDIUM, TEXTAREA_MOTION_TOKENS_LARGE,
-    TEXTAREA_MOTION_TOKENS_MEDIUM, TIME_FIELD_MOTION_TOKENS_LARGE, TIME_FIELD_MOTION_TOKENS_MEDIUM,
-    TextFieldMotionTokens, TextareaMotionTokens, ThemeTokens, TimeFieldMotionTokens, TokenScale,
-    TypographyTokens, UNDERLAY_MOTION_TOKENS_LARGE, UNDERLAY_MOTION_TOKENS_MEDIUM,
-    UnderlayMotionTokens,
+    BUTTON_MOTION_TOKENS_MEDIUM, ButtonLayoutTokens, ButtonMotionTokens,
+    CHECKBOX_GROUP_LAYOUT_TOKENS_LARGE, CHECKBOX_GROUP_LAYOUT_TOKENS_MEDIUM,
+    CHECKBOX_GROUP_MOTION_TOKENS_LARGE, CHECKBOX_GROUP_MOTION_TOKENS_MEDIUM,
+    CHECKBOX_LAYOUT_TOKENS_LARGE, CHECKBOX_LAYOUT_TOKENS_MEDIUM, COLOR_SWATCH_LAYOUT_TOKENS_LARGE,
+    COLOR_SWATCH_LAYOUT_TOKENS_MEDIUM, COLOR_WHEEL_HUE_TOKENS, COLOR_WHEEL_LAYOUT_TOKENS_LARGE,
+    COLOR_WHEEL_LAYOUT_TOKENS_MEDIUM, COMMAND_LAYOUT_TOKENS_LARGE, COMMAND_LAYOUT_TOKENS_MEDIUM,
+    CheckboxGroupLayoutTokens, CheckboxGroupMotionTokens, CheckboxLayoutTokens, ColorAliasTokens,
+    ColorPaletteTokens, ColorScaleTokens, ColorSwatchLayoutTokens, ColorWheelHueTokens,
+    ColorWheelLayoutTokens, CommandLayoutTokens, CommonColorScales, ComponentColorTokens,
+    ComponentLayoutTokens, DROP_ZONE_LAYOUT_TOKENS_LARGE, DROP_ZONE_LAYOUT_TOKENS_MEDIUM,
+    DROP_ZONE_MOTION_TOKENS_LARGE, DROP_ZONE_MOTION_TOKENS_MEDIUM, DropZoneLayoutTokens,
+    DropZoneMotionTokens, FLIP_CARD_LAYOUT_TOKENS_LARGE, FLIP_CARD_LAYOUT_TOKENS_MEDIUM,
+    FlipCardLayoutTokens, IconTokens, LABEL_MOTION_TOKENS_LARGE, LABEL_MOTION_TOKENS_MEDIUM,
+    LabelMotionTokens, LayoutSemanticTokens, LayoutTokens, OverlayLayoutTokens, RadiusTokens,
+    SLIDER_LAYOUT_TOKENS_LARGE, SLIDER_LAYOUT_TOKENS_MEDIUM, SLIDER_MOTION_TOKENS_LARGE,
+    SLIDER_MOTION_TOKENS_MEDIUM, SWATCH_MOTION_TOKENS_LARGE, SWATCH_MOTION_TOKENS_MEDIUM,
+    SWITCH_MOTION_TOKENS_LARGE, SWITCH_MOTION_TOKENS_MEDIUM, SemanticColorTokens,
+    SemanticRoleTokens, SemanticScaleTokens, ShadowTokens, SliderLayoutTokens, SliderMotionTokens,
+    SpaceTokens, SwatchMotionTokens, SwitchMotionTokens, TEXT_FIELD_MOTION_TOKENS_LARGE,
+    TEXT_FIELD_MOTION_TOKENS_MEDIUM, TEXTAREA_MOTION_TOKENS_LARGE, TEXTAREA_MOTION_TOKENS_MEDIUM,
+    TIME_FIELD_MOTION_TOKENS_LARGE, TIME_FIELD_MOTION_TOKENS_MEDIUM, TextFieldMotionTokens,
+    TextareaMotionTokens, ThemeTokens, TimeFieldMotionTokens, TokenScale, TypographyTokens,
+    UNDERLAY_MOTION_TOKENS_LARGE, UNDERLAY_MOTION_TOKENS_MEDIUM, UnderlayMotionTokens,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -246,6 +256,39 @@ pub fn default_slider_motion_tokens() -> SliderMotionTokens {
     slider_motion_tokens(ThemeContext::default())
 }
 
+pub fn drop_zone_motion_tokens(ctx: ThemeContext) -> DropZoneMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => DROP_ZONE_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => DROP_ZONE_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_drop_zone_motion_tokens() -> DropZoneMotionTokens {
+    drop_zone_motion_tokens(ThemeContext::default())
+}
+
+pub fn drop_zone_layout_tokens(ctx: ThemeContext) -> DropZoneLayoutTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => DROP_ZONE_LAYOUT_TOKENS_MEDIUM,
+        TokenScale::Large => DROP_ZONE_LAYOUT_TOKENS_LARGE,
+    }
+}
+
+pub fn default_drop_zone_layout_tokens() -> DropZoneLayoutTokens {
+    drop_zone_layout_tokens(ThemeContext::default())
+}
+
+pub fn flip_card_layout_tokens(ctx: ThemeContext) -> FlipCardLayoutTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => FLIP_CARD_LAYOUT_TOKENS_MEDIUM,
+        TokenScale::Large => FLIP_CARD_LAYOUT_TOKENS_LARGE,
+    }
+}
+
+pub fn default_flip_card_layout_tokens() -> FlipCardLayoutTokens {
+    flip_card_layout_tokens(ThemeContext::default())
+}
+
 pub fn underlay_motion_tokens(ctx: ThemeContext) -> UnderlayMotionTokens {
     match ctx.scale.token_scale() {
         TokenScale::Medium => UNDERLAY_MOTION_TOKENS_MEDIUM,
@@ -290,6 +333,28 @@ pub fn default_text_field_motion_tokens() -> TextFieldMotionTokens {
     text_field_motion_tokens(ThemeContext::default())
 }
 
+pub fn label_motion_tokens(ctx: ThemeContext) -> LabelMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => LABEL_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => LABEL_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_label_motion_tokens() -> LabelMotionTokens {
+    label_motion_tokens(ThemeContext::default())
+}
+
+pub fn checkbox_group_motion_tokens(ctx: ThemeContext) -> CheckboxGroupMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => CHECKBOX_GROUP_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => CHECKBOX_GROUP_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_checkbox_group_motion_tokens() -> CheckboxGroupMotionTokens {
+    checkbox_group_motion_tokens(ThemeContext::default())
+}
+
 pub fn button_layout_tokens(ctx: ThemeContext) -> ButtonLayoutTokens {
     match ctx.scale.token_scale() {
         TokenScale::Medium => BUTTON_LAYOUT_TOKENS_MEDIUM,
@@ -301,12 +366,72 @@ pub fn default_button_layout_tokens() -> ButtonLayoutTokens {
     button_layout_tokens(ThemeContext::default())
 }
 
+pub fn checkbox_layout_tokens(ctx: ThemeContext) -> CheckboxLayoutTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => CHECKBOX_LAYOUT_TOKENS_MEDIUM,
+        TokenScale::Large => CHECKBOX_LAYOUT_TOKENS_LARGE,
+    }
+}
+
+pub fn default_checkbox_layout_tokens() -> CheckboxLayoutTokens {
+    checkbox_layout_tokens(ThemeContext::default())
+}
+
+pub fn checkbox_group_layout_tokens(ctx: ThemeContext) -> CheckboxGroupLayoutTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => CHECKBOX_GROUP_LAYOUT_TOKENS_MEDIUM,
+        TokenScale::Large => CHECKBOX_GROUP_LAYOUT_TOKENS_LARGE,
+    }
+}
+
+pub fn default_checkbox_group_layout_tokens() -> CheckboxGroupLayoutTokens {
+    checkbox_group_layout_tokens(ThemeContext::default())
+}
+
+pub fn command_layout_tokens(ctx: ThemeContext) -> CommandLayoutTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => COMMAND_LAYOUT_TOKENS_MEDIUM,
+        TokenScale::Large => COMMAND_LAYOUT_TOKENS_LARGE,
+    }
+}
+
+pub fn default_command_layout_tokens() -> CommandLayoutTokens {
+    command_layout_tokens(ThemeContext::default())
+}
+
 pub fn slider_layout_tokens(ctx: ThemeContext) -> SliderLayoutTokens {
     resolve_tokens(ctx).slider_layout
 }
 
 pub fn default_slider_layout_tokens() -> SliderLayoutTokens {
     slider_layout_tokens(ThemeContext::default())
+}
+
+pub fn color_swatch_layout_tokens(ctx: ThemeContext) -> ColorSwatchLayoutTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => COLOR_SWATCH_LAYOUT_TOKENS_MEDIUM,
+        TokenScale::Large => COLOR_SWATCH_LAYOUT_TOKENS_LARGE,
+    }
+}
+
+pub fn default_color_swatch_layout_tokens() -> ColorSwatchLayoutTokens {
+    color_swatch_layout_tokens(ThemeContext::default())
+}
+
+pub fn color_wheel_layout_tokens(ctx: ThemeContext) -> ColorWheelLayoutTokens {
+    resolve_tokens(ctx).color_wheel_layout
+}
+
+pub fn default_color_wheel_layout_tokens() -> ColorWheelLayoutTokens {
+    color_wheel_layout_tokens(ThemeContext::default())
+}
+
+pub fn color_wheel_hue_tokens(ctx: ThemeContext) -> ColorWheelHueTokens {
+    resolve_tokens(ctx).color_wheel_hue
+}
+
+pub fn default_color_wheel_hue_tokens() -> ColorWheelHueTokens {
+    color_wheel_hue_tokens(ThemeContext::default())
 }
 
 pub fn overlay_layout_tokens(ctx: ThemeContext) -> OverlayLayoutTokens {
@@ -603,94 +728,104 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
         },
     };
 
-    let (typography, component_layout, overlay_layout, slider_layout) =
-        match ctx.scale.token_scale() {
-            TokenScale::Medium => (
-                TypographyTokens {
-                    // Baseline: 12px for font-size-100 at medium scale.
-                    font_size_100_px: 12,
-                    // Baseline: 14px for font-size-150 at medium scale.
-                    font_size_150_px: 14,
-                    // Baseline: 16px for font-size-200 at medium scale.
-                    font_size_200_px: 16,
-                    // Baseline text metrics ladder follows Spectrum/HeroUI-style readable line boxes.
-                    line_height_100_px: 16,
-                    line_height_150_px: 20,
-                    line_height_200_px: 24,
-                    // Body uses the middle rung by default.
-                    body_font_size_px: 14,
-                    body_line_height_px: 20,
-                    // Heading ladder is explicit so h1-h6 never fall back to browser defaults.
-                    heading_h1_font_size_px: 28,
-                    heading_h1_line_height_px: 36,
-                    heading_h2_font_size_px: 24,
-                    heading_h2_line_height_px: 32,
-                    heading_h3_font_size_px: 20,
-                    heading_h3_line_height_px: 28,
-                    heading_h4_font_size_px: 18,
-                    heading_h4_line_height_px: 24,
-                    heading_h5_font_size_px: 16,
-                    heading_h5_line_height_px: 24,
-                    heading_h6_font_size_px: 14,
-                    heading_h6_line_height_px: 20,
-                },
-                ComponentLayoutTokens {
-                    // Baseline: 32px for component-height-100 at medium scale.
-                    component_height_100_px: 32,
-                    // Baseline: decorative separator opacity is tokenized to avoid component-local literals.
-                    separator_decorative_opacity_percent: 72,
-                },
-                OverlayLayoutTokens {
-                    z_index: 1000,
-                    panel_min_width_px: 240,
-                    viewport_inset_px: 16,
-                    enter_offset_y_px: 6,
-                    enter_scale: 0.98,
-                },
-                SLIDER_LAYOUT_TOKENS_MEDIUM,
-            ),
-            TokenScale::Large => (
-                TypographyTokens {
-                    // Baseline: 14px for font-size-100 at large scale.
-                    font_size_100_px: 14,
-                    // Baseline: 16px for font-size-150 at large scale.
-                    font_size_150_px: 16,
-                    // Baseline: 19px for font-size-200 at large scale.
-                    font_size_200_px: 19,
-                    line_height_100_px: 20,
-                    line_height_150_px: 24,
-                    line_height_200_px: 28,
-                    body_font_size_px: 16,
-                    body_line_height_px: 24,
-                    heading_h1_font_size_px: 32,
-                    heading_h1_line_height_px: 40,
-                    heading_h2_font_size_px: 28,
-                    heading_h2_line_height_px: 36,
-                    heading_h3_font_size_px: 24,
-                    heading_h3_line_height_px: 32,
-                    heading_h4_font_size_px: 21,
-                    heading_h4_line_height_px: 28,
-                    heading_h5_font_size_px: 19,
-                    heading_h5_line_height_px: 28,
-                    heading_h6_font_size_px: 16,
-                    heading_h6_line_height_px: 24,
-                },
-                ComponentLayoutTokens {
-                    // Baseline: 40px for component-height-100 at large scale.
-                    component_height_100_px: 40,
-                    // Baseline: decorative separator opacity is tokenized to avoid component-local literals.
-                    separator_decorative_opacity_percent: 72,
-                },
-                OverlayLayoutTokens {
-                    z_index: 1000,
-                    panel_min_width_px: 280,
-                    viewport_inset_px: 20,
-                    enter_offset_y_px: 8,
-                    enter_scale: 0.98,
-                },
-                SLIDER_LAYOUT_TOKENS_LARGE,
-            ),
-        };
+    let (
+        typography,
+        component_layout,
+        overlay_layout,
+        slider_layout,
+        color_swatch_layout,
+        color_wheel_layout,
+    ) = match ctx.scale.token_scale() {
+        TokenScale::Medium => (
+            TypographyTokens {
+                // Baseline: 12px for font-size-100 at medium scale.
+                font_size_100_px: 12,
+                // Baseline: 14px for font-size-150 at medium scale.
+                font_size_150_px: 14,
+                // Baseline: 16px for font-size-200 at medium scale.
+                font_size_200_px: 16,
+                // Baseline text metrics ladder follows Spectrum/HeroUI-style readable line boxes.
+                line_height_100_px: 16,
+                line_height_150_px: 20,
+                line_height_200_px: 24,
+                // Body uses the middle rung by default.
+                body_font_size_px: 14,
+                body_line_height_px: 20,
+                // Heading ladder is explicit so h1-h6 never fall back to browser defaults.
+                heading_h1_font_size_px: 28,
+                heading_h1_line_height_px: 36,
+                heading_h2_font_size_px: 24,
+                heading_h2_line_height_px: 32,
+                heading_h3_font_size_px: 20,
+                heading_h3_line_height_px: 28,
+                heading_h4_font_size_px: 18,
+                heading_h4_line_height_px: 24,
+                heading_h5_font_size_px: 16,
+                heading_h5_line_height_px: 24,
+                heading_h6_font_size_px: 14,
+                heading_h6_line_height_px: 20,
+            },
+            ComponentLayoutTokens {
+                // Baseline: 32px for component-height-100 at medium scale.
+                component_height_100_px: 32,
+                // Baseline: decorative separator opacity is tokenized to avoid component-local literals.
+                separator_decorative_opacity_percent: 72,
+            },
+            OverlayLayoutTokens {
+                z_index: 1000,
+                panel_min_width_px: 240,
+                viewport_inset_px: 16,
+                enter_offset_y_px: 6,
+                enter_scale: 0.98,
+            },
+            SLIDER_LAYOUT_TOKENS_MEDIUM,
+            COLOR_SWATCH_LAYOUT_TOKENS_MEDIUM,
+            COLOR_WHEEL_LAYOUT_TOKENS_MEDIUM,
+        ),
+        TokenScale::Large => (
+            TypographyTokens {
+                // Baseline: 14px for font-size-100 at large scale.
+                font_size_100_px: 14,
+                // Baseline: 16px for font-size-150 at large scale.
+                font_size_150_px: 16,
+                // Baseline: 19px for font-size-200 at large scale.
+                font_size_200_px: 19,
+                line_height_100_px: 20,
+                line_height_150_px: 24,
+                line_height_200_px: 28,
+                body_font_size_px: 16,
+                body_line_height_px: 24,
+                heading_h1_font_size_px: 32,
+                heading_h1_line_height_px: 40,
+                heading_h2_font_size_px: 28,
+                heading_h2_line_height_px: 36,
+                heading_h3_font_size_px: 24,
+                heading_h3_line_height_px: 32,
+                heading_h4_font_size_px: 21,
+                heading_h4_line_height_px: 28,
+                heading_h5_font_size_px: 19,
+                heading_h5_line_height_px: 28,
+                heading_h6_font_size_px: 16,
+                heading_h6_line_height_px: 24,
+            },
+            ComponentLayoutTokens {
+                // Baseline: 40px for component-height-100 at large scale.
+                component_height_100_px: 40,
+                // Baseline: decorative separator opacity is tokenized to avoid component-local literals.
+                separator_decorative_opacity_percent: 72,
+            },
+            OverlayLayoutTokens {
+                z_index: 1000,
+                panel_min_width_px: 280,
+                viewport_inset_px: 20,
+                enter_offset_y_px: 8,
+                enter_scale: 0.98,
+            },
+            SLIDER_LAYOUT_TOKENS_LARGE,
+            COLOR_SWATCH_LAYOUT_TOKENS_LARGE,
+            COLOR_WHEEL_LAYOUT_TOKENS_LARGE,
+        ),
+    };
 
     let color_aliases = ColorAliasTokens {
         text_default: semantic_colors.fg,
@@ -745,9 +880,16 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
         component_layout,
         overlay_layout,
         slider_layout,
+        color_swatch_layout,
+        color_wheel_layout,
+        color_wheel_hue: COLOR_WHEEL_HUE_TOKENS,
         underlay_motion: underlay_motion_tokens(ctx),
         typography,
         button_layout: button_layout_tokens(ctx),
+        checkbox_layout: checkbox_layout_tokens(ctx),
+        command_layout: command_layout_tokens(ctx),
+        checkbox_group_layout: checkbox_group_layout_tokens(ctx),
+        flip_card_layout: flip_card_layout_tokens(ctx),
     }
 }
 

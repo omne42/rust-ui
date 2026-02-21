@@ -88,3 +88,18 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn normalize_props_centralizes_title_item_count_and_disabled_defaults() {
+    let normalized = normalize_props(MenuSectionNormalizeInput {
+        title: Some("  File actions  ".to_string()),
+        item_count: None,
+        is_disabled: Some(true),
+        disabled: false,
+    });
+
+    assert_eq!(normalized.title_text, "File actions".to_string());
+    assert!(normalized.has_title);
+    assert_eq!(normalized.item_count, DEFAULT_ITEM_COUNT);
+    assert!(normalized.disabled);
+}

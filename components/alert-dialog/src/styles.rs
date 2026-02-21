@@ -2,8 +2,11 @@ pub const CSS: &str = r#"
 .ui-alert-dialog {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-md);
-  width: min(100%, var(--ui-overlay-panel-min-width));
+  gap: var(--ui-space-md, var(--ui-fallback-space-md));
+  width: min(
+    100%,
+    var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width))
+  );
 }
 
 .ui-alert-dialog--open,
@@ -109,22 +112,22 @@ pub const CSS: &str = r#"
 .ui-alert-dialog__header {
   display: flex;
   align-items: flex-start;
-  gap: var(--ui-space-md);
+  gap: var(--ui-space-md, var(--ui-fallback-space-md));
 }
 
 .ui-alert-dialog__header-text {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
   min-width: 0;
 }
 
 .ui-alert-dialog__type-icon {
-  width: var(--ui-icon-size-200);
-  height: var(--ui-icon-size-200);
-  flex: 0 0 var(--ui-icon-size-200);
-  margin-top: var(--ui-space-2xs);
-  color: var(--ui-fg-muted);
+  width: var(--ui-icon-size-200, var(--ui-fallback-icon-size-200));
+  height: var(--ui-icon-size-200, var(--ui-fallback-icon-size-200));
+  flex: 0 0 var(--ui-icon-size-200, var(--ui-fallback-icon-size-200));
+  margin-top: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-alert-dialog__type-icon svg {
@@ -135,32 +138,38 @@ pub const CSS: &str = r#"
 
 .ui-alert-dialog--variant-warning .ui-alert-dialog__type-icon,
 .ui-alert-dialog[data-variant="warning"] .ui-alert-dialog__type-icon {
-  color: var(--ui-accent);
+  color: var(--ui-accent, var(--ui-fallback-accent));
 }
 
 .ui-alert-dialog--variant-error .ui-alert-dialog__type-icon,
 .ui-alert-dialog[data-variant="error"] .ui-alert-dialog__type-icon {
-  color: var(--ui-danger);
+  color: var(--ui-danger, var(--ui-fallback-danger));
 }
 
 .ui-alert-dialog__title[data-slot="alert-dialog-title"] {
-  font-size: var(--ui-heading-h5-font-size);
-  line-height: var(--ui-heading-h5-line-height);
+  font-size: var(
+    --ui-heading-h5-font-size,
+    var(--ui-fallback-heading-h5-font-size)
+  );
+  line-height: var(
+    --ui-heading-h5-line-height,
+    var(--ui-fallback-heading-h5-line-height)
+  );
   font-weight: 700;
   margin: 0;
 }
 
 .ui-alert-dialog__description[data-slot="alert-dialog-description"] {
-  font-size: var(--ui-font-size-150);
-  line-height: var(--ui-line-height-150);
-  color: var(--ui-fg-muted);
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
   margin: 0;
 }
 
 .ui-alert-dialog__footer[data-slot="alert-dialog-footer"] {
   display: flex;
   justify-content: flex-end;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   flex-wrap: wrap;
 }
 
@@ -170,6 +179,6 @@ pub const CSS: &str = r#"
 
 .ui-alert-dialog--variant-destructive .ui-alert-dialog__title,
 .ui-alert-dialog[data-variant="destructive"] .ui-alert-dialog__title {
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 "#;

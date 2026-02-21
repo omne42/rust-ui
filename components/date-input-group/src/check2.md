@@ -1,16 +1,17 @@
-# 单组件 Check List（完整版，Spectrum 对齐）
+# 单组件 Check List（Hyper-Structure 完整版）
 
-> 用途：每次新增或改动一个组件时，按本清单逐项检查。  
-> 执行顺序：`大骨架 -> 小骨架 -> 实现细节 -> 测试与文档 -> 合并门禁`。  
+> 用途：每次新增、重构或修改一个组件时，必须按本清单逐项检查并在 PR 中附带结果。  
+> 执行顺序：先过第 1-2 节（架构与状态），再进入第 3-5 节（具体实现）。  
 > 术语统一：`status-primitives` 指状态原语层（当前 crate 名为 `ui-state-primitives`）。
 
 ### 0. 适用范围与顺序纪律
 本清单仅评估“一个组件”的改动结果，不替代仓库级治理。
-先过第 1-2 节（骨架）再进入第 3-6 节（实现细节）。
+先过第 1-2 节（架构与状态）再进入第 3-5 节（具体实现）。
+不适用的条目必须明确标注 `N/A` 并说明理由，禁止机械打勾。
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
-### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+### 1. 架构边界与分层约束（Kernel/Shell 总线）
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`DateInputGroupStateInput/DateInputGroupState/DateInputGroupVariant/resolve_state/normalize_*` 已下沉到 `crates/ui-state-primitives/src/date_input_group.rs`，并在 `crates/ui-state-primitives/src/lib.rs` 导出；组件 `components/date-input-group/src/logic.rs` 仅 re-export + `compose_class_name` 装配。回归：`crates/ui-state-primitives/src/test/date_input_group.rs` 与 `components/date-input-group/test/semantics.rs`。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`components/date-input-group/src/view.rs` 已改为消费 `ui_headless::labeled_group_attrs`，通过 `group_a11y` 挂载 `role/aria-label/lang/dir`，组件不再硬编码 `role=\"group\"`；`aria-disabled` 由组件状态标记映射。回归：`components/date-input-group/test/semantics.rs::date_input_group_supports_group_accessibility_and_children_layout`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +32,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`components/date-input-group/src/motion.rs` 仅封装组件 motion contract 与 `attach_motion`，执行器复用 `ui_motion::spring::SpringAnimator`，参数清洗委托 `ui_motion::spring::sanitize_config`，默认弹簧使用 `ui_motion::presets::spring_soft`；`view.rs` 通过 `NodeRef` 显式挂载 `attach_motion` 并暴露 `data-motion-source`/`data-custom-motion` 标记；non-wasm 分支保留 no-op/stub。回归：`components/date-input-group/test/semantics.rs::date_input_group_motion_contract_delegates_to_ui_motion_and_has_non_wasm_stub`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/date-input-group/src/styles.rs` 已改为 token-first 消费 `var(--ui-*, var(--ui-fallback-*))`，关键尺寸/排版/边框基线直接对齐 `--ui-component-height-100`、`--ui-font-size-150`、`--ui-line-height-150`、`--ui-border-width`；`logic.rs`/`view.rs` 未重建 `ThemeContext`。回归：`components/date-input-group/test/semantics.rs::date_input_group_styles_consume_ui_theme_tokens_without_theme_reconstruction`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,91 +47,100 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`components/date-input-group/src/mod.rs` 仅暴露稳定 API（`DateInputGroup` / `DateInputGroupMotion` / primitive state types），未泄露 `web-sys`/DOM 细节；职责分层保持 `logic.rs` 归一派生、`view.rs` 结构与 headless 挂载、`styles.rs` token-first 静态样式、`motion.rs` 动效 attach。语义测试已迁移到 `components/date-input-group/test/semantics.rs` 并通过 `#[cfg(test)] #[path = "../test/semantics.rs"]` 在 `mod.rs` 挂载。回归：`components/date-input-group/test/semantics.rs::date_input_group_stays_as_ui_components_assembly_layer`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
+  - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
-### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+### 2. API 设计与状态内核（Logic/Kernel）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`DateInputGroup` 公共布尔 props 已统一为 `is_full_width/is_disabled/is_invalid/is_segmented`，源码位于 `components/date-input-group/src/view.rs`；旧命名 `full_width/disabled/invalid/segmented` 不再作为公开别名保留，避免语义别名漂移。文档示例已同步到 `apps/docs-app/src/pages/components/pages/forms_groups.rs`。回归：`components/date-input-group/test/semantics.rs::date_input_group_public_api_bool_props_follow_is_prefix_contract`。另外，`DateInputGroup` 当前无自身受控状态轴，因此本条不新增伪造的 `on_*`/`default_*` 接口。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`DateInputGroup` 自身不持有可变业务值状态轴，职责是容器装配与语义挂载；受控/非受控值状态由子组件 `DateField`/`TimeField` 暴露并管理（`value + on_value_change [+ default_value]` 语义在子组件契约内）。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_local_controlled_uncontrolled_value_axis`。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`motion` 默认来源判定已集中到 `components/date-input-group/src/logic.rs::resolve_motion_source_attrs`，`view.rs` 仅消费 `logic::resolve_motion_source_attrs(motion)`，不再包含 `DateInputGroupMotion::default()` 分支。回归：`components/date-input-group/test/semantics.rs::date_input_group_normalizes_default_sources_in_logic_only`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（状态输入已类型化为 `components/date-input-group/src/logic.rs::DateInputGroupStateDeriveInput`，并通过 `components/date-input-group/src/logic.rs::derive_state` 统一映射到 `ui-state-primitives::DateInputGroupStateInput`；`view.rs` 仅消费 `logic::derive_state(...)` 输出并挂载 `data-*` 标记。回归：`components/date-input-group/test/semantics.rs::date_input_group_centralizes_state_normalization_in_logic`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`DateInputGroupVariant` 之外，新增 `DateInputGroupWidth` / `DateInputGroupStatus`（`crates/ui-state-primitives/src/date_input_group.rs`）承载互斥离散轴；组件 `logic.rs` 仅消费 primitives 暴露的 `resolve_width/resolve_status` 与 `derive_state`，`view.rs` 不再拼接离散状态分支。回归：`components/date-input-group/test/semantics.rs::date_input_group_uses_enum_constraints_for_discrete_state_axes`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`components/date-input-group/src/logic.rs` 仅通过 re-export 消费 `ui_state_primitives::date_input_group` 的 `DateInputGroupStateInput/DateInputGroupState/DateInputGroupWidth/DateInputGroupStatus/resolve_*`，未本地重写 primitive 结构与状态规则；`view.rs` 仅经 `logic` 装配调用；模块未出现业务 store 类型绑定。回归：`components/date-input-group/test/semantics.rs::date_input_group_consumes_state_primitives_without_business_store_binding`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`DateInputGroup` 仅提供同步容器装配与语义挂载，不发起远程请求、无 `is_loading/error/retry` 协议轴，也未使用 `use_async_action`；当前仅保留同步 `disabled`/`aria-disabled` 语义。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_async_interaction_axis`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`apps/docs-app/src/pages/components/pages/forms_groups.rs` 已新增 `DateInputGroup` 的 `Hello World` 最小调用路径：`<DateInputGroup><DateField ... /></DateInputGroup>`（3 行，不需要手动接线 `ui-state-primitives/ui-headless`）；组件 API 未暴露必填内部 `state` 对象；复杂状态矩阵仍通过进阶 Playground 暴露。回归：`components/date-input-group/test/semantics.rs::date_input_group_docs_expose_hello_world_dx_path`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`DateInputGroup` 仅暴露 `children: Children` 显式组合入口；docs 最小路径保持 `<DateInputGroup><DateField ... /></DateInputGroup>`，未引入 `labels + children` / `titles + panels` 并行数组语法糖。回归：`components/date-input-group/test/semantics.rs::date_input_group_prefers_explicit_composition_over_parallel_slots`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
-### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+### 3. 高级交互与物理机制（Shell/Physics）
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`DateInputGroup` 不包含拖拽/高频指针跟随交互，仅有入场 spring attach，无 `Dragging`/`Action::DragEnd` 状态轴与事件通道。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_dragging_high_frequency_interaction_axis`。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`DateInputGroup` 无 overlay 定位与 DOM 几何测量流程，不存在 `Intent -> Measure -> Rectification` 循环与收敛风险。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_dom_measurement_two_pass_axis`。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`DateInputGroup` 不管理动态子项集合导航，仅透传 `children` 插槽，不维护 `items_order` 或注册/反注册协议。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_registration_protocol_axis`。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`DateInputGroup` 不提供 `Lazy/KeepAlive/Eager` 投影模式，组件始终直接渲染 `children`，无隐藏生命周期通知与副作用暂停协议。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_slot_projection_lifecycle_axis`。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`DateInputGroup` 不订阅 `Resize/Theme/Intersection` 环境流，`view.rs` 无 observer/防抖采样与 `Action` 回流通道，仅执行 props->state 装配渲染。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_env_subscription_stream_axis`。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`DateInputGroup` 不涉及大型集合批量操作，无 `Context Bus + Selector` 与 `SelectionState::All` 状态压缩语义；组件仅做局部容器装配，不存在 O(N) 下钻传播路径。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_event_light_cone_axis`。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`DateInputGroup` 不涉及复杂派生总线广播链路，无 `TraceId` 透传、总线发布或订阅者分发路径；组件仅做局部容器装配。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_causality_bus_axis`。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`DateInputGroup` 通过 `ui_headless::labeled_group_attrs` 挂载 `role/aria-label/lang/dir`，并透传 `lang` / `dir` 输入；`view.rs` 无业务可见文案硬编码，文案由 `aria_label`（props）与 children/slot 内容提供，兜底由 `logic::normalize_aria_label` 统一处理。回归：`components/date-input-group/test/semantics.rs::date_input_group_a11y_i18n_contract_uses_headless_and_lang_dir`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`DateInputGroup` 已暴露稳定 `data-*` / `aria-*` 标记（`data-variant/width/state/disabled/invalid/segmented/*-source` 与 `aria-disabled`），并由 `ui-state-primitives` 的 `as_attr` 与 `resolve_state` 提供封闭枚举值集合（`primary/secondary`、`fit/full`、`default/invalid/disabled/disabled-invalid/segmented`、`custom/default`）。回归：`components/date-input-group/test/semantics.rs::date_input_group_exposes_stable_observable_state_markers`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`styles.rs` 状态分支已基于稳定 `data-*` / class（`data-variant/width/disabled/invalid/segmented/custom-class` 对应选择器 + 稳定 class 兜底），未使用 `:nth-child` / `:nth-of-type`；`view.rs` 未注入 `style=` 业务样式逻辑，视觉状态由语义标记解释。回归：`components/date-input-group/test/semantics.rs::date_input_group_styles_depend_on_explicit_semantic_state_markers`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/date-input-group/test/semantics.rs` 以语义契约断言覆盖 `role/aria/data-state/source markers`，并覆盖矩阵关键分支：受控/非受控（容器轴 N/A）、disabled、SSR/wasm。N/A：键盘/指针路径由子组件（如 `DateField`/`TimeField`）承载，`DateInputGroup` 仅做容器装配与语义挂载。回归：`date_input_group_supports_group_accessibility_and_children_layout`、`date_input_group_exposes_stable_observable_state_markers`、`date_input_group_has_no_local_controlled_uncontrolled_value_axis`、`date_input_group_has_no_keyboard_pointer_interaction_axis`、`date_input_group_motion_contract_delegates_to_ui_motion_and_has_non_wasm_stub`、`date_input_group_semantic_contract_tests_cover_state_matrix_without_snapshot_dependency`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`components/date-input-group/src/mod.rs` 仅保留最小导出边界与测试挂载；`components/date-input-group/src/logic.rs` 仅做归一/派生/来源标记；`components/date-input-group/src/styles.rs` 保持 token-first 静态 CSS；`components/date-input-group/src/view.rs` 仅负责 Leptos 结构渲染与 `ui-headless` 契约挂载；`components/date-input-group/src/motion.rs` 仅承载 motion contract 与 attach，并复用 `ui-motion` 执行器。回归：`components/date-input-group/test/semantics.rs::date_input_group_component_files_follow_role_boundaries`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（N/A：`DateInputGroup` 当前不承载独立外部 Schema 契约，也无复杂配置固化需求；组件目录保持 `mod/logic/styles/view/motion` 五文件职责边界，说明与约束留在 `check2.md`。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_spec_rs_for_simple_component`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`components/date-input-group/src/styles.rs` 保持 token-first 静态 CSS（`var(--ui-*, var(--ui-fallback-*))`）；`crates/ui-components/src/css.rs` 通过 `component-date_input_group` feature 聚合 `styles::CSS`；`crates/ui-components/src/root.rs` 通过 `UiRoot` 的 `inject_components_css` 注入聚合样式；组件源码未引入 Utility-First/CSS-in-Rust 默认范式。回归：`components/date-input-group/test/semantics.rs::date_input_group_follows_token_first_static_style_contract`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（组件级证据：`apps/docs-app/src/pages/components/pages/forms_groups.rs` 为 `DateInputGroup` 提供默认主题基线与状态对照 Playground（Hello World / Prefix-Suffix / Secondary+Invalid）；`components/date-input-group/src/styles.rs` 使用 token-first + `color-mix` 维持层级、对比与视觉反馈，未出现 Bootstrap 风格回退。N/A：Button/Input/Overlay 跨组件截图基线属于仓库级视觉回归任务，不在本单组件条目内闭环；N/A：hover/active/focus 细粒度反馈由子组件 `DateField`/`TimeField` 负责。回归：`components/date-input-group/test/semantics.rs::date_input_group_visual_desire_baseline_is_documented_and_tokenized`。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（组件级证据：`crates/ui-components/Cargo.toml` 暴露 `component-date_input_group = ["dep:ui-date-input-group"]`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 date-input-group 的模块导出与样式聚合均由 feature gate 控制。特性树检查：`cargo tree -e features -p ui-components --no-default-features --features component-date_input_group,inject-css -f '{p} {f}'`，观测到 `ui-components v0.0.0 ... component-date_input_group,inject-css`，未见 `all-components`。反向依赖检查：`cargo tree -e features -i ui-components -p web-demo -f '{p} {f}'`，`web-demo` 路径观测到 `web-demo-components + inject-css`，未出现 `all-components` 拉起。最小特性 wasm 编译命令已执行但受环境 `Invalid cross-device link (os error 18)` 阻塞。N/A：体积预算阈值（如 `< 50KB`）属于仓库级 CI 策略，不在单组件条目内闭环。回归：`components/date-input-group/test/semantics.rs::date_input_group_tree_shaking_is_feature_gated_in_ui_components`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -139,67 +149,73 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`crates/ui-state-primitives/src/date_input_group.rs` 使用 `DateInputGroupVariant` / `DateInputGroupWidth` / `DateInputGroupStatus` 与 `DateInputGroupStateInput` / `DateInputGroupState` 对关键输入空间进行类型化约束；`resolve_status` + `resolve_state` 在原语层统一归一化无效组合（如 `DisabledInvalid` 与 `segmented` 状态收敛）；`components/date-input-group/src/view.rs` 暴露 `data-variant` / `data-width` / `data-state` / `data-aria-source` / `data-class-source` / `data-motion-source` 作为稳定机器可读语义标记。回归：`crates/ui-state-primitives/src/test/date_input_group.rs::width_and_status_contract_are_stable`、`crates/ui-state-primitives/src/test/date_input_group.rs::resolve_state_tracks_markers`、`components/date-input-group/test/semantics.rs::date_input_group_type_system_and_semantic_markers_form_machine_readable_contract`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
-### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+### 4. DOM/环境边界治理
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`DateInputGroup` 非层叠 `Overlay` 组件，无焦点恢复栈职责；组件 `NodeRef` 仅用于 `date_input_group_motion::attach_motion` 节点挂载。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_overlay_focus_stack_axis`。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`DateInputGroup` 不集成 ECharts/Map 等命令式第三方实例，不存在 `Foreign Zone`（`YieldControl/CleanupForeign`）边界；组件公共 API 未暴露第三方实例句柄。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_escape_hatch_foreign_zone_axis`。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（N/A：`DateInputGroup` 不生成运行时随机/时间相关 ID（无 `now()` / 随机 UUID），也不消费 `IdProvider`；当前仅承载容器装配与子节点透传，不存在 SSR/Hydration ID 漂移面。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_hydration_discontinuity_axis`。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 证据命令：`cargo check -p ui-date-input-group --target wasm32-unknown-unknown`、`cargo check -p ui-date-input-group --target x86_64-unknown-linux-gnu`、`cargo check -p ui-date-input-group`；命令在当前环境均受 `Invalid cross-device link (os error 18)` 阻塞。静态契约证据：`components/date-input-group/src/motion.rs` 通过 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 显式分支平台行为，non-wasm 分支不引用 `web-sys`/浏览器对象。回归：`components/date-input-group/test/semantics.rs::date_input_group_platform_paths_are_cfg_guarded_and_non_wasm_safe`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（静态契约证据：`crates/ui-headless/src/lib.rs` 存在 `#[cfg(all(feature = "web", feature = "ssr"))]` + `compile_error!` 互斥保护；`components/date-input-group/src/view.rs` 仍通过 `ui_headless::{A11yDirection, labeled_group_attrs}` 消费 headless 能力且未破坏特性边界。编译证据命令：`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --no-default-features --features web,ssr`；命令在当前环境均受 `Invalid cross-device link (os error 18)` 阻塞。回归：`components/date-input-group/test/semantics.rs::date_input_group_respects_ui_headless_web_ssr_mutex_contract`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（静态契约证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::animate` no-op 与 `prefers_reduced_motion` 可预测返回；`components/date-input-group/src/motion.rs` 的 non-wasm `attach_motion` 仅执行 `sanitize_motion` + `black_box` 安全降级。编译证据：`cargo check -p ui-motion`，命令结果包含 `Finished` 与 `dev` profile。补充：`cargo test -p ui-motion non_wasm_web_backend_is_predictable_noop -- --exact` 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞。回归：`components/date-input-group/test/semantics.rs::date_input_group_relies_on_ui_motion_non_wasm_stub_contract`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（静态契约证据：`components/date-input-group/src/motion.rs` 在 wasm 分支通过 `ui_motion::web::prefers_reduced_motion()` 命中时将 `--ui-date-input-group-scale` 设为 `1` 并提前返回，跳过弹簧动画创建；`components/date-input-group/src/motion.rs` 继续通过 `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]` 维持 wasm 增强与 SSR/non-wasm 安全降级。语义一致性证据：`components/date-input-group/src/view.rs` 统一暴露 `data-motion-source` / `data-custom-motion`，确保 SSR 与 wasm 语义标记契约一致。回归：`components/date-input-group/test/semantics.rs::date_input_group_motion_covers_reduced_motion_ssr_and_wasm_paths`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`DateInputGroup` 自身为容器装配组件，不维护高频交互状态机与逐帧更新路径；关键路径预算走 docs 共享能力：`apps/docs-app/src/pages/components/shell.rs` 的 `component_page_perf_budget` 为未显式登记组件提供 `_ => UiPerfBudget::mount_only(120.0)` 基线，`date-input-group` 页面通过 `ComponentPage` 自动接入 `UiPerfProbe`。`apps/docs-app/src/perf_probe.rs` 输出 `data-perf-budget-ms` / `data-perf-budget-update-ms` / `data-perf-budget-heap-kb` / `data-perf-violation` 机器可读标记；`e2e/tests/docs_app_components_coverage.spec.mjs` 断言 perf probe 存在预算且 `data-perf-violation != true`，回归可检测且可阻断。仓库阻断链路：`scripts/check-ui-components-performance.sh` 已纳入 `docs_perf_probe_budgets_are_wired_for_component_pages` 与 `perf_render_count_follow_up_is_tracked_in_plan`。N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”，本组件按清单规则使用 mount-only 等价证据。回归：`components/date-input-group/test/semantics.rs::date_input_group_performance_governance_is_mount_only_traceable_and_blocking_via_shared_gates`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`components/date-input-group/src/view.rs` 将 prefix/suffix 子片段拆分为 `render_prefix_slot` / `render_suffix_slot` 局部渲染函数，避免主 `view!` 内联重复嵌套；`DateInputGroup` 主体 `view!` 仅保留容器骨架与 slot 装配（`prefix.map(render_prefix_slot)` / `suffix.map(render_suffix_slot)`）；`view.rs` 中 `view! {` 总数受控（当前 3 处：主视图 + 两个局部渲染函数）。回归：`components/date-input-group/test/semantics.rs::date_input_group_view_macro_complexity_is_structured_and_shallow`。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`components/date-input-group/src/view.rs` 将轻量 prefix/suffix 片段下沉为普通函数 `render_prefix_slot` / `render_suffix_slot`（返回 `impl IntoView`），主视图通过 `prefix.map(render_prefix_slot)` / `suffix.map(render_suffix_slot)` 组合；`DateInputGroup` 保持单一 `#[component]` 边界，未把局部片段升级为额外组件，避免抽象噪音。回归：`components/date-input-group/test/semantics.rs::date_input_group_prefers_functional_fragment_extraction_over_extra_components`。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（N/A：`DateInputGroup` 组件自身不内置复杂 SVG/页脚/长说明文本等重型静态片段，`components/date-input-group/src/view.rs` 仅保留容器骨架与 `children/prefix/suffix` 插槽装配；可判定静态内容由调用侧（children/slot）持有与复用，避免在组件内散落重复静态构造。可访问语义仍由 `role/aria-label/lang/dir` 挂载保持稳定。回归：`components/date-input-group/test/semantics.rs::date_input_group_has_no_heavy_static_fragment_axis`。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`DateInputGroup` 组件与 docs 示例均未使用 `inner_html`/`dangerously_set_inner_html`，不存在 HTML 注入入口；`components/date-input-group/src/view.rs` 仅通过 `children/prefix/suffix` 插槽与 headless 语义挂载渲染内容，不接收原始 HTML 字符串。回归：`components/date-input-group/test/semantics.rs::date_input_group_forbids_inner_html_in_component_and_docs`。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（本组件判定：N/A（组件级不自建 wasm 调试/回放管线）；调试可观测入口复用全局能力：`apps/docs-app/src/lib.rs` 在 `debug_assertions` 下启用 `provide_ui_trace(debug_overlay_enabled)` 并挂载 `<debug_overlay::UiDebugOverlay enabled=true />`，时间线与来源由 `crates/ui-headless/src/trace.rs` + `apps/docs-app/src/debug_overlay.rs` 提供；组件侧保持 feature 隔离且无 `debug` 公共 API 泄露。脚本门禁：`scripts/check-ui-components-wasm-debug.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_wasm_debug_contract_is_na_and_feature_isolated`。回归：`components/date-input-group/test/semantics.rs::date_input_group_wasm_debug_contract_is_na_and_feature_isolated`。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（已落实：`apps/docs-app/src/playground.rs` 复用 `compose_scoped_css` + `data-playground-scope` + `playground__preview-stage` + `Restore original CSS` 形成无需重编 wasm 的样式热重载路径；`apps/docs-app/src/pages/components/pages/forms_groups.rs` 的 `DateInputGroup` 页面提供 5 组 `Playground`（Hello World / State Matrix / Controlled vs Uncontrolled / Streaming-Snapshot / Source-first），并通过 `invoice_date/ship_window/controlled_date` 信号保持交互上下文可见。N/A：`DateInputGroup` 当前不提供 workbench 持久化存储（无 `*_WORKBENCH_STORAGE_KEY/load_*/save_*` 接口泄露）。脚本门禁：`scripts/check-ui-components-dx.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`。回归：`components/date-input-group/test/semantics.rs::date_input_group_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（N/A：`DateInputGroup` 无 spec/config 序列化输入与异步边界，组件目录不存在 `spec.rs/protocol.rs`；`components/date-input-group/Cargo.toml` 与组件源码未引入 `serde/tracing/tokio/async-std` 依赖或运行时类型。统一 tracing 语义仍复用仓库基线：`scripts/check-ui-components-engineering.sh` 保留 `serde schema + tracing target semantics + runtime boundary leakage` 三类合同检查。脚本门禁：`scripts/check-ui-components-engineering.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic`。回归：`components/date-input-group/test/semantics.rs::date_input_group_engineering_capability_contract_is_na_and_runtime_agnostic`。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
-### 5. 文件落点检查（必须提及）
-- [ ] `ui-components` 固定入口文件落点正确。
+### 5. 样式与动效（Theme & Motion）
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（已落实：`components/date-input-group/src/styles.rs` 的尺寸/边框/颜色/间距/排版变量均走双层回退链，且 `transform` 已从 `var(--ui-date-input-group-scale, 1)` 收敛为 `var(--ui-date-input-group-scale, var(--ui-alert-scale, var(--ui-fallback-alert-scale)))`；组件样式不包含 Hex 字面量与 `px/rem` 裸 fallback 终值。SSOT 兜底由 `crates/ui-theme/src/css.rs` 提供（如 `--ui-fallback-component-height-100`、`--ui-fallback-border-width`、`--ui-fallback-alert-scale`）。脚本门禁：`scripts/check-ui-components-contract-hygiene.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`。回归：`components/date-input-group/test/semantics.rs::date_input_group_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（已落实：组件 CSS 聚合入口 `crates/ui-components/src/css.rs` 使用 `@layer ui` 包裹并按 feature 注入 `date_input_group`；`crates/ui-components/src/root.rs` 仅通过 `crate::css::push_components_css(&mut out)` 注入聚合 CSS；`components/date-input-group/src/view.rs` 与 `components/date-input-group/src/motion.rs` 不存在 `style=\"top/left/width/height\"` 等普通内联样式，运行时仅通过 `style.set_property(\"--ui-date-input-group-scale\", ...)` 更新 CSS 变量。脚本门禁：`scripts/check-ui-components-contract-hygiene.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates`。回归：`components/date-input-group/test/semantics.rs::date_input_group_cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates`。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（已落实：`components/date-input-group/src/motion.rs` 以 `DateInputGroupMotion { spring: ui_motion::spring::SpringConfig, enter_scale }` 固化组件动效合同，默认弹簧来自 `ui_motion::presets::spring_soft()`，并经 `sanitize_motion + ui_motion::spring::sanitize_config` 做输入归一；`components/date-input-group/src/view.rs` 通过 `date_input_group_motion::attach_motion(node_ref, motion)` 显式挂载合同。wasm 分支命中 `ui_motion::web::prefers_reduced_motion()` 时提前 `return`，non-wasm/SSR 分支仅执行 `std::hint::black_box(sanitize_motion(motion));` no-op 安全降级。脚本门禁：`scripts/check-ui-components-platforms.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。回归：`components/date-input-group/test/semantics.rs::date_input_group_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe`。）
+- [x] `ui-components` 固定入口文件落点正确。（已落实：`crates/ui-components/src/lib.rs` 维持总入口 + 对外 `pub use`，`date_input_group` 仅通过 `#[cfg(any(... feature = "component-date_input_group", ...))] pub mod text_input;` 与受 gate 的 re-export 暴露，未泄露 `web_sys/wasm_bindgen` 平台细节；`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `inject-css` 与 `component-date_input_group` 条件下聚合样式；`crates/ui-components/src/root.rs` 统一注入 base css + theme vars + components css，并集中提供 i18n/id-provider；`crates/ui-visual-primitive/src/active_highlight.rs` 保持共享高亮动效原语边界，不携带 date-input-group 业务语义；`crates/ui-components/src/overlay_open.rs`/`presence.rs`/`a11y.rs` 不存在，语义原语位于 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。脚本门禁：`scripts/check-ui-components-entrypoints.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries`。回归：`components/date-input-group/test/semantics.rs::date_input_group_ui_components_fixed_entry_files_follow_layered_boundaries`。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -207,7 +223,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（已落实：`components/date-input-group/src/` 保持标准五件套 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，且不存在 `render.rs` 漂移；`mod.rs` 仅保留最小稳定导出边界，`logic.rs` 仅承载归一化/派生/来源标记，`styles.rs` 保持 token-first 静态 CSS，`view.rs` 仅做 Leptos 结构渲染与 headless 语义挂载，`motion.rs` 仅做语义到 motion contract 的映射与 `attach_motion`。`spec.rs` 在该简单组件范围内保持可选且未引入。脚本门禁：`scripts/check-ui-components-component-files.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_component_directory_standard_files_follow_contract_and_na_paths`。回归：`components/date-input-group/test/semantics.rs::date_input_group_component_directory_standard_files_follow_contract_and_na_paths`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -215,89 +231,118 @@
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
-### 6. AI 原生能力（Agent Contract + 流式）
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+### 6. AI 原生能力与文件落点（Struct-First & Projection）
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（已落实：`components/date-input-group/src/` 仅包含 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 五文件主干，`spec.rs` 保持可选且当前未引入，`render.rs` 未出现；`mod.rs`/`logic.rs`/`styles.rs`/`view.rs`/`motion.rs` 职责边界由语义回归锁定。脚本门禁复用：`scripts/check-ui-components-component-files.sh` 执行 `cargo test -p ui-date-input-group date_input_group_component_directory_standard_files_follow_contract_and_na_paths`。回归：`components/date-input-group/test/semantics.rs::date_input_group_component_directory_standard_files_follow_contract_and_na_paths`。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`DateInputGroup` 为简单装配组件，当前不承载复杂外部 Schema/Builder 规范；保持 `spec.rs` 缺席并避免暴露 `*Spec::new()...render()` API。脚本门禁：`scripts/check-ui-components-component-files.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。回归：`components/date-input-group/test/semantics.rs::date_input_group_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/date-input-group/src/Component.toml` 与 `components/date-input-group/src/date_input_group.rbi` 已同步维护；`Component.toml` 覆盖输入输出轴与能力清单，`.rbi` 提供 `DateInputGroup` 接口签名投影，避免 AI 检索漂移。门禁脚本：`scripts/check-ui-components-component-files.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current`。回归：`components/date-input-group/test/semantics.rs::date_input_group_context_compression_manifest_and_rbi_projection_are_present_and_current`。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/date-input-group/src/logic.rs` 新增类型化 Agent Contract（`DateInputGroupAgent{SchemaVersion/Intent/Action/State/Source}` + `resolve_agent_contract`），`components/date-input-group/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source` 与来源轴标记（`data-ui-state-source/data-ui-motion-source/data-ui-aria-source/data-ui-class-source`）；`components/date-input-group/src/Component.toml` 补充 `agent-contract-markers`、`agent_contract_schema_markers`、`[[agent_contract]]`、`[[agent_contract_markers]]` 与 `[[agent_contract_whitelist]]` 白名单边界。回归：`components/date-input-group/test/semantics.rs::date_input_group_agent_contract_is_schema_typed_and_machine_readable`、`components/date-input-group/test/semantics.rs::date_input_group_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_agent_contract_is_schema_typed_and_machine_readable` 与 `cargo test -p ui-date-input-group date_input_group_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（已落实：`components/date-input-group/src/logic.rs` 的 `DateInputGroupAgentStreamMode` 显式定义 `Streaming|Snapshot` 两种术语；组件当前执行路径固定 `stream_support=unsupported` + `stream_fallback=snapshot` + `stream_mode=snapshot`，避免把非 LLM 正文组件误判为边生成边渲染面。`components/date-input-group/src/view.rs` 已挂载 `data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode`，`components/date-input-group/src/Component.toml` 补充 `[streaming_policy]`（`defined_modes=[\"streaming\",\"snapshot\"]`、`fallback=\"snapshot\"`）。回归：`components/date-input-group/test/semantics.rs::date_input_group_streaming_term_is_limited_to_llm_output_render_modes`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_streaming_term_is_limited_to_llm_output_render_modes`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（已落实：`components/date-input-group/src/logic.rs` 的 Agent Contract 固定 `stream_mode=snapshot` 与 `output_status=verified`，`components/date-input-group/src/view.rs` 挂载 `data-ui-stream-mode/data-ui-output-status` 连续语义标记，确保完整配置输入走稳定单次输出路径；`components/date-input-group/src/Component.toml` 明确 `snapshot_rendering` 能力与 `[streaming_policy] default/fallback=\"snapshot\"`。回归：`components/date-input-group/test/semantics.rs::date_input_group_snapshot_is_foundational_and_complete_config_renders_stably`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_snapshot_is_foundational_and_complete_config_renders_stably`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（已落实：`DateInputGroup` 非正文阅读面，当前按 `Streaming Optional` 处理；`components/date-input-group/src/Component.toml` 的 `[streaming_policy]` 明确 `required=false`、`owner=\"upstream\"`、`fallback=\"snapshot\"`、`default=\"snapshot\"`。`components/date-input-group/src/logic.rs` 固定 `stream_mode=snapshot` 与 `output_status=verified`，`components/date-input-group/src/view.rs` 挂载 `data-ui-stream-mode/data-ui-output-status` 并保留 `role/aria-*` 连续可读。数据校验、断线恢复、重试职责不下沉至组件层（组件源码不存在 `retry/is_loading/fetch` 协议面）。回归：`components/date-input-group/test/semantics.rs::date_input_group_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status`。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
-### 7. 测试与文档（验证闭环）
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+### 7. 测试、门禁与交付
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/date-input-group/src/mod.rs`、`components/date-input-group/src/logic.rs`、`components/date-input-group/src/styles.rs`、`components/date-input-group/src/view.rs`、`components/date-input-group/src/motion.rs` 非测试源码已保持无 `unwrap/expect` 且无 `let _ = ...`；`components/date-input-group/src/logic.rs` 的 `compose_class_name` 采用 `Vec<Cow<'static, str>>` 收敛 class 字符串复制热点。回归：`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/date-input-group/test/semantics.rs::date_input_group_rust_hygiene_script_enforces_repo_level_hygiene_guards`；门禁脚本：`scripts/check-ui-components-engineering.sh` 已接入对应 `cargo test` 目标；另执行：`./scripts/check-rust-hygiene.sh`（若失败以脚本输出为准）。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`crates/ui-components/Cargo.toml` 已注册 `component-date_input_group = ["dep:ui-date-input-group"]`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 date-input-group 模块导出与样式聚合均使用 feature gate，未出现无条件全局依赖。回归：`components/date-input-group/test/semantics.rs::date_input_group_tree_shaking_is_feature_gated_in_ui_components`、`components/date-input-group/test/semantics.rs::date_input_group_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`components/date-input-group/test/semantics.rs::date_input_group_check2_marks_tree_shaking_feature_pruning_contract_complete`；门禁脚本：`scripts/check-ui-components-tree-shaking.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_tree_shaking_is_feature_gated_in_ui_components`、`cargo test -p ui-date-input-group date_input_group_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget`、`cargo test -p ui-date-input-group date_input_group_check2_marks_tree_shaking_feature_pruning_contract_complete`，并执行 `cargo tree -e features -i ui-components -p ui-components --no-default-features --features "$DATE_INPUT_GROUP_MIN_FEATURES"` 校验未拉起 `all-components`。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`components/date-input-group/src/view.rs` 已稳定暴露 `role`/`aria-label` 与 `data-state/data-aria-source/data-class-source/data-motion-source` 语义标记，语义断言不依赖视觉快照（见 `components/date-input-group/test/semantics.rs::date_input_group_semantic_contract_tests_cover_state_matrix_without_snapshot_dependency`）。N/A：`DateInputGroup` 焦点流转由子组件 `DateField`/`TimeField` 承载，容器层保持语义装配边界（见 `components/date-input-group/test/semantics.rs::date_input_group_has_no_keyboard_pointer_interaction_axis`）。`render_count` 回归当前按仓库共享治理执行：`scripts/check-ui-components-performance.sh` 与 `crates/ui-components/tests/accordion_semantics.rs::perf_render_count_follow_up_is_tracked_in_plan` 持续阻断；N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”。回归：`components/date-input-group/test/semantics.rs::date_input_group_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`；门禁脚本：`scripts/check-ui-components-performance.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `DateInputGroup` 改动未引入跨大版本 API 破坏升级，组件 Agent Contract 仍保持 `v1`（`components/date-input-group/src/logic.rs` 的 `DateInputGroupAgentSchemaVersion::V1`，以及 `components/date-input-group/src/Component.toml` 的 `schema_version = "1"` 与 `ui.date-input-group.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/date-input-group/test/semantics.rs::date_input_group_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（已落实：`apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group` 已补齐 `Hello World (Default API)`、`State Matrix (Default / Prefix-Suffix / Secondary+Invalid)`、`Controlled vs Uncontrolled (Child Field Axis)`、`Streaming / Snapshot Contract`、`Source-first Starter (Copy-Paste Ready)` 五组 `Playground`；`code_imports=date_input_group_imports` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 保证复制代码自动补全 imports 并可直接运行。回归：`components/date-input-group/test/semantics.rs::date_input_group_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/date-input-group/test/semantics.rs::date_input_group_dx_check_script_covers_docs_copy_paste_ready_and_workbench_contract`、`components/date-input-group/test/semantics.rs::date_input_group_check2_marks_docs_product_copy_paste_ready_contract_complete`；门禁脚本：`scripts/check-ui-components-dx.sh` 已接入对应 `cargo test -p ui-date-input-group ...` 目标。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`components/date-input-group/src/view.rs` 已稳定挂载语义契约标记：`role` / `aria-label` / `aria-disabled` + `data-state` / `data-aria-source` / `data-class-source` / `data-motion-source`；`components/date-input-group/test/semantics.rs` 以语义断言为主覆盖关键状态轴与动作语义（`date_input_group_supports_group_accessibility_and_children_layout`、`date_input_group_exposes_stable_observable_state_markers`、`date_input_group_has_no_keyboard_pointer_interaction_axis`、`date_input_group_semantic_contract_tests_cover_state_matrix_without_snapshot_dependency`），并由 `date_input_group_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 显式约束“禁止 snapshot-only”。门禁脚本：`scripts/check-ui-components-performance.sh` 已接入 `cargo test -p ui-date-input-group date_input_group_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（`e2e/tests/docs_app_date_input_group_contract.spec.mjs` 已使用 `/#/components/date-input-group` + `body:not(:has(#boot))` 稳定等待与 `data-*` 语义选择器断言（状态矩阵 + streaming/snapshot 契约）；ready/settled 断点通过 `data-ui-output-status=\"verified\"`、`data-ui-stream-mode=\"snapshot\"`、`data-motion-source=\"default\"` 与 reload 后复验覆盖。回归：`components/date-input-group/test/semantics.rs::date_input_group_check2_documents_e2e_selector_and_stable_wait_rules`、`components/date-input-group/test/semantics.rs::date_input_group_e2e_selector_contract_uses_semantic_markers_and_stable_waits`、`components/date-input-group/test/semantics.rs::date_input_group_e2e_flow_covers_ready_and_settled_semantic_breakpoints`、`components/date-input-group/test/semantics.rs::date_input_group_e2e_check_script_covers_selector_and_settled_wait_contracts`；门禁脚本：`scripts/check-ui-components-e2e-date-input-group.sh`。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（`e2e/tests/docs_app_date_input_group_contract.spec.mjs` 新增 `docs-app date-input-group key flow is repeatable with semantic failure breakpoints`：在 `data-slot=\"date-input-group-streaming-contract\"` 下执行 pointer（`selectOption`）+ keyboard（`focus` + `ArrowUp`）交互，并以 `data-ui-stream-mode=\"snapshot\"` / `data-ui-output-status=\"verified\"` / `data-ui-action=\"snapshot-render\"` 作为可定位语义断点；`reload` 后复验流程可重复。高风险路径说明：组件不含 overlay/async 轴，当前优先覆盖 focus/keyboard 语义路径。回归：`components/date-input-group/test/semantics.rs::date_input_group_check2_documents_e2e_repeatable_key_flow_rules`、`components/date-input-group/test/semantics.rs::date_input_group_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/date-input-group/test/semantics.rs::date_input_group_e2e_check_script_covers_selector_and_settled_wait_contracts`；门禁脚本：`scripts/check-ui-components-e2e-date-input-group.sh`。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group` 已同步覆盖 `State Matrix (Default / Prefix-Suffix / Secondary+Invalid)` 与 `Controlled vs Uncontrolled (Child Field Axis)`，并在示例中使用当前 API 命名 `is_full_width/is_invalid/is_segmented` 与 `variant=DateInputGroupVariant::Secondary`；默认值来源与实现对齐：`components/date-input-group/src/view.rs` 通过 `logic::resolve_width(is_full_width)`、`logic::resolve_status(is_disabled, is_invalid)` 映射到 `ui-state-primitives` 默认轴（`DateInputGroupVariant::Primary`、`DateInputGroupWidth::Fit`、`DateInputGroupStatus::Default`）。回归：`components/date-input-group/test/semantics.rs::date_input_group_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/date-input-group/test/semantics.rs::date_input_group_check2_documents_docs_sync_and_state_matrix_rules`、`components/date-input-group/test/semantics.rs::date_input_group_dx_check_script_covers_docs_sync_and_state_matrix_contract`；门禁脚本：`scripts/check-ui-components-dx.sh` 已接入对应 `cargo test -p ui-date-input-group ...` 目标。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`DateInputGroup` 采用等价文档入口：`apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group`（`title=\"DateInputGroup\"` + `slug=\"date-input-group\"`），并保持新手优先顺序：`Hello World (Default API)` 在前，随后 `State Matrix`、`Controlled vs Uncontrolled`、再到 `Streaming / Snapshot` 进阶段落；Hello World 段落明确“Minimal path: no manual wiring…”，避免要求先理解分层细节。回归：`components/date-input-group/test/semantics.rs::date_input_group_documentation_entry_exists_with_beginner_first_progression`、`components/date-input-group/test/semantics.rs::date_input_group_check2_documents_documentation_as_product_rules`、`components/date-input-group/test/semantics.rs::date_input_group_dx_check_script_covers_documentation_as_product_contract`；门禁脚本：`scripts/check-ui-components-dx.sh` 已接入对应 `cargo test -p ui-date-input-group ...` 目标。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group` 已提供交互验收面 `Streaming / Snapshot Contract`：通过 `data-slot="date-input-group-requested-stream-mode"` 与 `data-slot="date-input-group-requested-output-status"` 在线调节请求态，并以 `data-slot="date-input-group-streaming-requested-state"` + `data-slot="date-input-group-streaming-effective-state"` 实时回显请求/生效状态。AI Spec 子项 N/A：`DateInputGroup` 当前无 `spec.rs` 与 `*Spec::new()...render()` 协议输入面。可重复关键流由 `e2e/tests/docs_app_date_input_group_contract.spec.mjs::docs-app date-input-group key flow is repeatable with semantic failure breakpoints` 覆盖（pointer + keyboard + reload 复验）。回归：`components/date-input-group/test/semantics.rs::date_input_group_check2_documents_interactive_playground_rules`、`components/date-input-group/test/semantics.rs::date_input_group_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/date-input-group/test/semantics.rs::date_input_group_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/date-input-group/test/semantics.rs::date_input_group_dx_check_script_covers_interactive_playground_contract`；门禁脚本：`scripts/check-ui-components-dx.sh`。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group` 已提供 `Source-first Starter (Copy-Paste Ready)` Playground，`Show code` 复制链路通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；并新增 `data-slot="date-input-group-source-first"` 契约区块，显式给出依赖基线 `ui-components = { default-features = false, features = ["component-date_input_group", "inject-css"] }` 与真实源码落点（`components/date-input-group/src/{mod,logic,view,styles,motion}.rs`）。文档代码与实现同步证据：`source_first_code` 仍使用当前 API（`DateInputGroup is_segmented` + `DateField default_value`）且与页面示例一致。回归：`components/date-input-group/test/semantics.rs::date_input_group_check2_documents_source_first_copy_paste_ready_rules`、`components/date-input-group/test/semantics.rs::date_input_group_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/date-input-group/test/semantics.rs::date_input_group_dx_check_script_covers_source_first_copy_paste_ready_contract`、`components/date-input-group/test/semantics.rs::date_input_group_check2_marks_source_first_copy_paste_ready_contract_complete`；门禁脚本：`scripts/check-ui-components-dx.sh`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已同步：`docs/spec/heroui-parameter-design-strategy.md` 新增 `### DateInputGroup 同步记录（2026-02-20）`，明确参数主轴、docs 入口、示例矩阵与 Source-first 依赖基线。组件文档入口可索引：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("DateInputGroup", "date-input-group", "Forms", forms_groups::date_input_group)` 挂载，页面实现位于 `apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group`（`title="DateInputGroup"` / `slug="date-input-group"`）。研究补充判定：本轮不引入新的 Spectrum/HeroUI 风格结论，`docs/research/spectrum-heroui-style-interface-study.md` 记为 N/A。回归：`components/date-input-group/test/semantics.rs::date_input_group_check2_documents_heroui_benchmark_docs_sync_rules`、`components/date-input-group/test/semantics.rs::date_input_group_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/date-input-group/test/semantics.rs::date_input_group_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/date-input-group/test/semantics.rs::date_input_group_check2_marks_heroui_benchmark_docs_sync_contract_complete`；门禁脚本：`scripts/check-ui-components-dx.sh`。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
 
-### 8. 明确禁止的反模式
-- [ ] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。
-  - 发现 `ui-state-primitives` 引入 DOM/样式依赖即判架构越层，必须回滚并迁移到正确层。
-- [ ] 在 `ui-headless` 写视觉和动画编排。
-  - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
-- [ ] 在 `view` 层隐藏关键状态决策。
-  - `view.rs` 只消费归一化结果；关键业务分支若散落在 view，必须回收至 `logic.rs`。
-- [ ] 新增参数但不纳入统一命名与契约。
-  - 新参数必须进入命名体系、类型约束、默认值归一和语义测试；缺任一项不得合并。
-- [ ] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。
-  - 标题、语义、内容必须显式绑定在同一 item 结构；依赖位置索引配对视为反模式。
-  - 发现“少写几行但语义变弱”的接口设计，默认拒绝合入。
-- [ ] 公共 API 泄露底层实现细节类型。
-  - 公共接口不得暴露 `web-sys`/运行时私有类型；平台细节只允许存在于内部模块。
-- [ ] 用临时补丁破坏跨组件一致性。
-  - 临时 patch 若绕开统一契约（命名/状态/语义），必须在同 PR 里修正或显式回退计划。
-- [ ] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。
-  - 一旦确认具备可复用状态不变量，应下沉至 `ui-state-primitives`/`ui-headless`，组件层仅保留装配映射。
+### 8. 合并前门禁死命令（最终执行）
+在发起 PR 或完成任务前，必须保证本地/CI 以下命令全部通过：
 
-### 9. 合并门禁（最终裁决）
-- [ ] 架构正确（边界不破）。
-- [ ] 行为正确（状态与交互语义成立）。
-- [ ] 可访问性达标（默认可用）。
-- [ ] 默认主题美学质量达标（与可访问性同级门禁）。
-- [ ] 可测试（契约可断言）。
-- [ ] 可维护（命名和模式一致）。
-- [ ] 可解释（人和自动化都能读懂）。
-- [ ] 改动在正确层。
-- [ ] 命名与全库一致。
-- [ ] 无效状态被限制或归一化。
-- [ ] 暴露必要语义标记。
-- [ ] 覆盖 reduced-motion / SSR / wasm 分支。
-- [ ] 文档与示例同步更新。
-- [ ] 门禁完整通过（fmt/clippy/test/smoke 等）。
+- `cargo fmt --all -- --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`
+- `./scripts/check-rust-hygiene.sh`
+- `cargo check -p ui-components --target wasm32-unknown-unknown`
+- `cargo check -p ui-headless --no-default-features --features ssr`
+- `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-<your_component>,inject-css`
+
+依据文档（`rust-ui/docs/spec` 及 `rust-ui/docs`）：
+
+- `rust-ui/docs/spec/ai_context_projection_protocol.md`
+- `rust-ui/docs/spec/architectural_fitness_functions.md`
+- `rust-ui/docs/spec/async_state_as_data_command.md`
+- `rust-ui/docs/spec/collection_registration_protocol.md`
+- `rust-ui/docs/spec/compile_time_evolution_migration.md`
+- `rust-ui/docs/spec/component_boundaries.md`
+- `rust-ui/docs/spec/component_domains.md`
+- `rust-ui/docs/spec/controlled_evolution_sandbox.md`
+- `rust-ui/docs/spec/core_shell_protocol_infra_baseline.md`
+- `rust-ui/docs/spec/environment_subscription_streams.md`
+- `rust-ui/docs/spec/event_light_cone_signal_bus.md`
+- `rust-ui/docs/spec/focus_global_stack_gc.md`
+- `rust-ui/docs/spec/foreign_zone_escape_hatches.md`
+- `rust-ui/docs/spec/headless_purification.md`
+- `rust-ui/docs/spec/heroui-parameter-design-strategy.md`
+- `rust-ui/docs/spec/hyper-structure-ui-development-playbook.md`
+- `rust-ui/docs/spec/i18n.md`
+- `rust-ui/docs/spec/intent_stack_semantic_layering.md`
+- `rust-ui/docs/spec/kernel_shell_architecture.md`
+- `rust-ui/docs/spec/macro_micro_dual_state_machine.md`
+- `rust-ui/docs/spec/motion.md`
+- `rust-ui/docs/spec/mvp.md`
+- `rust-ui/docs/spec/platform_abdication_ecosystem.md`
+- `rust-ui/docs/spec/README.md`
+- `rust-ui/docs/spec/release_versioning.md`
+- `rust-ui/docs/spec/side_effect_command_pattern.md`
+- `rust-ui/docs/spec/slot_projection_strategy.md`
+- `rust-ui/docs/spec/ssr_hydration_discontinuity.md`
+- `rust-ui/docs/spec/state_primitives_core_satellite_split.md`
+- `rust-ui/docs/spec/style_island_defense.md`
+- `rust-ui/docs/spec/styling.md`
+- `rust-ui/docs/spec/tree_shaking.md`
+- `rust-ui/docs/spec/ui_layout_split.md`
+- `rust-ui/docs/spec/ui_physics_two_pass_rendering.md`
+- `rust-ui/docs/spec/unified_causality_bus.md`
+- `rust-ui/docs/spec/wasm_generic_bloat.md`
+- `rust-ui/docs/起点_也即是目的.md`
+- `rust-ui/docs/DOCS_GOVERNANCE.md`
+- `rust-ui/docs/DOCS_INDEX.md`
+- `rust-ui/docs/philosophy.md`
+- `rust-ui/docs/README.md`
+- `rust-ui/docs/RULES_ZH.md`

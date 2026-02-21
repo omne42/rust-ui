@@ -2,22 +2,34 @@ pub const DEFAULT_TITLE: &str = "Coachmark";
 pub const DEFAULT_ASSET_LABEL: &str = "Coachmark asset";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CoachmarkCtaMode {
+    None,
+    Primary,
+    Secondary,
+    Dual,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CoachmarkAssetSource {
+    None,
+    Variant,
+    Image,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CoachmarkStateInput {
     pub variant_attr: &'static str,
     pub placement_attr: &'static str,
     pub disabled: bool,
     pub is_controlled: bool,
     pub has_footer: bool,
-    pub has_asset: bool,
     pub has_custom_aria_label: bool,
     pub has_custom_class_name: bool,
     pub has_shortcut: bool,
-    pub has_primary_cta: bool,
-    pub has_secondary_cta: bool,
+    pub cta_mode: CoachmarkCtaMode,
     pub has_actions_slot: bool,
     pub has_step_label: bool,
-    pub has_asset_variant: bool,
-    pub has_asset_src: bool,
+    pub asset_source: CoachmarkAssetSource,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -85,8 +97,33 @@ pub fn compose_step_label(
     }
 }
 
+pub fn resolve_cta_mode(
+    primary_cta: Option<&str>,
+    secondary_cta: Option<&str>,
+) -> CoachmarkCtaMode {
+    match (primary_cta.is_some(), secondary_cta.is_some()) {
+        (false, false) => CoachmarkCtaMode::None,
+        (true, false) => CoachmarkCtaMode::Primary,
+        (false, true) => CoachmarkCtaMode::Secondary,
+        (true, true) => CoachmarkCtaMode::Dual,
+    }
+}
+
+pub fn resolve_asset_source(
+    asset_variant: Option<crate::asset::AssetVariant>,
+    asset_src: Option<&str>,
+) -> CoachmarkAssetSource {
+    if asset_src.is_some() {
+        CoachmarkAssetSource::Image
+    } else if asset_variant.is_some() {
+        CoachmarkAssetSource::Variant
+    } else {
+        CoachmarkAssetSource::None
+    }
+}
+
 pub fn resolve_state(input: CoachmarkStateInput) -> CoachmarkState {
-    let cta_count = usize::from(input.has_primary_cta) + usize::from(input.has_secondary_cta);
+    let has_asset = !matches!(input.asset_source, CoachmarkAssetSource::None);
 
     CoachmarkState {
         variant_attr: input.variant_attr,
@@ -106,11 +143,11 @@ pub fn resolve_state(input: CoachmarkStateInput) -> CoachmarkState {
         } else {
             "absent"
         },
-        asset_attr: if input.has_asset { "present" } else { "absent" },
-        cta_attr: match cta_count {
-            0 => "none",
-            1 => "single",
-            _ => "dual",
+        asset_attr: if has_asset { "present" } else { "absent" },
+        cta_attr: match input.cta_mode {
+            CoachmarkCtaMode::None => "none",
+            CoachmarkCtaMode::Primary | CoachmarkCtaMode::Secondary => "single",
+            CoachmarkCtaMode::Dual => "dual",
         },
         label_source_attr: if input.has_custom_aria_label {
             "custom"
@@ -137,15 +174,13 @@ pub fn resolve_state(input: CoachmarkStateInput) -> CoachmarkState {
         } else {
             "absent"
         },
-        asset_source_attr: if input.has_asset_src {
-            "image"
-        } else if input.has_asset_variant {
-            "variant"
-        } else {
-            "none"
+        asset_source_attr: match input.asset_source {
+            CoachmarkAssetSource::None => "none",
+            CoachmarkAssetSource::Variant => "variant",
+            CoachmarkAssetSource::Image => "image",
         },
         has_custom_class_name: input.has_custom_class_name,
-        has_asset: input.has_asset,
+        has_asset,
     }
 }
 

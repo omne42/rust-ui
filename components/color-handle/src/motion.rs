@@ -1,3 +1,8 @@
+use ui_theme::default_text_field_motion_tokens;
+
+const MIN_DURATION_MS: u16 = 60;
+const MAX_DURATION_MS: u16 = 1200;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ColorHandleMotion {
     pub duration_ms: u16,
@@ -5,13 +10,16 @@ pub struct ColorHandleMotion {
 
 impl Default for ColorHandleMotion {
     fn default() -> Self {
-        Self { duration_ms: 140 }
+        let tokens = default_text_field_motion_tokens();
+        Self {
+            duration_ms: tokens.duration_ms,
+        }
     }
 }
 
 pub fn sanitize_motion(motion: ColorHandleMotion) -> ColorHandleMotion {
     ColorHandleMotion {
-        duration_ms: motion.duration_ms.clamp(60, 1200),
+        duration_ms: motion.duration_ms.clamp(MIN_DURATION_MS, MAX_DURATION_MS),
     }
 }
 

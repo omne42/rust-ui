@@ -20,6 +20,8 @@ fn use_color_area_maps_locale_and_semantic_markers() {
         state,
         aria_label: " Color area region ".to_string(),
         label_id: "color-area-label".to_string(),
+        x_axis_label: "Saturation".to_string(),
+        y_axis_label: "Lightness".to_string(),
         lang: Some(" zh-CN ".to_string()),
         dir: Some(A11yDirection::Rtl),
     });
@@ -62,6 +64,8 @@ fn use_color_area_handlers_map_keyboard_axis_and_cell_contracts() {
         state,
         aria_label: "Color area".to_string(),
         label_id: "label".to_string(),
+        x_axis_label: "Saturation".to_string(),
+        y_axis_label: "Lightness".to_string(),
         lang: None,
         dir: None,
     });
@@ -82,8 +86,18 @@ fn use_color_area_handlers_map_keyboard_axis_and_cell_contracts() {
         contract.handlers.parse_axis_input.run("75".to_string()),
         Some(0.75)
     );
+    let cell = contract
+        .handlers
+        .resolve_cell
+        .run(ColorAreaCellInput { col: 5, row: 5 });
+    assert_eq!(cell.value, (0.5_f32, 0.5_f32));
+    assert_eq!(cell.attrs.role, "gridcell");
     assert_eq!(
-        contract.handlers.cell_to_value.run((5, 5, 11)),
-        (0.5_f32, 0.5_f32)
+        cell.attrs.aria_label,
+        "Saturation 50%, Lightness 50%".to_string()
     );
+    assert_eq!(cell.attrs.aria_selected, Some("true"));
+    assert_eq!(cell.attrs.tabindex, 0);
+    assert!(!cell.attrs.disabled);
+    assert_eq!(cell.attrs.data_selected, Some("true"));
 }

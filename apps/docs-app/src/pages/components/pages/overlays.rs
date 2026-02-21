@@ -55,6 +55,14 @@ let custom_motion = SheetMotion {
   ...
 </Sheet>"#;
 
+const MODAL_MINIMAL_PLAYGROUND_CODE: &str = r#"<Modal default_open=true id_base="m".to_string() title="Hello".to_string() on_close=Callback::new(|_| {})>
+  <div>"Minimal modal content"</div>
+</Modal>"#;
+
+const MODAL_DOC_IMPORTS: &str =
+    "use leptos::prelude::*;\nuse ui_components::{Modal, OnPress, OverlayMotion};";
+const DRAWER_DOC_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant, Drawer, DrawerMotion, DrawerPlacement, OnPress, SheetMotion};";
+
 pub(super) fn overlay() -> AnyView {
     let (open_raw, set_open_raw) = signal(false);
     let open: Signal<bool> = Signal::derive(move || open_raw.get());
@@ -478,7 +486,7 @@ let custom_motion = PopoverMotion {
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/popover/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="popover-workbench-controls">
+                    <div class="docs-stack docs-stack--tight" attr:data-slot="popover-workbench-controls">
                         <label class="docs-search__label">
                             "Initial scale (" {move || format!("{:.2}", f64::from(workbench_scale_pct.get()) / 100.0)} ")"
                             <input
@@ -613,6 +621,15 @@ let custom_motion = PopoverMotion {
 }
 
 pub(super) fn modal() -> AnyView {
+    let (minimal_present, set_minimal_present) = signal(false);
+    let open_minimal_modal: OnPress = Callback::new(move |_| set_minimal_present.set(true));
+    let close_minimal_modal: OnPress = Callback::new(move |_| set_minimal_present.set(false));
+    let on_minimal_open_change: Callback<bool> = Callback::new(move |next: bool| {
+        if !next {
+            set_minimal_present.set(false);
+        }
+    });
+
     let (interactive_open_raw, set_interactive_open_raw) = signal(false);
     let interactive_open: Signal<bool> = Signal::derive(move || interactive_open_raw.get());
     let open_interactive_modal: OnPress =
@@ -639,7 +656,7 @@ pub(super) fn modal() -> AnyView {
             "let close: OnPress = Callback::new(move |_| set_open.set(false));".to_string(),
             "".to_string(),
             "<Modal".to_string(),
-            "  open=Signal::derive(move || open.get())".to_string(),
+            "  is_open=Signal::derive(move || open.get())".to_string(),
             format!(
                 "  id_base={}",
                 if custom_id {
@@ -764,7 +781,7 @@ let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
 let on_exit_complete = Callback::new(move |_| {});
 
 <Modal
-  open=open
+  is_open=open
   id_base="m".to_string()
   title="Confirm".to_string()
   description="Modal composes Overlay and wires aria attributes.".to_string()
@@ -787,7 +804,7 @@ let custom_motion = OverlayMotion {
 };
 
 <Modal
-  open=Signal::derive(move || open_raw.get())
+  is_open=Signal::derive(move || open_raw.get())
   id_base="m-custom".to_string()
   title="Title only".to_string()
   class_name="docs-modal-custom".to_string()
@@ -800,6 +817,121 @@ let custom_motion = OverlayMotion {
             .to_string()
     });
 
+    let state_matrix_options = vec![
+        "Uncontrolled + default_open=true".to_string(),
+        "Uncontrolled + no description".to_string(),
+        "Controlled + custom title".to_string(),
+    ];
+    let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
+    let state_matrix_is_controlled =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 2);
+    let state_matrix_default_open =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 0);
+    let state_matrix_with_description =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) != 1);
+    let (state_matrix_open_raw, set_state_matrix_open_raw) = signal(false);
+    let state_matrix_open: Signal<bool> = Signal::derive(move || state_matrix_open_raw.get());
+    let on_state_matrix_open_change =
+        Callback::new(move |next: bool| set_state_matrix_open_raw.set(next));
+    let close_state_matrix_modal: OnPress =
+        Callback::new(move |_| set_state_matrix_open_raw.set(false));
+    let open_state_matrix_modal: OnPress =
+        Callback::new(move |_| set_state_matrix_open_raw.set(true));
+    let state_matrix_code = Signal::derive(move || {
+        let scenario = state_matrix_index.get().unwrap_or(0);
+        let mut lines = vec![
+            "<Modal".to_string(),
+            "  id_base=\"docs-modal-state-matrix\".into()".to_string(),
+            "  title=\"State Matrix\".into()".to_string(),
+            "  on_close=Callback::new(|_| {})".to_string(),
+        ];
+
+        match scenario {
+            0 => {
+                lines.push("  default_open=true".to_string());
+                lines.push("  description=\"Uncontrolled baseline branch\".into()".to_string());
+            }
+            1 => {
+                lines.push("  default_open=false".to_string());
+            }
+            _ => {
+                lines.push("  is_open=Signal::derive(move || open_raw.get())".to_string());
+                lines.push(
+                    "  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))"
+                        .to_string(),
+                );
+                lines.push("  title=\"Controlled Matrix\".into()".to_string());
+                lines.push("  description=\"Controlled branch\".into()".to_string());
+            }
+        }
+        lines.push(">".to_string());
+        lines.push("  <div>\"Matrix content\"</div>".to_string());
+        lines.push("</Modal>".to_string());
+        lines.join("\n")
+    });
+
+    let (compare_controlled_open_raw, set_compare_controlled_open_raw) = signal(false);
+    let compare_controlled_open: Signal<bool> =
+        Signal::derive(move || compare_controlled_open_raw.get());
+    let on_compare_controlled_open_change =
+        Callback::new(move |next: bool| set_compare_controlled_open_raw.set(next));
+    let (compare_uncontrolled_open_raw, set_compare_uncontrolled_open_raw) = signal(true);
+    let on_compare_uncontrolled_open_change =
+        Callback::new(move |next: bool| set_compare_uncontrolled_open_raw.set(next));
+    let compare_code = Signal::derive(move || {
+        r#"let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
+let (uncontrolled_open_raw, set_uncontrolled_open_raw) = signal(true);
+
+<Modal
+  id_base="docs-modal-compare-controlled".into()
+  title="Controlled".into()
+  is_open=controlled_open
+  on_open_change=Callback::new(move |next: bool| set_controlled_open_raw.set(next))
+  on_close=Callback::new(move |_| set_controlled_open_raw.set(false))
+/>
+
+<Modal
+  id_base="docs-modal-compare-uncontrolled".into()
+  title="Uncontrolled".into()
+  default_open=true
+  on_open_change=Callback::new(move |next: bool| set_uncontrolled_open_raw.set(next))
+  on_close=Callback::new(move |_| {})
+/>"#
+        .to_string()
+    });
+
+    let stream_mode_options = vec![
+        "Snapshot".to_string(),
+        "Streaming (fallback=snapshot)".to_string(),
+    ];
+    let (stream_mode_index, set_stream_mode_index) = signal(Some(0_usize));
+    let stream_requested_mode = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "snapshot"
+        } else {
+            "streaming"
+        }
+    });
+    let stream_requested_output_status = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "verified"
+        } else {
+            "draft"
+        }
+    });
+    let streaming_snapshot_code = Signal::derive(move || {
+        r#"// Modal is not an LLM body reader surface.
+// Streaming is optional; fallback stays snapshot.
+<Modal
+  id_base="docs-modal-stream".into()
+  title="Streaming Optional Contract".into()
+  default_open=true
+  on_close=Callback::new(move |_| {})
+/>"#
+        .to_string()
+    });
+
     view! {
         <ComponentPage
             title="Modal"
@@ -808,9 +940,35 @@ let custom_motion = OverlayMotion {
             description="Overlay composition with centralized title/description/class state attrs and stable modal slots."
         >
             <Playground
+                title="Hello World (Minimal Path)"
+                description="Default path: no manual state-machine wiring, simple props only."
+                code_signal=Signal::derive(move || MODAL_MINIMAL_PLAYGROUND_CODE.to_string())
+                code_imports=MODAL_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-row">
+                    <Button on_press=open_minimal_modal>"Open minimal modal"</Button>
+                </div>
+
+                <Show when=move || minimal_present.get()>
+                    <Modal
+                        default_open=true
+                        id_base="docs-modal-minimal".to_string()
+                        title="Hello".to_string()
+                        on_close=close_minimal_modal
+                        on_open_change=on_minimal_open_change
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Minimal modal content"</div>
+                        </div>
+                    </Modal>
+                </Show>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground"
                 description="Display + Config + Code + CSS Test: toggle source contracts and inspect actual normalized config."
                 code_signal=interactive_code
+                code_imports=MODAL_DOC_IMPORTS.to_string()
                 test_css_source=interactive_test_css
                 test_source_path="components/modal/src/styles.rs".to_string()
                 test_config_signal=interactive_config
@@ -885,8 +1043,10 @@ let custom_motion = OverlayMotion {
 
                     view! {
                         <div class="docs-stack docs-stack--tight">
-                            <div class="docs-row">
-                                <Button on_press=open_interactive_modal>"Open interactive modal"</Button>
+                            <div class="docs-row" attr:data-slot="modal-interactive-controls">
+                                <Button attr:data-slot="modal-interactive-open" on_press=open_interactive_modal>
+                                    "Open interactive modal"
+                                </Button>
                                 <span class="ui-muted">
                                     "open: " {move || interactive_open_raw.get()}
                                 </span>
@@ -895,7 +1055,7 @@ let custom_motion = OverlayMotion {
                             {if interactive_custom_exit.get() {
                                 view! {
                                     <Modal
-                                        open=interactive_open
+                                        is_open=interactive_open
                                         id_base=id_base.clone()
                                         title=title.clone()
                                         on_close=close_interactive_modal
@@ -908,6 +1068,7 @@ let custom_motion = OverlayMotion {
                                             <div>"Inspect root markers in DevTools while toggling config."</div>
                                             <div class="docs-row docs-row--end">
                                                 <Button
+                                                    attr:data-slot="modal-interactive-close"
                                                     variant=ButtonVariant::Secondary
                                                     on_press=close_interactive_modal
                                                 >
@@ -921,7 +1082,7 @@ let custom_motion = OverlayMotion {
                             } else {
                                 view! {
                                     <Modal
-                                        open=interactive_open
+                                        is_open=interactive_open
                                         id_base=id_base
                                         title=title
                                         on_close=close_interactive_modal
@@ -933,6 +1094,7 @@ let custom_motion = OverlayMotion {
                                             <div>"Inspect root markers in DevTools while toggling config."</div>
                                             <div class="docs-row docs-row--end">
                                                 <Button
+                                                    attr:data-slot="modal-interactive-close"
                                                     variant=ButtonVariant::Secondary
                                                     on_press=close_interactive_modal
                                                 >
@@ -949,15 +1111,21 @@ let custom_motion = OverlayMotion {
                 }}
             </Playground>
 
-            <Playground title="Label + Description" code_signal=semantic_code>
-                <div class="docs-row">
-                    <Button on_press=open_semantic_modal>"Open described modal"</Button>
+            <Playground
+                title="Label + Description"
+                code_signal=semantic_code
+                code_imports=MODAL_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-row" attr:data-slot="modal-e2e-described-controls">
+                    <Button attr:data-slot="modal-e2e-open-described" on_press=open_semantic_modal>
+                        "Open described modal"
+                    </Button>
                     <span class="ui-muted">"open: " {move || open_semantic_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_semantic.get()>
                     <Modal
-                        open=open_semantic
+                        is_open=open_semantic
                         id_base="docs-modal-semantic".to_string()
                         title="Confirm".to_string()
                         description="Modal composes Overlay with stable aria-labelledby + aria-describedby wiring.".to_string()
@@ -982,15 +1150,18 @@ let custom_motion = OverlayMotion {
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-id-source`, `data-title-source`, `data-description-source`, `data-motion-source`, and `data-exit-source` contracts."
                 code_signal=custom_code
+                code_imports=MODAL_DOC_IMPORTS.to_string()
             >
-                <div class="docs-row">
-                    <Button on_press=open_custom_modal>"Open custom modal"</Button>
+                <div class="docs-row" attr:data-slot="modal-e2e-custom-controls">
+                    <Button attr:data-slot="modal-e2e-open-custom" on_press=open_custom_modal>
+                        "Open custom modal"
+                    </Button>
                     <span class="ui-muted">"open: " {move || open_custom_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_custom.get()>
                     <Modal
-                        open=open_custom
+                        is_open=open_custom
                         id_base="docs-modal-custom".to_string()
                         title="Title only".to_string()
                         class_name="docs-modal-custom".to_string()
@@ -1012,6 +1183,221 @@ let custom_motion = OverlayMotion {
                     </Modal>
                 </Show>
             </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="State matrix over controlled/uncontrolled + default_open + description branches."
+                code_signal=state_matrix_code
+                code_imports=MODAL_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="modal-state-matrix">
+                    <SegmentedControl
+                        id_base="docs-modal-state-matrix-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Modal state matrix scenario".to_string()
+                    />
+                    <div class="docs-row">
+                        <Button on_press=open_state_matrix_modal>"Open matrix modal"</Button>
+                        <span class="ui-muted">
+                            "controlled_open: " {move || state_matrix_open_raw.get().to_string()}
+                        </span>
+                    </div>
+                    {move || {
+                        if state_matrix_is_controlled.get() {
+                            view! {
+                                <Modal
+                                    id_base="docs-modal-state-matrix".to_string()
+                                    title="Controlled Matrix".to_string()
+                                    description=if state_matrix_with_description.get() {
+                                        "Controlled matrix path".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    is_open=state_matrix_open
+                                    on_open_change=on_state_matrix_open_change
+                                    on_close=close_state_matrix_modal
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"State matrix controlled branch"</div>
+                                    </div>
+                                </Modal>
+                            }
+                            .into_any()
+                        } else {
+                            view! {
+                                <Modal
+                                    id_base="docs-modal-state-matrix".to_string()
+                                    title="Uncontrolled Matrix".to_string()
+                                    description=if state_matrix_with_description.get() {
+                                        "Uncontrolled matrix path".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    default_open=state_matrix_default_open.get()
+                                    on_open_change=on_state_matrix_open_change
+                                    on_close=Callback::new(|_| {})
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"State matrix uncontrolled branch"</div>
+                                    </div>
+                                </Modal>
+                            }
+                            .into_any()
+                        }
+                    }}
+                    <span class="ui-muted">
+                        "mode: "
+                        {move || if state_matrix_is_controlled.get() { "controlled" } else { "uncontrolled" }}
+                    </span>
+                    <span class="ui-muted">
+                        "default_open: " {move || state_matrix_default_open.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "with_description: " {move || state_matrix_with_description.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled"
+                description="Side-by-side contrast of parent-controlled open state vs default-driven internal state."
+                code_signal=compare_code
+                code_imports=MODAL_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="modal-controlled-uncontrolled">
+                    <div class="docs-row">
+                        <Button on_press=Callback::new(move |_| set_compare_controlled_open_raw.set(true))>
+                            "Open controlled modal"
+                        </Button>
+                        <Button
+                            variant=ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_compare_controlled_open_raw.set(false))
+                        >
+                            "Close controlled modal"
+                        </Button>
+                    </div>
+                    <div class="docs-row">
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Controlled"</strong>
+                            <Modal
+                                id_base="docs-modal-compare-controlled".to_string()
+                                title="Controlled".to_string()
+                                description="open + on_open_change are owned by parent signal.".to_string()
+                                is_open=compare_controlled_open
+                                on_open_change=on_compare_controlled_open_change
+                                on_close=Callback::new(move |_| set_compare_controlled_open_raw.set(false))
+                            >
+                                <div>"Controlled content"</div>
+                            </Modal>
+                            <span class="ui-muted">
+                                "open: "
+                                {move || if compare_controlled_open_raw.get() { "true" } else { "false" }}
+                            </span>
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Uncontrolled"</strong>
+                            <Modal
+                                id_base="docs-modal-compare-uncontrolled".to_string()
+                                title="Uncontrolled".to_string()
+                                description="default_open initializes once; primitive owns later transitions.".to_string()
+                                default_open=true
+                                on_open_change=on_compare_uncontrolled_open_change
+                                on_close=Callback::new(|_| {})
+                            >
+                                <div>"Uncontrolled content"</div>
+                            </Modal>
+                            <span class="ui-muted">
+                                "open (reported by on_open_change): "
+                                {move || if compare_uncontrolled_open_raw.get() { "true" } else { "false" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Modal is streaming-optional and snapshot-first (`fallback=snapshot`)."
+                code_signal=streaming_snapshot_code
+                code_imports=MODAL_DOC_IMPORTS.to_string()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    attr:data-slot="modal-streaming-contract"
+                    data-requested-stream-mode=move || stream_requested_mode.get()
+                    data-requested-output-status=move || stream_requested_output_status.get()
+                >
+                    <SegmentedControl
+                        id_base="docs-modal-stream-mode".to_string()
+                        options=stream_mode_options.clone()
+                        selected_index=stream_mode_index
+                        set_selected_index=set_stream_mode_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Modal stream mode".to_string()
+                    />
+                    <Modal
+                        id_base="docs-modal-stream".to_string()
+                        title="Streaming Optional Contract".to_string()
+                        description="Component output stays snapshot while keeping output status machine-readable.".to_string()
+                        default_open=true
+                        on_close=Callback::new(|_| {})
+                    >
+                        <div>"This component defaults to snapshot rendering."</div>
+                    </Modal>
+                    <span class="ui-muted">
+                        "requested mode: " {move || stream_requested_mode.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "requested output status: " {move || stream_requested_output_status.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "effective component status: data-ui-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <div class="docs-stack docs-stack--tight" attr:data-slot="modal-source-first">
+                <h3>"Source-first Copy-Paste"</h3>
+                <p class="ui-muted">
+                    "Use "
+                    <code>"Show code"</code>
+                    " in any playground to copy import-ready snippets."
+                </p>
+                <p class="ui-muted">
+                    "Imports are auto-completed via "
+                    <code>"MODAL_DOC_IMPORTS"</code>
+                    " + "
+                    <code>"compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p class="ui-muted">
+                    "Dependency prerequisites: "
+                    <code>
+                        "ui-components = { workspace = true, default-features = false, features = [\"component-modal\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <p class="ui-muted" attr:data-slot="modal-defaults-contract">
+                    "Logic defaults stay synchronized with "
+                    <code>"components/modal/src/logic.rs"</code>
+                    ": "
+                    <code>"id_base=\"ui-modal\""</code>
+                    ", "
+                    <code>"title=\"Modal\""</code>
+                    ", "
+                    <code>"default_open=false"</code>
+                    "."
+                </p>
+                <ul class="docs-stack docs-stack--tight" attr:data-slot="modal-source-paths">
+                    <li><code>"components/modal/src/mod.rs"</code></li>
+                    <li><code>"components/modal/src/logic.rs"</code></li>
+                    <li><code>"components/modal/src/view.rs"</code></li>
+                    <li><code>"components/modal/src/styles.rs"</code></li>
+                    <li><code>"components/modal/src/motion.rs"</code></li>
+                </ul>
+            </div>
         </ComponentPage>
     }
     .into_any()
@@ -1133,7 +1519,7 @@ pub(super) fn sheet() -> AnyView {
                 </Show>
             </Playground>
 
-            <section class="docs-card docs-prose" data-slot="sheet-source-first">
+            <section class="docs-card docs-prose" attr:data-slot="sheet-source-first">
                 <h3>"Source-first / Copy-Paste Ready"</h3>
                 <p>
                     "Each playground already supports "
@@ -1148,14 +1534,14 @@ pub(super) fn sheet() -> AnyView {
                     copyable=true
                     class_name="docs-sheet-source-copy".to_string()
                 />
-                <ul data-slot="sheet-source-paths">
+                <ul attr:data-slot="sheet-source-paths">
                     <li><code>"components/sheet/src/mod.rs"</code></li>
                     <li><code>"components/sheet/src/logic.rs"</code></li>
                     <li><code>"components/sheet/src/view.rs"</code></li>
                     <li><code>"components/sheet/src/styles.rs"</code></li>
                     <li><code>"components/sheet/src/motion.rs"</code></li>
                 </ul>
-                <ul data-slot="sheet-source-prerequisites">
+                <ul attr:data-slot="sheet-source-prerequisites">
                     <li><code>"component-sheet"</code></li>
                     <li><code>"inject-css"</code></li>
                 </ul>
@@ -1194,13 +1580,19 @@ pub(super) fn drawer() -> AnyView {
             ..SheetMotion::default()
         },
     };
+    let minimal_code = Signal::derive(move || {
+        r#"<Drawer default_open=true id_base="dr".to_string() title="Drawer".to_string()>
+  <div>"Drawer content"</div>
+</Drawer>"#
+            .to_string()
+    });
     let semantic_code = Signal::derive(move || {
         r#"let (open_raw, set_open_raw) = signal(true);
 let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
 let finish_exit = Callback::new(move |_| {});
 
 <Drawer
-  open=Signal::derive(move || open_raw.get())
+  is_open=Signal::derive(move || open_raw.get())
   id_base="dr".to_string()
   title="Drawer".to_string()
   description="Sheet composition with header/body/footer slots.".to_string()
@@ -1219,7 +1611,7 @@ let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
 let finish_exit = Callback::new(move |_| {});
 
 <Drawer
-  open=Signal::derive(move || open_raw.get())
+  is_open=Signal::derive(move || open_raw.get())
   id_base="dr-left".to_string()
   title="Left drawer".to_string()
   placement=DrawerPlacement::Left
@@ -1229,7 +1621,7 @@ let finish_exit = Callback::new(move |_| {});
       ..SheetMotion::default()
     }
   }
-  show_close_button=false
+  is_close_button_visible=false
   class_name="docs-drawer-custom".to_string()
   on_close=close
   on_exit_complete=finish_exit
@@ -1238,6 +1630,127 @@ let finish_exit = Callback::new(move |_| {});
 </Drawer>"#
             .to_string()
     });
+    let state_matrix_options = vec![
+        "Uncontrolled + default_open=true".to_string(),
+        "Uncontrolled + no description".to_string(),
+        "Controlled + custom title".to_string(),
+    ];
+    let (state_matrix_index, set_state_matrix_index) = signal(Some(0_usize));
+    let state_matrix_is_controlled =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 2);
+    let state_matrix_default_open =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) == 0);
+    let state_matrix_with_description =
+        Signal::derive(move || state_matrix_index.get().unwrap_or(0) != 1);
+    let (state_matrix_open_raw, set_state_matrix_open_raw) = signal(false);
+    let state_matrix_open: Signal<bool> = Signal::derive(move || state_matrix_open_raw.get());
+    let on_state_matrix_open_change =
+        Callback::new(move |next: bool| set_state_matrix_open_raw.set(next));
+    let open_state_matrix_drawer: OnPress =
+        Callback::new(move |_| set_state_matrix_open_raw.set(true));
+    let close_state_matrix_drawer: OnPress =
+        Callback::new(move |_| set_state_matrix_open_raw.set(false));
+    let state_matrix_code = Signal::derive(move || {
+        let scenario = state_matrix_index.get().unwrap_or(0);
+        let mut lines = vec![
+            "<Drawer".to_string(),
+            "  id_base=\"docs-drawer-state-matrix\".into()".to_string(),
+            "  title=\"State Matrix\".into()".to_string(),
+        ];
+
+        match scenario {
+            0 => {
+                lines.push("  default_open=true".to_string());
+                lines.push("  description=\"Uncontrolled baseline branch\".into()".to_string());
+            }
+            1 => {
+                lines.push("  default_open=false".to_string());
+            }
+            _ => {
+                lines.push("  is_open=Signal::derive(move || open_raw.get())".to_string());
+                lines.push(
+                    "  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))"
+                        .to_string(),
+                );
+                lines.push("  title=\"Controlled Matrix\".into()".to_string());
+                lines.push("  description=\"Controlled branch\".into()".to_string());
+            }
+        }
+
+        lines.push(">".to_string());
+        lines.push("  <div>\"Matrix content\"</div>".to_string());
+        lines.push("</Drawer>".to_string());
+        lines.join("\n")
+    });
+
+    let (compare_controlled_open_raw, set_compare_controlled_open_raw) = signal(false);
+    let compare_controlled_open: Signal<bool> =
+        Signal::derive(move || compare_controlled_open_raw.get());
+    let on_compare_controlled_open_change =
+        Callback::new(move |next: bool| set_compare_controlled_open_raw.set(next));
+    let close_compare_controlled: OnPress =
+        Callback::new(move |_| set_compare_controlled_open_raw.set(false));
+    let (compare_uncontrolled_open_raw, set_compare_uncontrolled_open_raw) = signal(true);
+    let on_compare_uncontrolled_open_change =
+        Callback::new(move |next: bool| set_compare_uncontrolled_open_raw.set(next));
+    let compare_code = Signal::derive(move || {
+        r#"let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
+let (uncontrolled_open_raw, set_uncontrolled_open_raw) = signal(true);
+
+<Drawer
+  id_base="docs-drawer-compare-controlled".into()
+  title="Controlled".into()
+  is_open=controlled_open
+  on_open_change=Callback::new(move |next: bool| set_controlled_open_raw.set(next))
+  on_close=Callback::new(move |_| set_controlled_open_raw.set(false))
+>
+  <div>"Controlled content"</div>
+</Drawer>
+
+<Drawer
+  id_base="docs-drawer-compare-uncontrolled".into()
+  title="Uncontrolled".into()
+  default_open=true
+  on_open_change=Callback::new(move |next: bool| set_uncontrolled_open_raw.set(next))
+>
+  <div>"Uncontrolled content"</div>
+</Drawer>"#
+            .to_string()
+    });
+
+    let stream_mode_options = vec![
+        "Snapshot".to_string(),
+        "Streaming (fallback=snapshot)".to_string(),
+    ];
+    let (stream_mode_index, set_stream_mode_index) = signal(Some(0_usize));
+    let stream_requested_mode = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "snapshot"
+        } else {
+            "streaming"
+        }
+    });
+    let stream_requested_output_status = Signal::derive(move || {
+        if stream_mode_index.get().unwrap_or(0) == 0 {
+            "verified"
+        } else {
+            "draft"
+        }
+    });
+    let streaming_snapshot_code = Signal::derive(move || {
+        r#"// Drawer is not an LLM body reader surface.
+// Streaming is optional; fallback stays snapshot.
+<Drawer
+  id_base="docs-drawer-stream".into()
+  title="Streaming Optional Contract".into()
+  default_open=true
+>
+  <div>"This component defaults to snapshot rendering."</div>
+</Drawer>"#
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="Drawer"
@@ -1245,14 +1758,39 @@ let finish_exit = Callback::new(move |_| {});
             group="Overlays"
             description="Sheet composition with centralized placement/description/footer/close state attrs and stable drawer slots."
         >
-            <Playground title="Right Drawer + Slots" code_signal=semantic_code>
-                <div class="docs-row">
-                    <Button on_press=open_semantic_drawer>"Open right drawer"</Button>
+            <Playground
+                title="Hello World (Minimal API)"
+                description="No manual state wiring. Start with defaults, then opt into controlled/extended props only when needed."
+                code_signal=minimal_code
+                code_imports=DRAWER_DOC_IMPORTS.to_string()
+            >
+                <Drawer
+                    default_open=true
+                    id_base="docs-drawer-minimal".to_string()
+                    title="Hello drawer".to_string()
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <div>"Minimal drawer body"</div>
+                        <div class="ui-muted">
+                            "Close button works with internal uncontrolled state by default."
+                        </div>
+                    </div>
+                </Drawer>
+            </Playground>
+            <Playground
+                title="Right Drawer + Slots"
+                code_signal=semantic_code
+                code_imports=DRAWER_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-row" attr:data-slot="drawer-e2e-right-controls">
+                    <Button attr:data-slot="drawer-e2e-open-right" on_press=open_semantic_drawer>
+                        "Open right drawer"
+                    </Button>
                     <span class="ui-muted">"open: " {move || open_semantic_raw.get()}</span>
                 </div>
                 <Show when=move || present_semantic.get()>
                     <Drawer
-                        open=open_semantic
+                        is_open=open_semantic
                         id_base="docs-drawer-right".to_string()
                         title="Drawer title".to_string()
                         description="Drawer composes Sheet and keeps labeled/description semantics aligned.".to_string()
@@ -1277,19 +1815,22 @@ let finish_exit = Callback::new(move |_| {});
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-placement-source`, `data-description-source`, `data-footer-source`, `data-motion-source`, and `data-exit-source` contracts."
                 code_signal=custom_code
+                code_imports=DRAWER_DOC_IMPORTS.to_string()
             >
-                <div class="docs-row">
-                    <Button on_press=open_custom_drawer>"Open left drawer"</Button>
+                <div class="docs-row" attr:data-slot="drawer-e2e-custom-controls">
+                    <Button attr:data-slot="drawer-e2e-open-custom" on_press=open_custom_drawer>
+                        "Open left drawer"
+                    </Button>
                     <span class="ui-muted">"open: " {move || open_custom_raw.get()}</span>
                 </div>
                 <Show when=move || present_custom.get()>
                     <Drawer
-                        open=open_custom
+                        is_open=open_custom
                         id_base="docs-drawer-left".to_string()
                         title="Left drawer".to_string()
                         placement=DrawerPlacement::Left
                         motion=custom_motion
-                        show_close_button=false
+                        is_close_button_visible=false
                         class_name="docs-drawer-custom".to_string()
                         on_close=close_custom
                         on_exit_complete=on_custom_exit_complete
@@ -1300,12 +1841,237 @@ let finish_exit = Callback::new(move |_| {});
                                 "Inspect data-placement-source / data-title-source / data-motion-source in DevTools."
                             </div>
                             <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=close_custom>"Dismiss"</Button>
+                                <Button
+                                    attr:data-slot="drawer-e2e-dismiss-custom"
+                                    variant=ButtonVariant::Secondary
+                                    on_press=close_custom
+                                >
+                                    "Dismiss"
+                                </Button>
                             </div>
                         </div>
                     </Drawer>
                 </Show>
             </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="State matrix over controlled/uncontrolled + default_open + description branches."
+                code_signal=state_matrix_code
+                code_imports=DRAWER_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="drawer-state-matrix">
+                    <SegmentedControl
+                        id_base="docs-drawer-state-matrix-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Drawer state matrix scenario".to_string()
+                    />
+                    <div class="docs-row">
+                        <Button on_press=open_state_matrix_drawer>"Open matrix drawer"</Button>
+                        <Button
+                            variant=ButtonVariant::Secondary
+                            on_press=close_state_matrix_drawer
+                        >
+                            "Close matrix drawer"
+                        </Button>
+                    </div>
+                    {move || {
+                        if state_matrix_is_controlled.get() {
+                            view! {
+                                <Drawer
+                                    id_base="docs-drawer-state-matrix".to_string()
+                                    title="Controlled Matrix".to_string()
+                                    description=if state_matrix_with_description.get() {
+                                        "Controlled matrix path".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    is_open=state_matrix_open
+                                    on_open_change=on_state_matrix_open_change
+                                    on_close=close_state_matrix_drawer
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"State matrix controlled branch"</div>
+                                    </div>
+                                </Drawer>
+                            }
+                                .into_any()
+                        } else {
+                            view! {
+                                <Drawer
+                                    id_base="docs-drawer-state-matrix".to_string()
+                                    title="Uncontrolled Matrix".to_string()
+                                    description=if state_matrix_with_description.get() {
+                                        "Uncontrolled matrix path".to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                    default_open=state_matrix_default_open.get()
+                                    on_open_change=on_state_matrix_open_change
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"State matrix uncontrolled branch"</div>
+                                    </div>
+                                </Drawer>
+                            }
+                                .into_any()
+                        }
+                    }}
+                    <span class="ui-muted">
+                        "mode: "
+                        {move || if state_matrix_is_controlled.get() { "controlled" } else { "uncontrolled" }}
+                    </span>
+                    <span class="ui-muted">
+                        "default_open: " {move || state_matrix_default_open.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "with_description: " {move || state_matrix_with_description.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled"
+                description="Side-by-side contrast of parent-controlled open state vs default-driven internal state."
+                code_signal=compare_code
+                code_imports=DRAWER_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="drawer-controlled-uncontrolled">
+                    <div class="docs-row">
+                        <Button on_press=Callback::new(move |_| set_compare_controlled_open_raw.set(true))>
+                            "Open controlled drawer"
+                        </Button>
+                        <Button variant=ButtonVariant::Secondary on_press=close_compare_controlled>
+                            "Close controlled drawer"
+                        </Button>
+                    </div>
+                    <div class="docs-row">
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Controlled"</strong>
+                            <Drawer
+                                id_base="docs-drawer-compare-controlled".to_string()
+                                title="Controlled".to_string()
+                                description="is_open + on_open_change are owned by parent signal.".to_string()
+                                is_open=compare_controlled_open
+                                on_open_change=on_compare_controlled_open_change
+                                on_close=close_compare_controlled
+                            >
+                                <div>"Controlled content"</div>
+                            </Drawer>
+                            <span class="ui-muted">
+                                "open: "
+                                {move || if compare_controlled_open_raw.get() { "true" } else { "false" }}
+                            </span>
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Uncontrolled"</strong>
+                            <Drawer
+                                id_base="docs-drawer-compare-uncontrolled".to_string()
+                                title="Uncontrolled".to_string()
+                                description="default_open initializes once; primitive owns later transitions.".to_string()
+                                default_open=true
+                                on_open_change=on_compare_uncontrolled_open_change
+                            >
+                                <div>"Uncontrolled content"</div>
+                            </Drawer>
+                            <span class="ui-muted">
+                                "open (reported by on_open_change): "
+                                {move || if compare_uncontrolled_open_raw.get() { "true" } else { "false" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <div class="docs-stack docs-stack--tight ui-muted" attr:data-slot="drawer-defaults-contract">
+                <strong>"Drawer API/default contract"</strong>
+                <span>
+                    <code>"components/drawer/src/logic.rs"</code>
+                    " re-exports defaults from "
+                    <code>"crates/ui-state-primitives/src/drawer.rs"</code>
+                </span>
+                <span><code>"id_base=\"ui-drawer\""</code></span>
+                <span><code>"title=\"Drawer\""</code></span>
+                <span><code>"default_open=false"</code></span>
+                <span>
+                    <code>"is_open + on_open_change"</code>
+                    " => controlled; "
+                    <code>"default_open"</code>
+                    " => uncontrolled initialization"
+                </span>
+            </div>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Drawer is streaming-optional and snapshot-first (`fallback=snapshot`)."
+                code_signal=streaming_snapshot_code
+                code_imports=DRAWER_DOC_IMPORTS.to_string()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    attr:data-slot="drawer-streaming-contract"
+                    data-requested-stream-mode=move || stream_requested_mode.get()
+                    data-requested-output-status=move || stream_requested_output_status.get()
+                >
+                    <SegmentedControl
+                        id_base="docs-drawer-stream-mode".to_string()
+                        options=stream_mode_options.clone()
+                        selected_index=stream_mode_index
+                        set_selected_index=set_stream_mode_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Drawer stream mode".to_string()
+                    />
+                    <Drawer
+                        id_base="docs-drawer-stream".to_string()
+                        title="Streaming Optional Contract".to_string()
+                        description="Component output stays snapshot while keeping output status machine-readable.".to_string()
+                        default_open=true
+                    >
+                        <div>"This component defaults to snapshot rendering."</div>
+                    </Drawer>
+                    <span class="ui-muted">
+                        "requested mode: " {move || stream_requested_mode.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "requested output status: " {move || stream_requested_output_status.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "effective component status: data-ui-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <div class="docs-stack docs-stack--tight" attr:data-slot="drawer-source-first">
+                <h3>"Source-first Copy-Paste"</h3>
+                <p class="ui-muted">
+                    "Use "
+                    <code>"Show code"</code>
+                    " in any playground to copy import-ready snippets."
+                </p>
+                <p class="ui-muted">
+                    "Imports are auto-completed via "
+                    <code>"DRAWER_DOC_IMPORTS"</code>
+                    " + "
+                    <code>"compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <p class="ui-muted">
+                    "Dependency prerequisites: "
+                    <code>
+                        "ui-components = { workspace = true, default-features = false, features = [\"component-drawer\", \"inject-css\"] }"
+                    </code>
+                </p>
+                <ul class="docs-stack docs-stack--tight" attr:data-slot="drawer-source-paths">
+                    <li><code>"components/drawer/src/mod.rs"</code></li>
+                    <li><code>"components/drawer/src/logic.rs"</code></li>
+                    <li><code>"components/drawer/src/view.rs"</code></li>
+                    <li><code>"components/drawer/src/styles.rs"</code></li>
+                    <li><code>"components/drawer/src/motion.rs"</code></li>
+                </ul>
+            </div>
         </ComponentPage>
     }
     .into_any()
@@ -1576,6 +2342,15 @@ pub(super) fn contextual_help() -> AnyView {
 </ContextualHelp>"#
             .to_string()
     });
+    let output_mode_code = Signal::derive(move || {
+        r#"<ContextualHelp
+  heading="LLM output contract".to_string()
+  footer=move || view! { "Streaming Optional; fallback=snapshot." }
+>
+  <div>"This component defaults to snapshot rendering while exposing streaming/snapshot markers."</div>
+</ContextualHelp>"#
+            .to_string()
+    });
 
     let variant_options = vec!["help".to_string(), "info".to_string()];
     let (variant_index, set_variant_index) = signal(Some(0_usize));
@@ -1617,7 +2392,7 @@ pub(super) fn contextual_help() -> AnyView {
             lines.push(format!("  default_open={open}"));
         }
         if disabled {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
         lines.push("  heading=\"Contextual help\".into()".to_string());
         lines.push("  footer=move || view! { \"Popover-based\" }".to_string());
@@ -1669,7 +2444,7 @@ pub(super) fn contextual_help() -> AnyView {
         }
 
         format!(
-            "ContextualHelpActualConfig {{\n  variant: {variant:?},\n  disabled: {disabled},\n  controlled_mode: {controlled_mode},\n  open: {open},\n  custom_aria_label: {custom_aria},\n  custom_class_name: {custom_class},\n  class: \"{}\",\n}}",
+            "ContextualHelpActualConfig {{\n  variant: {variant:?},\n  is_disabled: {disabled},\n  controlled_mode: {controlled_mode},\n  open: {open},\n  custom_aria_label: {custom_aria},\n  custom_class_name: {custom_class},\n  class: \"{}\",\n}}",
             class_tokens.join(" ")
         )
     });
@@ -1681,7 +2456,7 @@ pub(super) fn contextual_help() -> AnyView {
 <ContextualHelp variant=ContextualHelpVariant::Info heading="Info".to_string() footer=move || view! { "Info Variant" }>
   <div>"Info Help"</div>
 </ContextualHelp>
-<ContextualHelp variant=ContextualHelpVariant::Info disabled=true aria_label="Disabled info".to_string() class_name="docs-contextual-help-custom".to_string()>
+<ContextualHelp variant=ContextualHelpVariant::Info is_disabled=true aria_label="Disabled info".to_string() class_name="docs-contextual-help-custom".to_string()>
   <div>"Disabled Trigger"</div>
 </ContextualHelp>"#.to_string()
     });
@@ -1693,7 +2468,7 @@ pub(super) fn contextual_help() -> AnyView {
             group="Overlays"
             description="Non-modal popover help trigger with centralized variant/placement/heading/footer state attrs."
         >
-            <Playground title="Help Variant + Slots" code_signal=semantic_code>
+            <Playground title="Hello World (Default API)" code_signal=semantic_code>
                 <div class="docs-row">
                     <ContextualHelp
                         heading="Contextual help".to_string()
@@ -1801,7 +2576,7 @@ pub(super) fn contextual_help() -> AnyView {
                                             variant=variant
                                             open=workbench_open
                                             on_open_change=on_workbench_open_change
-                                            disabled=disabled
+                                            is_disabled=disabled
                                             heading="Contextual help".to_string()
                                             footer=move || view! { "Popover-based" }
                                             aria_label=aria_label.clone()
@@ -1819,7 +2594,7 @@ pub(super) fn contextual_help() -> AnyView {
                                         <ContextualHelp
                                             variant=variant
                                             default_open=open
-                                            disabled=disabled
+                                            is_disabled=disabled
                                             heading="Contextual help".to_string()
                                             footer=move || view! { "Popover-based" }
                                             aria_label=aria_label
@@ -1839,7 +2614,7 @@ pub(super) fn contextual_help() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="State Comparison" code_signal=comparison_code>
+            <Playground title="State Matrix" code_signal=comparison_code>
                 <div class="docs-row">
                     <ContextualHelp heading="Help".to_string() footer=move || view! { "Default" }>
                         <div>"Default Help"</div>
@@ -1853,7 +2628,7 @@ pub(super) fn contextual_help() -> AnyView {
                     </ContextualHelp>
                     <ContextualHelp
                         variant=ContextualHelpVariant::Info
-                        disabled=true
+                        is_disabled=true
                         aria_label="Disabled info".to_string()
                         class_name="docs-contextual-help-custom".to_string()
                     >
@@ -1861,6 +2636,124 @@ pub(super) fn contextual_help() -> AnyView {
                     </ContextualHelp>
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" attr:data-slot="contextual-help-api-matrix">
+                <h3>"API Matrix"</h3>
+                <ul attr:data-slot="contextual-help-api-rows">
+                    <li>
+                        <code>"variant: ContextualHelpVariant"</code>
+                        " "
+                        {format!(
+                            "default = ContextualHelpVariant::{:?} ({})",
+                            ContextualHelpVariant::default(),
+                            ContextualHelpVariant::default().class_name()
+                        )}
+                    </li>
+                    <li>
+                        <code>"placement: PopoverPlacement"</code>
+                        " "
+                        {format!(
+                            "default = PopoverPlacement::{:?} ({})",
+                            ui_headless::PopoverPlacement::default(),
+                            ui_headless::PopoverPlacement::default().as_str()
+                        )}
+                    </li>
+                    <li>
+                        <code>"open + on_open_change + default_open"</code>
+                        " default path = uncontrolled (open absent); `default_open` omitted => internal false"
+                    </li>
+                    <li>
+                        <code>"is_disabled: Option<bool>"</code>
+                        " default = false"
+                    </li>
+                    <li>
+                        <code>"disabled: Option<bool>"</code>
+                        " compatibility alias for `is_disabled`; precedence = is_disabled -> disabled -> false"
+                    </li>
+                    <li>
+                        <code>"heading/footer/class_name/aria_label/lang/dir/id"</code>
+                        " default = None (id auto-generated from IdProvider; fallback = \"ui-contextual-help-0\")"
+                    </li>
+                    <li>
+                        <code>"motion: ContextualHelpMotion"</code>
+                        " default = ContextualHelpMotion::default()"
+                    </li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" attr:data-slot="contextual-help-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul attr:data-slot="contextual-help-state-rows">
+                    <li>
+                        <code>"data-open-mode"</code>
+                        " = controlled | uncontrolled"
+                    </li>
+                    <li>
+                        <code>"data-state"</code>
+                        " = enabled | disabled"
+                    </li>
+                    <li>
+                        <code>"data-variant"</code>
+                        " = help | info"
+                    </li>
+                    <li>
+                        <code>"data-placement"</code>
+                        " = bottom-start | bottom-end | top-start | top-end"
+                    </li>
+                    <li>
+                        <code>"data-open-source / data-default-open-source / data-open-change-source"</code>
+                        " = custom|default / provided|implicit / provided|none"
+                    </li>
+                    <li>
+                        <code>"size axis"</code>
+                        " = N/A (ContextualHelp trigger is fixed ButtonSize::IconSm)"
+                    </li>
+                </ul>
+            </section>
+
+            <Playground title="Streaming/Snapshot Display" code_signal=output_mode_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ContextualHelp
+                        heading="LLM output contract".to_string()
+                        footer=move || view! { "Streaming Optional; fallback=snapshot." }
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Snapshot is the baseline rendering mode for ContextualHelp."</div>
+                            <div class="ui-muted">
+                                "Mode contract stays machine-readable via data-ui-output-mode=snapshot|streaming."
+                            </div>
+                        </div>
+                    </ContextualHelp>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" attr:data-slot="contextual-help-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground already supports "
+                    <code>"Show code"</code>
+                    " with copy action. The copied snippet is import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<ContextualHelp heading=\"Contextual help\".to_string()>\n  <div>\"Need help?\"</div>\n</ContextualHelp>".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-contextual-help-source-copy".to_string()
+                />
+                <ul attr:data-slot="contextual-help-source-paths">
+                    <li><code>"components/contextual-help/src/mod.rs"</code></li>
+                    <li><code>"components/contextual-help/src/logic.rs"</code></li>
+                    <li><code>"components/contextual-help/src/view.rs"</code></li>
+                    <li><code>"components/contextual-help/src/styles.rs"</code></li>
+                    <li><code>"components/contextual-help/src/motion.rs"</code></li>
+                </ul>
+                <ul attr:data-slot="contextual-help-source-prerequisites">
+                    <li><code>"component-contextual_help"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -2014,8 +2907,8 @@ pub(super) fn overlays_root() -> AnyView {
     let code = Signal::derive(move || {
         r#"<OverlaysRoot
   id_base="docs-overlays-root".to_string()
-  open=true
-  modal=true
+  is_open=true
+  is_modal=true
   class_name="docs-overlays-root".to_string()
 >
   <div class="ui-card">"Overlay stack host"</div>
@@ -2033,8 +2926,8 @@ pub(super) fn overlays_root() -> AnyView {
             <Playground title="Open + Modal Root State" code_signal=code>
                 <OverlaysRoot
                     id_base="docs-overlays-root".to_string()
-                    open=true
-                    modal=true
+                    is_open=true
+                    is_modal=true
                     class_name="docs-overlays-root".to_string()
                 >
                     <div class="ui-card docs-stack docs-stack--tight">

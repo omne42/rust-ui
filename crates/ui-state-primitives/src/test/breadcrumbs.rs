@@ -31,17 +31,12 @@ fn resolve_root_class_tracks_class_source() {
 #[test]
 fn resolve_state_tracks_links_and_current_page_flags() {
     let items = [
-        BreadcrumbsItemInput {
-            href: Some("/"),
-            is_last: false,
-        },
+        BreadcrumbsItemInput { href: Some("/") },
         BreadcrumbsItemInput {
             href: Some("/components"),
-            is_last: false,
         },
         BreadcrumbsItemInput {
             href: Some("/components/breadcrumbs"),
-            is_last: true,
         },
     ];
 
@@ -56,13 +51,9 @@ fn resolve_state_tracks_links_and_current_page_flags() {
 #[test]
 fn resolve_state_ignores_last_item_href_and_blank_values() {
     let items = [
-        BreadcrumbsItemInput {
-            href: Some("   "),
-            is_last: false,
-        },
+        BreadcrumbsItemInput { href: Some("   ") },
         BreadcrumbsItemInput {
             href: Some("/details"),
-            is_last: true,
         },
     ];
 
@@ -78,4 +69,50 @@ fn resolve_state_ignores_last_item_href_and_blank_values() {
 fn source_attr_from_presence_reports_expected_markers() {
     assert_eq!(source_attr_from_presence(true), "custom");
     assert_eq!(source_attr_from_presence(false), "default");
+}
+
+#[test]
+fn is_last_item_tracks_position_from_index_and_count() {
+    assert!(!is_last_item(0, 3));
+    assert!(!is_last_item(1, 3));
+    assert!(is_last_item(2, 3));
+    assert!(!is_last_item(0, 0));
+}
+
+#[test]
+fn resolve_item_href_removes_last_and_trims_non_last_values() {
+    assert_eq!(
+        resolve_item_href(
+            BreadcrumbsItemInput {
+                href: Some("  /docs  ")
+            },
+            0,
+            2
+        ),
+        Some("/docs".to_string())
+    );
+    assert_eq!(
+        resolve_item_href(BreadcrumbsItemInput { href: Some("   ") }, 0, 2),
+        None
+    );
+    assert_eq!(
+        resolve_item_href(
+            BreadcrumbsItemInput {
+                href: Some("/current")
+            },
+            1,
+            2
+        ),
+        None
+    );
+    assert_eq!(
+        resolve_item_href(
+            BreadcrumbsItemInput {
+                href: Some("/extra")
+            },
+            2,
+            2
+        ),
+        None
+    );
 }

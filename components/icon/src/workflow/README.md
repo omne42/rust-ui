@@ -22,8 +22,8 @@
 | `icon` | `String` | required (empty -> `"workflow:help"`) |
 | `size` | `IconsWorkflowSize` | `Md` |
 | `tone` | `IconsWorkflowTone` | `Default` |
-| `disabled` | `bool` | `false` |
-| `decorative` | `bool` | `true` |
+| `is_disabled` | `bool` | `false` |
+| `is_decorative` | `bool` | `true` |
 | `aria_label` | `Option<String>` | `None` |
 | `class_name` | `Option<String>` | `None` |
 | `glyphs` | `Vec<IconsetGlyph>` | `[]` (extends built-in workflow glyphs) |
@@ -45,14 +45,14 @@
   icon="success".to_string()
   size=IconsWorkflowSize::Md
   tone=IconsWorkflowTone::Accent
-  decorative=false
+  is_decorative=false
 />
 ```
 
 ## docs-app Playground 区块
 
 - 展示区: current 与 baseline 并排展示，验证 icon/source/state 行为差异。
-- Config 区: 交互切换 icon reference、size/tone、disabled/decorative、aria/class/glyph source。
+- Config 区: 交互切换 icon reference、size/tone、is_disabled/is_decorative、aria/class/glyph source。
 - Code 区: 根据当前配置动态生成可复制 `IconsWorkflow` 代码。
 - CSS Test 区: 加载 `crates/ui-components/src/icon/workflow/styles.rs` 做 scoped CSS 合同验证。
 

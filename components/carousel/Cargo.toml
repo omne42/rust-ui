@@ -8,12 +8,13 @@ publish = false
 path = "src/mod.rs"
 
 [features]
-default = []
+default = ["web"]
+web = ["leptos/csr", "ui-headless/web"]
+ssr = ["leptos/ssr", "ui-headless/ssr"]
 
 [dependencies]
-leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
-ui-headless = { path = "../../crates/ui-headless" }
+leptos = { version = "0.8.15", default-features = false }
+ui-headless = { path = "../../crates/ui-headless", default-features = false }
 ui-motion = { path = "../../crates/ui-motion" }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
 ui-visual-primitive = { path = "../../crates/ui-visual-primitive" }
-serde = { version = "1.0", features = ["derive"] }

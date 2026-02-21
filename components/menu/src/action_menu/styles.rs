@@ -16,7 +16,7 @@ pub const CSS: &str = r#"
 .ui-action-menu--disabled,
 .ui-action-menu[data-state="disabled"],
 .ui-action-menu[data-disabled="true"] {
-  opacity: 0.72;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
 }
 
 .ui-action-menu--enabled,
@@ -131,6 +131,6 @@ pub const CSS: &str = r#"
 
 .ui-action-menu--persistent .ui-action-button,
 .ui-action-menu[data-action-mode="keep-open"] .ui-action-button {
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 "#;

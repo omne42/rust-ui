@@ -14,6 +14,9 @@ default = []
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../../crates/ui-headless" }
 ui-motion = { path = "../../crates/ui-motion" }
+ui-observability = { path = "../../crates/ui-observability" }
+ui-state-primitives = { path = "../../crates/ui-state-primitives" }
+ui-theme = { path = "../../crates/ui-theme" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3.85"

@@ -169,3 +169,46 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn context_menu_event_decision_is_centralized() {
+    assert!(should_open_from_context_menu(false));
+    assert!(!should_open_from_context_menu(true));
+    assert_eq!(resolve_ui_action(true), "open");
+    assert_eq!(resolve_ui_action(false), "idle");
+    assert_eq!(resolve_ui_output_status(true), "draft");
+    assert_eq!(resolve_ui_output_status(false), "submittable");
+    assert_eq!(resolve_aria_expanded(true), "true");
+    assert_eq!(resolve_aria_expanded(false), "false");
+}
+
+#[test]
+fn normalize_discrete_props_resolves_alias_priority() {
+    assert_eq!(
+        normalize_discrete_props(ContextMenuDiscreteInput {
+            is_disabled: Some(true),
+            disabled: false,
+            is_close_on_action: Some(false),
+            close_on_action: true,
+        }),
+        ContextMenuDiscreteProps {
+            disabled_state: ContextMenuDisabledState::Disabled,
+            action_mode: ContextMenuActionMode::KeepOpenOnAction,
+        }
+    );
+}
+
+#[test]
+fn normalize_open_state_tracks_control_mode_and_forwards_triplet() {
+    let state = normalize_open_state(ContextMenuOpenStateInput {
+        is_open: None,
+        open: None,
+        default_open: Some(true),
+        on_open_change: None,
+    });
+
+    assert!(!state.is_controlled);
+    assert_eq!(state.default_open, Some(true));
+    assert!(state.open.is_none());
+    assert!(state.on_open_change.is_none());
+}

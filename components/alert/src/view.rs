@@ -136,20 +136,10 @@ pub fn Alert(
     let node_ref: NodeRef<html::Section> = NodeRef::new();
     alert_motion::attach_motion(node_ref, motion);
 
-    let icon_label = icon_label
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(|label| (label.into(), "custom"))
-        .or_else(|| {
-            state
-                .tone
-                .default_icon_label()
-                .map(|label| (label.into(), "tone-default"))
-        })
-        .unwrap_or_else(|| (String::new(), "none"));
-    let icon_label_source = icon_label.1;
-    let icon_label = StoredValue::new(icon_label.0);
+    let (icon_label, icon_label_source) = logic::resolve_icon_label(icon_label, state.tone);
+    let motion_source = logic::resolve_motion_source(motion == AlertMotion::default());
+    let agent_source = logic::resolve_agent_source(state.variant_source_attr);
+    let icon_label = StoredValue::new(icon_label);
 
     let start_content = start_content.map(StoredValue::new);
     let end_content = end_content.map(StoredValue::new);
@@ -169,17 +159,21 @@ pub fn Alert(
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-hide-icon=hide_icon.then_some("true")
             data-hide-icon-source=hide_icon_source
-            data-icon-label-source=icon_label_source
+            data-icon-label-source=icon_label_source.as_attr()
             role=state.role_attr
             aria-live=state.live_attr
             lang=locale.lang
             dir=locale.dir
-            data-motion-source=if motion == AlertMotion::default() {
-                "default"
-            } else {
-                "custom"
-            }
-            data-custom-motion=(motion != AlertMotion::default()).then_some("true")
+            data-motion-source=motion_source.as_attr()
+            data-custom-motion=(motion_source == logic::AlertMotionSource::Custom).then_some("true")
+            data-ui-schema=logic::AlertAgentSchema::V1.as_attr()
+            data-ui-intent=logic::AlertAgentIntent::StatusRegion.as_attr()
+            data-ui-action=logic::AlertAgentAction::Announce.as_attr()
+            data-ui-state=logic::AlertAgentState::Snapshot.as_attr()
+            data-ui-source=agent_source.as_attr()
+            data-ui-streaming=logic::AlertStreamingPolicy::Optional.as_attr()
+            data-ui-fallback=logic::AlertStreamingFallback::Snapshot.as_attr()
+            data-ui-output-status=logic::AlertOutputStatus::Verified.as_attr()
         >
             <Show when=move || state.show_icon>
                 <span class="ui-alert__icon" data-slot="alert-icon">
@@ -197,16 +191,14 @@ pub fn Alert(
             })}
 
             <div class="ui-alert__body" data-slot="alert-body">
-                {state.show_title.then(|| {
-                    let title = title.clone().unwrap_or_default();
+                {title.clone().filter(|_| state.show_title).map(|title| {
                     view! {
                         <div class="ui-alert__title" data-slot="alert-title">
                             {title}
                         </div>
                     }
                 })}
-                {state.show_description.then(|| {
-                    let description = description.clone().unwrap_or_default();
+                {description.clone().filter(|_| state.show_description).map(|description| {
                     view! {
                         <div class="ui-alert__description" data-slot="alert-description">
                             {description}

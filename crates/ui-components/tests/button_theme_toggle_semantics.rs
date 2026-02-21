@@ -247,7 +247,7 @@ fn theme_toggle_docs_custom_modes_playground_locks_contract_values() {
         "modes=custom_modes.clone()",
         "aria_label=\"Switch UI mode\".to_string()",
         "\"custom mode: \" {move || format!(\"{:?}\", custom_mode.get())}",
-        "<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />",
+        "<ThemeToggleButton mode=mode set_mode=set_mode is_disabled=true />",
         "\"disabled toggle should remain inert\"",
     ] {
         assert!(
@@ -287,7 +287,7 @@ fn button_theme_toggle_docs_playgrounds_lock_state_matrix_contract_values() {
         "let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];",
         "modes=custom_modes.clone()",
         "aria_label=\"Switch UI mode\".to_string()",
-        "<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />",
+        "<ThemeToggleButton mode=mode set_mode=set_mode is_disabled=true />",
         "\"disabled toggle should remain inert\"",
     ] {
         assert!(

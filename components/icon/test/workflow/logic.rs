@@ -24,6 +24,21 @@ fn default_workflow_glyphs_includes_help_and_common_contract_entries() {
 }
 
 #[test]
+fn inner_defaults_are_resolved_in_logic() {
+    assert_eq!(resolve_inner_aria_label(None), "");
+    assert_eq!(
+        resolve_inner_aria_label(Some("workflow label".to_string())),
+        "workflow label"
+    );
+
+    assert_eq!(resolve_inner_class_name(None), "ui-icons-workflow");
+    assert_eq!(
+        resolve_inner_class_name(Some("docs-workflow".to_string())),
+        "ui-icons-workflow docs-workflow"
+    );
+}
+
+#[test]
 fn resolve_state_tracks_sources_and_markers() {
     let state = resolve_state(IconsWorkflowStateInput {
         disabled: false,

@@ -119,6 +119,14 @@ struct ComputedPosition {
 }
 
 #[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
+const POSITION_EPSILON_PX: f64 = 0.01;
+
+#[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
+fn should_update_scalar(current: f64, next: f64) -> bool {
+    (current - next).abs() > POSITION_EPSILON_PX
+}
+
+#[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
 fn compute_popover_position(
     anchor: Rect,
     panel: Size,
@@ -197,11 +205,14 @@ where
     let (left_px, _set_left_px) = signal(0.0);
     let (anchor_width_px, _set_anchor_width_px) = signal(0.0);
     let (placement, _set_placement) = signal(_options.placement);
+    let raf_pending = StoredValue::new_local(false);
+    let raf_id = StoredValue::new_local(None::<i32>);
+    let raf_closure = StoredValue::new_local(None::<Closure<dyn FnMut(f64)>>);
 
     let compute: Rc<dyn Fn()> = Rc::new({
         let anchor_ref = _options.anchor_ref;
         let panel_ref = _options.panel_ref;
-        let placement = _options.placement;
+        let preferred_placement = _options.placement;
         let offset_px = _options.offset_px;
         let padding_px = _options.padding_px;
         move || {
@@ -246,15 +257,57 @@ where
                     width: viewport_w,
                     height: viewport_h,
                 },
-                placement,
+                preferred_placement,
                 offset_px,
                 padding_px,
             );
 
-            _set_anchor_width_px.set(computed.anchor_width);
-            _set_top_px.set(computed.top);
-            _set_left_px.set(computed.left);
-            _set_placement.set(computed.placement);
+            if should_update_scalar(anchor_width_px.get_untracked(), computed.anchor_width) {
+                _set_anchor_width_px.set(computed.anchor_width);
+            }
+            if should_update_scalar(top_px.get_untracked(), computed.top) {
+                _set_top_px.set(computed.top);
+            }
+            if should_update_scalar(left_px.get_untracked(), computed.left) {
+                _set_left_px.set(computed.left);
+            }
+            if placement.get_untracked() != computed.placement {
+                _set_placement.set(computed.placement);
+            }
+        }
+    });
+    let schedule_compute: Rc<dyn Fn()> = Rc::new({
+        let compute = compute.clone();
+        move || {
+            if raf_pending.get_value() {
+                return;
+            }
+
+            let Some(window) = web_sys::window() else {
+                compute();
+                return;
+            };
+
+            raf_pending.set_value(true);
+
+            let compute_for_raf = compute.clone();
+            let raf_pending_for_raf = raf_pending;
+            let raf_id_for_raf = raf_id;
+            let raf_closure_for_raf = raf_closure;
+            let closure = Closure::wrap(Box::new(move |_ts: f64| {
+                raf_pending_for_raf.set_value(false);
+                raf_id_for_raf.set_value(None);
+                raf_closure_for_raf.set_value(None);
+                compute_for_raf();
+            }) as Box<dyn FnMut(f64)>);
+
+            if let Ok(id) = window.request_animation_frame(closure.as_ref().unchecked_ref()) {
+                raf_id.set_value(Some(id));
+                raf_closure.set_value(Some(closure));
+            } else {
+                raf_pending.set_value(false);
+                compute();
+            }
         }
     });
 
@@ -264,13 +317,13 @@ where
         StoredValue::new_local(None::<Closure<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>>);
 
     Effect::new({
-        let compute = compute.clone();
+        let schedule_compute = schedule_compute.clone();
         let anchor_ref = _options.anchor_ref;
         let panel_ref = _options.panel_ref;
         move |_| {
             drop(anchor_ref.get());
             drop(panel_ref.get());
-            compute();
+            schedule_compute();
 
             if resize_observer.get_value().is_some() {
                 return;
@@ -286,10 +339,10 @@ where
             let anchor_el: web_sys::Element = anchor.unchecked_into();
             let panel_el: web_sys::Element = panel.unchecked_into();
 
-            let compute_for_resize = compute.clone();
+            let schedule_for_resize = schedule_compute.clone();
             let closure = Closure::wrap(Box::new(
                 move |_: js_sys::Array, _: web_sys::ResizeObserver| {
-                    compute_for_resize();
+                    schedule_for_resize();
                 },
             )
                 as Box<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>);
@@ -318,12 +371,12 @@ where
         let window = SendWrapper::new(window);
 
         let on_resize: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
-            let compute = compute.clone();
-            Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
+            let schedule_compute = schedule_compute.clone();
+            Closure::wrap(Box::new(move || schedule_compute()) as Box<dyn FnMut()>)
         });
         let on_scroll: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
-            let compute = compute.clone();
-            Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
+            let schedule_compute = schedule_compute.clone();
+            Closure::wrap(Box::new(move || schedule_compute()) as Box<dyn FnMut()>)
         });
 
         drop(window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref()));
@@ -345,6 +398,13 @@ where
                 on_scroll.as_ref().unchecked_ref(),
                 true,
             ));
+
+            if let Some(id) = raf_id.get_value() {
+                drop(window.cancel_animation_frame(id));
+            }
+            raf_pending.set_value(false);
+            raf_id.set_value(None);
+            raf_closure.set_value(None);
         });
     }
 

@@ -33,7 +33,7 @@ pub fn attach_motion(
     from: FlipDirection,
     motion: FlipButtonMotion,
 ) {
-    use crate::observability::{set_css_property_observed, warn_js_error};
+    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
@@ -86,11 +86,6 @@ pub fn attach_motion(
         let style_for_anim = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(initial, config, move |progress| {
             let progress = progress.clamp(0.0, 1.0);
-            if let Err(error) =
-                style_for_anim.set_property("--ui-flip-progress", &format!("{progress}"))
-            {
-                warn_js_error("button.flip.motion.progress.raw", &error);
-            }
             set_css_property_observed(
                 &style_for_anim,
                 "--ui-flip-progress",

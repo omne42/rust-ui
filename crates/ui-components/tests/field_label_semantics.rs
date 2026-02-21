@@ -144,6 +144,10 @@ fn field_label_uses_primitives_and_headless_contract_model() {
         "normalize_optional_text",
         "normalize_required_indicator",
         "normalize_text",
+        "normalize_props",
+        "FieldLabelLogicInput",
+        "FieldLabelViewModel",
+        "derive_view_model",
         "resolve_state",
         "pub fn compose_class_name(",
     ] {
@@ -196,13 +200,12 @@ fn field_label_uses_primitives_and_headless_contract_model() {
     );
 
     for needle in [
-        "logic::normalize_text(text)",
-        "logic::normalize_required_indicator(required_indicator)",
-        "logic::normalize_aria_label(aria_label)",
-        "logic::resolve_state(FieldLabelStateInput {",
-        "logic::compose_class_name(class_name.get_value(), state.get())",
+        "logic::derive_view_model(",
+        "FieldLabelLogicInput {",
+        "let logic::FieldLabelViewModel {",
+        "logic::compose_class_name(class_name.get_value(), state.get_value())",
         "use_field_label(FieldLabelOptions {",
-        "state: state.get()",
+        "state: state.get_value()",
     ] {
         assert!(
             view_source.contains(needle),
@@ -216,6 +219,14 @@ fn field_label_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/field_form/field_label/view.rs");
 
     for attr in [
+        "<label",
+        "for=for_id",
+        "data-ui-schema=logic::FIELD_LABEL_AGENT_SCHEMA",
+        "data-ui-intent=logic::FieldLabelAgentIntent::Label.as_attr()",
+        "data-ui-action=logic::FieldLabelAgentAction::SnapshotRender.as_attr()",
+        "data-ui-streaming=logic::FieldLabelAgentStreaming::Optional.as_attr()",
+        "data-ui-fallback=logic::FieldLabelAgentFallback::Snapshot.as_attr()",
+        "data-ui-output-state=logic::FieldLabelAgentOutputState::Verified.as_attr()",
         "data-slot=\"field-label\"",
         "data-tone=move || semantics.get().attrs.data_tone",
         "data-state=move || semantics.get().attrs.data_state",
@@ -237,6 +248,38 @@ fn field_label_emits_baseline_style_state_data_attributes() {
         assert!(
             source.contains(attr),
             "FieldLabel should expose `{attr}` for baseline-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn field_label_manifest_declares_agent_contract_schema_and_whitelist() {
+    let source = load_source("../../components/field-label/src/Component.toml");
+
+    for needle in [
+        "name = \"agent_contract_schema_markers\"",
+        "schema = \"field_label.v1\"",
+        "intent = \"label\"",
+        "action = \"snapshot_render\"",
+        "streaming = \"optional\"",
+        "fallback = \"snapshot\"",
+        "output_state = \"verified\"",
+        "attr = \"data-ui-schema\"",
+        "attr = \"data-ui-intent\"",
+        "attr = \"data-ui-action\"",
+        "attr = \"data-ui-streaming\"",
+        "attr = \"data-ui-fallback\"",
+        "attr = \"data-ui-output-state\"",
+        "name = \"render_path\"",
+        "inner_html",
+        "<script",
+        "retry",
+        "reconnect",
+        "transport_validation",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_label manifest should include agent contract evidence `{needle}`."
         );
     }
 }
@@ -276,6 +319,182 @@ fn field_label_styles_include_tone_state_and_markers() {
 }
 
 #[test]
+fn field_label_styles_use_defensive_variable_fallback_chain() {
+    let source = load_source("src/field_form/field_label/styles.rs");
+
+    for required in [
+        "gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));",
+        "color: var(--ui-fg, var(--ui-fallback-fg));",
+        "font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));",
+        "line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));",
+        "color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));",
+        "var(--ui-accent, var(--ui-fallback-accent))",
+        "var(--ui-bg, var(--ui-fallback-bg))",
+        "var(--ui-border-width, var(--ui-fallback-border-width))",
+        "gap: var(--ui-space-xs, var(--ui-fallback-space-xs));",
+        "color: var(--ui-danger, var(--ui-fallback-danger));",
+        "font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));",
+    ] {
+        assert!(
+            source.contains(required),
+            "FieldLabel styles should use defensive fallback-chain token `{required}`."
+        );
+    }
+
+    for forbidden in ["14px", "20px", "0.85em"] {
+        assert!(
+            !source.contains(forbidden),
+            "FieldLabel styles should not keep hard-coded terminal size `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn field_label_non_test_sources_follow_rust_hygiene_contract() {
+    let logic_source = load_source("src/field_form/field_label/logic.rs");
+    let view_source = load_source("src/field_form/field_label/view.rs");
+
+    for source in [&logic_source, &view_source] {
+        for forbidden in [".unwrap(", ".expect(", "let _ ="] {
+            assert!(
+                !source.contains(forbidden),
+                "field_label non-test source should forbid `{forbidden}`."
+            );
+        }
+    }
+
+    assert!(
+        logic_source.contains("use std::borrow::Cow;"),
+        "field_label logic should use Cow for string clone hotspot control."
+    );
+    assert!(
+        logic_source.contains("Vec<Cow<'static, str>>"),
+        "field_label class composition should use Vec<Cow<'static, str>>."
+    );
+}
+
+#[test]
+fn field_label_css_is_aggregated_in_ui_layer_and_view_avoids_inline_style() {
+    let css_source = load_source("src/css.rs");
+    let view_source = load_source("src/field_form/field_label/view.rs");
+
+    for required in [
+        "out.push_str(\"\\n@layer ui {\\n\");",
+        "out.push_str(crate::field_form::field_label::styles::CSS);",
+    ] {
+        assert!(
+            css_source.contains(required),
+            "ui-components css aggregation should keep `{required}` for field-label layer contract."
+        );
+    }
+
+    for forbidden in ["style=\"", "style=move ||"] {
+        assert!(
+            !view_source.contains(forbidden),
+            "field_label view should avoid plain inline style contract `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn field_label_ui_components_entry_files_follow_architecture_contract() {
+    let lib_source = load_source("src/lib.rs");
+    let css_source = load_source("src/css.rs");
+    let root_source = load_source("src/root.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
+
+    for required in [
+        "pub mod root;",
+        "feature = \"component-field_label\"",
+        "pub mod field_form;",
+        "pub use field_form::field_label::{FieldLabel, FieldLabelTone};",
+        "#[doc(hidden)]",
+        "pub fn push_components_css(out: &mut String) {",
+        "css::push_components_css(out);",
+    ] {
+        assert!(
+            lib_source.contains(required),
+            "ui-components lib entry should keep `{required}` for stable public contract."
+        );
+    }
+
+    for required in [
+        "out.push_str(\"\\n@layer ui {\\n\");",
+        "#[cfg(feature = \"component-field_label\")]",
+        "out.push_str(crate::field_form::field_label::styles::CSS);",
+    ] {
+        assert!(
+            css_source.contains(required),
+            "ui-components css entry should keep `{required}`."
+        );
+    }
+
+    for required in [
+        "pub fn UiRoot(",
+        "out.push_str(css::BASE_CSS);",
+        "out.push_str(&theme.get().to_css_variables());",
+        "crate::css::push_components_css(&mut out);",
+        "provide_ui_i18n(i18n);",
+    ] {
+        assert!(
+            root_source.contains(required),
+            "ui-components root entry should keep `{required}`."
+        );
+    }
+
+    for required in [
+        "pub const CSS: &str =",
+        "pub struct ActiveHighlightMotion",
+        "pub fn attach_active_highlight_motion(",
+    ] {
+        assert!(
+            active_highlight_source.contains(required),
+            "ui-visual-primitive active_highlight should keep shared motion capability `{required}`."
+        );
+    }
+
+    assert!(
+        !path_exists("src/overlay_open.rs"),
+        "ui-components should not reintroduce overlay_open.rs; use ui-headless controllable_state."
+    );
+    assert!(
+        !path_exists("src/presence.rs"),
+        "ui-components should not reintroduce presence.rs; use ui-headless presence."
+    );
+    assert!(
+        !path_exists("src/a11y.rs"),
+        "ui-components should not reintroduce a11y.rs; use ui-headless a11y helpers."
+    );
+}
+
+#[test]
+fn field_label_tree_shaking_feature_contract_is_registered() {
+    let cargo_toml_source = load_source("Cargo.toml");
+
+    for required in [
+        "component-field_label = [\"dep:ui-field-label\"]",
+        "ui-field-label = { path = \"../../components/field-label\", optional = true }",
+        "component-domain-field_form = [",
+        "\"component-field_label\",",
+    ] {
+        assert!(
+            cargo_toml_source.contains(required),
+            "ui-components feature tree should keep `{required}` for field_label tree shaking."
+        );
+    }
+
+    for forbidden in [
+        "ui-field-label = { path = \"../../components/field-label\", optional = false }",
+        "component-field_label = [\"ui-field-label\"]",
+    ] {
+        assert!(
+            !cargo_toml_source.contains(forbidden),
+            "ui-components should avoid non-gated field_label dependency contract `{forbidden}`."
+        );
+    }
+}
+
+#[test]
 fn field_label_docs_page_exists_in_forms_extra() {
     let forms_extra =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs");
@@ -300,16 +519,42 @@ fn field_label_docs_page_covers_primary_playgrounds() {
 
     for needle in [
         "pub(super) fn field_label() -> AnyView",
+        "const FIELD_LABEL_DOC_IMPORTS: &str =",
         "title=\"FieldLabel\"",
         "slug=\"field-label\"",
         "description=\"baseline-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts.\"",
-        "<Playground title=\"Tone + Required\" code_signal=tone_code>",
-        "<Playground title=\"Custom Indicator + Aria + Class\" code_signal=custom_code>",
+        "title=\"Hello World (Default API)\"",
+        "title=\"Tone + Required\"",
+        "title=\"Custom Indicator + Aria + Class\"",
+        "title=\"Controlled vs Uncontrolled (N/A for FieldLabel)\"",
+        "title=\"Streaming / Snapshot Contract\"",
         "<FieldLabel",
     ] {
         assert!(
             source.contains(needle),
             "forms_extra_field_label docs page should include `{needle}` for field_label primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn field_label_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs");
+
+    for needle in [
+        "const FIELD_LABEL_DOC_IMPORTS: &str =",
+        "use leptos::prelude::*;\\nuse ui_components::{FieldLabel, FieldLabelTone};",
+        "code_imports=FIELD_LABEL_DOC_IMPORTS.to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/field_label/styles.rs\".to_string()",
+        "FieldLabel has no controllable value axis; parent passes a full snapshot props set each render.",
+        "No value/on_change/default_value triad. Controlled/uncontrolled contrast is N/A.",
+        "FieldLabel is snapshot-first; streaming stays optional with snapshot fallback.",
+        "data-ui-streaming=optional data-ui-fallback=snapshot data-ui-output-state=verified",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_label docs should keep copy-ready and streaming/snapshot contract `{needle}`.",
         );
     }
 }
@@ -323,7 +568,7 @@ fn field_label_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Tone + Required\"",
         "text=\"Email\".to_string()",
         "for_id=\"docs-field-label-email\".to_string()",
-        "required=true",
+        "is_required=true",
         "placeholder=\"name@example.com\"",
         "text=\"Helper\".to_string()",
         "tone=FieldLabelTone::Muted",
@@ -340,6 +585,52 @@ fn field_label_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "field_label docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn field_label_docs_workbench_exposes_interactive_playground_controls() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs");
+
+    for needle in [
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "data-slot=\"field-label-config-controls\"",
+        "data-slot=\"field-label-config-summary\"",
+        "data-action=\"cycle-tone-config\"",
+        "data-action=\"toggle-required-config\"",
+        "data-action=\"toggle-disabled-config\"",
+        "data-action=\"toggle-for-config\"",
+        "data-action=\"toggle-indicator-config\"",
+        "data-action=\"toggle-aria-config\"",
+        "data-action=\"toggle-class-config\"",
+        "text=\"Workbench\".to_string()",
+        "id=\"docs-field-label-workbench\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_label docs workbench should expose interactive control marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn field_label_heroui_parameter_strategy_doc_is_synced_with_component_docs() {
+    let source = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
+
+    for needle in [
+        "### FieldLabel 同步记录（2026-02-21）",
+        "`FieldLabel` 维持 form primitive 定位",
+        "`text/for_id/is_required/is_disabled/tone/required_indicator/aria_label/class_name/lang/dir`",
+        "component_doc!(\"FieldLabel\", \"field-label\", \"Forms\", fxl::field_label)",
+        "forms_extra_field_label.rs",
+        "Source-first / Copy-Paste Ready",
+        "不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_label HeroUI strategy doc should include `{needle}`.",
         );
     }
 }
@@ -364,6 +655,21 @@ fn field_label_component_files_follow_expected_layout_and_no_spec_file() {
         !path_exists("src/field_form/field_label/spec.rs"),
         "field_label should not introduce spec.rs for a simple form primitive."
     );
+    assert!(
+        !path_exists("src/field_form/field_label/render.rs"),
+        "field_label should not introduce render.rs; rendering entry stays in view.rs."
+    );
+    assert!(
+        !path_exists("src/field_form/field_label/motion.rs"),
+        "field_label should not introduce motion.rs when no component motion semantic exists."
+    );
+
+    for forbidden in ["mod motion;", "pub use motion::"] {
+        assert!(
+            !mod_source.contains(forbidden),
+            "field_label module should not expose motion contract marker `{forbidden}`."
+        );
+    }
 }
 
 #[test]

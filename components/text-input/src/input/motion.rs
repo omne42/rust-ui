@@ -112,8 +112,16 @@ pub fn attach_clear_button_motion(
         interaction_value.set_value(1.0);
 
         let initial_scale = mix(config.hidden_scale, 1.0, initial_reveal);
-        drop(style.set_property("--ui-input-clear-opacity", &format!("{initial_reveal}")));
-        drop(style.set_property("--ui-input-clear-scale", &format!("{initial_scale}")));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-input-clear-opacity",
+            &format!("{initial_reveal}")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-input-clear-scale",
+            &format!("{initial_scale}")
+        );
         let style_for_reveal = style.clone();
         let reveal_value_for_cb = reveal_value;
         let interaction_value_for_cb = interaction_value;
@@ -124,8 +132,16 @@ pub fn attach_clear_button_motion(
                 reveal_value_for_cb.set_value(v);
 
                 let scale = mix(hidden_scale, 1.0, v) * interaction_value_for_cb.get_value();
-                drop(style_for_reveal.set_property("--ui-input-clear-opacity", &format!("{v}")));
-                drop(style_for_reveal.set_property("--ui-input-clear-scale", &format!("{scale}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_reveal),
+                    "--ui-input-clear-opacity",
+                    &format!("{v}")
+                );
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_reveal),
+                    "--ui-input-clear-scale",
+                    &format!("{scale}")
+                );
             });
 
         let style_for_interaction = style.clone();
@@ -140,9 +156,10 @@ pub fn attach_clear_button_motion(
                 let reveal = reveal_value_for_interaction.get_value().clamp(0.0, 1.0);
                 let base_scale = mix(hidden_scale_for_interaction, 1.0, reveal);
                 let scale = base_scale * v;
-                drop(
-                    style_for_interaction
-                        .set_property("--ui-input-clear-scale", &format!("{scale}")),
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_interaction),
+                    "--ui-input-clear-scale",
+                    &format!("{scale}")
                 );
             });
 

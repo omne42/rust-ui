@@ -9,16 +9,6 @@ pub enum AlertBannerTone {
 }
 
 impl AlertBannerTone {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            AlertBannerTone::Neutral => "ui-alert-banner--tone-neutral",
-            AlertBannerTone::Info => "ui-alert-banner--tone-info",
-            AlertBannerTone::Positive => "ui-alert-banner--tone-positive",
-            AlertBannerTone::Notice => "ui-alert-banner--tone-notice",
-            AlertBannerTone::Negative => "ui-alert-banner--tone-negative",
-        }
-    }
-
     pub fn default_icon_label(self) -> Option<&'static str> {
         match self {
             AlertBannerTone::Neutral => None,
@@ -28,20 +18,64 @@ impl AlertBannerTone {
             AlertBannerTone::Negative => Some("Error"),
         }
     }
+}
 
-    pub fn aria_live(self) -> &'static str {
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum AlertBannerVariant {
+    #[default]
+    Default,
+    Accent,
+    Danger,
+}
+
+impl AlertBannerVariant {
+    pub fn as_attr(self) -> &'static str {
         match self {
-            AlertBannerTone::Negative => "assertive",
-            _ => "polite",
+            AlertBannerVariant::Default => "default",
+            AlertBannerVariant::Accent => "accent",
+            AlertBannerVariant::Danger => "danger",
         }
     }
 
-    pub fn role(self) -> &'static str {
+    pub fn as_tone(self) -> AlertBannerTone {
         match self {
-            AlertBannerTone::Negative => "alert",
-            _ => "status",
+            AlertBannerVariant::Default => AlertBannerTone::Neutral,
+            AlertBannerVariant::Accent => AlertBannerTone::Info,
+            AlertBannerVariant::Danger => AlertBannerTone::Negative,
         }
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AlertBannerToneSource {
+    Tone,
+    Variant,
+    Default,
+}
+
+impl AlertBannerToneSource {
+    pub fn attr_value(self) -> &'static str {
+        match self {
+            AlertBannerToneSource::Tone => "tone",
+            AlertBannerToneSource::Variant => "variant",
+            AlertBannerToneSource::Default => "default",
+        }
+    }
+}
+
+pub fn resolve_tone(
+    tone: Option<AlertBannerTone>,
+    variant: Option<AlertBannerVariant>,
+) -> (AlertBannerTone, AlertBannerToneSource) {
+    if let Some(tone) = tone {
+        return (tone, AlertBannerToneSource::Tone);
+    }
+
+    if let Some(variant) = variant {
+        return (variant.as_tone(), AlertBannerToneSource::Variant);
+    }
+
+    (AlertBannerTone::default(), AlertBannerToneSource::Default)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -53,12 +87,59 @@ pub enum AlertBannerFill {
 }
 
 impl AlertBannerFill {
-    pub fn class_name(self) -> &'static str {
+    pub fn attr_value(self) -> &'static str {
         match self {
-            AlertBannerFill::Border => "ui-alert-banner--fill-border",
-            AlertBannerFill::Subtle => "ui-alert-banner--fill-subtle",
-            AlertBannerFill::Bold => "ui-alert-banner--fill-bold",
+            AlertBannerFill::Border => "border",
+            AlertBannerFill::Subtle => "subtle",
+            AlertBannerFill::Bold => "bold",
         }
+    }
+}
+
+pub fn normalize_fill(fill: Option<AlertBannerFill>) -> AlertBannerFill {
+    fill.unwrap_or_default()
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AlertBannerHideIconSource {
+    IsHideIcon,
+    HideIcon,
+    Default,
+}
+
+impl AlertBannerHideIconSource {
+    pub fn attr_value(self) -> &'static str {
+        match self {
+            AlertBannerHideIconSource::IsHideIcon => "is-hide-icon",
+            AlertBannerHideIconSource::HideIcon => "hide-icon",
+            AlertBannerHideIconSource::Default => "default",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AlertBannerHideIcon {
+    pub value: bool,
+    pub source: AlertBannerHideIconSource,
+}
+
+pub fn resolve_hide_icon(
+    is_hide_icon: Option<bool>,
+    hide_icon: Option<bool>,
+) -> AlertBannerHideIcon {
+    match (is_hide_icon, hide_icon) {
+        (Some(value), _) => AlertBannerHideIcon {
+            value,
+            source: AlertBannerHideIconSource::IsHideIcon,
+        },
+        (None, Some(value)) => AlertBannerHideIcon {
+            value,
+            source: AlertBannerHideIconSource::HideIcon,
+        },
+        (None, None) => AlertBannerHideIcon {
+            value: false,
+            source: AlertBannerHideIconSource::Default,
+        },
     }
 }
 

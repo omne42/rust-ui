@@ -11,6 +11,7 @@
 ## Architecture Layers
 
 - `logic.rs`：文本归一化、slot 状态派生、source marker 统一生成。
+- `motion.rs`：复用 overlay motion contract 并做输入归一化。
 - `view.rs`：渲染 `Overlay` 与 modal slot，并挂载 `aria-*` + `data-*` 契约。
 - `styles.rs`：静态样式与状态选择器。
 - `mod.rs`：导出 `Modal` 及 slot/state 输入输出结构。
@@ -21,13 +22,17 @@
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `open` | `Signal<bool>` | required |
+| `is_open` | `Option<Signal<bool>>` | `None`（空值按 `false`） |
+| `default_open` | `Option<bool>` | `None`（`false`） |
+| `on_open_change` | `Option<Callback<bool>>` | `None` |
 | `id_base` | `String` | required（空值回退 `ui-modal`） |
 | `title` | `String` | required（空值回退 `Modal`） |
 | `on_close` | `OnPress` | required |
 | `description` | `Option<String>` | `None` |
 | `motion` | `OverlayMotion` | `OverlayMotion::default()` |
 | `on_exit_complete` | `Option<Callback<()>>` | `None` |
+| `lang` | `Option<String>` | `None`（可透传 locale 上下文） |
+| `dir` | `Option<A11yDirection>` | `None`（LTR/RTL） |
 | `class_name` | `Option<String>` | `None` |
 | `children` | `ChildrenFn` | required |
 
@@ -35,26 +40,48 @@
 
 | Event | Type | Default |
 | --- | --- | --- |
+| `on_open_change` | `Callback<bool>` | `None` |
 | `on_close` | `OnPress` | required |
 | `on_exit_complete` | `Callback<()>` | `None` |
 
 ## Hello World（最小可用）
 
-```rust
-let (open, set_open) = signal(true);
-let on_close = Callback::new(move |_| set_open.set(false));
+> 默认路径：无需手动接线 `ui-state-primitives` / `ui-headless` 状态机；组件内部处理 open 轴。
 
-view! {
-    <Modal
-        open=open.into()
-        id_base="docs-modal".to_string()
-        title="Confirm".to_string()
-        on_close=on_close
-    >
-        <button on:click=move |_| set_open.set(false)>"Close"</button>
-    </Modal>
-}
+```rust
+<Modal default_open=true id_base="m".to_string() title="Hello".to_string() on_close=Callback::new(|_| {})>
+  <div>"Minimal modal content"</div>
+</Modal>
 ```
+
+## 先用起来，再进阶
+
+- 默认路径：先用 `default_open + id_base + title + on_close`，不需要先理解底层状态分层。
+- 进阶控制：按需启用 `is_open + default_open + on_open_change`（受控/非受控成对）。
+
+## 常见用法
+
+### Controlled Example（高级入口）
+
+```rust
+let (open, set_open) = signal(false);
+let close: OnPress = Callback::new(move |_| set_open.set(false));
+
+<Modal
+  is_open=Signal::derive(move || open.get()).into()
+  on_open_change=Callback::new(move |next| set_open.set(next))
+  id_base="docs-modal-controlled".to_string()
+  title="Confirm".to_string()
+  on_close=close
+>
+  ...
+</Modal>
+```
+
+## Composite API Boundary（N/A）
+
+- `Modal` 不是集合型组件，不提供 `Item` 列表注册语义。
+- 不提供 `labels + children`、`titles + panels` 这类并行数组/并行槽位 API。
 
 ## Slots and State Markers
 
@@ -78,12 +105,15 @@ view! {
 
 - 始终输出 `aria-labelledby` 绑定标题。
 - 仅在 `description` 存在时输出 `aria-describedby`，避免空语义引用。
+- `aria-labelledby`/`aria-describedby` + locale 归一优先复用 `ui_headless::overlay_dialog_attrs`，避免组件层重复发明 A11y 工具。
+- 支持 `lang`/`dir` 透传（`A11yDirection::{Ltr,Rtl}`），不假设单语言/单方向。
 - 所有关键状态与来源都可通过稳定 `data-*` 标记检索，适配语义测试与自动化选择器。
 
 ## Motion and Fallback
 
 - 动效契约复用 `OverlayMotion`，组件层只负责接线，不重写底层动效执行。
 - 未提供 `on_exit_complete` 时使用 no-op 回调，保证调用路径稳定。
+- open 轴支持受控/非受控成对：`is_open + on_open_change + default_open`。
 
 ## Playground 展示区（Display / Config / Code / CSS Test）
 

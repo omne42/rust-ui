@@ -479,8 +479,8 @@ pub(super) fn list_item() -> AnyView {
 
 <ListItem
   index=0
-  selected=selected.get()
-  show_selection_indicator=true
+  is_selected=selected.get()
+  is_selection_indicator_visible=true
   on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
 >
   "San Francisco"
@@ -494,17 +494,17 @@ pub(super) fn list_item() -> AnyView {
 <ListItem
   id="docs-listbox-item-focused".to_string()
   index=1
-  selected=selected.get()
-  focused=true
-  has_divider=true
-  show_selection_indicator=true
+  is_selected=selected.get()
+  is_focused=true
+  is_divider_visible=true
+  is_selection_indicator_visible=true
   class_name="docs-listbox-item-custom".to_string()
   on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
 >
   "Tokyo"
 </ListItem>
 
-<ListItem index=2 disabled=true>
+<ListItem index=2 is_disabled=true>
   "Disabled option"
 </ListItem>"#
             .to_string()
@@ -521,8 +521,8 @@ pub(super) fn list_item() -> AnyView {
                 <div class="docs-stack">
                     <ListItem
                         index=0
-                        selected=selected_default.get()
-                        show_selection_indicator=true
+                        is_selected=selected_default.get()
+                        is_selection_indicator_visible=true
                         on_press=toggle_default
                     >
                         "San Francisco"
@@ -539,17 +539,17 @@ pub(super) fn list_item() -> AnyView {
                     <ListItem
                         id="docs-listbox-item-focused".to_string()
                         index=1
-                        selected=selected_states.get()
-                        focused=true
-                        has_divider=true
-                        show_selection_indicator=true
+                        is_selected=selected_states.get()
+                        is_focused=true
+                        is_divider_visible=true
+                        is_selection_indicator_visible=true
                         class_name="docs-listbox-item-custom".to_string()
                         on_press=toggle_states
                     >
                         "Tokyo"
                     </ListItem>
 
-                    <ListItem index=2 disabled=true>
+                    <ListItem index=2 is_disabled=true>
                         "Disabled option"
                     </ListItem>
 
@@ -581,7 +581,7 @@ pub(super) fn list_section() -> AnyView {
   item_count=3
   aria_label="Preferred regions section".to_string()
 >
-  <ListItem index=0 selected=true show_selection_indicator=true>"US East"</ListItem>
+  <ListItem index=0 is_selected=true is_selection_indicator_visible=true>"US East"</ListItem>
   <ListItem index=1>"EU West"</ListItem>
   <ListItem index=2>"AP South"</ListItem>
 </ListSection>"#
@@ -595,23 +595,23 @@ pub(super) fn list_section() -> AnyView {
   title="Advanced targets".to_string()
   heading_tone=ListSectionHeadingTone::Quiet
   item_count=2
-  sticky_heading=true
-  show_divider=true
+  is_sticky_heading=true
+  is_divider_visible=true
   class_name="docs-listbox-section-custom".to_string()
 >
   <ListItem
     index=0
-    selected=selected.get()
-    focused=true
-    show_selection_indicator=true
+    is_selected=selected.get()
+    is_focused=true
+    is_selection_indicator_visible=true
     on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
   >
     "Primary target"
   </ListItem>
-  <ListItem index=1 disabled=true>"Disabled fallback"</ListItem>
+  <ListItem index=1 is_disabled=true>"Disabled fallback"</ListItem>
 </ListSection>
 
-<ListSection title="Empty section".to_string() item_count=0 disabled=true>
+<ListSection title="Empty section".to_string() item_count=0 is_disabled=true>
   <span class="ui-muted">"No options available"</span>
 </ListSection>"#
             .to_string()
@@ -630,7 +630,7 @@ pub(super) fn list_section() -> AnyView {
                     item_count=3
                     aria_label="Preferred regions section".to_string()
                 >
-                    <ListItem index=0 selected=true show_selection_indicator=true>
+                    <ListItem index=0 is_selected=true is_selection_indicator_visible=true>
                         "US East"
                     </ListItem>
                     <ListItem index=1>
@@ -648,24 +648,24 @@ pub(super) fn list_section() -> AnyView {
                         title="Advanced targets".to_string()
                         heading_tone=ListSectionHeadingTone::Quiet
                         item_count=2
-                        sticky_heading=true
-                        show_divider=true
+                        is_sticky_heading=true
+                        is_divider_visible=true
                         class_name="docs-listbox-section-custom".to_string()
                     >
                         <ListItem
                             index=0
-                            selected=selected_primary.get()
-                            focused=true
-                            show_selection_indicator=true
+                            is_selected=selected_primary.get()
+                            is_focused=true
+                            is_selection_indicator_visible=true
                             on_press=toggle_primary
                         >
                             "Primary target"
                         </ListItem>
                         <ListItem
                             index=1
-                            selected=selected_secondary.get()
-                            has_divider=true
-                            show_selection_indicator=true
+                            is_selected=selected_secondary.get()
+                            is_divider_visible=true
+                            is_selection_indicator_visible=true
                             on_press=toggle_secondary
                         >
                             "Secondary target"
@@ -675,7 +675,7 @@ pub(super) fn list_section() -> AnyView {
                     <ListSection
                         title="Empty section".to_string()
                         item_count=0
-                        disabled=true
+                        is_disabled=true
                     >
                         <span class="ui-muted">"No options available"</span>
                     </ListSection>

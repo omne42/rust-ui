@@ -6,7 +6,10 @@ pub const BASE_CSS: &str = r#"
 
 use std::fmt::Write;
 
-use crate::theme::{Theme, text_field_motion_tokens};
+use crate::theme::{
+    Theme, checkbox_group_motion_tokens, drop_zone_layout_tokens, flip_card_layout_tokens,
+    label_motion_tokens, text_field_motion_tokens,
+};
 use crate::tokens::ColorScaleTokens;
 
 macro_rules! css_writeln {
@@ -161,9 +164,20 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     let component_layout = &theme.tokens.component_layout;
     let overlay_layout = &theme.tokens.overlay_layout;
     let slider_layout = &theme.tokens.slider_layout;
+    let color_swatch_layout = &theme.tokens.color_swatch_layout;
+    let color_wheel_layout = &theme.tokens.color_wheel_layout;
+    let color_wheel_hue = &theme.tokens.color_wheel_hue;
     let underlay_motion = &theme.tokens.underlay_motion;
+    let drop_zone_layout = drop_zone_layout_tokens(theme.ctx);
+    let flip_card_layout = flip_card_layout_tokens(theme.ctx);
     let button_layout = &theme.tokens.button_layout;
+    let checkbox_layout = &theme.tokens.checkbox_layout;
+    let command_layout = &theme.tokens.command_layout;
+    let checkbox_group_layout = &theme.tokens.checkbox_group_layout;
+    let disabled_opacity = f64::from(checkbox_group_layout.disabled_opacity_percent) / 100.0;
     let text_field_motion = text_field_motion_tokens(theme.ctx);
+    let label_motion = label_motion_tokens(theme.ctx);
+    let checkbox_group_motion = checkbox_group_motion_tokens(theme.ctx);
     let mut css = String::new();
 
     css_writeln!(css, ":root {{");
@@ -344,7 +358,17 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(css);
 
     css_writeln!(css, "  --ui-icon-size-100: {}px;", icons.size_100_px);
+    css_writeln!(
+        css,
+        "  --ui-fallback-icon-size-100: {}px;",
+        icons.size_100_px
+    );
     css_writeln!(css, "  --ui-icon-size-200: {}px;", icons.size_200_px);
+    css_writeln!(
+        css,
+        "  --ui-fallback-icon-size-200: {}px;",
+        icons.size_200_px
+    );
     css_writeln!(css, "  --ui-icon-stroke-100: {};", icons.stroke_100);
     css_writeln!(css);
 
@@ -368,10 +392,23 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(css, "  --ui-danger-fg: {};", colors.danger_fg);
     css_writeln!(css, "  --ui-fallback-fg: {};", colors.fg);
     css_writeln!(css, "  --ui-fallback-fg-muted: {};", colors.fg_muted);
+    css_writeln!(css, "  --ui-fallback-bg: {};", colors.bg);
     css_writeln!(css, "  --ui-fallback-bg-muted: {};", colors.bg_muted);
     css_writeln!(css, "  --ui-fallback-border: {};", colors.border);
+    css_writeln!(css, "  --ui-border-width: 1px;");
+    css_writeln!(css, "  --ui-fallback-border-width: 1px;");
+    css_writeln!(css, "  --ui-disabled-opacity: {};", disabled_opacity);
+    css_writeln!(
+        css,
+        "  --ui-fallback-disabled-opacity: {};",
+        disabled_opacity
+    );
+    css_writeln!(css, "  --ui-min-inline-size-none: 0px;");
+    css_writeln!(css, "  --ui-fallback-min-inline-size-none: 0px;");
     css_writeln!(css, "  --ui-fallback-accent: {};", colors.accent);
     css_writeln!(css, "  --ui-fallback-accent-fg: {};", colors.accent_fg);
+    css_writeln!(css, "  --ui-fallback-accent-soft: {};", colors.accent_soft);
+    css_writeln!(css, "  --ui-fallback-focus-ring: {};", colors.focus_ring);
     css_writeln!(css, "  --ui-fallback-danger: {};", semantic_roles.danger);
     css_writeln!(css, "  --ui-fallback-danger-fg: {};", colors.danger_fg);
     css_writeln!(css);
@@ -379,24 +416,76 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(css, "  --ui-radius-sm: {}px;", layout.radius.sm_px);
     css_writeln!(css, "  --ui-radius-md: {}px;", layout.radius.md_px);
     css_writeln!(css, "  --ui-radius-lg: {}px;", layout.radius.lg_px);
+    css_writeln!(css, "  --ui-radius-full: 999px;");
+    css_writeln!(css, "  --ui-fallback-radius-sm: {}px;", layout.radius.sm_px);
     css_writeln!(css, "  --ui-fallback-radius-md: {}px;", layout.radius.md_px);
     css_writeln!(css, "  --ui-fallback-radius-lg: {}px;", layout.radius.lg_px);
+    css_writeln!(css, "  --ui-fallback-radius-full: 999px;");
     css_writeln!(css);
 
+    let space_xl_px = u32::from(layout.space.lg_px) * 2;
     css_writeln!(css, "  --ui-space-3xs: {}px;", layout.space.space_3xs_px);
     css_writeln!(css, "  --ui-space-2xs: {}px;", layout.space.space_2xs_px);
     css_writeln!(css, "  --ui-space-xs: {}px;", layout.space.xs_px);
     css_writeln!(css, "  --ui-space-sm: {}px;", layout.space.sm_px);
     css_writeln!(css, "  --ui-space-md: {}px;", layout.space.md_px);
     css_writeln!(css, "  --ui-space-lg: {}px;", layout.space.lg_px);
+    css_writeln!(css, "  --ui-space-xl: {}px;", space_xl_px);
+    css_writeln!(
+        css,
+        "  --ui-fallback-space-3xs: {}px;",
+        layout.space.space_3xs_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-space-2xs: {}px;",
+        layout.space.space_2xs_px
+    );
     css_writeln!(css, "  --ui-fallback-space-xs: {}px;", layout.space.xs_px);
     css_writeln!(css, "  --ui-fallback-space-sm: {}px;", layout.space.sm_px);
     css_writeln!(css, "  --ui-fallback-space-md: {}px;", layout.space.md_px);
+    css_writeln!(css, "  --ui-fallback-space-lg: {}px;", layout.space.lg_px);
+    css_writeln!(css, "  --ui-fallback-space-xl: {}px;", space_xl_px);
+    css_writeln!(
+        css,
+        "  --ui-fieldset-horizontal-legend-min-inline-size: 128px;"
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-fieldset-horizontal-legend-min-inline-size: 128px;"
+    );
+    css_writeln!(
+        css,
+        "  --ui-fieldset-horizontal-legend-max-inline-size: 224px;"
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-fieldset-horizontal-legend-max-inline-size: 224px;"
+    );
     css_writeln!(css);
 
     css_writeln!(css, "  --ui-shadow-sm: {};", layout.shadow.sm);
     css_writeln!(css, "  --ui-shadow-md: {};", layout.shadow.md);
     css_writeln!(css, "  --ui-fallback-shadow-sm: {};", layout.shadow.sm);
+    css_writeln!(css, "  --ui-fallback-shadow-md: {};", layout.shadow.md);
+    css_writeln!(css, "  --ui-image-zoom-initial: 1;");
+    css_writeln!(css, "  --ui-fallback-image-zoom-initial: 1;");
+    css_writeln!(css, "  --ui-image-blur: 14px;");
+    css_writeln!(css, "  --ui-fallback-image-blur: 14px;");
+    css_writeln!(css, "  --ui-image-blur-scale: 1.12;");
+    css_writeln!(css, "  --ui-fallback-image-blur-scale: 1.12;");
+    css_writeln!(css, "  --ui-image-blur-opacity: 0.45;");
+    css_writeln!(css, "  --ui-fallback-image-blur-opacity: 0.45;");
+    css_writeln!(css, "  --ui-image-skeleton-fg-mix: 10%;");
+    css_writeln!(css, "  --ui-fallback-image-skeleton-fg-mix: 10%;");
+    css_writeln!(css, "  --ui-image-skeleton-bg-size: 220% 100%;");
+    css_writeln!(css, "  --ui-fallback-image-skeleton-bg-size: 220% 100%;");
+    css_writeln!(css, "  --ui-image-skeleton-duration: 1.3s;");
+    css_writeln!(css, "  --ui-fallback-image-skeleton-duration: 1.3s;");
+    css_writeln!(css, "  --ui-image-shimmer-start: 120%;");
+    css_writeln!(css, "  --ui-fallback-image-shimmer-start: 120%;");
+    css_writeln!(css, "  --ui-image-shimmer-end: -120%;");
+    css_writeln!(css, "  --ui-fallback-image-shimmer-end: -120%;");
     css_writeln!(css);
 
     css_writeln!(
@@ -428,6 +517,16 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         css,
         "  --ui-fallback-line-height-150: {}px;",
         typography.line_height_150_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-font-size-100: {}px;",
+        typography.font_size_100_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-line-height-100: {}px;",
+        typography.line_height_100_px
     );
     css_writeln!(
         css,
@@ -501,6 +600,16 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-heading-h5-font-size: {}px;",
+        typography.heading_h5_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-heading-h5-line-height: {}px;",
+        typography.heading_h5_line_height_px
+    );
+    css_writeln!(
+        css,
         "  --ui-heading-h6-font-size: {}px;",
         typography.heading_h6_font_size_px
     );
@@ -531,6 +640,7 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(css, "  --ui-fallback-alert-body-font-size: 13px;");
     css_writeln!(css, "  --ui-fallback-alert-body-line-height: 1.45;");
     css_writeln!(css, "  --ui-fallback-alert-sr-only-size: 1px;");
+    css_writeln!(css, "  --ui-fallback-alert-opacity: 1;");
     css_writeln!(css, "  --ui-fallback-alert-translate-y: 0px;");
     css_writeln!(css, "  --ui-fallback-alert-scale: 1;");
     // Semantic aliases used by some component styles.
@@ -554,6 +664,11 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         "  --ui-component-height-100: {}px;",
         component_layout.component_height_100_px
     );
+    css_writeln!(
+        css,
+        "  --ui-fallback-component-height-100: {}px;",
+        component_layout.component_height_100_px
+    );
     let separator_decorative_opacity =
         f64::from(component_layout.separator_decorative_opacity_percent) / 100.0;
     css_writeln!(
@@ -564,7 +679,17 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(css, "  --ui-overlay-z-index: {};", overlay_layout.z_index);
     css_writeln!(
         css,
+        "  --ui-fallback-overlay-z-index: {};",
+        overlay_layout.z_index
+    );
+    css_writeln!(
+        css,
         "  --ui-overlay-panel-min-width: {}px;",
+        overlay_layout.panel_min_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-overlay-panel-min-width: {}px;",
         overlay_layout.panel_min_width_px
     );
     css_writeln!(
@@ -579,7 +704,17 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-overlay-viewport-inset: {}px;",
+        overlay_layout.viewport_inset_px
+    );
+    css_writeln!(
+        css,
         "  --ui-overlay-enter-offset-y: {}px;",
+        overlay_layout.enter_offset_y_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-overlay-enter-offset-y: {}px;",
         overlay_layout.enter_offset_y_px
     );
     css_writeln!(
@@ -589,7 +724,157 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-overlay-enter-scale: {};",
+        overlay_layout.enter_scale
+    );
+    css_writeln!(
+        css,
+        "  --ui-drop-zone-min-height: {}px;",
+        drop_zone_layout.min_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-drop-zone-min-height: {}px;",
+        drop_zone_layout.min_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-drop-zone-border-width: {}px;",
+        drop_zone_layout.border_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-drop-zone-border-width: {}px;",
+        drop_zone_layout.border_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-drop-zone-disabled-opacity: {};",
+        f64::from(drop_zone_layout.disabled_opacity_percent) / 100.0
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-drop-zone-disabled-opacity: {};",
+        f64::from(drop_zone_layout.disabled_opacity_percent) / 100.0
+    );
+    css_writeln!(
+        css,
+        "  --ui-drop-zone-focus-outline-width: {}px;",
+        drop_zone_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-drop-zone-focus-outline-width: {}px;",
+        drop_zone_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-drop-zone-focus-outline-offset: {}px;",
+        drop_zone_layout.focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-drop-zone-focus-outline-offset: {}px;",
+        drop_zone_layout.focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-drop-zone-sr-only-size: {}px;",
+        drop_zone_layout.sr_only_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-drop-zone-sr-only-size: {}px;",
+        drop_zone_layout.sr_only_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-max-inline-size: {}px;",
+        flip_card_layout.max_inline_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-max-inline-size: {}px;",
+        flip_card_layout.max_inline_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-max-inline-viewport: {}vw;",
+        flip_card_layout.max_inline_viewport_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-max-inline-viewport: {}vw;",
+        flip_card_layout.max_inline_viewport_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-aspect-ratio-width: {};",
+        flip_card_layout.aspect_ratio_width
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-aspect-ratio-width: {};",
+        flip_card_layout.aspect_ratio_width
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-aspect-ratio-height: {};",
+        flip_card_layout.aspect_ratio_height
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-aspect-ratio-height: {};",
+        flip_card_layout.aspect_ratio_height
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-perspective: {}px;",
+        flip_card_layout.perspective_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-perspective: {}px;",
+        flip_card_layout.perspective_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-disabled-opacity: {};",
+        f64::from(flip_card_layout.disabled_opacity_percent) / 100.0
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-disabled-opacity: {};",
+        f64::from(flip_card_layout.disabled_opacity_percent) / 100.0
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-focus-outline-width: {}px;",
+        flip_card_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-focus-outline-width: {}px;",
+        flip_card_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-flip-card-title-font-weight: {};",
+        flip_card_layout.title_font_weight
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-flip-card-title-font-weight: {};",
+        flip_card_layout.title_font_weight
+    );
+    css_writeln!(
+        css,
         "  --ui-slider-max-width: {}px;",
+        slider_layout.max_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-slider-max-width: {}px;",
         slider_layout.max_width_px
     );
     css_writeln!(
@@ -599,8 +884,255 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-slider-thumb-border-width: {}px;",
+        slider_layout.thumb_border_width_px
+    );
+    css_writeln!(
+        css,
         "  --ui-slider-focus-ring-width: {}px;",
         slider_layout.focus_ring_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-slider-focus-ring-width: {}px;",
+        slider_layout.focus_ring_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-size-xs: {}px;",
+        color_swatch_layout.size_xs_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-size-sm: {}px;",
+        color_swatch_layout.size_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-size-md: {}px;",
+        color_swatch_layout.size_md_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-size-lg: {}px;",
+        color_swatch_layout.size_lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-size-xs: {}px;",
+        color_swatch_layout.size_xs_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-size-sm: {}px;",
+        color_swatch_layout.size_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-size-md: {}px;",
+        color_swatch_layout.size_md_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-size-lg: {}px;",
+        color_swatch_layout.size_lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-radius-default: {}px;",
+        color_swatch_layout.radius_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-radius-none: {}px;",
+        color_swatch_layout.radius_none_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-radius-full: {}px;",
+        color_swatch_layout.radius_full_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-radius-default: {}px;",
+        color_swatch_layout.radius_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-radius-none: {}px;",
+        color_swatch_layout.radius_none_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-radius-full: {}px;",
+        color_swatch_layout.radius_full_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-wide-multiplier: {};",
+        color_swatch_layout.shape_wide_multiplier
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-wide-multiplier: {};",
+        color_swatch_layout.shape_wide_multiplier
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-checker-size: {}px;",
+        color_swatch_layout.checker_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-checker-size: {}px;",
+        color_swatch_layout.checker_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-slash-width: {}px;",
+        color_swatch_layout.slash_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-slash-width: {}px;",
+        color_swatch_layout.slash_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-swatch-border-width: {}px;",
+        color_swatch_layout.border_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-swatch-border-width: {}px;",
+        color_swatch_layout.border_width_px
+    );
+    css_writeln!(css, "  --ui-color-thumb-x-start: 16%;");
+    css_writeln!(css, "  --ui-color-thumb-x-center: 50%;");
+    css_writeln!(css, "  --ui-color-thumb-x-end: 84%;");
+    css_writeln!(css, "  --ui-color-thumb-y-start: 16%;");
+    css_writeln!(css, "  --ui-color-thumb-y-center: 50%;");
+    css_writeln!(css, "  --ui-color-thumb-y-end: 84%;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-x-start: 16%;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-x-center: 50%;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-x-end: 84%;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-y-start: 16%;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-y-center: 50%;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-y-end: 84%;");
+    css_writeln!(css, "  --ui-color-thumb-handle-size: 18px;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-handle-size: 18px;");
+    css_writeln!(css, "  --ui-color-thumb-loupe-size: 30px;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-loupe-size: 30px;");
+    css_writeln!(
+        css,
+        "  --ui-color-thumb-radius-full: {}px;",
+        button_layout.radius_full_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-thumb-radius-full: {}px;",
+        button_layout.radius_full_px
+    );
+    css_writeln!(css, "  --ui-color-thumb-handle-border-width: 2px;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-handle-border-width: 2px;");
+    css_writeln!(css, "  --ui-color-thumb-loupe-border-width: 1px;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-loupe-border-width: 1px;");
+    css_writeln!(css, "  --ui-color-thumb-loupe-padding: 2px;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-loupe-padding: 2px;");
+    css_writeln!(css, "  --ui-color-thumb-loupe-hidden-offset: 0.2rem;");
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-thumb-loupe-hidden-offset: 0.2rem;"
+    );
+    css_writeln!(css, "  --ui-color-thumb-loupe-hidden-scale: 0.88;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-loupe-hidden-scale: 0.88;");
+    css_writeln!(css, "  --ui-color-thumb-disabled-opacity: 0.58;");
+    css_writeln!(css, "  --ui-fallback-color-thumb-disabled-opacity: 0.58;");
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-size: {}px;",
+        color_wheel_layout.size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-track-thickness: {}px;",
+        color_wheel_layout.track_thickness_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-thumb-size: {}px;",
+        color_wheel_layout.thumb_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-size: {}px;",
+        color_wheel_layout.size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-track-thickness: {}px;",
+        color_wheel_layout.track_thickness_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-thumb-size: {}px;",
+        color_wheel_layout.thumb_size_px
+    );
+    css_writeln!(css, "  --ui-color-wheel-hue-red: {};", color_wheel_hue.red);
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-hue-yellow: {};",
+        color_wheel_hue.yellow
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-hue-green: {};",
+        color_wheel_hue.green
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-hue-cyan: {};",
+        color_wheel_hue.cyan
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-hue-blue: {};",
+        color_wheel_hue.blue
+    );
+    css_writeln!(
+        css,
+        "  --ui-color-wheel-hue-magenta: {};",
+        color_wheel_hue.magenta
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-hue-red: {};",
+        color_wheel_hue.red
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-hue-yellow: {};",
+        color_wheel_hue.yellow
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-hue-green: {};",
+        color_wheel_hue.green
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-hue-cyan: {};",
+        color_wheel_hue.cyan
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-hue-blue: {};",
+        color_wheel_hue.blue
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-color-wheel-hue-magenta: {};",
+        color_wheel_hue.magenta
     );
     css_writeln!(
         css,
@@ -615,6 +1147,11 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(
         css,
         "  --ui-underlay-backdrop-blur: {}px;",
+        underlay_motion.backdrop_blur_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-underlay-backdrop-blur: {}px;",
         underlay_motion.backdrop_blur_px
     );
     css_writeln!(
@@ -636,8 +1173,182 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-text-field-motion-duration: {}ms;",
+        text_field_motion.duration_ms
+    );
+    css_writeln!(
+        css,
         "  --ui-text-field-motion-easing: {};",
         text_field_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-text-field-motion-easing: {};",
+        text_field_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-label-motion-color-duration: {}ms;",
+        label_motion.color_duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-label-motion-color-duration: {}ms;",
+        label_motion.color_duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-label-motion-weight-duration: {}ms;",
+        label_motion.weight_duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-label-motion-weight-duration: {}ms;",
+        label_motion.weight_duration_ms
+    );
+    css_writeln!(css, "  --ui-label-motion-easing: {};", label_motion.easing);
+    css_writeln!(
+        css,
+        "  --ui-fallback-label-motion-easing: {};",
+        label_motion.easing
+    );
+    css_writeln!(css, "  --ui-meter-track-height: {}px;", layout.space.sm_px);
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-track-height: {}px;",
+        layout.space.sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-meter-track-height-sm: {}px;",
+        layout.space.xs_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-track-height-sm: {}px;",
+        layout.space.xs_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-meter-track-height-lg: {}px;",
+        layout.space.md_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-track-height-lg: {}px;",
+        layout.space.md_px
+    );
+    css_writeln!(css, "  --ui-meter-track-radius: {}px;", layout.radius.lg_px);
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-track-radius: {}px;",
+        layout.radius.lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-meter-track-border-width: var(--ui-border-width, var(--ui-fallback-border-width));"
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-track-border-width: var(--ui-fallback-border-width);"
+    );
+    css_writeln!(css, "  --ui-meter-indicator-color: {};", colors.accent);
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-indicator-color: {};",
+        colors.accent
+    );
+    css_writeln!(
+        css,
+        "  --ui-meter-indicator-color-danger: {};",
+        semantic_roles.danger
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-indicator-color-danger: {};",
+        semantic_roles.danger
+    );
+    css_writeln!(css, "  --ui-meter-progress: 0;");
+    css_writeln!(css, "  --ui-fallback-meter-progress: 0;");
+    css_writeln!(css, "  --ui-meter-determinate-width: 100%;");
+    css_writeln!(css, "  --ui-fallback-meter-determinate-width: 100%;");
+    css_writeln!(css, "  --ui-meter-indeterminate-width: 40%;");
+    css_writeln!(css, "  --ui-fallback-meter-indeterminate-width: 40%;");
+    css_writeln!(css, "  --ui-meter-indeterminate-start: -60%;");
+    css_writeln!(css, "  --ui-fallback-meter-indeterminate-start: -60%;");
+    css_writeln!(css, "  --ui-meter-indeterminate-mid: 80%;");
+    css_writeln!(css, "  --ui-fallback-meter-indeterminate-mid: 80%;");
+    css_writeln!(css, "  --ui-meter-indeterminate-end: 220%;");
+    css_writeln!(css, "  --ui-fallback-meter-indeterminate-end: 220%;");
+    css_writeln!(
+        css,
+        "  --ui-meter-indeterminate-duration: {}ms;",
+        text_field_motion.duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-indeterminate-duration: {}ms;",
+        text_field_motion.duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-meter-indeterminate-easing: {};",
+        text_field_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-indeterminate-easing: {};",
+        text_field_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-meter-shadow-transition-duration: {}ms;",
+        label_motion.color_duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-shadow-transition-duration: {}ms;",
+        label_motion.color_duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-meter-shadow-transition-easing: {};",
+        label_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-meter-shadow-transition-easing: {};",
+        label_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-motion-duration: {}ms;",
+        checkbox_group_motion.duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-motion-easing: {};",
+        checkbox_group_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-motion-stiffness: {};",
+        checkbox_group_motion.spring.stiffness
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-motion-damping: {};",
+        checkbox_group_motion.spring.damping
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-motion-mass: {};",
+        checkbox_group_motion.spring.mass
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-motion-precision: {};",
+        checkbox_group_motion.spring.precision
     );
     css_writeln!(css);
 
@@ -658,7 +1369,17 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-button-spinner-size: {}px;",
+        button_layout.spinner_size_px
+    );
+    css_writeln!(
+        css,
         "  --ui-button-spinner-border: {}px;",
+        button_layout.spinner_border_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-button-spinner-border: {}px;",
         button_layout.spinner_border_px
     );
     css_writeln!(
@@ -668,7 +1389,17 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-button-spinner-duration: {}ms;",
+        button_layout.spinner_duration_ms
+    );
+    css_writeln!(
+        css,
         "  --ui-button-focus-outline-width: {}px;",
+        button_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-button-focus-outline-width: {}px;",
         button_layout.focus_outline_width_px
     );
     css_writeln!(
@@ -678,7 +1409,33 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-button-focus-outline-offset: {}px;",
+        button_layout.focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
         "  --ui-button-radius-full: {}px;",
+        button_layout.radius_full_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-button-radius-full: {}px;",
+        button_layout.radius_full_px
+    );
+    css_writeln!(css, "  --ui-avatar-size-sm: 24px;");
+    css_writeln!(css, "  --ui-avatar-size-md: 32px;");
+    css_writeln!(css, "  --ui-avatar-size-lg: 40px;");
+    css_writeln!(css, "  --ui-fallback-avatar-size-sm: 24px;");
+    css_writeln!(css, "  --ui-fallback-avatar-size-md: 32px;");
+    css_writeln!(css, "  --ui-fallback-avatar-size-lg: 40px;");
+    css_writeln!(
+        css,
+        "  --ui-avatar-radius: {}px;",
+        button_layout.radius_full_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-avatar-radius: {}px;",
         button_layout.radius_full_px
     );
     css_writeln!(css);
@@ -762,6 +1519,11 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-button-size-m-height: {}px;",
+        button_layout.m.height_px
+    );
+    css_writeln!(
+        css,
         "  --ui-button-size-m-min-width: {}px;",
         button_layout.m.min_width_px
     );
@@ -813,7 +1575,17 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-fallback-button-size-l-font-size: {}px;",
+        button_layout.l.font_size_px
+    );
+    css_writeln!(
+        css,
         "  --ui-button-size-l-line-height: {}px;",
+        button_layout.l.line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-button-size-l-line-height: {}px;",
         button_layout.l.line_height_px
     );
     css_writeln!(
@@ -864,10 +1636,498 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(css);
 
+    let checkbox_disabled_opacity = f64::from(checkbox_layout.disabled_opacity_percent) / 100.0;
+    css_writeln!(css, "  --ui-checkbox-gap: {}px;", checkbox_layout.gap_px);
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-gap: {}px;",
+        checkbox_layout.gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-disabled-opacity: {};",
+        checkbox_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-disabled-opacity: {};",
+        checkbox_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-focus-outline-width: {}px;",
+        checkbox_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-focus-outline-width: {}px;",
+        checkbox_layout.focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-focus-outline-offset: {}px;",
+        checkbox_layout.focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-focus-outline-offset: {}px;",
+        checkbox_layout.focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-size-default: {}px;",
+        checkbox_layout.box_size_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-size-default: {}px;",
+        checkbox_layout.box_size_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-size-sm: {}px;",
+        checkbox_layout.box_size_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-size-sm: {}px;",
+        checkbox_layout.box_size_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-size-lg: {}px;",
+        checkbox_layout.box_size_lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-size-lg: {}px;",
+        checkbox_layout.box_size_lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-radius-default: {}px;",
+        checkbox_layout.box_radius_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-radius-default: {}px;",
+        checkbox_layout.box_radius_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-radius-sm: {}px;",
+        checkbox_layout.box_radius_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-radius-sm: {}px;",
+        checkbox_layout.box_radius_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-radius-lg: {}px;",
+        checkbox_layout.box_radius_lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-radius-lg: {}px;",
+        checkbox_layout.box_radius_lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-indicator-size-default: {}px;",
+        checkbox_layout.indicator_size_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-indicator-size-default: {}px;",
+        checkbox_layout.indicator_size_default_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-indicator-size-sm: {}px;",
+        checkbox_layout.indicator_size_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-indicator-size-sm: {}px;",
+        checkbox_layout.indicator_size_sm_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-indicator-size-lg: {}px;",
+        checkbox_layout.indicator_size_lg_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-indicator-size-lg: {}px;",
+        checkbox_layout.indicator_size_lg_px
+    );
+    let checkbox_group_disabled_opacity =
+        f64::from(checkbox_group_layout.disabled_opacity_percent) / 100.0;
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-gap: {}px;",
+        checkbox_group_layout.gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-required-marker-gap: {}px;",
+        checkbox_group_layout.required_marker_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-checkbox-group-disabled-opacity: {};",
+        checkbox_group_disabled_opacity
+    );
+    css_writeln!(css);
+
+    let command_disabled_opacity = f64::from(command_layout.disabled_opacity_percent) / 100.0;
+    let command_option_disabled_opacity =
+        f64::from(command_layout.option_disabled_opacity_percent) / 100.0;
+    let command_group_heading_letter_spacing =
+        f64::from(command_layout.group_heading_letter_spacing_centiem) / 100.0;
+    css_writeln!(
+        css,
+        "  --ui-command-panel-max-width: {}px;",
+        command_layout.panel_max_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-panel-max-width: {}px;",
+        command_layout.panel_max_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-list-max-height: {}px;",
+        command_layout.list_max_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-list-max-height: {}px;",
+        command_layout.list_max_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-disabled-opacity: {};",
+        command_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-disabled-opacity: {};",
+        command_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-input-wrap-padding: {}px;",
+        command_layout.input_wrap_padding_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-input-wrap-padding: {}px;",
+        command_layout.input_wrap_padding_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-input-wrap-border-mix: {}%;",
+        command_layout.input_wrap_border_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-input-wrap-border-mix: {}%;",
+        command_layout.input_wrap_border_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-input-wrap-bg-mix: {}%;",
+        command_layout.input_wrap_bg_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-input-wrap-bg-mix: {}%;",
+        command_layout.input_wrap_bg_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-input-padding-y: {}px;",
+        command_layout.input_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-input-padding-y: {}px;",
+        command_layout.input_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-input-padding-x: {}px;",
+        command_layout.input_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-input-padding-x: {}px;",
+        command_layout.input_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-input-focus-outline-width: {}px;",
+        command_layout.input_focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-input-focus-outline-width: {}px;",
+        command_layout.input_focus_outline_width_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-input-focus-outline-offset: {}px;",
+        command_layout.input_focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-input-focus-outline-offset: {}px;",
+        command_layout.input_focus_outline_offset_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-options-padding: {}px;",
+        command_layout.options_padding_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-options-padding: {}px;",
+        command_layout.options_padding_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-group-gap: {}px;",
+        command_layout.group_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-group-gap: {}px;",
+        command_layout.group_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-group-spacing: {}px;",
+        command_layout.group_spacing_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-group-spacing: {}px;",
+        command_layout.group_spacing_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-group-border-mix: {}%;",
+        command_layout.group_border_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-group-border-mix: {}%;",
+        command_layout.group_border_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-group-heading-padding-x: {}px;",
+        command_layout.group_heading_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-group-heading-padding-x: {}px;",
+        command_layout.group_heading_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-group-heading-letter-spacing: {}em;",
+        command_group_heading_letter_spacing
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-group-heading-letter-spacing: {}em;",
+        command_group_heading_letter_spacing
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-group-items-gap: {}px;",
+        command_layout.group_items_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-group-items-gap: {}px;",
+        command_layout.group_items_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-option-gap: {}px;",
+        command_layout.option_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-option-gap: {}px;",
+        command_layout.option_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-option-padding-y: {}px;",
+        command_layout.option_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-option-padding-y: {}px;",
+        command_layout.option_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-option-padding-x: {}px;",
+        command_layout.option_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-option-padding-x: {}px;",
+        command_layout.option_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-option-focus-mix: {}%;",
+        command_layout.option_focus_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-option-focus-mix: {}%;",
+        command_layout.option_focus_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-option-disabled-opacity: {};",
+        command_option_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-option-disabled-opacity: {};",
+        command_option_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-shortcut-border-mix: {}%;",
+        command_layout.shortcut_border_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-shortcut-border-mix: {}%;",
+        command_layout.shortcut_border_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-shortcut-bg-mix: {}%;",
+        command_layout.shortcut_bg_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-shortcut-bg-mix: {}%;",
+        command_layout.shortcut_bg_mix_percent
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-shortcut-padding-x: {}px;",
+        command_layout.shortcut_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-shortcut-padding-x: {}px;",
+        command_layout.shortcut_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-shortcut-padding-y: {}px;",
+        command_layout.shortcut_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-shortcut-padding-y: {}px;",
+        command_layout.shortcut_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-empty-padding-y: {}px;",
+        command_layout.empty_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-empty-padding-y: {}px;",
+        command_layout.empty_padding_block_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-command-empty-padding-x: {}px;",
+        command_layout.empty_padding_inline_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-command-empty-padding-x: {}px;",
+        command_layout.empty_padding_inline_px
+    );
+    css_writeln!(css);
+
     css_writeln!(
         css,
         "  --ui-fallback-common-white: {};",
         common_colors.white
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-black: {};",
+        common_colors.black
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-red-500: {};",
+        common_colors.red.shade_500
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-red-600: {};",
+        common_colors.red.shade_600
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-yellow-500: {};",
+        common_colors.yellow.shade_500
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-green-500: {};",
+        common_colors.green.shade_500
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-green-600: {};",
+        common_colors.green.shade_600
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-cyan-500: {};",
+        common_colors.cyan.shade_500
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-blue-500: {};",
+        common_colors.blue.shade_500
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-blue-600: {};",
+        common_colors.blue.shade_600
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-purple-500: {};",
+        common_colors.purple.shade_500
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-zinc-500: {};",
+        common_colors.zinc.shade_500
     );
     css_writeln!(
         css,
@@ -888,6 +2148,66 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         css,
         "  --ui-fallback-button-size-s-line-height: {}px;",
         button_layout.s.line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-gap: {}px;",
+        checkbox_group_layout.gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-required-marker-gap: {}px;",
+        checkbox_group_layout.required_marker_gap_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-disabled-opacity: {};",
+        checkbox_group_disabled_opacity
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-motion-duration: {}ms;",
+        checkbox_group_motion.duration_ms
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-motion-easing: {};",
+        checkbox_group_motion.easing
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-motion-stiffness: {};",
+        checkbox_group_motion.spring.stiffness
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-motion-damping: {};",
+        checkbox_group_motion.spring.damping
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-motion-mass: {};",
+        checkbox_group_motion.spring.mass
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-checkbox-group-motion-precision: {};",
+        checkbox_group_motion.spring.precision
+    );
+    css_writeln!(css, "  --ui-fallback-action-bar-max-width: 736px;");
+    css_writeln!(
+        css,
+        "  --ui-fallback-action-bar-clear-underline-offset: 0.12em;"
+    );
+    css_writeln!(css, "  --ui-fallback-action-bar-translate-y-initial: 0px;");
+    css_writeln!(css, "  --ui-fallback-action-bar-opacity-initial: 1;");
+    css_writeln!(
+        css,
+        "  --ui-fallback-action-bar-emphasis-border-width: 2px;"
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-action-bar-clear-label-custom-shadow: 0 0 0 var(--ui-border-width, var(--ui-fallback-border-width)) color-mix(in oklab, var(--ui-accent, var(--ui-fallback-accent)) 24%, transparent), var(--ui-shadow-md, var(--ui-fallback-shadow-md));"
     );
     css_writeln!(css, "}}");
     css

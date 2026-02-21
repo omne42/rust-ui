@@ -59,8 +59,9 @@ pub fn PreviewCard(
         is_disabled: disabled,
         open_delay_ms,
         close_delay_ms,
+        ..Default::default()
     });
-    let open_signal: Signal<bool> = trigger_aria.state.is_open.into();
+    let open_signal = trigger_aria.state.is_open;
     let presence = ui_headless::use_presence(open_signal);
 
     let root_state = logic::resolve_part_state(PreviewCardPartStateInput {

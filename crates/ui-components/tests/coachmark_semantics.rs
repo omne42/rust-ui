@@ -59,10 +59,19 @@ fn coachmark_wraps_contextual_help_contract() {
     let source = load_source("src/coachmark/view.rs");
 
     for needle in [
+        "use ui_headless::{A11yDirection, PopoverPlacement};",
         "pub fn Coachmark(",
+        "#[prop(optional)] is_disabled: Option<bool>",
+        "#[prop(optional)] disabled: Option<bool>",
+        "let view_model = logic::resolve_view_model(logic::CoachmarkViewModelInput {",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let state = view_model.state;",
         "<ContextualHelp",
-        "logic::resolve_state(logic::CoachmarkStateInput {",
-        "logic::compose_class_name(normalized_class_name, state)",
+        "disabled=is_disabled",
+        "lang=lang.get_value()",
+        "dir=dir.get_value()",
+        "let class_name = StoredValue::new(view_model.class_name);",
         "primary_cta: Option<String>",
         "asset_variant: Option<CoachmarkAssetVariant>",
         "footer=move || footer_view.get_value().run()",
@@ -73,6 +82,29 @@ fn coachmark_wraps_contextual_help_contract() {
         assert!(
             source.contains(needle),
             "Coachmark wrapper should preserve ContextualHelp contract marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn coachmark_relies_on_contextual_help_headless_a11y_contract() {
+    let source = load_source("../../components/contextual-help/src/view.rs");
+
+    for needle in [
+        "use ui_headless::{A11yDirection, PopoverPlacement};",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let panel_a11y = ui_headless::overlay_dialog_attrs(",
+        "lang=lang.clone()",
+        "dir=dir",
+        "aria-labelledby=panel_aria_labelledby.get_value()",
+        "aria-describedby=panel_aria_describedby.get_value()",
+        "lang=panel_lang.get_value()",
+        "dir=panel_dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ContextualHelp should expose ui-headless a11y contract marker `{needle}`."
         );
     }
 }
@@ -92,6 +124,8 @@ fn coachmark_logic_reexports_state_primitives_contract() {
         "compose_step_label",
         "normalize_modifier_keys",
         "normalize_optional_text",
+        "resolve_cta_mode",
+        "resolve_asset_source",
         "resolve_state",
     ] {
         assert!(
@@ -108,12 +142,18 @@ fn coachmark_state_primitives_track_heading_steps_and_source_contracts() {
     for needle in [
         "pub const DEFAULT_TITLE: &str = \"Coachmark\";",
         "pub const DEFAULT_ASSET_LABEL: &str = \"Coachmark asset\";",
+        "pub enum CoachmarkCtaMode {",
+        "pub enum CoachmarkAssetSource {",
         "pub struct CoachmarkStateInput",
         "pub struct CoachmarkState",
         "pub fn compose_heading(",
         "pub fn compose_step_label(",
+        "pub fn resolve_cta_mode(",
+        "pub fn resolve_asset_source(",
         "pub fn resolve_state(input: CoachmarkStateInput) -> CoachmarkState",
         "pub fn compose_class_name(base_class_name: Option<String>, state: CoachmarkState)",
+        "pub cta_mode: CoachmarkCtaMode,",
+        "pub asset_source: CoachmarkAssetSource,",
         "variant_attr",
         "placement_attr",
         "asset_source_attr",
@@ -177,6 +217,7 @@ fn coachmark_docs_page_covers_primary_playgrounds() {
         "pub(super) fn coachmark() -> AnyView",
         "title=\"Coachmark\"",
         "slug=\"coachmark\"",
+        "title=\"Hello World (Default API)\"",
         "title=\"Step + CTA + Asset Variant\"",
         "title=\"Controlled + Image Asset + Actions\"",
         "title=\"State + Source Markers\"",
@@ -196,6 +237,10 @@ fn coachmark_docs_playgrounds_lock_state_matrix_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs");
 
     for needle in [
+        "let hello_world_code = Signal::derive(move || {",
+        "<Playground title=\"Hello World (Default API)\" code_signal=hello_world_code>",
+        "<Coachmark title=\"Welcome\".to_string() default_open=true>",
+        "<div>\"Tour copy\"</div>",
         "<Playground title=\"Step + CTA + Asset Variant\" code_signal=basic_code>",
         "default_open=true",
         "primary_cta=\"Next\".to_string()",
@@ -206,6 +251,7 @@ fn coachmark_docs_playgrounds_lock_state_matrix_contract_values() {
         "open=controlled_open",
         "asset_src=\"https://picsum.photos/420/260\".to_string()",
         "actions=move || {",
+        "is_disabled=true",
         "title=\"State + Source Markers\"",
         "aria_label=\"Coachmark help\".to_string()",
         "class_name=\"docs-coachmark-state\".to_string()",
@@ -220,6 +266,33 @@ fn coachmark_docs_playgrounds_lock_state_matrix_contract_values() {
             "coachmark docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn coachmark_docs_hello_world_code_path_stays_under_five_lines_and_no_state_object() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs");
+
+    let hello_world_snippet = r#"<Coachmark title=\"Welcome\".into() default_open=true>
+  <div>Tour copy</div>
+</Coachmark>"#;
+
+    assert!(
+        source.contains(hello_world_snippet),
+        "coachmark docs should keep a minimal runnable hello-world code path."
+    );
+
+    let line_count = hello_world_snippet.lines().count();
+    assert!(
+        line_count <= 5,
+        "coachmark hello-world snippet must stay within 5 lines, got {line_count}."
+    );
+
+    let view_source = load_source("src/coachmark/view.rs");
+    assert!(
+        !view_source.contains("#[prop(optional)] state:"),
+        "coachmark public API must not require an internal `state` object."
+    );
 }
 
 #[test]
@@ -245,19 +318,22 @@ fn coachmark_exposes_agent_contract_and_snapshot_stream_markers() {
     let source = load_source("src/coachmark/view.rs");
 
     for needle in [
-        "data-ui-schema=\"ui.coachmark.agent-contract.v1\"",
-        "data-ui-schema-version=\"1\"",
-        "data-ui-intent=\"guided-tour\"",
-        "data-ui-action=ui_action_attr",
-        "data-ui-state=state.state_attr",
-        "data-ui-source=ui_source_attr",
+        "data-ui-schema=agent_contract.schema_name",
+        "data-ui-schema-version=agent_contract.schema_version.as_str()",
+        "data-ui-intent=agent_contract.intent.as_str()",
+        "data-ui-action=agent_contract.action.as_str()",
+        "data-ui-state=agent_contract.state.as_str()",
+        "data-ui-source=agent_contract.source.as_str()",
+        "data-ui-state-source=agent_contract.state_source",
+        "data-ui-action-source=agent_contract.action_source",
+        "data-ui-render-path=agent_contract.render_path",
         "data-ui-stream-support=\"optional\"",
         "data-ui-stream-fallback=\"snapshot\"",
         "data-ui-stream-mode=\"snapshot\"",
-        "data-ui-output-status=output_status_attr",
+        "data-ui-output-status=agent_contract.output_status.as_str()",
         "data-stream-mode=\"snapshot\"",
         "data-stream-fallback=\"snapshot\"",
-        "data-output-status=output_status_attr",
+        "data-output-status=agent_contract.output_status.as_str()",
     ] {
         assert!(
             source.contains(needle),

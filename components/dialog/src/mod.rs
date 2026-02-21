@@ -96,3 +96,7 @@ pub struct DialogPartState {
     pub motion_source_attr: &'static str,
     pub exit_source_attr: &'static str,
 }
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics;

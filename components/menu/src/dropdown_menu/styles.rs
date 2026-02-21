@@ -5,11 +5,11 @@ pub const CSS: &str = r#"
 }
 
 .ui-dropdown-menu--persistent .ui-button {
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-dropdown-menu--disabled {
-  opacity: 0.72;
+  opacity: var(--ui-disabled-opacity, var(--ui-fallback-disabled-opacity));
 }
 
 .ui-dropdown-menu[data-motion-source="custom"],

@@ -58,15 +58,15 @@
   - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
   - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
   - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`CodeBlock` 以 `is_copyable` 作为规范入口，`copyable` 仅作兼容别名并在 `logic::resolve_copyable_contract` 统一归一）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（复制反馈轴已补齐 `is_copied + on_copied_change + default_copied`，并保留 `copied` 兼容别名，`logic::resolve_copied_contract` 统一优先级）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`is_copyable` 与 `copied/default_copied` 均在 `logic.rs` 的 `resolve_*_contract` 归一，`view.rs` 仅消费归一结果）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。

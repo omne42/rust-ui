@@ -10,7 +10,7 @@
 
 ## Architecture Layers
 
-- `logic.rs`：归一化文本/id 与状态来源标记（variant/placement/heading/footer/source）。
+- `logic.rs`：归一化文本/id/open 默认值优先级与状态来源标记（variant/placement/heading/footer/source）。
 - `view.rs`：Leptos 结构渲染、`use_controllable_open_state_traced` 与 `use_presence` 挂载。
 - `motion.rs`：`ContextualHelpMotion` 契约，内部委托 `PopoverMotion` 并做 sanitize。
 - `styles.rs`：静态 CSS 契约，基于 `data-*` 与 `var(--ui-*)`。
@@ -26,6 +26,7 @@
 
 - 默认路径无需手动接线 `ui-state-primitives` / `ui-headless`。
 - 组件内部管理 open 状态（非受控）。
+- 先用起来：先走默认 API，确认语义与交互正常后再进入受控扩展。
 
 ## 常见用法
 
@@ -58,13 +59,14 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
 </ContextualHelp>
 ```
 
-- 受控模式使用 `open + on_open_change`；非受控模式使用 `default_open`。
+- 受控模式使用 `open + on_open_change`；非受控模式使用 `default_open`，优先级在 `logic.rs` 统一归一（controlled 时忽略 `default_open`）。
+- 布尔禁用态优先使用 `is_disabled`；`disabled` 作为兼容别名保留，内部按 `is_disabled > disabled` 归一化。
 - 稳定标记包含 `data-state`、`data-variant`、`data-placement`、`data-open-mode`、`data-*-source`。
 
 ## docs-app 等价入口
 
 - `apps/docs-app/src/pages/components/pages/overlays.rs` 的 `contextual_help()` 页面。
-- Playground 路径：`Help Variant + Slots`、`Info Variant + Controlled`、`Workbench (Display + Config + Code + CSS Test)`、`State Comparison`。
+- Playground 路径：`Hello World (Default API)`、`Info Variant + Controlled`、`Workbench (Display + Config + Code + CSS Test)`、`State Matrix`、`Streaming/Snapshot Display`。
 
 ## Docs Playground（展示区）
 
@@ -90,8 +92,8 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
 
 ### 多场景对比显示
 
-- `State Comparison` 同屏对比 `Help`、`Info`、`Disabled` 三种典型状态。
-- 原有 `Help Variant + Slots` 与 `Info Variant + Controlled` 场景保留，覆盖 slot/控制模式差异。
+- `State Matrix` 同屏对比 `Help`、`Info`、`Disabled` 三种典型状态。
+- 与 `Hello World (Default API)`、`Info Variant + Controlled` 组合，形成“默认 API -> 进阶受控”的学习路径。
 
 ## Source-first Copy-Paste Ready
 

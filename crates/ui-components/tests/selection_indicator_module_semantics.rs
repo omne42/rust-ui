@@ -1214,8 +1214,8 @@ fn selection_indicator_observable_markers_are_stable_and_closed_set_in_host_comp
         "data-selection-indicator=move || state.get().selection_indicator_attr",
         "data-aria-source=move || state.get().aria_source_attr",
         "data-class-source=move || state.get().class_source_attr",
-        "aria-selected=selected.then_some(\"true\")",
-        "aria-disabled=disabled.then_some(\"true\")",
+        "aria-selected=is_selected.then_some(\"true\")",
+        "aria-disabled=is_disabled.then_some(\"true\")",
         "role=\"option\"",
     ] {
         assert!(
@@ -1906,7 +1906,7 @@ fn selection_indicator_dx_paradox_uses_host_defaults_without_required_state_wiri
         "pub(super) fn list_item() -> AnyView",
         "slug=\"list-item\"",
         "<Playground title=\"Selectable Option\" code_signal=code>",
-        "show_selection_indicator=true",
+        "is_selection_indicator_visible=true",
         "pub(super) fn menu_item() -> AnyView",
         "slug=\"menu-item\"",
         "<Playground title=\"Action + Checkbox\" code_signal=code>",
@@ -3644,9 +3644,9 @@ fn selection_indicator_docs_entry_state_matrix_and_playground_paths_are_present(
         "<Playground title=\"Focused + Divider + Disabled\" code_signal=states_code>",
         "<Playground title=\"Action + Checkbox\" code_signal=code>",
         "<Playground title=\"Radio + Submenu + Disabled\" code_signal=states_code>",
-        "show_selection_indicator=true",
-        "focused=true",
-        "disabled=true",
+        "is_selection_indicator_visible=true",
+        "is_focused=true",
+        "is_disabled=true",
         "kind=checkbox_kind",
         "kind=radio_kind",
     ] {

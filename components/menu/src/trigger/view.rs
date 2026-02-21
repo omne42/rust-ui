@@ -13,11 +13,14 @@ pub fn MenuTrigger(
     id_base: String,
     items: Vec<String>,
     on_action: Callback<usize>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
+    #[prop(optional)] is_close_on_action: Option<bool>,
     #[prop(default = true)] close_on_action: bool,
     #[prop(optional)] placement: PopoverPlacement,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
@@ -26,6 +29,18 @@ pub fn MenuTrigger(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let discrete_props = logic::normalize_discrete_props(logic::MenuTriggerDiscreteInput {
+        is_disabled,
+        disabled,
+        is_close_on_action,
+        close_on_action,
+    });
+    let open_state_input = logic::normalize_open_state(logic::MenuTriggerOpenStateInput {
+        is_open,
+        open,
+        default_open,
+        on_open_change,
+    });
     let id_base = logic::normalize_id_base(id_base);
     let id_base = StoredValue::new(id_base);
 
@@ -42,20 +57,20 @@ pub fn MenuTrigger(
 
     let motion = crate::menu_trigger::motion::sanitize_motion(motion);
 
-    let is_controlled = open.is_some();
+    let is_controlled = open_state_input.is_controlled;
     let open_state = overlay_open::use_controllable_open_state_traced(
         "menu-trigger",
-        open,
-        default_open,
-        on_open_change,
+        open_state_input.open,
+        open_state_input.default_open,
+        open_state_input.on_open_change,
     );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
     let state = logic::resolve_state(logic::MenuTriggerStateInput {
         item_count,
-        trigger_disabled: logic::resolve_trigger_disabled(disabled, item_count),
-        close_on_action,
+        trigger_disabled: logic::resolve_trigger_disabled(discrete_props.disabled, item_count),
+        action_mode: discrete_props.action_mode,
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
         has_disabled_items: !disabled_indices.get_value().is_empty(),
@@ -73,15 +88,14 @@ pub fn MenuTrigger(
     let trigger_disabled = StoredValue::new(state.is_trigger_disabled);
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if trigger_disabled.get_value() {
-            return;
+        if let Some(result) =
+            logic::resolve_trigger_press(trigger_disabled.get_value(), open.get_untracked())
+        {
+            if let Some(strategy) = result.open_focus {
+                set_open_focus.set(strategy);
+            }
+            request_open_change.run(result.next_open);
         }
-
-        let next_open = !open.get_untracked();
-        if next_open {
-            set_open_focus.set(logic::MenuOpenFocusStrategy::First);
-        }
-        request_open_change.run(next_open);
     });
     let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
@@ -102,15 +116,11 @@ pub fn MenuTrigger(
     let aria_label = StoredValue::new(aria_label);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if trigger_disabled.get_value() {
-            return;
-        }
-        if open.get_untracked() {
-            return;
-        }
-
-        let key = ev.key();
-        if let Some(strategy) = logic::focus_strategy_for_open_key(&key) {
+        if let Some(strategy) = logic::resolve_open_focus_strategy(
+            &ev.key(),
+            trigger_disabled.get_value(),
+            open.get_untracked(),
+        ) {
             set_open_focus.set(strategy);
             request_open_change.run(true);
             ev.prevent_default();
@@ -121,15 +131,7 @@ pub fn MenuTrigger(
         <div
             class=class
             data-slot="menu-trigger"
-            data-state=move || {
-                if open.get() {
-                    "open"
-                } else if state.is_trigger_disabled {
-                    "disabled"
-                } else {
-                    "closed"
-                }
-            }
+            data-state=move || logic::resolve_root_state_attr(open.get(), state.is_trigger_disabled)
             data-open=move || open.get().then_some("true")
             data-closed=move || (!open.get()).then_some("true")
             data-disabled=state.is_trigger_disabled.then_some("true")

@@ -1,4 +1,5 @@
 use super::*;
+use crate::ButtonIntent;
 
 #[test]
 fn variant_class_names_are_stable() {
@@ -264,10 +265,12 @@ fn resolve_agent_contract_exposes_machine_readable_capabilities() {
         has_custom_motion: false,
     });
     let contract = resolve_agent_contract(interactive, true);
-    assert_eq!(contract.schema_name, "ui.button.agent-contract");
+    assert_eq!(contract.schema_name, BUTTON_AGENT_SCHEMA);
     assert_eq!(contract.schema_version.as_str(), "1");
     assert_eq!(contract.intent.as_str(), "trigger");
+    assert_eq!(contract.action.as_str(), "press");
     assert_eq!(contract.state.as_str(), "ready");
+    assert_eq!(contract.source.as_str(), "state-primitives");
     assert!(contract.capabilities.can_press);
     assert!(contract.capabilities.can_focus);
     assert!(contract.capabilities.can_hover);
@@ -297,6 +300,82 @@ fn resolve_agent_contract_exposes_machine_readable_capabilities() {
     assert!(!contract.capabilities.can_focus);
     assert!(!contract.capabilities.can_hover);
     assert!(!contract.capabilities.can_popup_trigger);
+}
+
+#[test]
+fn resolve_output_status_maps_loading_submit_and_default_paths() {
+    let loading = resolve_state(ButtonStateInput {
+        is_disabled: false,
+        is_loading: true,
+        variant: ButtonVariant::Default,
+        color: ButtonColor::Primary,
+        radius: ButtonRadius::Md,
+        size: ButtonSize::M,
+        loading_placement: ButtonLoadingPlacement::Start,
+        is_icon_only: false,
+        is_full_width: false,
+        has_start_content: false,
+        has_end_content: false,
+        has_custom_class_name: false,
+        has_custom_motion: false,
+    });
+    assert_eq!(
+        resolve_output_status(loading, ButtonType::Submit).as_attr(),
+        "draft"
+    );
+
+    let ready = resolve_state(ButtonStateInput {
+        is_disabled: false,
+        is_loading: false,
+        variant: ButtonVariant::Default,
+        color: ButtonColor::Primary,
+        radius: ButtonRadius::Md,
+        size: ButtonSize::M,
+        loading_placement: ButtonLoadingPlacement::Start,
+        is_icon_only: false,
+        is_full_width: false,
+        has_start_content: false,
+        has_end_content: false,
+        has_custom_class_name: false,
+        has_custom_motion: false,
+    });
+    assert_eq!(
+        resolve_output_status(ready, ButtonType::Submit).as_attr(),
+        "submittable"
+    );
+    assert_eq!(
+        resolve_output_status(ready, ButtonType::Button).as_attr(),
+        "verified"
+    );
+}
+
+#[test]
+fn normalize_schema_json_input_enforces_typed_whitelist_boundary() {
+    let valid_schema = ButtonSchema {
+        schema_version: 1,
+        element_id: "btn_primary".to_string(),
+        intent: ButtonIntent::Primary,
+        action_signature: "submit()".to_string(),
+        requires_confirmation: false,
+    };
+    let valid_json = valid_schema.to_json();
+    let normalized_valid = normalize_schema_json_input(Some(valid_json.clone()));
+    assert_eq!(
+        normalized_valid.source,
+        ButtonSchemaInputSource::PropValidated
+    );
+    assert_eq!(normalized_valid.schema_json, Some(valid_json));
+
+    let normalized_missing = normalize_schema_json_input(None);
+    assert_eq!(normalized_missing.source, ButtonSchemaInputSource::Missing);
+    assert_eq!(normalized_missing.schema_json, None);
+
+    let normalized_invalid = normalize_schema_json_input(Some("<script>alert(1)</script>".into()));
+    assert_eq!(
+        normalized_invalid.source,
+        ButtonSchemaInputSource::PropRejected
+    );
+    assert_eq!(normalized_invalid.schema_json, None);
 }
 
 #[test]

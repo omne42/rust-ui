@@ -24,4 +24,15 @@ impl IllustratedMessageOrientation {
             }
         }
     }
+
+    pub const fn as_data_attr(self) -> &'static str {
+        match self {
+            IllustratedMessageOrientation::Vertical => "vertical",
+            IllustratedMessageOrientation::Horizontal => "horizontal",
+        }
+    }
 }
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

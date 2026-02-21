@@ -497,7 +497,7 @@
 - [ ] 明确 async runtime 解耦边界与 adapter
 - [ ] 定义测试金字塔落地清单与 E2E 选择器规范
 - [ ] 启动性能/内存 profiling workbench 与预算基线
-- [ ] 建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据
+- [ ] 建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据
 - [ ] 定义 Agent Contract 版本策略与迁移流程
 - [ ] 起草贡献与治理文档（Contributing + RFC 模板）
 - [ ] 建立 ADR 模板与目录规范

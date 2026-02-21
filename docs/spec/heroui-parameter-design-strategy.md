@@ -343,6 +343,571 @@
 - Source-first / Copy-Paste Ready：Dropdown playground 示例继续通过 `code_signal` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；新增 `e2e/tests/docs_app_dropdown_contract.spec.mjs` 回归 copyable 代码块与语义选择器稳定等待策略。
 - HeroUI 对齐结论：默认路径保持零门槛可运行，复杂能力按需显式开启；参数语义变更必须先同步本策略文档与 docs 页面。
 
+### Badge 同步记录（2026-02-20）
+
+- 参数模型同步：`Badge` 参数继续收敛为 `variant/class_name/lang/dir`，保持默认路径 `<Badge>"New"</Badge>` 与进阶路径显式参数开启；本轮未引入参数语义破坏性变更。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Badge", "badge", "Display", display::badge)` 暴露入口；`#/components/badge` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::badge()` 覆盖 `Hello World`、`Variant Matrix`、`Custom Class + Outline` 与 `Badge Workbench (Display + Config + Code + CSS Test)`，保持参数语义与实现一致。
+- Source-first / Copy-Paste Ready：Badge playground 代码继续通过 `code_signal` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，`components/badge/src/README.md` 同步标注源码落点与依赖前提。
+- HeroUI 对齐结论：保持“先用起来，再进阶”的路径顺序；参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选。
+
+### Alert 同步记录（2026-02-20）
+
+- 参数模型同步：`Alert` 参数主轴已统一为 `tone/fill/layout`，并保留 `variant` 兼容映射（`variant -> tone`）；其余参数聚焦 `is_hide_icon/hide_icon`、`title/description`、`icon_label`、`start_content/end_content`、`motion`、`class_name`、`lang/dir`，默认路径保持 `<Alert>...</Alert>` 可直接运行。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Alert", "alert", "Display", display::alert)` 暴露入口；`#/components/alert` 可索引访问，且 `components/alert/src/README.md` 提供等价入口说明。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::alert()` 已覆盖 `Hello World`、`Interactive Playground (展示 / Config / Code / CSS Test)`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Inline Layout`，与当前参数语义和默认值保持一致。
+- Source-first / Copy-Paste Ready：`Alert` docs 的 `Source-first / Copy-Paste Ready` 区块继续通过 `Snippet(copyable=true)` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 输出可运行片段，并同步真实源码落点与依赖前提（`component-alert`、`UiRoot`、`inject-css`），避免复制即报错。
+- HeroUI 对齐结论：保持“默认路径零门槛、进阶参数按需开启”的体验目标；参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选。
+
+### Avatar 同步记录（2026-02-20）
+
+- 参数模型同步：`Avatar` 参数主轴保持 `name/src/alt/size/class_name/lang/dir`，默认路径仍为零门槛 `<Avatar />`；本轮未引入破坏性参数语义变更，继续维持 `label source = alt -> name -> fallback` 与 `render state = image | fallback` 契约。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Avatar", "avatar", "Display", display::avatar)` 暴露入口；`#/components/avatar` 可索引访问，且 `components/avatar/src/README.md` 提供等价入门入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::avatar()` 覆盖 `Hello World`、`Image + Fallback`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Interactive Playground (Props + State Preview)` 与 `Source-first / Copy-Paste Ready` 区块，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：Avatar 文档通过 `Snippet(copyable=true)` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 提供可运行片段，并显式标注依赖前提（`component-avatar`、`UiRoot`、`inject-css`）与真实源码落点（`components/avatar/src/{mod,logic,view,styles}.rs`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 Avatar 参数模型与文档验收面同步，未引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：保持“先用起来，再进阶”的路径顺序；参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### AvatarGroup 同步记录（2026-02-20）
+
+- 参数模型同步：`AvatarGroup` 参数主轴保持 `items/max/size/aria_label/class_name/lang/dir`，默认路径仍为零门槛 `<AvatarGroup items=Vec::<AvatarGroupItem>::new() />`；本轮未引入破坏性参数语义变更，继续维持 `data-state = empty | stable | overflow` 与来源标记 `data-aria-label-source/data-class-source` 契约。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("AvatarGroup", "avatar-group", "Display", display::avatar_group)` 暴露入口；`#/components/avatar-group` 可索引访问，且 `components/avatar-group/src/README.md` 提供等价入门入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::avatar_group()` 覆盖 `Hello World`、`Overflow Stack`、`Sizes Without Overflow`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional (fallback=snapshot)`、`Interactive Playground (Props + State + Preview)` 与 `Source-first Starter (Copy-Paste Ready)`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：AvatarGroup 文档通过 `Snippet(copyable=true)` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 提供可运行片段，并显式标注依赖前提（`component-avatar-group`、`UiRoot`、`inject-css`）与真实源码落点（`components/avatar-group/src/{mod,logic,view,styles}.rs`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 AvatarGroup 参数模型与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ActionBar 同步记录（2026-02-20）
+
+- 参数模型同步：`ActionBar` 参数主轴保持 `selected_count + on_selected_count_change + default_selected_count`（受控/非受控）、`on_clear_selection`、`position`、`is_force_visible`、`selection_text`、`clear_label`、`motion`、`aria_label`、`class_name`、`lang/dir`；默认路径仍为 `<ActionBar default_selected_count=1>...</ActionBar>`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ActionBar", "action-bar", "Actions", ax::action_bar)` 暴露入口；`#/components/action-bar` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/actions_extra.rs::action_bar()` 已覆盖 `Hello World`、`Controlled vs Uncontrolled`、`State Matrix`、`Interactive Playground (Props + State + Spec Preview)` 与 `Source-first Copy-Paste` 区块，参数语义与默认值与实现保持一致。
+- Source-first / Copy-Paste Ready：ActionBar playground 继续通过 `code_signal + code_imports` 接入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档已显式标注真实源码落点与 feature 前提（`component-action_bar`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅是 ActionBar 参数/文档对齐与验收面补全，未引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorHandle 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorHandle` 参数主轴保持 `id_base/color` + 状态参数 `is_disabled/is_focused/is_dragging/is_loupe_visible` + 几何参数 `x_percent/y_percent` + 扩展参数 `aria_label/lang/dir/class_name/motion`；默认值继续锚定 `is_loupe_visible=true`、`x_percent=50.0`、`y_percent=50.0`、`motion=ColorHandleMotion::default()`，未引入破坏性命名漂移。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorHandle", "color-handle", "Forms", forms_color::color_handle)` 暴露入口；`#/components/color-handle` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_handle()` 已覆盖 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Disabled + Custom Class + Loupe Off`、`Parameter Matrix Workbench`、`Source-first / Copy-Paste Ready`，与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：ColorHandle playground 代码通过 `code_signal` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并在文档中标注真实源码落点 `components/color-handle/src/{view,logic,styles}.rs`，避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorHandle 参数模型与文档入口对齐，未引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorArea 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorArea` 参数主轴保持 `value + on_value_change + default_value`（受控/非受控）、`is_disabled`、`step`、`grid_size`、`preview_color`、`label/aria_label/x_axis_label/y_axis_label`、`class_name`、`motion`、`lang/dir`；默认路径继续为 `<ColorArea id_base=\"...\" />`，未引入破坏性命名漂移。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorArea", "color-area", "Forms", forms_color::color_area)` 暴露入口；`#/components/color-area` 可索引访问，且 `components/color-area/src/README.md` 提供等价入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_area()` 已覆盖 `Hello World`、`Controlled Grid Selection`、`Controlled vs Uncontrolled`、`State Matrix`、`Interactive Playground`、`Source-first / Copy-Paste Ready`，并保持 API 命名与默认值语义一致。
+- Source-first / Copy-Paste Ready：ColorArea playground 继续通过 `code_signal` + `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式给出源码落点与依赖前提，避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorArea 参数模型与文档入口同步，未引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorLoupe 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorLoupe` 参数主轴保持 `id_base/color/is_open/is_disabled/x_percent/y_percent/aria_label/class_name/lang/dir/output_state`；继续维持统一 `is_*` 命名并拒绝回退到 `open/disabled` 别名，默认路径保持 `<ColorLoupe id_base=\"...\" />` 可直接运行。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorLoupe", "color-loupe", "Forms", forms_color::color_loupe)` 暴露入口；`#/components/color-loupe` 可索引访问，且 `components/color-loupe/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 已覆盖 `Hello World`、`Open + Position Buckets`、`Disabled + Custom Label + Custom Class`、`Controlled vs Uncontrolled（N/A）`、`State Matrix`、`Streaming Optional / Snapshot`、`Interactive Playground`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：ColorLoupe playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档已显式标注依赖前提（`component-color_loupe + inject-css`、`UiRoot`）与源码落点（`components/color-loupe/src/{view,logic,styles}.rs`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorLoupe 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorPicker 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorPicker` 参数主轴保持 `value + on_value_change + default_value`、`selected_color + on_selected_change + default_selected_color`、`open + on_open_change + default_open`、`is_disabled (disabled legacy alias)`、`label/aria_label/class_name/lang/dir/motion`；默认值继续由 `logic.rs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorPicker", "color-picker", "Forms", forms_color::color_picker)` 暴露入口；`#/components/color-picker` 可索引访问，且 `apps/docs-app/src/pages/components/pages/forms_color.rs::color_picker()` 与 `components/color-picker/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_picker()` 已覆盖 `Hello World（默认路径）`、`State Matrix`、`Controlled vs Uncontrolled`、`Interactive Workbench (DX)` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义和默认值保持一致。
+- Source-first / Copy-Paste Ready：ColorPicker playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注真实源码落点（`components/color-picker/src/{mod,view,logic,styles,motion}.rs`）与 feature 前提（`component-color_picker`、按需 `inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorPicker 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorEditor 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorEditor` 参数主轴保持 `selected_color + on_selected_change + default_selected_color`、`format + on_format_change + default_format`、`is_disabled / is_alpha_channel_hidden`、`label/aria_label/class_name/lang/dir/motion`；默认值继续在 `logic.rs::normalize_default_inputs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorEditor", "color-editor", "Forms", forms_color::color_editor)` 暴露入口；`#/components/color-editor` 可索引访问，且 `apps/docs-app/src/pages/components/pages/forms_color.rs::color_editor()` 为对应文档页入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_editor()` 已覆盖 `Hello World（默认路径）`、`State Matrix`、`Controlled vs Uncontrolled`、`Interactive Playground`，并与当前参数语义和默认值保持一致。
+- Source-first / Copy-Paste Ready：ColorEditor playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档页提供 `Source-first / Copy-Paste Ready` 区块并标注真实源码落点与 feature 前提，避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorEditor 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorSlider 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorSlider` 参数主轴保持 `value + on_value_change + default_value`（受控/非受控）与 `channel`；范围与精度参数继续为 `min/max/step`，无障碍与视觉扩展参数保持 `label/aria_label/is_disabled(disabled legacy alias)/track_start_color/track_end_color/motion/class_name/lang/dir`；默认值由 `logic.rs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorSlider", "color-slider", "Forms", forms_color::color_slider)` 暴露入口；`#/components/color-slider` 可索引访问，且 `apps/docs-app/src/pages/components/pages/forms_color.rs::color_slider()` 与 `components/color-slider/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_slider()` 已覆盖 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled`、`Streaming Optional / Snapshot`、`Interactive Workbench (DX)` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义和默认值保持一致。
+- Source-first / Copy-Paste Ready：ColorSlider playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注真实源码落点（`components/color-slider/src/{mod,logic,view,styles,motion}.rs`）与 feature 前提（`component-color_slider`、按需 `inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorSlider 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorWheel 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorWheel` 参数主轴保持 `value + on_value_change + default_value`（受控/非受控）、`step`、`is_disabled`、`is_value_label_visible`、`label/aria_label`、`class_name`、`motion`、`lang/dir`；默认路径继续为 `<ColorWheel id_base=\"...\".to_string() />`，默认值归一保持在 `logic.rs`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorWheel", "color-wheel", "Forms", forms_color::color_wheel)` 暴露入口；`#/components/color-wheel` 可索引访问，且 `components/color-wheel/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_wheel()` 已覆盖 `Hello World`、`State Matrix`、`Parameter Matrix`、`Controlled vs Uncontrolled`、`Streaming Optional / Snapshot`、`Interactive Workbench (DX)` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义和默认值保持一致。
+- Source-first / Copy-Paste Ready：ColorWheel playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注真实源码落点 `components/color-wheel/src/{mod,logic,view,styles,motion}.rs` 与 feature 前提（`component-color_wheel`、按需 `inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorWheel 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorThumb 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorThumb` 参数主轴保持 `id_base/color/is_disabled/is_focused/is_dragging/x_percent/y_percent/is_loupe_visible/motion/aria_label/aria_value_text/class_name/lang/dir`；默认值与来源标记继续由 `components/color-thumb/src/logic.rs::resolve_component_state` 与 `normalize_position_percent` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorThumb", "color-thumb", "Forms", forms_color::color_thumb)` 暴露入口；`#/components/color-thumb` 可索引访问，且 `apps/docs-app/src/pages/components/pages/forms_color.rs::color_thumb()` 维持 `title="ColorThumb"` 与 `slug="color-thumb"`。
+- 组件文档同步：`components/color-thumb/src/README.md` 提供等价文档入口，保留 `Hello World -> 常见用法 -> 进阶参数` 的新手优先路径。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_thumb()` 已覆盖 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Interactive Workbench (DX)` 与 `Source-first Starter (Copy-Paste Ready)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：ColorThumb playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注真实源码落点 `components/color-thumb/src/{mod,logic,view,styles,motion}.rs` 与 feature 前提（`component-color_thumb`、按需 `inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorThumb 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorSwatch 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorSwatch` 维持 display color preview primitive 定位，参数主轴保持 `color/color_name/size/rounding/shape/is_bordered/is_decorative/aria_label/class_name/lang/dir/motion`，继续遵循统一 `is_*` 状态命名；本轮无破坏性别名漂移。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorSwatch", "color-swatch", "Display", display_extra::color_swatch)` 暴露入口；`#/components/color-swatch` 可索引访问，且 `components/color-swatch/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch()` 已覆盖 `Hello World`、`Interactive Playground`、`Comparison Matrix`、`Controlled vs Uncontrolled Contrast (N/A)`、`Streaming / Snapshot Contract` 与 `Source-first Starter`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：ColorSwatch playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注真实源码落点 `components/color-swatch/src/{mod,logic,view,styles,motion}.rs` 与 feature 前提（`component-color_swatch`、按需 `inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorSwatch 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ColorSwatchPicker 同步记录（2026-02-20）
+
+- 参数模型同步：`ColorSwatchPicker` 维持单选色板 primitive 定位，参数主轴保持 `swatches`、`selected_color + on_selected_change + default_selected_color`、`is_disabled`、`is_bordered`、`shape`、`rounding`、`aria_label/class_name/lang/dir`、`motion`，命名继续遵循统一 `is_*` / `on_*` / `default_*` 契约，不引入平行别名。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ColorSwatchPicker", "color-swatch-picker", "Display", display_extra::color_swatch_picker)` 暴露入口；`#/components/color-swatch-picker` 可索引访问，且 `components/color-swatch-picker/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra.rs::color_swatch_picker()` 已覆盖 `Hello World`、`Basic Selection`、`Transparency + Disabled + Custom Class`、`State Matrix`、`Controlled vs Uncontrolled Contrast`、`Streaming / Snapshot Contract`、`Interactive Playground` 与 `Source-first Starter`，并与当前参数语义和默认值保持一致。
+- Source-first / Copy-Paste Ready：ColorSwatchPicker playground 继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注真实源码落点 `components/color-swatch-picker/src/{mod,logic,view,styles,motion}.rs` 与 feature 前提（`component-color_swatch_picker`、按需 `inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 ColorSwatchPicker 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ContextualHelp 同步记录（2026-02-20）
+
+- 参数模型同步：`ContextualHelp` 参数主轴保持 `variant/placement/open + on_open_change + default_open/is_disabled/aria_label/class_name/lang/dir/id/motion`；布尔禁用语义以 `is_disabled` 为主命名，`disabled` 仅作兼容别名，归一优先级保持 `is_disabled > disabled > false`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ContextualHelp", "contextual-help", "Overlays", overlays::contextual_help)` 暴露入口；`#/components/contextual-help` 可索引访问，且 `components/contextual-help/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/overlays.rs::contextual_help()` 已覆盖 `Hello World (Default API)`、`Info Variant + Controlled`、`Workbench (Display + Config + Code + CSS Test)`、`API Matrix`、`State Matrix` 与 `Streaming/Snapshot Display`，参数语义与默认值与实现保持一致。
+- Source-first / Copy-Paste Ready：文档页提供 `Source-first / Copy-Paste Ready` 区块与 `Snippet(copyable=true)`；Playground 代码继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，且显式给出源码落点与 feature 前提（`component-contextual_help`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮为参数语义命名与文档验收面同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### FieldLabel 同步记录（2026-02-21）
+
+- 参数模型同步：`FieldLabel` 维持 form primitive 定位，参数主轴保持 `text/for_id/is_required/is_disabled/tone/required_indicator/aria_label/class_name/lang/dir`；命名继续遵循统一 `is_*` 状态前缀，不引入平行别名。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("FieldLabel", "field-label", "Forms", fxl::field_label)` 暴露入口；`#/components/field-label` 可索引访问，且 `components/field-label/src/README.md` 提供等价入门文档。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs` 已覆盖 `Hello World (Default API)`、`Tone + Required`、`Custom Indicator + Aria + Class`、`Controlled vs Uncontrolled (N/A)`、`Streaming / Snapshot Contract`、`Workbench (Display + Config + Code + CSS Test)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：FieldLabel playground 代码继续通过 `code_imports=FIELD_LABEL_DOC_IMPORTS` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 输出可运行片段，并在 Workbench 标注 `test_source_path` 指向真实源码落点，避免复制即报错。
+- 研究文档补充判定：本轮仅为 FieldLabel 参数模型与组件文档同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Label 同步记录（2026-02-21）
+
+- 参数模型同步：`Label` 维持 form primitive 定位，参数主轴保持 `text/for_id/is_required/is_disabled/emphasis/required_indicator/class_name/lang/dir/motion`；命名继续遵循统一 `is_*` 状态前缀，不引入平行别名。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Label", "label", "Forms", forms_extra::label)` 暴露入口；`#/components/label` 可索引访问，且 `components/label/src/README.md` 提供等价入门文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已覆盖 `Hello World`、`Interactive Playground`、`Emphasis + Required`、`Custom Indicator + Class`、`Controlled vs Uncontrolled (N/A for Label)`、`Streaming Optional (fallback=snapshot)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：Label playground 代码继续通过 `code_imports=label_imports.clone()` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 输出可运行片段；文档显式标注真实源码落点 `components/label/src/{mod,logic,view,styles,motion}.rs` 与 feature 前提（`component-label`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 Label 参数模型与组件文档同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### FieldError 同步记录（2026-02-20）
+
+- 参数模型同步：`FieldError` 维持 form feedback primitive 定位，参数主轴保持 `tone/is_visible/is_disabled/is_icon_visible/message/aria_label/class_name/lang/dir`；兼容别名 `visible/disabled/show_icon` 仅作 legacy 输入，归一优先级保持 `is_visible > visible`、`is_disabled > disabled`、`is_icon_visible > show_icon`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("FieldError", "field-error", "Forms", forms_extra::field_error)` 暴露入口；`#/components/field-error` 可索引访问，且 `components/field-error/src/README.md` 提供等价入门文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_extra.rs::field_error()` 已覆盖 `Hello World (Snapshot Baseline)`、`State Matrix (Visible / Hidden / Disabled)`、`Controlled vs Uncontrolled (Stateless Contract)`、`Interactive Playground (Props + State + Source Markers)`、`Source-first / Copy-Paste Ready`，并与当前参数语义保持一致。
+- 研究文档补充判定：本轮为参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ErrorMessage 同步记录（2026-02-21）
+
+- 参数模型同步：`ErrorMessage` 维持 form feedback primitive 定位，参数主轴保持 `text/tone/is_disabled/is_truncated/element/aria_label/class_name/lang/dir/motion`；状态命名以 `is_*` 为主，`disabled/truncate` 仅作兼容别名并保持 `is_disabled/is_truncated` 优先归一语义。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ErrorMessage", "error-message", "Forms", forms_extra::error_message)` 暴露入口；`#/components/error-message` 可索引访问，且 `components/error-message/src/README.md` 提供等价入门文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_extra.rs::error_message()` 已覆盖 `Hello World (Default API)`、`Tone Variants`、`Truncate + Disabled + Element + Custom Class`、`Display Comparisons (Tone / State / Element)`、`Controlled / Uncontrolled (Input-Driven N/A)`、`Streaming Optional + Snapshot Fallback` 与 `Config + Code + CSS Test Workbench`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：文档页提供 `data-slot="error-message-source-first"` 区块与 `Snippet(copyable=true)`；Playground 代码继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并显式给出源码落点与 feature 前提（`component-error_message`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮为 ErrorMessage 参数语义命名统一与文档验收面对齐，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ErrorView 同步记录（2026-02-20）
+
+- 参数模型同步：`ErrorView` 维持 display feedback primitive 定位，参数主轴保持 `is_invalid/tone/is_compact/is_bordered/message/aria_label/class_name/icon/actions/motion/lang/dir`；本轮未引入新的参数语义变更，默认路径仍为零门槛 `<ErrorView is_invalid=true message=... />`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ErrorView", "error-view", "Display", display_extra::error_view)` 暴露入口；`#/components/error-view` 可索引访问，且 `components/error-view/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra.rs::error_view()` 已覆盖 `Hello World`、`State Matrix`、`Interactive Playground`、`Source-first Starter (Copy-Paste Ready)`、`Streaming / Snapshot Contract`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：文档页提供 `data-slot="error-view-source-first-contract"` 区块；Playground 代码继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并显式给出源码落点与 feature 前提（`component-error_view`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮为参数模型与文档入口同步校验，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Empty 同步记录（2026-02-20）
+
+- 参数模型同步：`Empty*` 继续保持 display composition primitive 定位，公开参数保持 `class_name/lang/dir`（各槽位）与 `variant`（`EmptyMedia`）；本轮未引入破坏性参数语义变更，默认路径仍为零门槛组合 `<Empty><EmptyHeader><EmptyTitle>...</EmptyTitle></EmptyHeader></Empty>`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `display_extra_empty_catalog::{EMPTY_DOC, EMPTY_HEADER_DOC, EMPTY_MEDIA_DOC, EMPTY_TITLE_DOC, EMPTY_DESCRIPTION_DOC, EMPTY_CONTENT_DOC}` 暴露入口；`#/components/empty` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra_empty.rs` 已覆盖 `Hello World`、`Interactive Playground`、`Parameter Matrix`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming/Snapshot` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`Empty` playground 代码继续通过 `code_signal + code_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档同步给出 feature 前提（`component-empty`）与源码落点（`components/empty/src/{mod,logic,view,styles}.rs`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 Empty 文档验收面与对标策略同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### EmptyState 同步记录（2026-02-20）
+
+- 参数模型同步：`EmptyState` 维持 display primitive 定位，参数主轴保持 `title/description/tone/align/is_compact/is_bordered/aria_label/class_name/icon/actions/motion/lang/dir`；命名遵循统一 `is_*` 规则，不引入平行别名漂移。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("EmptyState", "empty-state", "Display", display_extra::empty_state)` 暴露入口；`#/components/empty-state` 可索引访问，且 `components/empty-state/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra.rs::empty_state()` 已覆盖 `Hello World (Default Path)`、`State Matrix`、`Tone + Alignment + Actions`、`Compact + Bordered + Custom Class`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Interactive Playground` 与 `Source-first Starter (Copy-Paste Ready)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：文档继续通过 `code_signal + code_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="empty-state-source-first-contract"` 区块显式给出源码落点与 feature 前提（`component-empty_state`、`inject-css` + `UiRoot`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 EmptyState 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Item 同步记录（2026-02-21）
+
+- 参数模型同步：`Item` 参数主轴保持 `variant/size/class_name/lang/dir`，默认值继续由 `logic.rs` 的 `normalize_item_variant/normalize_item_size`（`unwrap_or_default`）统一归一；本轮未引入破坏性参数语义漂移。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages/collections_item_catalog.rs` 通过 `ITEM_DOC`（`slug = "item"`）暴露入口，`apps/docs-app/src/pages/components/pages.rs` 保持 `collections_item_catalog::ITEM_DOC` 聚合，`#/components/item` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/collections_item_primitives.rs` 已覆盖 `Hello World`、`Media + Content + Actions`、`Header + Footer Layout`、`State Matrix (Variant + Size)`、`Controlled vs Uncontrolled (N/A)`、`Streaming / Snapshot Display`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：item playground 继续通过 `code_signal + code_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注源码落点与 `component-item` feature 前提，避免复制即报错。
+- 研究文档补充判定：本轮仅为 Item 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### HelpText 同步记录（2026-02-20）
+
+- 参数模型同步：`HelpText` 参数主轴保持 `tone/is_invalid/is_disabled/is_error_icon_visible/description/error_message/aria_label/motion/class_name/lang/dir`；命名统一收敛到 `is_*` 轴，旧别名 `invalid/disabled/show_error_icon` 已移除并由文档迁移说明承接。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("HelpText", "help-text", "Forms", forms_extra::help_text)` 暴露入口；`#/components/help-text` 可索引访问，且 `components/help-text/src/README.md` 提供等价入门入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_extra.rs::help_text()` 已覆盖 `Hello World (Default API)`、`State Matrix (Description / Error / Disabled)`、`Controlled vs Uncontrolled (Stateless Contract)`、`Interactive Playground` 与 `Source-first / Copy-Paste Ready`，参数语义与默认值与实现保持一致。
+- Source-first / Copy-Paste Ready：HelpText playground 继续通过 `code_imports=help_text_imports.clone()` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 输出可运行片段，并显式给出源码落点（`components/help-text/src/{mod,logic,view,styles,motion}.rs`），避免复制即报错。
+- 研究文档补充判定：本轮为参数语义命名与文档验收面对齐，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：保持“默认路径简洁、进阶参数按需开启”的体验目标；参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Icon 同步记录（2026-02-21）
+
+- 参数模型同步：`Icon` 参数主轴保持 `size/tone/is_disabled/is_decorative/aria_label/class_name/lang/dir/slot`；命名继续遵循统一 `is_*` 状态前缀与 `aria_*` 语义命名，不引入平行别名或破坏性回退。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Icon", "icon", "Display", display_extra::icon)` 暴露入口；`#/components/icon` 可索引访问，且 `components/icon/src/README.md` 提供等价入门文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra.rs::icon()` 已覆盖 `Hello World (Default Path)`、`Size + Tone Matrix`、`Accessible + Disabled + Custom Class`、`Workbench (Display + Config + Code + CSS Test)` 与 `Source-first Starter (Copy-Paste Ready)`，参数语义与默认路径保持一致。
+- Source-first / Copy-Paste Ready：`icon` 文档通过 `code_imports=icon_code_imports` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 输出可运行片段（含 `use leptos::prelude::*;`、`use ui_components::{Icon, IconSize, IconTone};`）；源码落点固定为 `components/icon/src/styles.rs` 并在文档中声明依赖前提（`ui_components`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Icon` 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### ComboBox 同步记录（2026-02-20）
+
+- 参数模型同步：`ComboBox` 参数主轴保持 `items + selected_index + set_selected_index`，并维持受控/非受控 open 轴 `is_open + on_open_change + default_open`。`is_disabled/disabled_indices/placeholder/empty_message/class_name/motion` 继续保持统一命名与显式可配置路径，不引入破坏性参数别名。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ComboBox", "combo-box", "Collections", collections::combo_box)` 暴露入口；`#/components/combo-box` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/collections.rs::combo_box()` 保持 `Hello World (Uncontrolled)`、`展示：多场景对比`、`Workbench（展示 + Config + Code + CSS Test）`、`Streaming/Snapshot Display` 与 `Source-first / Copy-Paste Ready`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：ComboBox Playground 代码继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并在文档中显式给出源码落点与 feature 前提，避免复制即报错。
+- 研究文档补充判定：本轮为 ComboBox 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Command 同步记录（2026-02-21）
+
+- 参数模型同步：`Command` 参数主轴保持 `id_base/groups` 必填 + `query/on_query_change/default_query` 受控/非受控成对轴，并维持 `on_action/is_disabled/motion/placeholder/empty_label/aria_label/lang/dir/class_name` 作为按需扩展参数；命名继续遵循统一 `is_*`、`on_*`、`default_*` 约定，不引入同义别名漂移。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Command", "command", "Collections", collections_command::command)` 暴露入口；`#/components/command` 可索引访问，且 `components/command/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/collections_command.rs::command()` 已覆盖 `Hello World (Default API)`、`State Matrix`、`Controlled vs Uncontrolled`、`Interactive Playground`、`Source-first / Copy-Paste Ready` 与 `Streaming / Snapshot Contract`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：`command` 文档继续通过 `code_signal + code_imports=COMMAND_DOC_IMPORTS` 接入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；源码落点固定为 `components/command/src/{mod,logic,view,styles,motion}.rs`，并显式给出 feature 前提（`component-command`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Command` 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### CommandDialog 同步记录（2026-02-20）
+
+- 参数模型同步：`CommandDialog` 参数主轴保持 `open + on_open_change + default_open`、`close_on_action`、`is_disabled/disabled`、`on_action`、`placeholder/empty_label/aria_label`、`command_motion/overlay_motion`、`class_name`；默认值继续由 `logic.rs` 统一归一（`DEFAULT_CLOSE_ON_ACTION`、`DEFAULT_DISABLED`、`DEFAULT_DEFAULT_OPEN`），不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("CommandDialog", "command-dialog", "Collections", collections_command::command_dialog)` 暴露入口；`#/components/command-dialog` 可索引访问，且 `components/command-dialog/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/collections_command.rs::command_dialog()` 已覆盖 `Hello World (Default API)`、`State Matrix`、`Controlled Open + Action Close`、`State + Source Markers`、`Controlled vs Uncontrolled`、`Streaming / Snapshot Contract`、`Workbench` 与 `Source-first Copy-Paste`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：`command-dialog` playground 继续通过 `code_signal + code_imports=COMMAND_DIALOG_DOC_IMPORTS` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注源码落点与 feature 前提（`component-command_dialog`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮为 CommandDialog 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Keyboard 同步记录（2026-02-20）
+
+- 参数模型同步：`Keyboard` 维持 display primitive 定位，参数主轴保持 `tone/is_compact/aria_label/class_name`；命名继续遵循统一 `is_*` 规则（仅 `is_compact`），默认值由 `components/keyboard/src/logic.rs::normalize_root_state` 统一归一（`tone.unwrap_or_default()`、`is_compact.unwrap_or(false)`、`normalize_aria_label(...)`、`normalize_optional_text(...)`）。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Keyboard", "keyboard", "Display", display_extra::keyboard)` 暴露入口；`#/components/keyboard` 可索引访问，且 `components/keyboard/src/README.md` 提供等价文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra.rs::keyboard()` 已覆盖 `Hello World (Default Path)`、`State Matrix (Tone / Compact / Source Markers)`、`Interactive Playground (展示 / Config / Code / CSS Test)` 与 `Source-first Starter (Copy-Paste Ready)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：Keyboard playground 代码继续通过 `code_signal + code_imports` 接入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；README 显式标注源码落点与 feature 前提（`component-keyboard`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 Keyboard 参数模型与文档验收面对齐，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：保持“先用起来，再进阶”的路径顺序；参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Form 同步记录（2026-02-20）
+
+- 参数模型同步：`Form` 维持表单上下文容器定位，参数主轴保持 `is_disabled/is_read_only/is_required/label_position/label_align/class_name/lang/dir`；默认值继续由 `components/form/src/logic.rs::resolve_props` 统一归一（`is_* = false`、`label_position = Top`、`label_align = Start`），不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Form", "form", "Forms", forms::form)` 暴露入口；`#/components/form` 可索引访问，且 `components/form/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms.rs::form()` 已覆盖 `Hello World（默认路径）`、`Interactive Playground (展示 / Config / Code / CSS Test)`、`Comparison Matrix (Default / Required / Disabled / ReadOnly)`，并与当前参数语义和默认值保持一致。
+- Source-first / Copy-Paste Ready：`Form` playground 代码继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注 `test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/form/src/styles.rs"`，避免复制即报错与源码落点漂移。
+- 研究文档补充判定：本轮仅为 Form 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Legend 同步记录（2026-02-21）
+
+- 参数模型同步：`Legend` 继续保持语义标题组件定位，参数主轴保持 `text/tone/is_required/is_disabled/required_indicator/class_name/lang/dir/motion`；默认值由 `components/legend/src/logic.rs` 统一归一（`DEFAULT_IS_REQUIRED = false`、`DEFAULT_IS_DISABLED = false`），不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Legend", "legend", "Forms", forms_groups_extra::legend)` 暴露入口；`#/components/legend` 可索引访问，且 `components/legend/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::legend()` 已覆盖 `Hello World`、`Required Legend`、`Tone + Custom Indicator + Disabled`、`Controlled vs Default (Comparison)`，与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：Legend playground 代码继续通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并在 docs 页面显式给出源码落点与 feature 前提（`component-legend` + 可选 `inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 Legend 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Kbd 同步记录（2026-02-20）
+
+- 参数模型同步：`Kbd` 维持 display primitive 定位，参数主轴保持 `size/keys/class_name/children`；默认值继续由 `components/kbd/src/logic.rs` 统一归一（`normalize_size -> unwrap_or_default()`、`normalize_optional_text(keys/class_name)`），不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Kbd", "kbd", "Display", display::kbd)` 暴露入口；`#/components/kbd` 可索引访问，且 `components/kbd/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::kbd()` 已覆盖 `Hello World (Default API)`、`State Matrix (Size + Keys + Label-only)`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)` 与 `Workbench (Display + Config + Code + CSS Test)`，与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`kbd` playground 代码继续通过 `code_signal + code_imports=kbd_imports` 接入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并在 `data-slot="kbd-source-first"` 区块显式给出源码落点与 feature/style 前提（`component-kbd`、`UiRoot + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 Kbd 参数模型与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Meter 同步记录（2026-02-20）
+
+- 参数模型同步：`Meter` 维持 display primitive 定位，参数主轴保持 `id`（必填）+ `label/aria_label/lang/dir/value/min/max/variant/size/motion/is_value_label_visible/show_value_label/value_label/class_name`；默认值继续由 `components/meter/src/logic.rs::normalize_inputs` 统一归一（`DEFAULT_MIN=0.0`、`DEFAULT_MAX=100.0`、`DEFAULT_SHOW_VALUE_LABEL=true`），并保持 `is_value_label_visible > show_value_label` 的兼容优先级，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Meter", "meter", "Display", display::meter)` 暴露入口；`apps/docs-app/src/pages/components/pages/display.rs::meter()` 通过 `slug="meter"` 可索引访问，且 `components/meter/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::meter()` 已覆盖 `Hello World (Default API)`、`Variant + Size Matrix`、`Custom Label + Motion + Class`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Workbench (Display + Config + Code + CSS Test)`、`State Matrix`、`Parameter Matrix` 与 `Source-first / Copy-Paste Ready`，参数语义与当前实现保持一致。
+- 研究文档补充判定：本轮仅为 Meter 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Code 同步记录（2026-02-20）
+
+- 参数模型同步：`Code` 维持 display primitive 定位，参数主轴保持 `variant/class_name/lang/dir/children`；默认值继续由 `components/code/src/logic.rs::resolve_view_state` 统一归一（`variant.unwrap_or_default()`、`normalize_optional_text(input.class_name)`），不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Code", "code", "Display", display::code)` 暴露入口；`apps/docs-app/src/pages/components/pages/display.rs::code()` 通过 `slug="code"` 可索引访问，且 `components/code/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::code()` 已覆盖 `Hello World (Default API)`、`Variant Matrix`、`Interactive Playground`、`State Matrix`、`Parameter Matrix` 与 `Source-first Starter (Copy-Paste Ready)`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：`Code` 文档继续通过 `code_signal + code_imports` 接入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并在 `data-slot="code-source-prerequisites"` 显式给出 `component-code + inject-css + UiRoot` 前提，避免复制即报错。
+- 研究文档补充判定：本轮仅为 Code 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### CodeBlock 同步记录（2026-02-20）
+
+- 参数模型同步：`CodeBlock` 参数主轴保持 `code` 必填 + `label/language/class_name/lang/dir`，并维持受控/非受控复制状态轴 `is_copied + on_copied_change + default_copied`；复制开关继续以 `is_copyable` 为主命名，`copyable` 仅作兼容别名归一。AI 输出轴保持 `output_mode/output_status` 显式可选，默认回落 `Snapshot + Validated`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("CodeBlock", "code-block", "Display", display::code_block)` 暴露入口；`apps/docs-app/src/pages/components/pages/display.rs::code_block()` 维持 `title="CodeBlock"` 与 `slug="code-block"` 可索引访问；`components/code-block/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::code_block()` 已覆盖 `Hello World (Default API)`、`State Matrix`、`Controlled vs Uncontrolled (Copied State)`、`Streaming Optional / Snapshot`、`Workbench (Display + Config + Code + CSS Test)` 与 `Source-first Starter (Copy-Paste Ready)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：CodeBlock playground 代码继续通过 `code_signal + code_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="code-block-source-first"` 区块显式给出 feature/style 前提（`component-code_block`、`UiRoot + inject-css`）与真实源码落点，避免复制即报错。
+- 研究文档补充判定：本轮仅为 `CodeBlock` 参数模型与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Description 同步记录（2026-02-20）
+
+- 参数模型同步：`Description` 参数主轴保持 `text/tone/is_disabled/is_truncated/element/aria_label/class_name/lang/dir`；状态命名统一使用 `is_*`，并由 `components/description/src/logic.rs` 与 `crates/ui-state-primitives/src/description.rs` 统一归一默认值与来源标记。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 通过 `description()` 暴露 `slug="description"` 页面入口；`components/description/src/README.md` 提供等价组件文档入口，保证可索引可访问。
+- 示例矩阵同步：文档页持续覆盖 `Hello World`、`State Matrix (Tone / Disabled / Truncate)`、`Controlled vs Uncontrolled (Stateless Contract)`、`Workbench` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：Description playground 代码通过 `code_imports=description_imports.clone()` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式给出源码落点（`components/description/src/{mod,logic,view,styles}.rs`）与 feature 前提（`component-description`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮为 Description 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### IllustratedMessage 同步记录（2026-02-20）
+
+- 参数模型同步：`IllustratedMessage` 维持 display empty-state primitive 定位，参数主轴保持 `title/description/illustration/actions/orientation/motion/class_name/lang/dir`；本轮未引入破坏性参数语义变更，默认值与来源归一继续由 `components/illustrated-message/src/logic.rs::resolve_view_model` 统一收敛（`missing/blank -> hidden`）。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("IllustratedMessage", "illustrated-message", "Display", display::illustrated_message)` 暴露入口；`#/components/illustrated-message` 可索引访问，且 `components/illustrated-message/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display.rs::illustrated_message()` 已覆盖 `Hello World (Default API)`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)` 与 `Interactive Playground (Props + State + Preview)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`illustrated_message` 文档通过 `code_signal + code_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="illustrated-message-source-first"` 区块显式给出源码落点与 feature/style 前提（`component-illustrated_message`、`UiRoot + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮为参数模型与组件文档入口同步校验，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Direction 同步记录（2026-02-20）
+
+- 参数模型同步：`DirectionProvider` 继续保持语义 provider 定位，参数主轴为 `direction/dir/lang/class_name`；归一优先级保持 `direction > dir > DirectionMode::default()`，并通过 `data-direction-source=direction|dir-alias|default` 暴露来源契约。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `layout_extra_direction::DIRECTION_PROVIDER_DOC` 暴露 `slug="direction-provider"`；`apps/docs-app/src/pages/components/test/mod.rs` 保持 `"direction" => &["direction-provider"]` 可检索映射。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/layout_extra_direction.rs` 已覆盖 `Hello World`、`State Matrix`、`Interactive Playground`、`Source-first / Copy-Paste Ready` 与参数/默认值规则，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：Direction playground 代码继续通过 `code_signal + code_imports=DIRECTION_COPY_IMPORTS` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式给出源码落点与 feature 前提（`component-direction`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `DirectionProvider` 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Field 同步记录（2026-02-20）
+
+- 参数模型同步：`Field` 参数主轴保持 `orientation/tone/is_required/is_disabled/is_invalid`，并保留兼容别名 `required/disabled/invalid`；内容与可访问性参数保持 `label/description/error_message/aria_label/lang/dir/class_name/motion`。默认值与优先级统一由 `components/field/src/logic.rs::{resolve_is_required,resolve_is_disabled,resolve_is_invalid}` 归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Field", "field", "Forms", forms_extra::field)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms_extra.rs::field()` 维持 `title="Field"` 与 `slug="field"` 可索引访问；`components/field/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_extra.rs::field()` 已覆盖 `Hello World (Default API)`、`State Matrix (Required / Invalid / Disabled)`、`Controlled vs Uncontrolled (Stateless Contract)`、`Streaming Optional (fallback=snapshot)`、`Workbench (Display + Config + Code + CSS Test)` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`Field` docs 继续通过 `code_imports=field_imports + apps/docs-app/src/playground.rs::compose_copy_ready_code` 保障复制代码 import-ready；`data-slot="field-source-first"` 区块明确 `Show code + Copy` 路径、源码落点 `components/field/src/{mod,logic,view,styles,motion}.rs` 与依赖前提 `component-field + inject-css`，避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Field` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Fieldset 同步记录（2026-02-20）
+
+- 参数模型同步：`Fieldset` 参数主轴保持 `orientation/tone/is_required/default_is_required/on_is_required_change/is_disabled/default_is_disabled/on_is_disabled_change/is_invalid/default_is_invalid/on_is_invalid_change`，并维持 `legend/description/error_message/actions/aria_label/class_name/lang/dir/motion` 语义轴；默认值与来源标记统一由 `components/fieldset/src/logic.rs::resolve_view_state` 与 `ui-state-primitives::fieldset::normalize_boolean_axis` 收敛。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Fieldset", "fieldset", "Forms", forms_extra::fieldset)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset()` 维持 `title="Fieldset"` 与 `slug="fieldset"` 可索引访问；`components/fieldset/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/forms_extra.rs::fieldset()` 已覆盖 `Hello World`、`Legend + Description`、`Horizontal + Invalid + Actions`、`Controlled vs Uncontrolled (Snapshot Contrast)`、`Streaming Optional (fallback=snapshot)`、`Fieldset Workbench (Display + Config + Code + CSS Test)` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`Fieldset` 文档通过 `Show code + copy` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 保持 import-ready；`data-slot="fieldset-source-first"` 区块明确源码落点与 feature 前提（`component-fieldset + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Fieldset` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### FormField 同步记录（2026-02-20）
+
+- 参数模型同步：`FormField` 参数主轴保持 `is_selected/default_selected/on_selected_change`、`is_disabled/is_invalid`、`tone/indicator_variant/indicator_placement`、`label/description/error_message/aria_label/class_name/lang/dir`；默认值与来源标记继续由 `components/form-field/src/logic.rs::normalize_selected_axis + resolve_state` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("FormField", "form-field", "Forms", forms_groups_extra::form_field)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::form_field()` 维持 `title="FormField"` 与 `slug="form-field"` 可索引访问；`components/form-field/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`forms_groups_extra.rs::form_field()` 已覆盖 `Hello World（默认路径）`、`Switch Indicator + Description`、`Checkbox Indicator + Quiet + Invalid/Disabled`、`Controlled vs Default (Comparison)`、`FormField Workbench (Display + Config + Code + CSS Test)`、`Streaming Optional (fallback=snapshot)` 与 `Source-first / Copy-Paste Ready`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`FormField` docs 继续通过 `code_signal + apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="form-field-source-paths"` 与 `data-slot="form-field-source-prerequisites"` 明确源码落点和依赖前提（`component-form_field + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `FormField` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### FlipCard 同步记录（2026-02-20）
+
+- 参数模型同步：`FlipCard` 参数主轴保持 `front/back/is_flipped/default_is_flipped/on_is_flipped_change/is_disabled/flip_mode/is_flip_on_hover/motion/class_name/id/lang/dir`，并保留兼容别名 `default_flipped/disabled/flip_on_hover`；默认值与优先级继续由 `components/flip-card/src/logic.rs::normalize_flipped_axis` 与 `crates/ui-state-primitives/src/flip_card.rs::normalize_behavior_flags` 统一归一。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("FlipCard", "flip-card", "Display", display_extra::flip_card)` 暴露入口；`apps/docs-app/src/pages/components/pages/display_extra.rs::flip_card()` 维持 `title="FlipCard"` 与 `slug="flip-card"` 可索引访问；`components/flip-card/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`display_extra.rs::flip_card()` 已覆盖 `Hello World (Default Path)`、`State Matrix (Default / Hover / Disabled / Dramatic Motion)`、`Controlled vs Uncontrolled Contrast`、`Streaming / Snapshot Contract`、`Source-first Starter (Copy-Paste Ready)` 与 `Interactive Playground (展示 / Config / Code / CSS Test)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`FlipCard` 文档继续通过 `code_signal + code_imports=flip_card_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports；`data-slot="flip-card-source-first-contract"` 区块明确源码落点与依赖前提（`component-flip_card + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### DateInputGroup 同步记录（2026-02-20）
+
+- 参数模型同步：`DateInputGroup` 参数主轴保持 `variant/is_full_width/is_disabled/is_invalid/is_segmented/aria_label/lang/dir/class_name/prefix/suffix/motion`，并继续通过 `components/date-input-group/src/view.rs` 的 `logic::resolve_*` 归一映射到 `ui-state-primitives::date_input_group` 状态轴（`variant/width/status/segmented`）。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("DateInputGroup", "date-input-group", "Forms", forms_groups::date_input_group)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms_groups.rs::date_input_group()` 维持 `title="DateInputGroup"` 与 `slug="date-input-group"` 可索引访问。
+- 示例矩阵同步：`forms_groups.rs::date_input_group()` 已覆盖 `Hello World (Default API)`、`State Matrix (Default / Prefix-Suffix / Secondary+Invalid)`、`Controlled vs Uncontrolled (Child Field Axis)`、`Streaming / Snapshot Contract` 与 `Source-first Starter (Copy-Paste Ready)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`DateInputGroup` 文档继续通过 `code_signal + code_imports=date_input_group_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports；`data-slot="date-input-group-source-first"` 区块明确源码落点与依赖前提（`component-date_input_group + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `DateInputGroup` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### NativeSelect 同步记录（2026-02-20）
+
+- 参数模型同步：`NativeSelect` 参数主轴保持 `selected_index/on_selected_index_change/default_selected_index`、`is_disabled/is_required/is_invalid/size`、`aria_label/name/placeholder/class_name/lang/dir`；命名继续遵循统一 `is_* / on_* / default_*` 契约，不引入平行别名。
+- 受控/非受控同步：默认路径保持零接线 `<NativeSelect id_base=... options=... />`；进阶路径显式走 `selected_index + on_selected_index_change` 与 `default_selected_index`，避免半受控隐式写回。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("NativeSelect", "native-select", "Forms", forms_native::native_select)` 暴露目录入口；`apps/docs-app/src/pages/components/pages/forms_native.rs::native_select()` 维持 `title="NativeSelect"` 与 `slug="native-select"` 可索引访问。
+- 组件文档同步：`components/native-select/src/README.md` 已与 docs-app 对齐，保留 `Hello World`、`Controlled + Placeholder`、`State Matrix` 与 API 表，保证“先用起来，再进阶”路径可用。
+- 研究文档补充判定：本轮仅为参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 `components/native-select/src/README.md`、docs 入口，再推进实现；接口变更场景下禁止“仅代码更新无文档更新”合入。
+
+### Image 同步记录（2026-02-20）
+
+- 参数模型同步：`Image` 参数主轴保持 `src/alt/fallback_src/is_skeleton_disabled/is_blurred/is_zoomed/radius/shadow/motion/class_name/lang/dir`；默认值继续由 `components/image/src/logic.rs::normalize_props` 与 `ui-state-primitives::image` 枚举默认值统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Image", "image", "Display", display::image)` 暴露入口；`apps/docs-app/src/pages/components/pages/display.rs::image()` 维持 `title="Image"` 与 `slug="image"` 可索引访问；`components/image/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`display.rs::image()` 已覆盖 `Hello World (Default API)`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)` 与 `Workbench (Display + Config + Code + CSS Test)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`Image` 文档继续通过 `code_signal + code_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="image-source-first"` 区块明确源码落点与依赖前提（`component-image + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Image` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步 `docs/spec/heroui-parameter-design-strategy.md` 与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Dialog 同步记录（2026-02-20）
+
+- 参数模型同步：`Dialog` 参数主轴保持 `is_open/open + on_open_change + default_open`、`size`、`is_close_button_visible/show_close_button`、`close_label`、`motion`、`on_close`、`class_name/lang/dir`；默认值继续由 `components/dialog/src/logic.rs` 统一归一（`DEFAULT_OPEN`、`DEFAULT_SHOW_CLOSE_BUTTON`、`DEFAULT_SIZE`、`DEFAULT_CLOSE_LABEL`），不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Dialog", "dialog", "Overlays", overlays::dialog)` 暴露入口；`#/components/dialog` 可索引访问，且 `components/dialog/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/overlays_dialog.rs::dialog()` 已覆盖 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled`、`Streaming / Snapshot Contract`、`Interactive Playground` 与 `Scenario Comparison`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：`dialog` playground 继续通过 `code_signal + code_imports=DIALOG_DOC_IMPORTS` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；文档显式标注源码落点与 feature 前提（`component-dialog`、`inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮为 Dialog 参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### AlertDialog 同步记录（2026-02-20）
+
+- 参数模型同步：`AlertDialog` 参数主轴保持 `open + on_close`、`id_base/title/description`、`confirm_label/on_confirm`、`secondary_label/on_secondary`、`is_confirm_disabled/is_secondary_disabled`、`variant/auto_focus_button/motion/on_exit_complete/class_name/lang/dir`；默认值继续由 `components/alert-dialog/src/logic.rs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("AlertDialog", "alert-dialog", "Overlays", overlays::alert_dialog)` 暴露入口；`apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs::alert_dialog()` 保持 `title="AlertDialog"` 与 `slug="alert-dialog"` 可索引访问。
+- 组件文档同步：`components/alert-dialog/src/README.md` 提供等价组件文档入口（含 `Hello World（最小可用）` 与“先用起来，再进阶”路径）。
+- Source-first / Copy-Paste Ready：`apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs` 的 source-first 区块继续通过 `ALERT_DIALOG_DOC_IMPORTS + apps/docs-app/src/playground.rs::compose_copy_ready_code` 保障一键复制可运行，并显式标注真实源码落点与 `component-alert_dialog + inject-css` 依赖前提。
+- 研究文档补充判定：本轮仅为 `AlertDialog` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Modal 同步记录（2026-02-20）
+
+- 参数模型同步：`Modal` 参数主轴保持 `is_open/default_open/on_open_change`，并在组件层维持 `id_base/title/description/on_close/motion/on_exit_complete/class_name/lang/dir` 的显式输入边界；受控/非受控契约继续由 `components/modal/src/logic.rs` 统一归一。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Modal", "modal", "Overlays", overlays::modal)` 暴露入口；`apps/docs-app/src/pages/components/pages/overlays.rs::modal()` 保持 `title="Modal"` 与 `slug="modal"` 可索引访问。
+- 组件文档同步：`components/modal/src/README.md` 提供等价组件文档入口（含 `Hello World` 与进阶路径），确保“先用起来，再进阶”。
+- Source-first / Copy-Paste Ready：`overlays.rs::modal()` 的 source-first 区块继续标注真实源码落点与依赖前提，并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，避免示例漂移。
+- 研究文档补充判定：本轮仅为 `Modal` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Drawer 同步记录（2026-02-20）
+
+- 参数模型同步：`Drawer` 参数主轴保持 `is_open/default_open/on_open_change`，并维持 `id_base/title/description/placement/motion/on_close/on_exit_complete/class_name/lang/dir` 的显式边界；受控/非受控语义继续由 `components/drawer/src/logic.rs` 统一归一。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Drawer", "drawer", "Overlays", overlays::drawer)` 暴露入口；`apps/docs-app/src/pages/components/pages/overlays.rs::drawer()` 保持 `title="Drawer"` 与 `slug="drawer"` 可索引访问。
+- 组件文档同步：`components/drawer/src/README.md` 提供等价组件文档入口（含 `Hello World` 与“先用起来，再进阶”路径）。
+- Source-first / Copy-Paste Ready：`overlays.rs::drawer()` 继续通过 `DRAWER_DOC_IMPORTS + compose_copy_ready_code` 保障一键复制可运行，并标注真实源码落点与 `component-drawer + inject-css` 依赖前提。
+- 研究文档补充判定：本轮仅为 `Drawer` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### BottomSheet 同步记录（2026-02-20）
+
+- 参数模型同步：`BottomSheet` 参数主轴保持 `open/on_close`，并继续在组件层显式暴露 `id_base/title/description/footer/motion/is_handle_visible/is_close_button_visible/is_detached/bottom_inset_px/is_dismissable/is_keyboard_dismiss_disabled/class_name/lang/dir`；默认值由 `components/bottom-sheet/src/logic.rs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!("BottomSheet", "bottom-sheet", "Overlays", overlays_extra::bottom_sheet)` 目录索引；`apps/docs-app/src/pages/components/pages/overlays_extra.rs::bottom_sheet()` 维持 `title="BottomSheet"` 与 `slug="bottom-sheet"` 可索引访问。
+- 组件文档同步：`components/bottom-sheet/src/README.md` 提供等价组件文档入口，并保留 `Hello World` 与“先用起来，再进阶”的默认路径。
+- Source-first / Copy-Paste Ready：docs 页面继续通过 `BOTTOM_SHEET_DOC_IMPORTS + apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，保持复制即运行与源码落点可追溯。
+- 研究文档补充判定：本轮仅为 `BottomSheet` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### HoverCard 同步记录（2026-02-20）
+
+- 参数模型同步：`HoverCard` 参数主轴保持 `is_open/open + on_open_change + default_open`、`is_disabled/disabled`（兼容别名，`is_disabled` 优先）、`open_delay_ms/close_delay_ms`、`placement/motion/class_name/lang/dir`；默认值继续由 `components/hover-card/src/logic.rs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("HoverCard", "hover-card", "Overlays", overlays::hover_card)` 暴露入口；`apps/docs-app/src/pages/components/pages/overlays_hover_card.rs::hover_card()` 维持 `title="HoverCard"` 与 `slug="hover-card"` 可索引访问。
+- 组件文档同步：`components/hover-card/src/README.md` 提供等价组件文档入口，保留 `Hello World`、`先用起来，再进阶`、`常见用法` 与受控进阶路径。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/overlays_hover_card.rs::hover_card()` 已覆盖 `Hello World (Minimal Path)`、`State Matrix`、`Controlled vs Uncontrolled` 与 `Streaming / Snapshot Contract`，参数语义与当前实现保持一致。
+- 研究文档补充判定：本轮仅为 `HoverCard` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### DropZone 同步记录（2026-02-20）
+
+- 参数模型同步：`DropZone` 参数主轴保持 `label/aria_label/is_disabled/disabled/motion/on_drop_files/lang/dir`；默认值与来源标记继续由 `components/drop-zone/src/logic.rs::resolve_props` 与 `classify_disabled_input` 统一归一（`is_disabled` 优先于兼容别名 `disabled`）。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("DropZone", "drop-zone", "Files", files::drop_zone)` 暴露入口；`apps/docs-app/src/pages/components/pages/files.rs::drop_zone()` 维持 `title="DropZone"` 与 `slug="drop-zone"` 可索引访问；`components/drop-zone/src/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`files.rs::drop_zone()` 已覆盖 `Hello World`、`Quick Start (Default API)`、`State Matrix (Disabled / Motion / Callback)`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional (fallback=snapshot)`、`Source-first Starter (Copy-Paste Ready)` 与 `Workbench（展示 + Config + Code + CSS Test）`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`DropZone` 文档继续通过 `code_signal + code_imports=source_first_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports；`data-slot="drop-zone-source-paths"` 区块明确源码落点与依赖前提（`component-drop_zone + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `DropZone` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Breadcrumb 同步记录（2026-02-20）
+
+- 参数模型同步：`Breadcrumb` 参数主轴保持 `items/aria_label/class_name/separator/lang/dir`；默认值与优先级继续由 `components/breadcrumb/src/logic.rs::resolve_root_state + resolve_separator` 统一归一（`class -> "ui-breadcrumb"`、`separator -> "/"`）。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages/collections_breadcrumb_catalog.rs::BREADCRUMB_DOC` 作为目录入口，`apps/docs-app/src/pages/components/pages.rs` 收录 `collections_breadcrumb_catalog::BREADCRUMB_DOC`；`apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs::breadcrumb()` 维持 `title="Breadcrumb"` 与 `slug="breadcrumb"` 可索引访问。
+- 示例矩阵同步：`collections_breadcrumb.rs::breadcrumb()` 已覆盖 `Hello World`、`Trail`、`State Matrix (Linked / Label-only / Empty)`、`Controlled vs Uncontrolled (N/A)`、`Streaming / Snapshot Contract` 与 `Source-first Starter (Copy-Paste Ready)`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：`Breadcrumb` 文档继续通过 `code_imports=BREADCRUMB_DOC_IMPORTS` 与 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="breadcrumb-source-first"` 区块明确源码落点与依赖前提（`component-breadcrumb + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Breadcrumb` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Asset 同步记录（2026-02-20）
+
+- 参数模型同步：`Asset` 保持 display primitive 定位，参数主轴为 `variant/size/label/is_selected/is_focused/motion/class_name/lang/dir/children`；当前语义继续由 `components/asset/src/logic.rs::resolve_view_state` 与 `ui-state-primitives::asset::resolve_state` 统一归一，本轮未引入破坏性参数语义变更。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Asset", "asset", "Display", display_extra_asset::asset)` 暴露入口；`apps/docs-app/src/pages/components/pages/display_extra_asset.rs` 维持 `title="Asset"` 与 `slug="asset"` 可索引访问；`components/asset/README.md` 提供等价组件文档入口。
+- 示例矩阵同步：`display_extra_asset.rs::asset()` 已覆盖 `Hello World`、`State + Source Markers`、`Interactive Playground (Props + State + Spec Preview)` 与 `Source-first Copy-Paste`，并与当前参数语义保持一致。
+- Source-first / Copy-Paste Ready：Asset playground 继续通过 `code_signal + code_imports=ASSET_PLAYGROUND_IMPORTS` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="asset-source-first"` 区块明确源码落点与依赖前提（`component-asset + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Asset` 文档同步与索引可达性校验，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Checkbox 同步记录（2026-02-20）
+
+- 参数模型同步：`Checkbox` 参数主轴保持 `is_checked/default_checked/on_checked_change`、`is_disabled`（兼容别名 `disabled`）、`variant/size/motion/class_name/lang/dir`；默认值与来源标记继续由 `components/checkbox/src/logic.rs::resolve_checked_control + normalize_is_disabled` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Checkbox", "checkbox", "Forms", forms::checkbox)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms.rs::checkbox()` 维持 `title="Checkbox"` 与 `slug="checkbox"` 可索引访问。
+- 组件文档同步：`components/checkbox/src/README.md` 提供等价组件文档入口，保留 `# Checkbox`、`## Hello World（最小可用）` 与 `## 先用起来，再进阶`，保证默认路径先于进阶控制参数。
+- Source-first / Copy-Paste Ready：`forms.rs::checkbox()` 的 `data-slot="checkbox-source-first"` 区块继续标注真实源码落点与依赖前提（`component-checkbox + inject-css`），并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，避免复制即报错与示例漂移。
+- 研究文档补充判定：本轮仅为 `Checkbox` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### CheckboxField 同步记录（2026-02-20）
+
+- 参数模型同步：`CheckboxField` 参数主轴保持 `is_checked/default_checked/on_checked_change`，并继续与 `is_disabled/is_invalid` 统一命名；参数语义归一保持在 `components/checkbox-field/src/logic.rs`，避免 view 层漂移。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("CheckboxField", "checkbox-field", "Forms", forms_groups_extra::checkbox_field)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::checkbox_field()` 保持 `title="CheckboxField"` 与 `slug="checkbox-field"` 可索引访问。
+- 组件文档同步：`components/checkbox-field/src/README.md` 提供等价组件文档入口，并显式声明 docs-app 页面函数与路由。
+- Source-first / Copy-Paste Ready：`forms_groups_extra.rs::checkbox_field()` 继续通过 `data-slot="checkbox-field-copy-ready|checkbox-field-source-paths|checkbox-field-source-prerequisites"` 标记真实源码落点与 feature 前提，复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports。
+- 研究文档补充判定：本轮仅为 `CheckboxField` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：仅代码更新无文档更新在接口变更场景下不允许合入；参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选。
+
+### CheckboxGroup 同步记录（2026-02-20）
+
+- 参数模型同步：`CheckboxGroup` 参数主轴保持 `is_required/is_invalid/is_disabled`、`aria_describedby`、`description/error`、`motion/class_name`；参数语义归一继续在 `components/checkbox-group/src/logic.rs` 收敛，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("CheckboxGroup", "checkbox-group", "Forms", forms::checkbox_group)` 暴露入口；`apps/docs-app/src/pages/components/pages/forms.rs::checkbox_group()` 保持 `title="CheckboxGroup"` 与 `slug="checkbox-group"` 可索引访问。
+- 组件文档同步：`components/checkbox-group/src/README.md` 提供等价组件文档入口，并显式声明 docs-app 页面函数与路由。
+- Source-first / Copy-Paste Ready：`forms.rs::checkbox_group()` 持续通过 `data-slot="checkbox-group-source-first|checkbox-group-copy-ready|checkbox-group-source-paths|checkbox-group-source-prerequisites"` 标记真实源码落点与 feature 前提，复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports。
+- 研究文档补充判定：本轮仅为 `CheckboxGroup` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：仅代码更新无文档更新在接口变更场景下不允许合入；参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选。
+
+### CircularProgress 同步记录（2026-02-20）
+
+- 参数模型同步：`CircularProgress` 参数主轴保持 `aria_label/size_px/thickness_px/class_name/lang/dir`，状态语义固定为 indeterminate；默认值与来源标记继续由 `components/circular-progress/src/logic.rs::resolve_component_contract` 与 `ui-state-primitives::circular_progress::{resolve_state, sanitize_dimension}` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("CircularProgress", "circular-progress", "Display", display::circular_progress)` 暴露入口；`apps/docs-app/src/pages/components/pages/display.rs::circular_progress()` 维持 `title="CircularProgress"` 与 `slug="circular-progress"` 可索引访问。
+- 组件文档同步：`components/circular-progress/src/README.md` 提供等价组件文档入口，保留 `Hello World（先用起来） -> 常见用法 -> 进阶用法` 新手优先路径，并指向 docs-app 路由入口。
+- 示例矩阵同步：`display.rs::circular_progress()` 已覆盖 `Hello World`、`Size + Thickness Matrix`、`Custom Label + Class`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Interactive Playground (Props / State / Preview)` 与 `Source-first Starter (Copy-Paste Ready)`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：文档示例继续通过 `code_signal + code_imports` 进入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="circular-progress-source-first"` 区块明确源码落点与依赖前提（`component-circular_progress + inject-css + UiRoot`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `CircularProgress` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Coachmark 同步记录（2026-02-20）
+
+- 参数模型同步：`Coachmark` 参数主轴保持 `variant/open + on_open_change + default_open/is_disabled`（兼容别名 `disabled`）、`current_step/total_steps`、`primary_cta/secondary_cta`、`asset_variant/asset_src`、`class_name/lang/dir`；默认值与来源继续由 `components/coachmark/src/logic.rs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Coachmark", "coachmark", "Overlays", overlays_extra_coachmark::coachmark)` 暴露入口；`apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs::coachmark()` 维持 `title="Coachmark"` 与 `slug="coachmark"` 可索引访问。
+- 组件文档同步：`components/coachmark/src/README.md` 提供等价组件文档入口，保留 `Hello World（最小可用）` 与“先用起来，再进阶”路径，保证默认 API 前置。
+- Source-first / Copy-Paste Ready：`overlays_extra_coachmark.rs` 通过 `code_signal + code_imports` 接入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports，并通过 `data-slot="coachmark-source-first"` 暴露源码路径与依赖前提，避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Coachmark` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Chart 同步记录（2026-02-20）
+
+- 参数模型同步：`Chart` 维持 display data-visual primitive 定位，参数主轴保持 `points/kind/active_index/default_active_index/on_active_index_change/is_disabled/is_show_grid/id_base/aria_label/class_name/on_action/lang/dir/motion`；默认值与来源标记继续由 `components/chart/src/logic.rs::normalize_input_boundary + derive_state_from_boundary` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!("Chart", "chart", "Display", display_extra::chart)` 目录索引；`apps/docs-app/src/pages/components/pages/display_extra.rs::chart()` 维持 `title="Chart"` 与 `slug="chart"`，确保 `#/components/chart` 可索引访问。
+- 组件文档同步：`components/chart/src/README.md` 提供等价组件文档入口，并保留 `Hello World（最小可用） -> 常见用法 -> 再进阶` 的默认优先路径。
+- Source-first / Copy-Paste Ready：`display_extra.rs::chart()` 继续通过 `code_imports + apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="chart-source-paths"` 明确源码落点 `components/chart/src/{mod,logic,view,styles,motion}.rs` 与依赖前提（`component-chart + inject-css + UiRoot`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Chart` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Carousel 同步记录（2026-02-20）
+
+- 参数模型同步：`Carousel` 参数主轴保持 `selected_index/default_selected_index/on_selected_index_change`、`orientation/is_loop_navigation`、`aria_label/controls_aria_label/indicators_aria_label`、`motion/class_name/lang/dir`；默认值与来源标记继续由 `components/carousel/src/logic.rs` 统一归一，不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!("Carousel", "carousel", "Collections", collections_command::carousel)` 目录索引；`apps/docs-app/src/pages/components/pages/collections_command.rs::carousel()` 维持 `title="Carousel"` 与 `slug="carousel"`，确保 `#/components/carousel` 可索引访问。
+- 组件文档同步：`components/carousel/src/README.md` 提供等价组件文档入口，并保留 `Hello World（最小可用） -> 先用起来，再进阶` 的新手优先路径。
+- Source-first / Copy-Paste Ready：`collections_command.rs::carousel()` 继续通过 `CAROUSEL_DOC_IMPORTS + apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="carousel-source-first"` 区块显式标注源码落点 `components/carousel/src/{mod,logic,view,styles,motion}.rs` 与依赖前提（`component-carousel + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Carousel` 参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
+### Collapsible 同步记录（2026-02-20）
+
+- 参数模型同步：`Collapsible` 参数主轴保持 `open/default_open/on_open_change`、`is_disabled`（兼容别名 `disabled`）、`motion`、`aria_label/class_name/lang/dir`；默认值与来源标记继续由 `components/collapsible/src/logic.rs` 统一归一（`open > default_open > primitive fallback` 与 `is_disabled.unwrap_or(disabled)`），不在 `view.rs` 分散兜底。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Collapsible", "collapsible", "Collections", collections_groups::collapsible)` 暴露入口；`apps/docs-app/src/pages/components/pages/collections_groups.rs::collapsible()` 维持 `title="Collapsible"` 与 `slug="collapsible"` 可索引访问；`components/collapsible/src/README.md` 保持等价文档入口。
+- 示例矩阵同步：`collections_groups.rs::collapsible()` 持续覆盖 `Hello World`、`Parameter Matrix`、`State Matrix`、`Controlled vs Uncontrolled Contrast`、`State + Source Markers`、`Streaming / Snapshot Contract`、`Interactive Playground` 与 `Source-first Starter (Copy-Paste Ready)`，参数语义与当前实现保持一致。
+- Source-first / Copy-Paste Ready：`Source-first Starter` 继续通过 `code_signal + code_imports=collapsible_imports.clone()` 接入 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐 imports；`data-slot="collapsible-source-paths"` 明确源码落点 `components/collapsible/src/{mod,logic,view,styles,motion}.rs` 与依赖前提（`component-collapsible + inject-css`），避免复制即报错。
+- 研究文档补充判定：本轮仅为 `Collapsible` 参数语义与组件文档入口同步校验，不引入新的 Spectrum/HeroUI 风格结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。
+- HeroUI 对齐结论：参数语义若变更，必须先同步本策略文档与 docs/README 入口，再推进实现与清单勾选；仅代码更新无文档更新在接口变更场景下不允许合入。
+
 ### Open Questions (max 2)
 
 1. 你希望“参数尽可能全”的优先级高于“API 精简稳定”吗？（这会决定是否把 Option A 的部分策略并入）

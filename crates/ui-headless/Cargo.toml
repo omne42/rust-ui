@@ -15,6 +15,7 @@ logic-calendar = ["dep:ui-logic-calendar"]
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false }
+ui-observability = { path = "../ui-observability" }
 ui-state-primitives = { path = "../ui-state-primitives" }
 ui-logic-calendar = { path = "../ui-logic-calendar", optional = true }
 

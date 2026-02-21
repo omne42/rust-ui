@@ -134,3 +134,74 @@ fn filtered_to_original_maps_by_lookup() {
     assert_eq!(map_filtered_to_original(1, &filtered), Some(0));
     assert_eq!(map_filtered_to_original(2, &filtered), None);
 }
+
+#[test]
+fn input_state_syncs_from_selection_when_panel_closes() {
+    let current = AutocompleteInputState {
+        query: "Sh".to_string(),
+        has_typed: true,
+    };
+
+    let next = reduce_input_state(
+        current,
+        AutocompleteInputEvent::SyncFromSelection {
+            selected_label: Some("Shenzhen".to_string()),
+        },
+    );
+
+    assert_eq!(
+        next,
+        AutocompleteInputState {
+            query: "Shenzhen".to_string(),
+            has_typed: false
+        }
+    );
+}
+
+#[test]
+fn input_state_marks_typed_on_input_and_resets_on_blur() {
+    let typed = reduce_input_state(
+        AutocompleteInputState::default(),
+        AutocompleteInputEvent::InputChanged {
+            query: "Sh".to_string(),
+        },
+    );
+    assert_eq!(
+        typed,
+        AutocompleteInputState {
+            query: "Sh".to_string(),
+            has_typed: true
+        }
+    );
+
+    let blurred = reduce_input_state(typed, AutocompleteInputEvent::InputBlurred);
+    assert_eq!(
+        blurred,
+        AutocompleteInputState {
+            query: "Sh".to_string(),
+            has_typed: false
+        }
+    );
+}
+
+#[test]
+fn input_state_commits_selected_option() {
+    let current = AutocompleteInputState {
+        query: "Sh".to_string(),
+        has_typed: true,
+    };
+    let committed = reduce_input_state(
+        current,
+        AutocompleteInputEvent::OptionCommitted {
+            selected_label: "Shenzhen".to_string(),
+        },
+    );
+
+    assert_eq!(
+        committed,
+        AutocompleteInputState {
+            query: "Shenzhen".to_string(),
+            has_typed: false
+        }
+    );
+}

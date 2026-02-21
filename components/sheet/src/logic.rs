@@ -1,9 +1,53 @@
+use std::borrow::Cow;
+
+use leptos::prelude::Callback;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SheetPlacement {
     #[default]
     Bottom,
     Left,
     Right,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SheetDismissMode {
+    Dismissable,
+    Locked,
+}
+
+impl SheetDismissMode {
+    pub fn from_is_dismissable(is_dismissable: bool) -> Self {
+        if is_dismissable {
+            Self::Dismissable
+        } else {
+            Self::Locked
+        }
+    }
+
+    pub fn is_dismissable(self) -> bool {
+        matches!(self, Self::Dismissable)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SheetKeyboardDismissMode {
+    Enabled,
+    Disabled,
+}
+
+impl SheetKeyboardDismissMode {
+    pub fn from_is_disabled(is_keyboard_dismiss_disabled: bool) -> Self {
+        if is_keyboard_dismiss_disabled {
+            Self::Disabled
+        } else {
+            Self::Enabled
+        }
+    }
+
+    pub fn is_disabled(self) -> bool {
+        matches!(self, Self::Disabled)
+    }
 }
 
 impl SheetPlacement {
@@ -63,6 +107,18 @@ pub(crate) struct SheetPartStateInput {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct SheetStateInputs {
+    pub open: bool,
+    pub placement: SheetPlacement,
+    pub dismiss_mode: SheetDismissMode,
+    pub keyboard_dismiss_mode: SheetKeyboardDismissMode,
+    pub has_custom_motion: bool,
+    pub has_custom_aria_labelledby: bool,
+    pub has_custom_aria_describedby: bool,
+    pub has_on_exit_complete: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct SheetPartState {
     pub slot: SheetSlot,
     pub slot_attr: &'static str,
@@ -87,6 +143,13 @@ pub(crate) struct SheetPartState {
     pub aria_labelledby_source_attr: &'static str,
     pub aria_describedby_source_attr: &'static str,
     pub exit_source_attr: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct SheetResolvedStates {
+    pub root_state: SheetPartState,
+    pub backdrop_state: SheetPartState,
+    pub panel_state: SheetPartState,
 }
 
 pub const DEFAULT_DISMISSABLE: bool = true;
@@ -144,6 +207,10 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
         let trimmed = value.trim();
         (!trimmed.is_empty()).then(|| trimmed.into())
     })
+}
+
+pub fn normalize_on_exit_complete(callback: Option<Callback<()>>) -> Callback<()> {
+    callback.unwrap_or_else(|| Callback::new(|_| {}))
 }
 
 pub fn resolve_state(input: SheetPartStateInput) -> SheetPartState {
@@ -210,42 +277,68 @@ pub fn resolve_state(input: SheetPartStateInput) -> SheetPartState {
     }
 }
 
+pub(crate) fn resolve_states(input: SheetStateInputs) -> SheetResolvedStates {
+    let state_for_slot = |slot, open| {
+        resolve_state(SheetPartStateInput {
+            slot,
+            open,
+            placement: input.placement,
+            is_dismissable: input.dismiss_mode.is_dismissable(),
+            is_keyboard_dismiss_disabled: input.keyboard_dismiss_mode.is_disabled(),
+            has_custom_motion: input.has_custom_motion,
+            has_custom_aria_labelledby: input.has_custom_aria_labelledby,
+            has_custom_aria_describedby: input.has_custom_aria_describedby,
+            has_on_exit_complete: input.has_on_exit_complete,
+        })
+    };
+
+    SheetResolvedStates {
+        root_state: state_for_slot(SheetSlot::Root, input.open),
+        backdrop_state: state_for_slot(SheetSlot::Backdrop, false),
+        panel_state: state_for_slot(SheetSlot::Panel, false),
+    }
+}
+
 pub fn compose_class_name(state: SheetPartState) -> String {
-    let mut classes = vec![state.base_class.into()];
+    let mut classes: Vec<Cow<'static, str>> = vec![Cow::Borrowed(state.base_class)];
 
     if state.slot == SheetSlot::Root {
-        classes.push(state.placement_class.into());
+        classes.push(Cow::Borrowed(state.placement_class));
 
         if state.has_custom_motion {
-            classes.push("ui-sheet--custom-motion".to_string());
+            classes.push(Cow::Borrowed("ui-sheet--custom-motion"));
         }
 
         if state.has_custom_placement {
-            classes.push("ui-sheet--custom-placement".to_string());
+            classes.push(Cow::Borrowed("ui-sheet--custom-placement"));
         }
 
         if state.is_dismissable != DEFAULT_DISMISSABLE {
-            classes.push("ui-sheet--custom-dismiss".to_string());
+            classes.push(Cow::Borrowed("ui-sheet--custom-dismiss"));
         }
 
         if state.is_keyboard_dismiss_disabled != DEFAULT_KEYBOARD_DISMISS_DISABLED {
-            classes.push("ui-sheet--custom-keyboard-dismiss".to_string());
+            classes.push(Cow::Borrowed("ui-sheet--custom-keyboard-dismiss"));
         }
 
         if state.has_custom_aria_labelledby {
-            classes.push("ui-sheet--custom-aria-labelledby".to_string());
+            classes.push(Cow::Borrowed("ui-sheet--custom-aria-labelledby"));
         }
 
         if state.has_custom_aria_describedby {
-            classes.push("ui-sheet--custom-aria-describedby".to_string());
+            classes.push(Cow::Borrowed("ui-sheet--custom-aria-describedby"));
         }
 
         if state.has_on_exit_complete {
-            classes.push("ui-sheet--custom-exit".to_string());
+            classes.push(Cow::Borrowed("ui-sheet--custom-exit"));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(Cow::as_ref)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 pub fn should_close_on_escape(

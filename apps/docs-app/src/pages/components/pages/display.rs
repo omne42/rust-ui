@@ -22,12 +22,7 @@ fn into_owned_string(value: &str) -> String {
 
 pub(super) fn alert() -> AnyView {
     let hello_world_code = Signal::derive(move || {
-        r#"<Alert
-  tone=AlertTone::Info
-  fill=AlertFill::Border
-  title="Updates available".to_string()
-  description="A new version is ready to install.".to_string()
->
+        r#"<Alert>
   "Install now to keep your workspace secure."
 </Alert>"#
             .to_string()
@@ -95,6 +90,180 @@ pub(super) fn alert() -> AnyView {
             .to_string()
     });
 
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let service_degraded = true;
+
+<Alert>
+  "Default path: no controlled/uncontrolled state axis."
+</Alert>
+<Alert
+  tone=if service_degraded { Some(AlertTone::Negative) } else { Some(AlertTone::Info) }
+  fill=AlertFill::Subtle
+  title="App-state mapping".to_string()
+  description="Alert is stateless; upstream state only maps to props.".to_string()
+>
+  "Controlled-like usage lives in app state, not inside Alert."
+</Alert>"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Alert
+  tone=AlertTone::Info
+  fill=AlertFill::Border
+  title="Snapshot".to_string()
+  description="Complete validated output rendered in one pass.".to_string()
+>
+  "Stable snapshot result."
+</Alert>
+<Alert
+  tone=AlertTone::Notice
+  fill=AlertFill::Subtle
+  title="Streaming Optional -> Snapshot".to_string()
+  description="Alert exposes optional streaming metadata, while rendering snapshot output.".to_string()
+>
+  "Inspect data-ui-streaming=optional, data-ui-fallback=snapshot, data-ui-state=snapshot."
+</Alert>"#
+            .to_string()
+    });
+
+    let workbench_tone_options = vec![
+        "neutral".to_string(),
+        "info".to_string(),
+        "positive".to_string(),
+        "notice".to_string(),
+        "negative".to_string(),
+    ];
+    let workbench_fill_options = vec![
+        "border".to_string(),
+        "subtle".to_string(),
+        "bold".to_string(),
+    ];
+    let workbench_layout_options = vec!["banner".to_string(), "inline".to_string()];
+    let (workbench_tone_index, set_workbench_tone_index) = signal(Some(1_usize));
+    let (workbench_fill_index, set_workbench_fill_index) = signal(Some(0_usize));
+    let (workbench_layout_index, set_workbench_layout_index) = signal(Some(0_usize));
+    let (workbench_hide_icon, set_workbench_hide_icon) = signal(false);
+    let (workbench_show_title, set_workbench_show_title) = signal(true);
+    let (workbench_show_description, set_workbench_show_description) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+
+    let workbench_tone = Signal::derive(move || match workbench_tone_index.get().unwrap_or(1) {
+        0 => AlertTone::Neutral,
+        2 => AlertTone::Positive,
+        3 => AlertTone::Notice,
+        4 => AlertTone::Negative,
+        _ => AlertTone::Info,
+    });
+    let workbench_fill = Signal::derive(move || match workbench_fill_index.get().unwrap_or(0) {
+        1 => AlertFill::Subtle,
+        2 => AlertFill::Bold,
+        _ => AlertFill::Border,
+    });
+    let workbench_layout =
+        Signal::derive(move || match workbench_layout_index.get().unwrap_or(0) {
+            1 => AlertLayout::Inline,
+            _ => AlertLayout::Banner,
+        });
+
+    let workbench_code = Signal::derive(move || {
+        let tone = workbench_tone.get();
+        let fill = workbench_fill.get();
+        let layout = workbench_layout.get();
+        let hide_icon = workbench_hide_icon.get();
+        let show_title = workbench_show_title.get();
+        let show_description = workbench_show_description.get();
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+
+        let tone_expr = match tone {
+            AlertTone::Neutral => "AlertTone::Neutral",
+            AlertTone::Info => "AlertTone::Info",
+            AlertTone::Positive => "AlertTone::Positive",
+            AlertTone::Notice => "AlertTone::Notice",
+            AlertTone::Negative => "AlertTone::Negative",
+        };
+        let fill_expr = match fill {
+            AlertFill::Border => "AlertFill::Border",
+            AlertFill::Subtle => "AlertFill::Subtle",
+            AlertFill::Bold => "AlertFill::Bold",
+        };
+        let layout_expr = match layout {
+            AlertLayout::Banner => "AlertLayout::Banner",
+            AlertLayout::Inline => "AlertLayout::Inline",
+        };
+
+        let mut lines = vec![
+            "<Alert".to_string(),
+            format!("  tone={tone_expr}"),
+            format!("  fill={fill_expr}"),
+            format!("  layout={layout_expr}"),
+        ];
+        if hide_icon {
+            lines.push("  is_hide_icon=true".to_string());
+        }
+        if show_title {
+            lines.push("  title=\"Interactive status\".to_string()".to_string());
+        }
+        if show_description {
+            lines.push(
+                "  description=\"Props update in real time; inspect data-* markers.\".to_string()"
+                    .to_string(),
+            );
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-alert-custom\".to_string()".to_string());
+        }
+        if rtl {
+            lines.push("  lang=\"ar\".to_string()".to_string());
+            lines.push("  dir=A11yDirection::Rtl".to_string());
+        }
+        lines.extend([
+            ">".to_string(),
+            "  \"Observe semantic markers update in real time.\"".to_string(),
+            "</Alert>".to_string(),
+        ]);
+        lines.join("\n")
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        format!(
+            "/* components/alert/src/styles.rs */\n{}",
+            ui_components::alert::styles::CSS
+        )
+    });
+
+    let workbench_config = Signal::derive(move || {
+        let tone = workbench_tone.get();
+        let fill = workbench_fill.get();
+        let layout = workbench_layout.get();
+        let hide_icon = workbench_hide_icon.get();
+        let show_title = workbench_show_title.get();
+        let show_description = workbench_show_description.get();
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+
+        let tone_attr = match tone {
+            AlertTone::Neutral => "neutral",
+            AlertTone::Info => "info",
+            AlertTone::Positive => "positive",
+            AlertTone::Notice => "notice",
+            AlertTone::Negative => "negative",
+        };
+        let layout_attr = match layout {
+            AlertLayout::Banner => "banner",
+            AlertLayout::Inline => "inline",
+        };
+
+        format!(
+            "AlertWorkbenchConfig {{\n  tone: {tone:?},\n  fill: {fill:?},\n  layout: {layout:?},\n  hide_icon: {hide_icon},\n  show_title: {show_title},\n  show_description: {show_description},\n  custom_class: {custom_class},\n  lang: \"{}\",\n  dir: \"{}\",\n  marker_expectations: [\"data-tone={tone_attr}\", \"data-fill={}\", \"data-layout={layout_attr}\", \"data-hide-icon-source\", \"data-ui-state=snapshot\"],\n}}",
+            if rtl { "ar" } else { "auto" },
+            if rtl { "rtl" } else { "ltr" },
+            fill.attr_value(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="Alert"
@@ -105,21 +274,152 @@ pub(super) fn alert() -> AnyView {
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                test_source_path="components/status-light/src/view.rs".to_string()
+                code_imports="use leptos::prelude::*;\nuse ui_components::Alert;".to_string()
+                test_source_path="components/alert/src/view.rs".to_string()
             >
                 <div class="docs-stack">
-                    <Alert
-                        tone=AlertTone::Info
-                        fill=AlertFill::Border
-                        title="Updates available".to_string()
-                        description="A new version is ready to install.".to_string()
-                    >
+                    <Alert>
                         "Install now to keep your workspace secure."
                     </Alert>
                 </div>
             </Playground>
 
-            <Playground title="Tone + Fill" code_signal=tone_fill_code>
+            <Playground
+                title="Interactive Playground (展示 / Config / Code / CSS Test)"
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::color::area::A11yDirection;\nuse ui_components::{Alert, AlertFill, AlertLayout, AlertTone};".to_string()
+                test_css_source=workbench_test_css
+                test_source_path="components/alert/src/styles.rs".to_string()
+                test_config_signal=workbench_config
+                description="在线调整 tone/fill/layout 与 title/description/icon/lang/dir/class，实时预览并复现键盘路径。"
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="alert-workbench-controls">
+                            <div class="docs-search__label">"Tone"</div>
+                            <SegmentedControl
+                                id_base="docs-alert-workbench-tone".to_string()
+                                options=workbench_tone_options.clone()
+                                selected_index=workbench_tone_index
+                                set_selected_index=set_workbench_tone_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Alert tone".to_string()
+                            />
+
+                            <div class="docs-search__label">"Fill"</div>
+                            <SegmentedControl
+                                id_base="docs-alert-workbench-fill".to_string()
+                                options=workbench_fill_options.clone()
+                                selected_index=workbench_fill_index
+                                set_selected_index=set_workbench_fill_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Alert fill".to_string()
+                            />
+
+                            <div class="docs-search__label">"Layout"</div>
+                            <SegmentedControl
+                                id_base="docs-alert-workbench-layout".to_string()
+                                options=workbench_layout_options.clone()
+                                selected_index=workbench_layout_index
+                                set_selected_index=set_workbench_layout_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Alert layout".to_string()
+                            />
+
+                            <Switch checked=workbench_hide_icon set_checked=set_workbench_hide_icon>
+                                "is_hide_icon"
+                            </Switch>
+                            <Switch checked=workbench_show_title set_checked=set_workbench_show_title>
+                                "Show title"
+                            </Switch>
+                            <Switch checked=workbench_show_description set_checked=set_workbench_show_description>
+                                "Show description"
+                            </Switch>
+                            <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                "Custom class_name"
+                            </Switch>
+                            <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                                "RTL direction"
+                            </Switch>
+                        </div>
+                    }
+                }
+            >
+                {move || {
+                    let tone = workbench_tone.get();
+                    let fill = workbench_fill.get();
+                    let layout = workbench_layout.get();
+                    let hide_icon = workbench_hide_icon.get();
+                    let show_title = workbench_show_title.get();
+                    let show_description = workbench_show_description.get();
+                    let custom_class = workbench_custom_class.get();
+                    let rtl = workbench_rtl.get();
+
+                    let title = if show_title {
+                        "Interactive status".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let description = if show_description {
+                        "Props update in real time; inspect data-* markers.".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if custom_class {
+                        "docs-alert-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let dir = if rtl {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+                    let lang = if rtl {
+                        "ar".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="alert-workbench-preview">
+                            <div class="docs-search__label">"Configured"</div>
+                            <Alert
+                                tone=tone
+                                fill=fill
+                                layout=layout
+                                is_hide_icon=hide_icon
+                                title=title
+                                description=description
+                                class_name=class_name
+                                lang=lang
+                                dir=dir
+                                end_content=move || view! {
+                                    <ui_components::Button
+                                        variant=ui_components::ButtonVariant::Secondary
+                                        size=ui_components::ButtonSize::Sm
+                                    >
+                                        "Acknowledge"
+                                    </ui_components::Button>
+                                }
+                            >
+                                "Observe semantic markers update in real time."
+                            </Alert>
+
+                            <div class="docs-search__label">"Baseline"</div>
+                            <Alert>
+                                "Install now to keep your workspace secure."
+                            </Alert>
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="Tone + fill + variant-source matrix with stable semantic markers."
+                code_signal=tone_fill_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};".to_string()
+            >
                 <div class="docs-stack">
                     <Alert
                         tone=AlertTone::Info
@@ -176,6 +476,51 @@ pub(super) fn alert() -> AnyView {
                 </Alert>
             </Playground>
 
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Alert has no internal controlled/uncontrolled axis; compare default usage vs app-state-mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};".to_string()
+            >
+                <div class="docs-stack">
+                    <Alert>"Default path: no controlled/uncontrolled state axis."</Alert>
+                    <Alert
+                        tone=AlertTone::Negative
+                        fill=AlertFill::Subtle
+                        title="App-state mapping".to_string()
+                        description="Alert is stateless; upstream state only maps to props.".to_string()
+                    >
+                        "Controlled-like usage lives in app state, not inside Alert."
+                    </Alert>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Alert is not a body-reader surface: streaming stays optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};".to_string()
+            >
+                <div class="docs-stack">
+                    <Alert
+                        tone=AlertTone::Info
+                        fill=AlertFill::Border
+                        title="Snapshot".to_string()
+                        description="Complete validated output rendered in one pass.".to_string()
+                    >
+                        "Stable snapshot result."
+                    </Alert>
+                    <Alert
+                        tone=AlertTone::Notice
+                        fill=AlertFill::Subtle
+                        title="Streaming Optional -> Snapshot".to_string()
+                        description="Alert exposes optional streaming metadata, while rendering snapshot output.".to_string()
+                    >
+                        "Inspect data-ui-streaming=optional, data-ui-fallback=snapshot, data-ui-state=snapshot."
+                    </Alert>
+                </div>
+            </Playground>
+
             <Playground title="Inline Layout" code_signal=inline_layout_code>
                 <Alert
                     layout=AlertLayout::Inline
@@ -187,6 +532,80 @@ pub(super) fn alert() -> AnyView {
                     "Compact inline content."
                 </Alert>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="alert-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="alert-state-rows">
+                    <li><code>"data-tone"</code>" = neutral | info | positive | notice | negative"</li>
+                    <li><code>"data-fill"</code>" = border | subtle | bold"</li>
+                    <li><code>"data-layout"</code>" = banner | inline"</li>
+                    <li><code>"data-variant-source"</code>" = default | tone | variant"</li>
+                    <li><code>"data-hide-icon-source / data-icon-label-source / data-motion-source"</code>" = closed enum set"</li>
+                    <li><code>"control mode"</code>" = N/A (Alert has no controlled/uncontrolled runtime axis)"</li>
+                    <li><code>"disabled axis"</code>" = N/A (Alert has no disabled prop in API)"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="alert-parameter-matrix">
+                <h3>"Parameter Matrix"</h3>
+                <ul data-slot="alert-parameter-rows">
+                    <li><code>"tone: Option&lt;AlertTone&gt;"</code>" default = None -> normalize to tone=neutral (source=default)"</li>
+                    <li><code>"variant: Option&lt;AlertVariant&gt;"</code>" default = None -> source=default (tone mapping only when variant is set)"</li>
+                    <li><code>"layout: Option&lt;AlertLayout&gt;"</code>" default = None -> normalize to banner"</li>
+                    <li><code>"fill: Option&lt;AlertFill&gt;"</code>" default = None -> normalize to border"</li>
+                    <li><code>"is_hide_icon / hide_icon: Option&lt;bool&gt;"</code>" default = None/None -> hide_icon=false (source=default)"</li>
+                    <li><code>"title / description / class_name: Option&lt;String&gt;"</code>" default = None; empty/blank strings are normalized away"</li>
+                    <li><code>"icon_label: Option&lt;String&gt;"</code>" default = None -> tone-default label when tone has icon, else empty"</li>
+                    <li><code>"lang: Option&lt;String&gt;, dir: Option&lt;A11yDirection&gt;"</code>" default = None (inherits locale context)"</li>
+                    <li><code>"motion: AlertMotion"</code>" default = AlertMotion::default()"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="alert-streaming-modes">
+                <h3>"Streaming / Snapshot"</h3>
+                <ul data-slot="alert-streaming-rows">
+                    <li><code>"data-ui-streaming"</code>" = optional"</li>
+                    <li><code>"data-ui-fallback"</code>" = snapshot"</li>
+                    <li><code>"data-ui-state"</code>" = snapshot"</li>
+                    <li><code>"data-ui-output-status"</code>" = verified"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="alert-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="alert-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-alert"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{Alert, AlertFill, AlertTone};\n\n<Alert tone=AlertTone::Info fill=AlertFill::Border>\n  \"Install now to keep your workspace secure.\"\n</Alert>".to_string()
+                    label="Copy alert starter".to_string()
+                    copyable=true
+                    class_name="docs-alert-source-copy".to_string()
+                />
+                <ul data-slot="alert-source-paths">
+                    <li><code>"components/alert/src/mod.rs"</code></li>
+                    <li><code>"components/alert/src/logic.rs"</code></li>
+                    <li><code>"components/alert/src/view.rs"</code></li>
+                    <li><code>"components/alert/src/styles.rs"</code></li>
+                    <li><code>"components/alert/src/motion.rs"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -875,6 +1294,8 @@ pub(super) fn skeleton() -> AnyView {
 }
 
 pub(super) fn circular_progress() -> AnyView {
+    let hello_world_code = Signal::derive(move || r#"<CircularProgress />"#.to_string());
+
     let matrix_code = Signal::derive(move || {
         r#"<CircularProgress aria_label="Loading".to_string() />
 <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
@@ -893,6 +1314,94 @@ pub(super) fn circular_progress() -> AnyView {
 <CircularProgress aria_label="   ".to_string() class_name="docs-circular-progress-custom".to_string() />"#.to_string()
     });
 
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let upstream_label = "Syncing mail".to_string();
+
+<CircularProgress />
+<CircularProgress aria_label=upstream_label size_px=24.0 />
+// CircularProgress has no controlled/uncontrolled runtime axis.
+// App state maps directly to props; no value/on_change/default triplet."#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<CircularProgress aria_label="Snapshot".to_string() />
+// Streaming Optional; fallback=snapshot.
+// CircularProgress renders complete validated snapshot output with stable semantic attrs."#
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<CircularProgress
+  aria_label="Syncing mailbox".to_string()
+  size_px=24.0
+  thickness_px=3.0
+/>"#
+        .to_string()
+    });
+
+    let (workbench_size_px, set_workbench_size_px) = signal(None::<f64>);
+    let (workbench_thickness_px, set_workbench_thickness_px) = signal(None::<f64>);
+    let (workbench_custom_label, set_workbench_custom_label) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+
+    let workbench_code = Signal::derive(move || {
+        let size_px = workbench_size_px.get();
+        let thickness_px = workbench_thickness_px.get();
+        let custom_label = workbench_custom_label.get();
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+
+        let mut lines = vec!["<CircularProgress".to_string()];
+        if custom_label {
+            lines.push("  aria_label=\"Workbench sync\".to_string()".to_string());
+        }
+        if let Some(size_px) = size_px {
+            lines.push(format!("  size_px={size_px}"));
+        }
+        if let Some(thickness_px) = thickness_px {
+            lines.push(format!("  thickness_px={thickness_px}"));
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-circular-progress-custom\".to_string()".to_string());
+        }
+        if rtl {
+            lines.push("  lang=\"ar\".to_string()".to_string());
+            lines.push("  dir=A11yDirection::Rtl".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_config = Signal::derive(move || {
+        let size_source = if workbench_size_px.get().is_some() {
+            "custom"
+        } else {
+            "default"
+        };
+        let thickness_source = if workbench_thickness_px.get().is_some() {
+            "custom"
+        } else {
+            "default"
+        };
+        let label_source = if workbench_custom_label.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let class_source = if workbench_custom_class.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let dir = if workbench_rtl.get() { "rtl" } else { "ltr" };
+
+        format!(
+            "CircularProgressWorkbenchConfig {{\n  size_source: {size_source},\n  thickness_source: {thickness_source},\n  label_source: {label_source},\n  class_source: {class_source},\n  dir: {dir},\n}}"
+        )
+    });
+
     view! {
         <ComponentPage
             title="CircularProgress"
@@ -900,7 +1409,25 @@ pub(super) fn circular_progress() -> AnyView {
             group="Display"
             description="Indeterminate circular progress with centralized size/thickness/label source attrs."
         >
-            <Playground title="Size + Thickness Matrix" code_signal=matrix_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Size + Thickness Matrix"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <CircularProgress aria_label="Loading".to_string() />
                     <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
@@ -913,7 +1440,13 @@ pub(super) fn circular_progress() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Class" code_signal=custom_code>
+            <Playground
+                title="Custom Label + Class"
+                code_signal=custom_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <CircularProgress
                         aria_label="Background refresh".to_string()
@@ -927,6 +1460,341 @@ pub(super) fn circular_progress() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="CircularProgress has no internal controlled/uncontrolled axis; compare default usage with app-state-mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress />
+                    <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="CircularProgress is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="circular-progress-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="circular-progress-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/circular-progress/src/view.rs."
+                    </p>
+                    <CircularProgress aria_label="Snapshot".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress
+                        aria_label="Syncing mailbox".to_string()
+                        size_px=24.0
+                        thickness_px=3.0
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground (Props / State / Preview)"
+                description="在线调整 props（size/thickness/label/class/lang/dir）并实时预览语义标记变化；组件本身无内部受控状态轴。"
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::color::area::A11yDirection;\nuse ui_components::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+                test_config_signal=workbench_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="circular-progress-workbench-controls">
+                            <div class="docs-search__label">"Size"</div>
+                            <div class="docs-row" data-slot="circular-progress-workbench-size-controls">
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-size-default"
+                                    on:click=move |_| set_workbench_size_px.set(None)
+                                >
+                                    "Default"
+                                </button>
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-size-24"
+                                    on:click=move |_| set_workbench_size_px.set(Some(24.0))
+                                >
+                                    "24"
+                                </button>
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-size-32"
+                                    on:click=move |_| set_workbench_size_px.set(Some(32.0))
+                                >
+                                    "32"
+                                </button>
+                            </div>
+
+                            <div class="docs-search__label">"Thickness"</div>
+                            <div class="docs-row" data-slot="circular-progress-workbench-thickness-controls">
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-thickness-default"
+                                    on:click=move |_| set_workbench_thickness_px.set(None)
+                                >
+                                    "Default"
+                                </button>
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-thickness-3"
+                                    on:click=move |_| set_workbench_thickness_px.set(Some(3.0))
+                                >
+                                    "3"
+                                </button>
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-thickness-4"
+                                    on:click=move |_| set_workbench_thickness_px.set(Some(4.0))
+                                >
+                                    "4"
+                                </button>
+                            </div>
+
+                            <div class="docs-search__label">"Label source"</div>
+                            <div class="docs-row" data-slot="circular-progress-workbench-label-controls">
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-label-default"
+                                    on:click=move |_| set_workbench_custom_label.set(false)
+                                >
+                                    "Default label"
+                                </button>
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-label-custom"
+                                    on:click=move |_| set_workbench_custom_label.set(true)
+                                >
+                                    "Custom label"
+                                </button>
+                            </div>
+
+                            <div class="docs-search__label">"Class source"</div>
+                            <div class="docs-row" data-slot="circular-progress-workbench-class-controls">
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-class-default"
+                                    on:click=move |_| set_workbench_custom_class.set(false)
+                                >
+                                    "Default class"
+                                </button>
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-class-custom"
+                                    on:click=move |_| set_workbench_custom_class.set(true)
+                                >
+                                    "Custom class"
+                                </button>
+                            </div>
+
+                            <div class="docs-search__label">"Direction"</div>
+                            <div class="docs-row" data-slot="circular-progress-workbench-dir-controls">
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-dir-ltr"
+                                    on:click=move |_| set_workbench_rtl.set(false)
+                                >
+                                    "LTR"
+                                </button>
+                                <button
+                                    type="button"
+                                    data-slot="circular-progress-workbench-dir-rtl"
+                                    on:click=move |_| set_workbench_rtl.set(true)
+                                >
+                                    "RTL"
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+            >
+                {move || {
+                    let size_px = workbench_size_px.get();
+                    let thickness_px = workbench_thickness_px.get();
+                    let custom_label = workbench_custom_label.get();
+                    let custom_class = workbench_custom_class.get();
+                    let rtl = workbench_rtl.get();
+
+                    let aria_label = if custom_label {
+                        "Workbench sync".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if custom_class {
+                        "docs-circular-progress-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let lang = if rtl { "ar".to_string() } else { String::new() };
+                    let dir = if rtl {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+
+                    let size_source = if size_px.is_some() { "custom" } else { "default" };
+                    let thickness_source = if thickness_px.is_some() {
+                        "custom"
+                    } else {
+                        "default"
+                    };
+                    let label_source = if custom_label { "custom" } else { "default" };
+                    let class_source = if custom_class { "custom" } else { "default" };
+                    let dir_label = if rtl { "rtl" } else { "ltr" };
+                    let configured_progress = match (size_px, thickness_px) {
+                        (Some(size_px), Some(thickness_px)) => view! {
+                            <CircularProgress
+                                aria_label=aria_label.clone()
+                                size_px=size_px
+                                thickness_px=thickness_px
+                                class_name=class_name.clone()
+                                lang=lang.clone()
+                                dir=dir
+                            />
+                        }
+                        .into_any(),
+                        (Some(size_px), None) => view! {
+                            <CircularProgress
+                                aria_label=aria_label.clone()
+                                size_px=size_px
+                                class_name=class_name.clone()
+                                lang=lang.clone()
+                                dir=dir
+                            />
+                        }
+                        .into_any(),
+                        (None, Some(thickness_px)) => view! {
+                            <CircularProgress
+                                aria_label=aria_label.clone()
+                                thickness_px=thickness_px
+                                class_name=class_name.clone()
+                                lang=lang.clone()
+                                dir=dir
+                            />
+                        }
+                        .into_any(),
+                        (None, None) => view! {
+                            <CircularProgress
+                                aria_label=aria_label
+                                class_name=class_name
+                                lang=lang
+                                dir=dir
+                            />
+                        }
+                        .into_any(),
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="circular-progress-workbench-preview">
+                            <p class="ui-muted" data-slot="circular-progress-workbench-state">
+                                {format!(
+                                    "size_source={size_source}; thickness_source={thickness_source}; label_source={label_source}; class_source={class_source}; dir={dir_label}"
+                                )}
+                            </p>
+                            {configured_progress}
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="circular-progress-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p data-slot="circular-progress-source-first-contract">
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="circular-progress-source-prerequisites">
+                    <li>
+                        "Dependency prerequisites: enable "
+                        <code>"component-circular_progress"</code>
+                        " + "
+                        <code>"inject-css"</code>
+                        " in package mode."
+                    </li>
+                    <li>
+                        "Runtime style prerequisite: mount "
+                        <code>"UiRoot"</code>
+                        " (or equivalent CSS injection path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text=source_first_code.get()
+                    label="Copy circular-progress starter".to_string()
+                    copyable=true
+                    class_name="docs-circular-progress-source-copy".to_string()
+                />
+                <p>"Source paths:"</p>
+                <ul data-slot="circular-progress-source-paths">
+                    <li><code>"components/circular-progress/src/mod.rs"</code></li>
+                    <li><code>"components/circular-progress/src/logic.rs"</code></li>
+                    <li><code>"components/circular-progress/src/view.rs"</code></li>
+                    <li><code>"components/circular-progress/src/styles.rs"</code></li>
+                </ul>
+                <p class="ui-muted" data-slot="circular-progress-source-sync-note">
+                    "Sync note: snippet text is sourced from "
+                    <code>"source_first_code"</code>
+                    " and mirrors "
+                    <code>"components/circular-progress/src/view.rs"</code>
+                    " API usage; update docs snippet and source implementation together to avoid drift."
+                </p>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="circular-progress-docs-sync-matrix">
+                <h3>"State Matrix"</h3>
+                <ul>
+                    <li><code>"data-state"</code>" = indeterminate（固定快照态）"</li>
+                    <li>
+                        <code>"data-size-source / data-thickness-source / data-label-source / data-class-source"</code>
+                        " = default | custom"
+                    </li>
+                    <li>
+                        <code>"control mode"</code>
+                        " = N/A（CircularProgress 无内部受控/非受控状态轴）"
+                    </li>
+                </ul>
+
+                <h3>"Parameter Matrix"</h3>
+                <ul>
+                    <li>
+                        <code>"aria_label: Option&lt;String&gt;"</code>
+                        " default = None；`logic.rs::resolve_component_contract` 归一到 i18n `loading_aria_label`，空白回退 `DEFAULT_ARIA_LABEL`"
+                    </li>
+                    <li>
+                        <code>"size_px / thickness_px: Option&lt;f64&gt;"</code>
+                        " default = None；仅 finite 且 > 0 时生效，否则回落 default source"
+                    </li>
+                    <li>
+                        <code>"class_name / lang: Option&lt;String&gt;"</code>
+                        " default = None；空白字符串经 `normalize_optional_text` 归一为 None"
+                    </li>
+                    <li>
+                        <code>"dir: Option&lt;A11yDirection&gt;"</code>
+                        " default = None（继承 `UiRoot` locale direction 上下文）"
+                    </li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -1220,6 +2088,40 @@ pub(super) fn meter() -> AnyView {
     let (workbench_custom_label, set_workbench_custom_label) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
     let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_preserve_state, set_workbench_preserve_state) = signal(true);
+
+    Effect::new(move |_| {
+        if !workbench_preserve_state.get() {
+            set_workbench_value.set(64);
+            set_workbench_variant_danger.set(false);
+            set_workbench_size_large.set(false);
+            set_workbench_indeterminate.set(false);
+            set_workbench_show_value_label.set(true);
+            set_workbench_custom_label.set(false);
+            set_workbench_custom_class.set(false);
+            set_workbench_custom_motion.set(false);
+        }
+    });
+
+    let on_meter_workbench_reset = Callback::new(move |_| {
+        set_workbench_value.set(64);
+        set_workbench_variant_danger.set(false);
+        set_workbench_size_large.set(false);
+        set_workbench_indeterminate.set(false);
+        set_workbench_show_value_label.set(true);
+        set_workbench_custom_label.set(false);
+        set_workbench_custom_class.set(false);
+        set_workbench_custom_motion.set(false);
+    });
+
+    let hello_world_code = Signal::derive(move || {
+        r#"<Meter
+  id="docs-meter-hello".to_string()
+  label="Completion".to_string()
+  value=Signal::derive(|| Some(42.0))
+/>"#
+        .to_string()
+    });
 
     let matrix_code = Signal::derive(move || {
         r#"let meter_value = Signal::derive(move || Some(value.get() as f64));
@@ -1255,6 +2157,50 @@ pub(super) fn meter() -> AnyView {
 />"#
         .to_string()
     });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let upstream_progress = 72_i64;
+
+<Meter
+  id="docs-meter-default-contrast".to_string()
+  label="Default path".to_string()
+  value=Signal::derive(|| Some(42.0))
+/>
+<Meter
+  id="docs-meter-upstream-mapped".to_string()
+  label="Upstream mapped".to_string()
+  value=Signal::derive(move || Some(upstream_progress as f64))
+/>
+// Meter has no internal controlled/uncontrolled runtime axis.
+// App state maps directly to props; there is no value/on_change/default triplet."#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Meter
+  id="docs-meter-snapshot".to_string()
+  label="Snapshot".to_string()
+  value=Signal::derive(|| Some(88.0))
+/>
+// Streaming Optional; fallback=snapshot.
+// Meter renders complete validated snapshots and keeps semantic continuity."#
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"use leptos::prelude::*;
+use ui_components::{Meter, MeterSize, MeterVariant};
+
+<Meter
+  id="docs-meter-source-first".to_string()
+  label="Completion".to_string()
+  value=Signal::derive(|| Some(42.0))
+  variant=MeterVariant::Default
+  size=MeterSize::Default
+/>"#
+        .to_string()
+    });
+
     let workbench_code = Signal::derive(move || {
         let variant = if workbench_variant_danger.get() {
             MeterVariant::Danger
@@ -1325,6 +2271,7 @@ pub(super) fn meter() -> AnyView {
         let has_custom_label = workbench_custom_label.get();
         let has_custom_class = workbench_custom_class.get();
         let has_custom_motion = workbench_custom_motion.get();
+        let preserve_state = workbench_preserve_state.get();
         let show_value_label = workbench_show_value_label.get();
         let value = workbench_value.get();
         let data_state = if is_indeterminate {
@@ -1359,7 +2306,7 @@ pub(super) fn meter() -> AnyView {
         }
 
         format!(
-            "MeterActualConfig {{\n  value: {},\n  variant: {variant:?},\n  size: {size:?},\n  is_indeterminate: {is_indeterminate},\n  show_value_label: {show_value_label},\n  has_custom_value_label: {has_custom_label},\n  has_custom_motion: {has_custom_motion},\n  has_custom_class_name: {has_custom_class},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            "MeterActualConfig {{\n  value: {},\n  variant: {variant:?},\n  size: {size:?},\n  is_indeterminate: {is_indeterminate},\n  show_value_label: {show_value_label},\n  has_custom_value_label: {has_custom_label},\n  has_custom_motion: {has_custom_motion},\n  has_custom_class_name: {has_custom_class},\n  preserve_state: {preserve_state},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
             if is_indeterminate {
                 "None".to_string()
             } else {
@@ -1376,7 +2323,27 @@ pub(super) fn meter() -> AnyView {
             group="Display"
             description="Spring-driven meter with centralized variant/size/phase source attrs."
         >
-            <Playground title="Variant + Size Matrix" code_signal=matrix_code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_world_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::Meter;".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
+                <div class="docs-stack">
+                    <Meter
+                        id="docs-meter-hello".to_string()
+                        label="Completion".to_string()
+                        value=Signal::derive(|| Some(42.0))
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Variant + Size Matrix"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Meter, MeterSize, MeterVariant};".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <Meter
                         id="docs-meter-default".to_string()
@@ -1411,7 +2378,12 @@ pub(super) fn meter() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Motion + Class" code_signal=custom_code>
+            <Playground
+                title="Custom Label + Motion + Class"
+                code_signal=custom_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Meter, MeterMotion};".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <Meter
                         id="docs-meter-custom".to_string()
@@ -1441,9 +2413,53 @@ pub(super) fn meter() -> AnyView {
             </Playground>
 
             <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Meter has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::Meter;".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Meter
+                        id="docs-meter-controlled-na-default".to_string()
+                        label="Default path".to_string()
+                        value=Signal::derive(|| Some(42.0))
+                    />
+                    <Meter
+                        id="docs-meter-controlled-na-upstream".to_string()
+                        label="Upstream mapped".to_string()
+                        value=Signal::derive(move || Some(workbench_value.get() as f64))
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Meter is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::Meter;".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="meter-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="meter-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/meter/src/view.rs."
+                    </p>
+                    <Meter
+                        id="docs-meter-stream-snapshot".to_string()
+                        label="Snapshot".to_string()
+                        value=Signal::derive(|| Some(88.0))
+                    />
+                </div>
+            </Playground>
+
+            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
-                description="展示区提供当前配置与对比样例；Config/Code/CSS Test 区用于契约验证。"
+                description="调样式优先走 CSS Test 即时反馈；`preserve_state` 可选保留当前配置上下文。"
                 code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Meter, MeterSize, MeterVariant, Switch};".to_string()
                 test_css_source=test_css_source
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/meter/src/styles.rs".to_string()
                 test_config_signal=actual_config
@@ -1485,30 +2501,34 @@ pub(super) fn meter() -> AnyView {
                             >
                                 "-10"
                             </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_value.update(|v| *v = (*v + 10).min(100))
-                                })
-                            >
-                                "+10"
-                            </ui_components::Button>
+                            <div data-action="meter-workbench-increment">
+                                <ui_components::Button
+                                    variant=ui_components::ButtonVariant::Secondary
+                                    on_press=Callback::new(move |_| {
+                                        set_workbench_value.update(|v| *v = (*v + 10).min(100))
+                                    })
+                                >
+                                    "+10"
+                                </ui_components::Button>
+                            </div>
                             <span class="ui-muted">"value: " {move || workbench_value.get()}</span>
                         </div>
 
                         <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_indeterminate.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_indeterminate.get() {
-                                    "Indeterminate: on"
-                                } else {
-                                    "Indeterminate: off"
-                                }}
-                            </ui_components::Button>
+                            <div data-action="meter-workbench-toggle-indeterminate">
+                                <ui_components::Button
+                                    variant=ui_components::ButtonVariant::Secondary
+                                    on_press=Callback::new(move |_| {
+                                        set_workbench_indeterminate.update(|v| *v = !*v)
+                                    })
+                                >
+                                    {move || if workbench_indeterminate.get() {
+                                        "Indeterminate: on"
+                                    } else {
+                                        "Indeterminate: off"
+                                    }}
+                                </ui_components::Button>
+                            </div>
                             <ui_components::Button
                                 variant=ui_components::ButtonVariant::Secondary
                                 on_press=Callback::new(move |_| {
@@ -1561,10 +2581,25 @@ pub(super) fn meter() -> AnyView {
                                 }}
                             </ui_components::Button>
                         </div>
+
+                        <div class="docs-row">
+                            <Switch checked=workbench_preserve_state set_checked=set_workbench_preserve_state>
+                                "preserve state"
+                            </Switch>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=on_meter_workbench_reset
+                            >
+                                "Reset context"
+                            </ui_components::Button>
+                        </div>
                     </div>
                 }
             >
                 <div class="docs-stack" data-slot="meter-workbench-preview">
+                    <p class="ui-muted" data-slot="meter-spec-linkage">
+                        "Spec Input -> Preview Output: controls drive `MeterActualConfig` and live preview in sync."
+                    </p>
                     <div class="docs-row">
                         <div class="docs-stack docs-stack--tight" style="min-width: 18rem;">
                             <span class="ui-muted">"当前配置"</span>
@@ -1630,12 +2665,74 @@ pub(super) fn meter() -> AnyView {
                     </div>
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="meter-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="meter-state-rows">
+                    <li><code>"data-state / data-ui-state-phase"</code>" = determinate | indeterminate"</li>
+                    <li><code>"data-variant"</code>" = default | danger"</li>
+                    <li><code>"data-size"</code>" = default | sm | lg"</li>
+                    <li><code>"data-label-source / data-value-label-source / data-motion-source / data-class-source"</code>" = default | custom（封闭集合）"</li>
+                    <li><code>"control mode"</code>" = N/A（Meter 无内部受控/非受控状态轴）"</li>
+                    <li><code>"disabled axis"</code>" = N/A（Meter API 无 disabled 输入）"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="meter-parameter-matrix">
+                <h3>"Parameter Matrix"</h3>
+                <ul data-slot="meter-parameter-rows">
+                    <li><code>"min/max: Option&lt;f64&gt;"</code>" default = None/None -> `DEFAULT_MIN=0.0`、`DEFAULT_MAX=100.0`（`logic.rs::normalize_inputs`）"</li>
+                    <li><code>"is_value_label_visible/show_value_label: Option&lt;bool&gt;"</code>" default = None/None -> `DEFAULT_SHOW_VALUE_LABEL=true`，且 `is_*` 优先于兼容别名 `show_value_label`"</li>
+                    <li><code>"value: Signal&lt;Option&lt;f64&gt;&gt;"</code>" default = None -> `data-state=indeterminate`；Some(v) 走 clamp+progress 推导"</li>
+                    <li><code>"value_label: Option&lt;String&gt;"</code>" default = None -> 可见时回退到百分比文本（`derive_render_state`）"</li>
+                    <li><code>"variant/size"</code>" default = `MeterVariant::Default` / `MeterSize::Default`"</li>
+                    <li><code>"aria_label/label/default_aria_label"</code>" 归一优先级：`aria_label` > `label` > i18n fallback（`resolve_aria_label_with_fallback`）"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="meter-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="meter-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-meter"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text=source_first_code.get()
+                    label="Copy meter starter".to_string()
+                    copyable=true
+                    class_name="docs-meter-source-copy".to_string()
+                />
+                <ul data-slot="meter-source-paths">
+                    <li><code>"components/meter/src/mod.rs"</code></li>
+                    <li><code>"components/meter/src/logic.rs"</code></li>
+                    <li><code>"components/meter/src/view.rs"</code></li>
+                    <li><code>"components/meter/src/styles.rs"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn code() -> AnyView {
+    let hello_world_code =
+        Signal::derive(move || r#"<Code>"cargo check -p ui-components"</Code>"#.to_string());
+
     let variants_code = Signal::derive(move || {
         r#"<Code variant=CodeVariant::Inline>"cargo test -p ui-components"</Code>
 <Code variant=CodeVariant::Block>
@@ -1649,6 +2746,28 @@ pub(super) fn code() -> AnyView {
 <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
   "cargo test -p ui-components --test code_semantics\ncargo test -p ui-components"
 </Code>"#.to_string()
+    });
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"<Code>"Default path: no controlled/uncontrolled state axis."</Code>
+<Code variant=CodeVariant::Block>
+  "Controlled-like usage lives in app state only: map upstream state to variant/class_name props."
+</Code>"#
+            .to_string()
+    });
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Code variant=CodeVariant::Inline>
+  "Snapshot: complete validated output rendered in one pass."
+</Code>
+<Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+  "Streaming Optional -> fallback=snapshot; inspect data-ui-streaming=optional, data-ui-fallback=snapshot, data-ui-output-state=verified."
+</Code>"#
+            .to_string()
+    });
+    let source_first_code = Signal::derive(move || {
+        r#"<Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+  "cargo test -p ui-components --test code_semantics"
+</Code>"#
+            .to_string()
     });
     let variant_options = vec!["Inline".to_string(), "Block".to_string()];
     let (variant_index, set_variant_index) = signal(Some(0_usize));
@@ -1708,6 +2827,10 @@ pub(super) fn code() -> AnyView {
             group="Display"
             description="Inline/Block code surface with centralized variant state attrs and optional custom-class contract."
         >
+            <Playground title="Hello World (Default API)" code_signal=hello_world_code>
+                <Code>"cargo check -p ui-components"</Code>
+            </Playground>
+
             <Playground title="Variant Matrix" code_signal=variants_code>
                 <div class="docs-stack">
                     <div class="docs-row">
@@ -1738,6 +2861,47 @@ cargo test -p ui-components"#}
             </Playground>
 
             <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Code has no internal controlled/uncontrolled axis; compare default usage vs app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};".to_string()
+            >
+                <div class="docs-stack">
+                    <Code>"Default path: no controlled/uncontrolled state axis."</Code>
+                    <Code variant=CodeVariant::Block>
+                        "Controlled-like usage lives in app state only: map upstream state to variant/class_name props."
+                    </Code>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Code is a display leaf: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};".to_string()
+            >
+                <div class="docs-stack">
+                    <Code variant=CodeVariant::Inline>
+                        "Snapshot: complete validated output rendered in one pass."
+                    </Code>
+                    <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+                        "Streaming Optional -> fallback=snapshot; inspect data-ui-streaming=optional, data-ui-fallback=snapshot, data-ui-output-state=verified."
+                    </Code>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};".to_string()
+            >
+                <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+                    "cargo test -p ui-components --test code_semantics"
+                </Code>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground"
                 code_signal=interactive_code
                 test_css_source=test_css_source
@@ -1745,7 +2909,7 @@ cargo test -p ui-components"#}
                 test_config_signal=actual_config
                 description="展示区 + Config 区 + Code 区 + CSS Test 区；包含 inline/block 与 custom class 的对比展示。"
                 controls=move || view! {
-                    <div class="docs-stack docs-stack--tight">
+                    <div class="docs-stack docs-stack--tight" data-slot="code-workbench-controls">
                         <div class="docs-search__label">"配置区 · Variant"</div>
                         <ui_components::SegmentedControl
                             id_base="docs-code-variant".to_string()
@@ -1778,9 +2942,9 @@ cargo test -p ui-components"#}
                     let compare = show_compare.get();
 
                     view! {
-                        <div class="docs-stack docs-stack--tight">
+                        <div class="docs-stack docs-stack--tight" data-slot="code-workbench-preview">
                             <div class="docs-search__label">"展示区 · Primary"</div>
-                            <div class="docs-card docs-stack docs-stack--tight">
+                            <div class="docs-card docs-stack docs-stack--tight" data-slot="code-workbench-primary">
                                 <span class="ui-muted">
                                     {format!("variant={variant:?}, custom_class={}", custom_class.get())}
                                 </span>
@@ -1791,7 +2955,7 @@ cargo test -p ui-components"#}
 
                             <Show when=move || compare>
                                 <div class="docs-search__label">"展示区 · 对比矩阵"</div>
-                                <div class="docs-stack docs-stack--tight">
+                                <div class="docs-stack docs-stack--tight" data-slot="code-workbench-compare">
                                     <div class="docs-row">
                                         <span>"Inline: "</span>
                                         <Code variant=CodeVariant::Inline class_name=class_name.clone()>
@@ -1808,6 +2972,71 @@ cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
                     }
                 }}
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="code-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="code-state-rows">
+                    <li><code>"data-variant / data-state"</code>" = inline | block"</li>
+                    <li><code>"data-inline / data-block"</code>" = true | none"</li>
+                    <li><code>"data-custom-class"</code>" = true | none"</li>
+                    <li><code>"control mode"</code>" = N/A (Code has no controlled/uncontrolled runtime axis)"</li>
+                    <li><code>"disabled axis"</code>" = N/A (Code has no disabled prop in API)"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="code-parameter-matrix">
+                <h3>"Parameter Matrix"</h3>
+                <ul data-slot="code-parameter-rows">
+                    <li><code>"variant: Option&lt;CodeVariant&gt;"</code>" default = None -> normalize to inline (`logic.rs`: `variant.unwrap_or_default()`)"</li>
+                    <li><code>"class_name: Option&lt;String&gt;"</code>" default = None -> `normalize_optional_text` trims blank/empty to None"</li>
+                    <li><code>"lang: Option&lt;String&gt;, dir: Option&lt;A11yDirection&gt;"</code>" default = None -> locale inherited via `locale_attrs`"</li>
+                    <li><code>"children: Children"</code>" required; component renders caller-provided code content only"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="code-streaming-modes">
+                <h3>"Streaming / Snapshot"</h3>
+                <ul data-slot="code-streaming-rows">
+                    <li><code>"data-ui-streaming"</code>" = optional"</li>
+                    <li><code>"data-ui-fallback"</code>" = snapshot"</li>
+                    <li><code>"data-ui-output-state"</code>" = verified"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="code-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="code-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-code"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{Code, CodeVariant};\n\n<Code variant=CodeVariant::Block>\n  \"cargo test -p ui-components --test code_semantics\"\n</Code>".to_string()
+                    label="Copy code starter".to_string()
+                    copyable=true
+                    class_name="docs-code-source-copy".to_string()
+                />
+                <ul data-slot="code-source-paths">
+                    <li><code>"components/code/src/mod.rs"</code></li>
+                    <li><code>"components/code/src/logic.rs"</code></li>
+                    <li><code>"components/code/src/view.rs"</code></li>
+                    <li><code>"components/code/src/styles.rs"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -1893,11 +3122,40 @@ pub(super) fn kbd() -> AnyView {
         )
     });
 
-    let matrix_code = Signal::derive(move || {
+    let hello_world_code =
+        Signal::derive(move || r#"<Kbd keys="Ctrl".to_string()>"K"</Kbd>"#.to_string());
+
+    let state_matrix_code = Signal::derive(move || {
         r#"<Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
-<Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>"#
+<Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>
+<Kbd size=KbdSize::Md>"Esc"</Kbd>"#
             .to_string()
     });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let label = Signal::derive(move || "K".to_string());
+
+<Kbd keys="Ctrl".to_string()>"K"</Kbd>
+<Kbd keys="Ctrl".to_string()>{label.get()}</Kbd>
+// N/A: Kbd has no controlled/uncontrolled runtime axis (`value/on_value_change/default_value`)."#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Kbd keys="Ctrl".to_string()>"K"</Kbd>
+<Kbd size=KbdSize::Sm>"Esc"</Kbd>
+// Streaming Optional -> fallback=snapshot for Kbd display leaf."#
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<Kbd size=KbdSize::Sm keys="Shift".to_string() class_name="docs-kbd-custom".to_string()>
+    "Tab"
+</Kbd>"#
+            .to_string()
+    });
+
+    let kbd_imports = "use leptos::prelude::*;\nuse ui_components::{Kbd, KbdSize};".to_string();
 
     let custom_code = Signal::derive(move || {
         r#"<Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
@@ -1911,17 +3169,87 @@ pub(super) fn kbd() -> AnyView {
             group="Display"
             description="Keyboard keycap with centralized size/keys state attrs and optional custom-class contract."
         >
-            <Playground title="Size + Keys Matrix" code_signal=matrix_code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_world_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-row">
+                    <Kbd keys="Ctrl".to_string()>"K"</Kbd>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Size + Keys + Label-only)"
+                code_signal=state_matrix_code
+                code_imports=kbd_imports.clone()
+            >
                 <div class="docs-row">
                     <Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
                     <Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>
                     <Kbd size=KbdSize::Md keys="Alt".to_string()>"Enter"</Kbd>
+                    <Kbd size=KbdSize::Md>"Esc"</Kbd>
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Label Only" code_signal=custom_code>
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Kbd has no internal controlled/uncontrolled axis; compare default static props with app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Kbd keys="Ctrl".to_string()>"K"</Kbd>
+                        <Kbd size=KbdSize::Sm>"Esc"</Kbd>
+                    </div>
+                    <p class="ui-muted">
+                        "N/A: Kbd is snapshot-only display leaf without `value/on_value_change/default_value` state axis."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Custom Class + Label Only"
+                code_signal=custom_code
+                code_imports=kbd_imports.clone()
+            >
                 <div class="docs-row">
                     <Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
+                    <Kbd
+                        size=KbdSize::Sm
+                        keys="Shift".to_string()
+                        class_name="docs-kbd-custom".to_string()
+                    >
+                        "Tab"
+                    </Kbd>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Kbd defaults to snapshot rendering; streaming path is optional and falls back to snapshot semantics."
+                code_signal=stream_snapshot_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="kbd-streaming-snapshot">
+                    <div class="docs-row">
+                        <Kbd keys="Ctrl".to_string()>"K"</Kbd>
+                        <Kbd size=KbdSize::Sm>"Esc"</Kbd>
+                    </div>
+                    <p class="ui-muted" data-slot="kbd-streaming-hint">
+                        "Streaming Optional -> fallback=snapshot; keep output-state semantic continuity at upstream layer."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Playground copy action injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-row">
                     <Kbd
                         size=KbdSize::Sm
                         keys="Shift".to_string()
@@ -1936,6 +3264,7 @@ pub(super) fn kbd() -> AnyView {
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels for size/keys/class contracts."
                 code_signal=workbench_code
+                code_imports=kbd_imports
                 test_css_source=workbench_test_css
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/kbd/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -2043,15 +3372,91 @@ pub(super) fn kbd() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="kbd-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="kbd-state-rows">
+                    <li><code>"data-size / data-state"</code>" = sm|md / with-keys|label-only"</li>
+                    <li><code>"data-keys"</code>" = true | none"</li>
+                    <li><code>"data-custom-class"</code>" = true | none"</li>
+                    <li><code>"control mode"</code>" = N/A (Kbd has no controlled/uncontrolled runtime axis)"</li>
+                    <li><code>"disabled axis"</code>" = N/A (Kbd has no disabled prop in API)"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="kbd-parameter-matrix">
+                <h3>"Parameter Matrix"</h3>
+                <ul data-slot="kbd-parameter-rows">
+                    <li><code>"size: Option&lt;KbdSize&gt;"</code>" default = None -> Md (`logic.rs`: `normalize_size -> unwrap_or_default()`)"</li>
+                    <li><code>"keys: Option&lt;String&gt;"</code>" default = None; blank string trims to None (`normalize_optional_text`)"</li>
+                    <li><code>"class_name: Option&lt;String&gt;"</code>" default = None; blank string trims to None (`normalize_optional_text`)"</li>
+                    <li><code>"children: Children"</code>" required; renders label content inside `<span data-slot=\"kbd-label\">`"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="kbd-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    ", and keeps starter code aligned with the current Kbd prop surface."
+                </p>
+                <ul data-slot="kbd-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-kbd"</code>
+                        " for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{Kbd, KbdSize};\n\n<Kbd size=KbdSize::Sm keys=\"Shift\".to_string() class_name=\"docs-kbd-custom\".to_string()>\n  \"Tab\"\n</Kbd>".to_string()
+                    label="Copy Kbd starter".to_string()
+                    copyable=true
+                    class_name="docs-kbd-source-copy".to_string()
+                />
+                <ul data-slot="kbd-source-paths">
+                    <li><code>"components/kbd/src/mod.rs"</code></li>
+                    <li><code>"components/kbd/src/logic.rs"</code></li>
+                    <li><code>"components/kbd/src/view.rs"</code></li>
+                    <li><code>"components/kbd/src/styles.rs"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 pub(super) fn code_block() -> AnyView {
-    let rust_code = r#"fn deploy(service: &str) -> anyhow::Result<()> {
+    fn workbench_template(language: &str) -> &'static str {
+        match language {
+            "bash" => {
+                r#"cargo fmt --all
+cargo clippy --workspace --all-targets -- -D warnings"#
+            }
+            "plain" => "CodeBlock workbench template for layout and style inspection.",
+            _ => {
+                r#"fn deploy(service: &str) -> anyhow::Result<()> {
     tracing::info!(target: "deploy", %service, "starting rollout");
     Ok(())
-}"#;
+}"#
+            }
+        }
+    }
+
+    let rust_code = workbench_template("rust");
+
+    let hello_world_code = Signal::derive(move || {
+        r#"<CodeBlock
+  code="cargo check -p ui-components".to_string()
+/>"#
+        .to_string()
+    });
 
     let matrix_code = Signal::derive(move || {
         r#"<CodeBlock
@@ -2065,11 +3470,228 @@ pub(super) fn code_block() -> AnyView {
     let compact_code = Signal::derive(move || {
         r#"<CodeBlock
   code="cargo test -p ui-components --test code_block_semantics".to_string()
-  copyable=false
+  is_copyable=false
   class_name="docs-code-block-custom".to_string()
 />"#
         .to_string()
     });
+    let state_matrix_code = Signal::derive(move || {
+        r#"<CodeBlock code="cargo check -p ui-components".to_string() />
+<CodeBlock
+  code="cargo fmt --all\ncargo clippy --workspace --all-targets -- -D warnings".to_string()
+  language="bash".to_string()
+  label="ci.sh".to_string()
+/>
+<CodeBlock
+  code="cargo test -p ui-components --test code_block_semantics".to_string()
+  is_copyable=false
+/>
+<CodeBlock
+  code="   ".to_string()
+  is_copyable=false
+  class_name="docs-code-block-custom".to_string()
+/>"#
+        .to_string()
+    });
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let (controlled_copied, set_controlled_copied) = signal(false);
+let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
+
+<CodeBlock
+  code="Uncontrolled: internal copied state.".to_string()
+  default_copied=true
+/>
+<CodeBlock
+  code="Controlled: copied state from app signal.".to_string()
+  is_copied=controlled_copied_signal
+  on_copied_change=Callback::new(move |next| set_controlled_copied.set(next))
+/>"#
+        .to_string()
+    });
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<CodeBlock
+  code="Snapshot: complete validated output rendered in one pass.".to_string()
+  language="plain".to_string()
+  output_mode=CodeBlockAgentOutputMode::Snapshot
+  output_status=CodeBlockAgentOutputStatus::Validated
+/>
+<CodeBlock
+  code="Streaming: incremental draft output while LLM is generating.".to_string()
+  language="plain".to_string()
+  output_mode=CodeBlockAgentOutputMode::Streaming
+  output_status=CodeBlockAgentOutputStatus::Draft
+/>"#
+        .to_string()
+    });
+    let source_first_code = Signal::derive(move || {
+        r#"<CodeBlock
+  code="cargo test -p ui-components --test code_block_semantics".to_string()
+  language="bash".to_string()
+/>"#
+        .to_string()
+    });
+    let code_block_imports = "use leptos::prelude::*;\nuse ui_components::CodeBlock;".to_string();
+    let code_block_stream_imports = "use leptos::prelude::*;\nuse ui_components::CodeBlock;\nuse ui_components::code_block::protocol::{CodeBlockAgentOutputMode, CodeBlockAgentOutputStatus};".to_string();
+
+    let language_options = vec!["rust".to_string(), "bash".to_string(), "plain".to_string()];
+    let output_mode_options = vec!["snapshot".to_string(), "streaming".to_string()];
+    let output_status_options = vec![
+        "draft".to_string(),
+        "validated".to_string(),
+        "ready-to-submit".to_string(),
+    ];
+    let (workbench_language_index, set_workbench_language_index) = signal(Some(0_usize));
+    let (workbench_is_copyable, set_workbench_is_copyable) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_preserve_state, set_workbench_preserve_state) = signal(true);
+    let (workbench_output_mode_index, set_workbench_output_mode_index) = signal(Some(0_usize));
+    let (workbench_output_status_index, set_workbench_output_status_index) = signal(Some(1_usize));
+    let (workbench_code_text, set_workbench_code_text) = signal(rust_code.to_string());
+    let (workbench_copied, set_workbench_copied) = signal(false);
+    let (controlled_copied, set_controlled_copied) = signal(false);
+    let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
+    let on_controlled_copied_change =
+        Callback::new(move |next: bool| set_controlled_copied.set(next));
+    let on_controlled_reset = Callback::new(move |_| set_controlled_copied.set(false));
+
+    let workbench_language_key =
+        Signal::derive(move || match workbench_language_index.get().unwrap_or(0) {
+            1 => "bash",
+            2 => "plain",
+            _ => "rust",
+        });
+    let workbench_language = Signal::derive(move || {
+        let key = workbench_language_key.get();
+        if key == "plain" {
+            String::new()
+        } else {
+            key.into()
+        }
+    });
+    let workbench_output_mode =
+        Signal::derive(
+            move || match workbench_output_mode_index.get().unwrap_or(0) {
+                1 => ui_components::code_block::protocol::CodeBlockAgentOutputMode::Streaming,
+                _ => ui_components::code_block::protocol::CodeBlockAgentOutputMode::Snapshot,
+            },
+        );
+    let workbench_output_status =
+        Signal::derive(
+            move || match workbench_output_status_index.get().unwrap_or(1) {
+                0 => ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Draft,
+                2 => ui_components::code_block::protocol::CodeBlockAgentOutputStatus::ReadyToSubmit,
+                _ => ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Validated,
+            },
+        );
+
+    Effect::new(move |_| {
+        if !workbench_preserve_state.get() {
+            let template = workbench_template(workbench_language_key.get());
+            set_workbench_code_text.set(template.to_string());
+            set_workbench_copied.set(false);
+        }
+    });
+
+    let workbench_copied_signal = Signal::derive(move || {
+        if workbench_preserve_state.get() {
+            workbench_copied.get()
+        } else {
+            false
+        }
+    });
+    let workbench_on_copied_change = Callback::new(move |next: bool| {
+        if workbench_preserve_state.get_untracked() {
+            set_workbench_copied.set(next);
+        }
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let language_key = workbench_language_key.get();
+        let is_copyable = workbench_is_copyable.get();
+        let custom_class = workbench_custom_class.get();
+        let preserve_state = workbench_preserve_state.get();
+        let output_mode = workbench_output_mode.get();
+        let output_status = workbench_output_status.get();
+        let code_literal = format!("{:?}", workbench_code_text.get());
+
+        let mut lines = vec![
+            "<CodeBlock".to_string(),
+            format!("  code={code_literal}.to_string()"),
+        ];
+        if language_key != "plain" {
+            lines.push(format!("  language=\"{language_key}\".to_string()"));
+        }
+        if !is_copyable {
+            lines.push("  is_copyable=false".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-code-block-custom\".to_string()".to_string());
+        }
+        if preserve_state {
+            lines.push("  is_copied=workbench_copied_signal".to_string());
+            lines.push(
+                "  on_copied_change=Callback::new(move |next| set_workbench_copied.set(next))"
+                    .to_string(),
+            );
+        }
+        lines.push(format!(
+            "  output_mode=ui_components::code_block::protocol::CodeBlockAgentOutputMode::{output_mode:?}"
+        ));
+        lines.push(format!(
+            "  output_status=ui_components::code_block::protocol::CodeBlockAgentOutputStatus::{output_status:?}"
+        ));
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let language_key = workbench_language_key.get();
+        let language = if language_key == "plain" {
+            "none"
+        } else {
+            language_key
+        };
+        let is_copyable = workbench_is_copyable.get();
+        let custom_class = workbench_custom_class.get();
+        let preserve_state = workbench_preserve_state.get();
+        let code = workbench_code_text.get();
+        let copied = workbench_copied.get();
+        let output_mode = workbench_output_mode.get();
+        let output_status = workbench_output_status.get();
+
+        format!(
+            "CodeBlockWorkbenchSpecInput {{\n  language: \"{language}\",\n  is_copyable: {is_copyable},\n  custom_class: {custom_class},\n  preserve_state: {preserve_state},\n  copied_state: {copied},\n  output_mode: \"{}\",\n  output_status: \"{}\",\n  code_lines: {},\n}}\n\nCodeBlockPreviewExpectation {{\n  data-ui-output-mode: \"{}\",\n  data-ui-output-status: \"{}\",\n}}",
+            output_mode.as_attr(),
+            output_status.as_attr(),
+            code.lines().count(),
+            output_mode.as_attr(),
+            output_status.as_attr(),
+        )
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        let mut css = format!(
+            "/* components/code-block/src/styles.rs */\n{}",
+            ui_components::code_block::styles::CSS
+        );
+
+        if workbench_custom_class.get() {
+            css.push_str(
+                "\n\n/* docs custom override */\n.docs-code-block-custom {\n  --ui-code-block-copy-flash: 0.32;\n  border-color: color-mix(in oklab, var(--ui-border), var(--ui-accent) 38%);\n}\n",
+            );
+        }
+
+        css
+    });
+
+    let on_workbench_load_template = Callback::new(move |_| {
+        let template = workbench_template(workbench_language_key.get_untracked());
+        set_workbench_code_text.set(template.to_string());
+        if !workbench_preserve_state.get_untracked() {
+            set_workbench_copied.set(false);
+        }
+    });
+    let on_workbench_reset_copy_state = Callback::new(move |_| set_workbench_copied.set(false));
 
     view! {
         <ComponentPage
@@ -2078,7 +3700,19 @@ pub(super) fn code_block() -> AnyView {
             group="Display"
             description="Multiline code surface with centralized header/state attrs and spring-driven copy flash motion."
         >
-            <Playground title="Header + Copy Motion" code_signal=matrix_code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_world_code
+                code_imports=code_block_imports.clone()
+            >
+                <CodeBlock code="cargo check -p ui-components".to_string() />
+            </Playground>
+
+            <Playground
+                title="Header + Copy Motion"
+                code_signal=matrix_code
+                code_imports=code_block_imports.clone()
+            >
                 <CodeBlock
                     code=rust_code.to_string()
                     language="rust".to_string()
@@ -2086,13 +3720,307 @@ pub(super) fn code_block() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Compact + No Copy" code_signal=compact_code>
+            <Playground
+                title="Compact + No Copy"
+                code_signal=compact_code
+                code_imports=code_block_imports.clone()
+            >
                 <CodeBlock
                     code="cargo test -p ui-components --test code_block_semantics".to_string()
-                    copyable=false
+                    is_copyable=false
                     class_name="docs-code-block-custom".to_string()
                 />
             </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="覆盖 single-line/multiline、header visible/hidden、copyable on/off、empty/custom class 等关键状态轴。"
+                code_signal=state_matrix_code
+                code_imports=code_block_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="code-block-state-matrix-preview">
+                    <CodeBlock code="cargo check -p ui-components".to_string() />
+                    <CodeBlock
+                        code={r#"cargo fmt --all
+cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
+                        language="bash".to_string()
+                        label="ci.sh".to_string()
+                    />
+                    <CodeBlock
+                        code="cargo test -p ui-components --test code_block_semantics".to_string()
+                        is_copyable=false
+                    />
+                    <CodeBlock
+                        code="   ".to_string()
+                        is_copyable=false
+                        class_name="docs-code-block-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Copied State)"
+                description="对照 `default_copied`（非受控）与 `is_copied + on_copied_change`（受控）语义。"
+                code_signal=controlled_contrast_code
+                code_imports=code_block_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="code-block-controlled-preview">
+                    <CodeBlock
+                        code="Uncontrolled: internal copied state starts from default_copied=true.".to_string()
+                        default_copied=true
+                    />
+                    <CodeBlock
+                        code="Controlled: copied state comes from app signal.".to_string()
+                        is_copied=controlled_copied_signal
+                        on_copied_change=on_controlled_copied_change
+                    />
+                    <div class="docs-row">
+                        <span class="ui-muted">
+                            {move || format!("controlled copied: {}", controlled_copied.get())}
+                        </span>
+                        <ui_components::Button
+                            variant=ui_components::ButtonVariant::Secondary
+                            size=ui_components::ButtonSize::Sm
+                            on_press=on_controlled_reset
+                        >
+                            "Reset controlled copied"
+                        </ui_components::Button>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="CodeBlock 默认 Snapshot；如需边生成边显示，可显式启用 Streaming，并保持 output status 连续可读。"
+                code_signal=stream_snapshot_code
+                code_imports=code_block_stream_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="code-block-streaming-preview">
+                    <CodeBlock
+                        code="Snapshot: complete validated output rendered in one pass.".to_string()
+                        language="plain".to_string()
+                        output_mode=ui_components::code_block::protocol::CodeBlockAgentOutputMode::Snapshot
+                        output_status=ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Validated
+                    />
+                    <CodeBlock
+                        code="Streaming: incremental draft output while LLM is generating.".to_string()
+                        language="plain".to_string()
+                        output_mode=ui_components::code_block::protocol::CodeBlockAgentOutputMode::Streaming
+                        output_status=ui_components::code_block::protocol::CodeBlockAgentOutputStatus::Draft
+                    />
+                    <p class="ui-muted">
+                        "Inspect "
+                        <code>"data-ui-output-mode"</code>
+                        " and "
+                        <code>"data-ui-output-status"</code>
+                        " on each root."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="复制按钮输出最小可运行片段，并自动补齐 imports。"
+                code_signal=source_first_code
+                code_imports=code_block_imports.clone()
+            >
+                <CodeBlock
+                    code="cargo test -p ui-components --test code_block_semantics".to_string()
+                    language="bash".to_string()
+                />
+            </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="调样式走 CSS Test 即时反馈；`preserve_state` 可选保持复制状态和编辑上下文，降低重复操作。"
+                code_signal=workbench_code
+                code_imports=code_block_imports
+                test_css_source=workbench_test_css
+                test_source_path="components/code-block/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="code-block-workbench-controls">
+                            <SegmentedControl
+                                id_base="docs-code-block-workbench-language".to_string()
+                                options=language_options.clone()
+                                selected_index=workbench_language_index
+                                set_selected_index=set_workbench_language_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="CodeBlock language".to_string()
+                            />
+                            <SegmentedControl
+                                id_base="docs-code-block-workbench-output-mode".to_string()
+                                options=output_mode_options.clone()
+                                selected_index=workbench_output_mode_index
+                                set_selected_index=set_workbench_output_mode_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="CodeBlock output mode".to_string()
+                            />
+                            <SegmentedControl
+                                id_base="docs-code-block-workbench-output-status".to_string()
+                                options=output_status_options.clone()
+                                selected_index=workbench_output_status_index
+                                set_selected_index=set_workbench_output_status_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="CodeBlock output status".to_string()
+                            />
+
+                            <div class="docs-row">
+                                <Switch checked=workbench_is_copyable set_checked=set_workbench_is_copyable>
+                                    "copyable"
+                                </Switch>
+                                <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                    "custom class"
+                                </Switch>
+                                <Switch checked=workbench_preserve_state set_checked=set_workbench_preserve_state>
+                                    "preserve state"
+                                </Switch>
+                            </div>
+
+                            <div class="docs-row">
+                                <ui_components::Button
+                                    variant=ui_components::ButtonVariant::Secondary
+                                    size=ui_components::ButtonSize::Sm
+                                    on_press=on_workbench_load_template
+                                >
+                                    "Load template"
+                                </ui_components::Button>
+                                <ui_components::Button
+                                    variant=ui_components::ButtonVariant::Secondary
+                                    size=ui_components::ButtonSize::Sm
+                                    on_press=on_workbench_reset_copy_state
+                                >
+                                    "Reset copied state"
+                                </ui_components::Button>
+                            </div>
+
+                            <label class="docs-search__label" for="docs-code-block-workbench-code">
+                                "Code"
+                            </label>
+                            <textarea
+                                id="docs-code-block-workbench-code"
+                                class="docs-search__input"
+                                rows="7"
+                                prop:value=move || workbench_code_text.get()
+                                on:input=move |ev| set_workbench_code_text.set(event_target_value(&ev))
+                            />
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack" data-slot="code-block-workbench-preview">
+                    {move || {
+                        let code = workbench_code_text.get();
+                        let language = workbench_language.get();
+                        let is_copyable = workbench_is_copyable.get();
+                        let output_mode = workbench_output_mode.get();
+                        let output_status = workbench_output_status.get();
+                        let class_name = if workbench_custom_class.get() {
+                            "docs-code-block-custom".to_string()
+                        } else {
+                            String::new()
+                        };
+
+                        view! {
+                            <CodeBlock
+                                code
+                                language
+                                is_copyable
+                                class_name
+                                is_copied=workbench_copied_signal
+                                on_copied_change=workbench_on_copied_change
+                                output_mode
+                                output_status
+                            />
+                        }
+                            .into_any()
+                    }}
+
+                    <CodeBlock
+                        code="cargo test -p ui-components --test code_block_semantics".to_string()
+                        language="bash".to_string()
+                        is_copyable=false
+                    />
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="code-block-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="code-block-state-rows">
+                    <li><code>"data-state"</code>" = single-line | multiline"</li>
+                    <li><code>"data-header"</code>" = visible | hidden"</li>
+                    <li><code>"data-copyable / data-copied"</code>" = true | none"</li>
+                    <li><code>"data-copyable-source"</code>" = default | is_copyable | copyable_legacy"</li>
+                    <li><code>"data-copied-source"</code>" = uncontrolled | controlled"</li>
+                    <li><code>"data-empty / data-custom-class"</code>" = true | none"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="code-block-parameter-matrix">
+                <h3>"Parameter Matrix"</h3>
+                <ul data-slot="code-block-parameter-rows">
+                    <li><code>"is_copyable"</code>" default = true"</li>
+                    <li>
+                        <code>"copyable"</code>
+                        " = legacy alias; normalization priority: "
+                        <code>"is_copyable > copyable > true"</code>
+                    </li>
+                    <li><code>"default_copied"</code>" default = false"</li>
+                    <li>
+                        <code>"is_copied + on_copied_change"</code>
+                        " = controlled copied-state API"
+                    </li>
+                    <li><code>"output_mode"</code>" default = snapshot"</li>
+                    <li><code>"output_status"</code>" default = validated"</li>
+                    <li><code>"disabled axis"</code>" = N/A (CodeBlock has no disabled prop)"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="code-block-streaming-modes">
+                <h3>"Streaming / Snapshot"</h3>
+                <ul data-slot="code-block-streaming-rows">
+                    <li><code>"data-ui-output-mode"</code>" = snapshot | streaming"</li>
+                    <li><code>"data-ui-output-status"</code>" = draft | validated | ready-to-submit"</li>
+                    <li><code>"default fallback"</code>" = snapshot"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="code-block-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="code-block-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-code_block"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        ") so copied snippets preserve baseline styles."
+                    </li>
+                </ul>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::CodeBlock;\n\n<CodeBlock\n  code=\"cargo test -p ui-components --test code_block_semantics\".to_string()\n  language=\"bash\".to_string()\n/>".to_string()
+                    label="Copy code starter".to_string()
+                    copyable=true
+                    class_name="docs-code-block-source-copy".to_string()
+                />
+                <ul data-slot="code-block-source-paths">
+                    <li><code>"components/code-block/src/mod.rs"</code></li>
+                    <li><code>"components/code-block/src/logic.rs"</code></li>
+                    <li><code>"components/code-block/src/view.rs"</code></li>
+                    <li><code>"components/code-block/src/styles.rs"</code></li>
+                    <li><code>"components/code-block/src/motion.rs"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -2297,6 +4225,10 @@ pub(super) fn link() -> AnyView {
         )
     });
 
+    let hello_world_code = Signal::derive(move || {
+        r##"<Link href="#/docs/welcome".to_string()>"Read docs"</Link>"##.to_string()
+    });
+
     let matrix_code = Signal::derive(move || {
         r##"<Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
 <Link href="https://example.com".to_string() target="_blank">"External link"</Link>
@@ -2312,6 +4244,10 @@ pub(super) fn link() -> AnyView {
             group="Display"
             description="Text link with centralized disabled/target/rel state attrs and headless hover + focus-visible semantics."
         >
+            <Playground title="Hello World (Default API)" code_signal=hello_world_code>
+                <Link href="#/docs/welcome".to_string()>"Read docs"</Link>
+            </Playground>
+
             <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
@@ -2447,10 +4383,27 @@ pub(super) fn avatar() -> AnyView {
         r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.into()) />"#.to_string()
     });
 
-    let states_code = Signal::derive(move || {
+    let state_matrix_code = Signal::derive(move || {
         r#"<Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
 <Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
 <Avatar size=AvatarSize::Lg />"#
+            .to_string()
+    });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let avatar_name = Some("Ada Lovelace".to_string());
+
+<Avatar />
+<Avatar name=avatar_name />
+// Avatar has no controlled/uncontrolled state axis.
+// App state maps directly to props; no value/on_change/default triplet."#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Avatar name="Snapshot User".to_string() size=AvatarSize::Md />
+// Streaming Optional; fallback=snapshot.
+// Avatar consumes complete props snapshots and stays render-stable."#
             .to_string()
     });
 
@@ -2469,6 +4422,99 @@ pub(super) fn avatar() -> AnyView {
         .to_string()
     });
 
+    let source_first_code = Signal::derive(move || {
+        r#"use leptos::prelude::*;
+use ui_components::{Avatar, AvatarSize};
+
+<Avatar name="Ada Lovelace".to_string() size=AvatarSize::Md />"#
+            .to_string()
+    });
+
+    let workbench_mode_options = vec![
+        "image".to_string(),
+        "name-only".to_string(),
+        "fallback".to_string(),
+    ];
+    let workbench_size_options = vec!["sm".to_string(), "md".to_string(), "lg".to_string()];
+    let (workbench_mode_index, set_workbench_mode_index) = signal(Some(0_usize));
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(1_usize));
+    let (workbench_use_alt, set_workbench_use_alt) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+
+    let workbench_mode = Signal::derive(move || match workbench_mode_index.get().unwrap_or(0) {
+        1 => "name-only",
+        2 => "fallback",
+        _ => "image",
+    });
+    let workbench_size = Signal::derive(move || match workbench_size_index.get().unwrap_or(1) {
+        0 => AvatarSize::Sm,
+        2 => AvatarSize::Lg,
+        _ => AvatarSize::Md,
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let mode = workbench_mode.get();
+        let size = match workbench_size.get() {
+            AvatarSize::Sm => "AvatarSize::Sm",
+            AvatarSize::Md => "AvatarSize::Md",
+            AvatarSize::Lg => "AvatarSize::Lg",
+        };
+        let use_alt = workbench_use_alt.get();
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+
+        let mut lines = vec!["<Avatar".to_string(), format!("  size={size}")];
+        match mode {
+            "image" => {
+                lines.push("  name=\"Ada Lovelace\".to_string()".to_string());
+                lines.push("  src=Some(src.into())".to_string());
+            }
+            "name-only" => {
+                lines.push("  name=\"Ada Lovelace\".to_string()".to_string());
+            }
+            _ => {}
+        }
+        if use_alt {
+            lines.push("  alt=\"Team collaborator\".to_string()".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-avatar-custom\".to_string()".to_string());
+        }
+        if rtl {
+            lines.push("  lang=\"ar\".to_string()".to_string());
+            lines.push("  dir=A11yDirection::Rtl".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_config = Signal::derive(move || {
+        let mode = workbench_mode.get();
+        let use_alt = workbench_use_alt.get();
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+        let size = workbench_size.get();
+
+        let expected_state = if mode == "image" { "image" } else { "fallback" };
+        let expected_label_source = if use_alt {
+            "alt"
+        } else if matches!(mode, "image" | "name-only") {
+            "name"
+        } else {
+            "fallback"
+        };
+        let expected_size = match size {
+            AvatarSize::Sm => "sm",
+            AvatarSize::Md => "md",
+            AvatarSize::Lg => "lg",
+        };
+
+        format!(
+            "AvatarWorkbenchConfig {{\n  mode: \"{mode}\",\n  size: \"{expected_size}\",\n  use_alt: {use_alt},\n  custom_class: {custom_class},\n  rtl: {rtl},\n  expected_state: \"{expected_state}\",\n  expected_label_source: \"{expected_label_source}\",\n}}"
+        )
+    });
+
     view! {
         <ComponentPage
             title="Avatar"
@@ -2476,13 +4522,23 @@ pub(super) fn avatar() -> AnyView {
             group="Display"
             description="Avatar with image/error fallback, normalized labels, and baseline-style root state attrs + custom-class contract."
         >
-            <Playground title="Hello World" code_signal=hello_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::Avatar;".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Avatar />
                 </div>
             </Playground>
 
-            <Playground title="Image + Fallback" code_signal=image_code>
+            <Playground
+                title="Image + Fallback"
+                code_signal=image_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Avatar
                         name="Ada Lovelace".to_string()
@@ -2494,7 +4550,13 @@ pub(super) fn avatar() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Sizes + Label Sources" code_signal=states_code>
+            <Playground
+                title="State Matrix"
+                description="Label source + fallback state matrix with stable semantic markers."
+                code_signal=state_matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Avatar
                         name="Ada Lovelace".to_string()
@@ -2507,7 +4569,12 @@ pub(super) fn avatar() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Normalized Props" code_signal=custom_code>
+            <Playground
+                title="Custom Class + Normalized Props"
+                code_signal=custom_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Avatar
                         name="  Ada Lovelace  ".to_string()
@@ -2522,6 +4589,219 @@ pub(super) fn avatar() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Avatar has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::Avatar;".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Avatar />
+                    <Avatar name="Ada Lovelace".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Avatar is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="avatar-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="avatar-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/avatar/src/view.rs."
+                    </p>
+                    <div class="docs-row">
+                        <Avatar name="Snapshot User".to_string() size=AvatarSize::Md />
+                        <Avatar alt="Fallback viewer".to_string() size=AvatarSize::Sm />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground (Props + State Preview)"
+                description="Modify props live and inspect semantic state transitions without wiring internal state machines."
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{Avatar, AvatarSize};\nuse ui_components::color::area::A11yDirection;".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+                test_config_signal=workbench_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="avatar-workbench-controls">
+                            <div class="docs-search__label">"Render mode"</div>
+                            <SegmentedControl
+                                id_base="docs-avatar-workbench-mode".to_string()
+                                options=workbench_mode_options.clone()
+                                selected_index=workbench_mode_index
+                                set_selected_index=set_workbench_mode_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Avatar render mode".to_string()
+                            />
+
+                            <div class="docs-search__label">"Size"</div>
+                            <SegmentedControl
+                                id_base="docs-avatar-workbench-size".to_string()
+                                options=workbench_size_options.clone()
+                                selected_index=workbench_size_index
+                                set_selected_index=set_workbench_size_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Avatar size".to_string()
+                            />
+
+                            <Switch checked=workbench_use_alt set_checked=set_workbench_use_alt>
+                                "Use alt label"
+                            </Switch>
+                            <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                "Custom class"
+                            </Switch>
+                            <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                                "RTL direction"
+                            </Switch>
+                        </div>
+                    }
+                }
+            >
+                {move || {
+                    let mode = workbench_mode.get();
+                    let size = workbench_size.get();
+                    let use_alt = workbench_use_alt.get();
+                    let custom_class = workbench_custom_class.get();
+                    let rtl = workbench_rtl.get();
+
+                    let name = if matches!(mode, "image" | "name-only") {
+                        "Ada Lovelace".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let image_src = if mode == "image" {
+                        into_owned_string(src)
+                    } else {
+                        String::new()
+                    };
+                    let alt = if use_alt {
+                        "Team collaborator".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if custom_class {
+                        "docs-avatar-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let lang = if rtl { "ar".to_string() } else { String::new() };
+                    let dir = if rtl {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+
+                    let expected_state = if mode == "image" { "image" } else { "fallback" };
+                    let expected_label_source = if use_alt {
+                        "alt"
+                    } else if matches!(mode, "image" | "name-only") {
+                        "name"
+                    } else {
+                        "fallback"
+                    };
+                    let expected_size = match size {
+                        AvatarSize::Sm => "sm",
+                        AvatarSize::Md => "md",
+                        AvatarSize::Lg => "lg",
+                    };
+
+                    view! {
+                        <div class="docs-stack" data-slot="avatar-workbench-preview">
+                            <div class="docs-row">
+                                <div class="docs-stack docs-stack--tight">
+                                    <div class="docs-search__label">"Baseline"</div>
+                                    <Avatar />
+                                </div>
+                                <div class="docs-stack docs-stack--tight" data-slot="avatar-workbench-configured">
+                                    <div class="docs-search__label">"Configured"</div>
+                                    <Avatar
+                                        name=name
+                                        src=image_src
+                                        size=size
+                                        alt=alt
+                                        class_name=class_name
+                                        lang=lang
+                                        dir=dir
+                                    />
+                                </div>
+                            </div>
+                            <p class="ui-muted" data-slot="avatar-workbench-state">
+                                {format!(
+                                    "expected: state={expected_state}, label_source={expected_label_source}, size={expected_size}"
+                                )}
+                            </p>
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="avatar-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="avatar-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-avatar"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text=source_first_code.get()
+                    label="Copy avatar starter".to_string()
+                    copyable=true
+                    class_name="docs-avatar-source-copy".to_string()
+                />
+                <ul data-slot="avatar-source-paths">
+                    <li><code>"components/avatar/src/mod.rs"</code></li>
+                    <li><code>"components/avatar/src/logic.rs"</code></li>
+                    <li><code>"components/avatar/src/view.rs"</code></li>
+                    <li><code>"components/avatar/src/styles.rs"</code></li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="avatar-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="avatar-state-rows">
+                    <li><code>"data-state"</code>" = image | fallback"</li>
+                    <li><code>"data-image / data-fallback"</code>" = true | (absent), derived from render mode"</li>
+                    <li><code>"data-label-source"</code>" = alt | name | fallback"</li>
+                    <li><code>"data-size"</code>" = sm | md | lg"</li>
+                    <li><code>"control mode"</code>" = N/A (Avatar has no controlled/uncontrolled runtime axis)"</li>
+                    <li><code>"disabled axis"</code>" = N/A (Avatar has no disabled prop in API)"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="avatar-parameter-matrix">
+                <h3>"Parameter Matrix"</h3>
+                <ul data-slot="avatar-parameter-rows">
+                    <li><code>"name / src / alt / class_name / lang: Option&lt;String&gt;"</code>" default = None; blank strings are normalized away by normalize_input/normalize_lang"</li>
+                    <li><code>"size: AvatarSize"</code>" default = AvatarSize::Md"</li>
+                    <li><code>"dir: Option&lt;A11yDirection&gt;"</code>" default = None (inherits locale direction/context)"</li>
+                    <li><code>"label source priority"</code>" = alt -> name -> fallback"</li>
+                    <li><code>"render mode"</code>" = image when src is present and no image error, else fallback"</li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -2561,14 +4841,26 @@ pub(super) fn avatar_group() -> AnyView {
     ];
 
     let empty_items: Vec<AvatarGroupItem> = Vec::new();
+    let empty_items_for_hello = empty_items.clone();
+    let empty_items_for_state_matrix = empty_items.clone();
+    let empty_items_for_controlled = empty_items.clone();
     let empty_items_custom: Vec<AvatarGroupItem> = Vec::new();
     let overflow_items = items.clone();
     let size_items = items.clone();
     let custom_items = items.clone();
+    let state_matrix_items = items.clone();
+    let controlled_items = items.clone();
+    let stream_snapshot_items = items.clone();
+    let workbench_items_overflow = items.clone();
+    let workbench_items_stable = items.iter().take(2).cloned().collect::<Vec<_>>();
+    let workbench_items_empty: Vec<AvatarGroupItem> = Vec::new();
+    let source_first_items = items;
+    let code_imports =
+        "use leptos::prelude::*;\nuse ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};"
+            .to_string();
 
-    let hello_code = Signal::derive(move || {
-        r#"<AvatarGroup items=Vec::<AvatarGroupItem>::new() />"#.to_string()
-    });
+    let hello_code =
+        Signal::derive(move || r#"<AvatarGroup items=empty_items.clone() />"#.to_string());
 
     let overflow_code = Signal::derive(move || {
         r#"<AvatarGroup
@@ -2684,6 +4976,229 @@ pub(super) fn avatar_group() -> AnyView {
         .to_string()
     });
 
+    let state_matrix_code = Signal::derive(move || {
+        r#"<AvatarGroup items=empty_items.clone() />
+<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+  ]
+  max=4
+  size=AvatarSize::Md
+/>
+<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Katherine Johnson".to_string()),
+      src: None,
+      alt: Some("Katherine".to_string()),
+    },
+  ]
+  max=2
+  size=AvatarSize::Md
+  aria_label="Core collaborators".to_string()
+/>"#
+        .to_string()
+    });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"// AvatarGroup has no controlled/uncontrolled runtime axis (`value/on_value_change/default_value`).
+// Contrast default props with app-state mapped props.
+let upstream_max = 2_usize;
+
+<AvatarGroup items=empty_items.clone() />
+<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+  ]
+  max=upstream_max
+  aria_label="Upstream mapped".to_string()
+/>"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+  ]
+  max=2
+  aria_label="Snapshot baseline".to_string()
+/>
+// Streaming Optional; fallback=snapshot.
+// Inspect markers: data-ui-stream-support=optional data-ui-stream-fallback=snapshot data-ui-output-status=verified."#
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Katherine Johnson".to_string()),
+      src: None,
+      alt: Some("Katherine".to_string()),
+    },
+  ]
+  max=3
+  size=AvatarSize::Md
+  aria_label="Copy-ready collaborators".to_string()
+/>"#
+        .to_string()
+    });
+
+    let workbench_roster_options = vec![
+        "empty".to_string(),
+        "stable".to_string(),
+        "overflow".to_string(),
+    ];
+    let workbench_size_options = vec!["sm".to_string(), "md".to_string(), "lg".to_string()];
+    let workbench_max_options = vec!["2".to_string(), "3".to_string(), "4".to_string()];
+    let (workbench_roster_index, set_workbench_roster_index) = signal(Some(2_usize));
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(1_usize));
+    let (workbench_max_index, set_workbench_max_index) = signal(Some(1_usize));
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+
+    let workbench_roster =
+        Signal::derive(move || match workbench_roster_index.get().unwrap_or(2) {
+            0 => "empty",
+            1 => "stable",
+            _ => "overflow",
+        });
+    let workbench_size = Signal::derive(move || match workbench_size_index.get().unwrap_or(1) {
+        0 => AvatarSize::Sm,
+        2 => AvatarSize::Lg,
+        _ => AvatarSize::Md,
+    });
+    let workbench_max = Signal::derive(move || match workbench_max_index.get().unwrap_or(1) {
+        0 => 2_usize,
+        2 => 4_usize,
+        _ => 3_usize,
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let roster = workbench_roster.get();
+        let size = match workbench_size.get() {
+            AvatarSize::Sm => "AvatarSize::Sm",
+            AvatarSize::Md => "AvatarSize::Md",
+            AvatarSize::Lg => "AvatarSize::Lg",
+        };
+        let max = workbench_max.get();
+        let custom_aria = workbench_custom_aria.get();
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+
+        let roster_comment = match roster {
+            "empty" => "// empty roster",
+            "stable" => "// stable roster (2 items, no overflow)",
+            _ => "// overflow roster",
+        };
+
+        let mut lines = vec![
+            roster_comment.to_string(),
+            "<AvatarGroup".to_string(),
+            "  items=your_items".to_string(),
+            format!("  max={max}"),
+            format!("  size={size}"),
+        ];
+        if custom_aria {
+            lines.push("  aria_label=\"Interactive collaborators\".to_string()".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-avatar-group-custom\".to_string()".to_string());
+        }
+        if rtl {
+            lines.push("  lang=\"ar\".to_string()".to_string());
+            lines.push("  dir=A11yDirection::Rtl".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_config = Signal::derive(move || {
+        let roster = workbench_roster.get();
+        let size = match workbench_size.get() {
+            AvatarSize::Sm => "sm",
+            AvatarSize::Md => "md",
+            AvatarSize::Lg => "lg",
+        };
+        let max = workbench_max.get();
+        let custom_aria = workbench_custom_aria.get();
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+
+        format!(
+            "AvatarGroupWorkbenchConfig {{\n  roster: \"{roster}\",\n  size: \"{size}\",\n  max: {max},\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  rtl: {rtl},\n}}"
+        )
+    });
+
     view! {
         <ComponentPage
             title="AvatarGroup"
@@ -2691,13 +5206,13 @@ pub(super) fn avatar_group() -> AnyView {
             group="Display"
             description="Stacked avatars with centralized overflow/empty/aria-label-source state attrs and baseline-style root contracts."
         >
-            <Playground title="Hello World" code_signal=hello_code>
+            <Playground title="Hello World" code_signal=hello_code code_imports=code_imports.clone()>
                 <div class="docs-row">
-                    <AvatarGroup items=empty_items.clone() />
+                    <AvatarGroup items=empty_items_for_hello />
                 </div>
             </Playground>
 
-            <Playground title="Overflow Stack" code_signal=overflow_code>
+            <Playground title="Overflow Stack" code_signal=overflow_code code_imports=code_imports.clone()>
                 <div class="docs-row">
                     <AvatarGroup items=overflow_items.clone() max=3 size=AvatarSize::Md />
                     <AvatarGroup
@@ -2709,7 +5224,11 @@ pub(super) fn avatar_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Sizes Without Overflow" code_signal=sizes_code>
+            <Playground
+                title="Sizes Without Overflow"
+                code_signal=sizes_code
+                code_imports=code_imports.clone()
+            >
                 <div class="docs-row">
                     <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Sm />
                     <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Md />
@@ -2717,7 +5236,7 @@ pub(super) fn avatar_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Aria + Class" code_signal=custom_code>
+            <Playground title="Custom Aria + Class" code_signal=custom_code code_imports=code_imports.clone()>
                 <div class="docs-row">
                     <AvatarGroup
                         items=empty_items_custom
@@ -2735,6 +5254,280 @@ pub(super) fn avatar_group() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="Covers empty/stable/overflow and custom aria-label contracts in one matrix."
+                code_signal=state_matrix_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-row">
+                    <AvatarGroup items=empty_items_for_state_matrix />
+                    <AvatarGroup items=state_matrix_items.clone() max=6 size=AvatarSize::Md />
+                    <AvatarGroup
+                        items=state_matrix_items.clone()
+                        max=2
+                        size=AvatarSize::Md
+                        aria_label="Core collaborators".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="AvatarGroup has no controlled/uncontrolled state machine. Compare default props with app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-row">
+                    <AvatarGroup items=empty_items_for_controlled />
+                    <AvatarGroup
+                        items=controlled_items.clone()
+                        max=2
+                        size=AvatarSize::Md
+                        aria_label="Upstream mapped".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="AvatarGroup is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="avatar-group-streaming-preview">
+                    <AvatarGroup
+                        items=stream_snapshot_items.clone()
+                        max=2
+                        size=AvatarSize::Md
+                        aria_label="Snapshot baseline".to_string()
+                    />
+                    <p class="ui-muted" data-slot="avatar-group-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground (Props + State + Preview)"
+                description="Adjust roster/size/max and semantic sources in real time. Use this as repeatable acceptance surface."
+                code_signal=workbench_code
+                code_imports="use leptos::prelude::*;\nuse ui_components::{AvatarGroup, AvatarGroupItem, AvatarSize};\nuse ui_components::color::area::A11yDirection;".to_string()
+                test_source_path="components/avatar-group/src/view.rs".to_string()
+                test_config_signal=workbench_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="avatar-group-workbench-controls">
+                            <div class="docs-search__label">"Roster state"</div>
+                            <SegmentedControl
+                                id_base="docs-avatar-group-workbench-roster".to_string()
+                                options=workbench_roster_options.clone()
+                                selected_index=workbench_roster_index
+                                set_selected_index=set_workbench_roster_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="AvatarGroup roster mode".to_string()
+                            />
+
+                            <div class="docs-search__label">"Size"</div>
+                            <SegmentedControl
+                                id_base="docs-avatar-group-workbench-size".to_string()
+                                options=workbench_size_options.clone()
+                                selected_index=workbench_size_index
+                                set_selected_index=set_workbench_size_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="AvatarGroup size".to_string()
+                            />
+
+                            <div class="docs-search__label">"Max visible"</div>
+                            <SegmentedControl
+                                id_base="docs-avatar-group-workbench-max".to_string()
+                                options=workbench_max_options.clone()
+                                selected_index=workbench_max_index
+                                set_selected_index=set_workbench_max_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="AvatarGroup max visible".to_string()
+                            />
+
+                            <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                                "Custom aria label"
+                            </Switch>
+                            <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                "Custom class"
+                            </Switch>
+                            <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                                "RTL direction"
+                            </Switch>
+                        </div>
+                    }
+                }
+            >
+                {move || {
+                    let roster = workbench_roster.get();
+                    let size = workbench_size.get();
+                    let max = workbench_max.get();
+                    let custom_aria = workbench_custom_aria.get();
+                    let custom_class = workbench_custom_class.get();
+                    let rtl = workbench_rtl.get();
+
+                    let configured_items = match roster {
+                        "empty" => workbench_items_empty.clone(),
+                        "stable" => workbench_items_stable.clone(),
+                        _ => workbench_items_overflow.clone(),
+                    };
+                    let configured_total = configured_items.len();
+                    let visible = configured_total.min(max);
+                    let overflow = configured_total.saturating_sub(visible);
+                    let expected_state = if configured_total == 0 {
+                        "empty"
+                    } else if overflow > 0 {
+                        "overflow"
+                    } else {
+                        "stable"
+                    };
+                    let size_attr = match size {
+                        AvatarSize::Sm => "sm",
+                        AvatarSize::Md => "md",
+                        AvatarSize::Lg => "lg",
+                    };
+
+                    let aria_label = if custom_aria {
+                        "Interactive collaborators".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if custom_class {
+                        "docs-avatar-group-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let lang = if rtl { "ar".to_string() } else { String::new() };
+                    let dir = if rtl {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+
+                    view! {
+                        <div class="docs-stack" data-slot="avatar-group-workbench-preview">
+                            <div class="docs-row">
+                                <div class="docs-stack docs-stack--tight">
+                                    <div class="docs-search__label">"Baseline"</div>
+                                    <AvatarGroup items=workbench_items_overflow.clone() max=3 size=AvatarSize::Md />
+                                </div>
+                                <div
+                                    class="docs-stack docs-stack--tight"
+                                    data-slot="avatar-group-workbench-configured"
+                                >
+                                    <div class="docs-search__label">"Configured"</div>
+                                    <AvatarGroup
+                                        items=configured_items
+                                        max=max
+                                        size=size
+                                        aria_label=aria_label
+                                        class_name=class_name
+                                        lang=lang
+                                        dir=dir
+                                    />
+                                </div>
+                            </div>
+                            <p class="ui-muted" data-slot="avatar-group-workbench-state">
+                                {format!(
+                                    "expected: state={expected_state}, size={size_attr}, total={configured_total}, overflow={overflow}"
+                                )}
+                            </p>
+                            <p class="ui-muted" data-slot="avatar-group-spec-preview-na">
+                                "AI Spec input/preview linkage: N/A for AvatarGroup (non-spec component)."
+                            </p>
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=code_imports
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="avatar-group-source-first-preview">
+                    <AvatarGroup
+                        items=source_first_items.clone()
+                        max=3
+                        size=AvatarSize::Md
+                        aria_label="Copy-ready collaborators".to_string()
+                    />
+                    <p class="ui-muted" data-slot="avatar-group-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/avatar-group/src/view.rs."
+                    </p>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="avatar-group-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p data-slot="avatar-group-source-first-contract">
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="avatar-group-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-avatar-group"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text=source_first_code.get()
+                    label="Copy avatar-group starter".to_string()
+                    copyable=true
+                    class_name="docs-avatar-group-source-copy".to_string()
+                />
+                <ul data-slot="avatar-group-source-paths">
+                    <li><code>"components/avatar-group/src/mod.rs"</code></li>
+                    <li><code>"components/avatar-group/src/logic.rs"</code></li>
+                    <li><code>"components/avatar-group/src/view.rs"</code></li>
+                    <li><code>"components/avatar-group/src/styles.rs"</code></li>
+                </ul>
+                <p class="ui-muted" data-slot="avatar-group-source-sync-note">
+                    "Sync note: snippet text is sourced from "
+                    <code>"source_first_code"</code>
+                    " and mirrors "
+                    <code>"components/avatar-group/src/view.rs"</code>
+                    " API usage; update docs snippet and source implementation together to avoid drift."
+                </p>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="avatar-group-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="avatar-group-state-rows">
+                    <li><code>"data-state"</code>" = empty | stable | overflow"</li>
+                    <li><code>"data-aria-label-source / data-class-source"</code>" = default | custom"</li>
+                    <li><code>"data-ui-state / data-ui-action"</code>" = empty/stable/overflow with render-stable-roster | render-overflow-summary"</li>
+                    <li><code>"controlled/uncontrolled axis"</code>" = N/A (AvatarGroup has no runtime controllable state machine)"</li>
+                    <li><code>"disabled axis"</code>" = N/A (AvatarGroup has no is_disabled prop in API)"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="avatar-group-parameter-matrix">
+                <h3>"Parameter Matrix"</h3>
+                <ul data-slot="avatar-group-parameter-rows">
+                    <li><code>"items: Vec&lt;AvatarGroupItem&gt;"</code>" required roster input (Hello World uses empty vec)"</li>
+                    <li><code>"max: Option&lt;usize&gt;"</code>" default = None -> normalize to 4 in logic (`normalize_avatar_group_max_visible`)"</li>
+                    <li><code>"size: AvatarSize"</code>" default = AvatarSize::Md"</li>
+                    <li><code>"aria_label: Option&lt;String&gt;"</code>" default = None -> i18n default aria label via logic fallback"</li>
+                    <li><code>"class_name: Option&lt;String&gt;, lang: Option&lt;String&gt;"</code>" default = None; blank strings are normalized away in logic"</li>
+                    <li><code>"dir: Option&lt;A11yDirection&gt;"</code>" default = None (inherits locale direction context)"</li>
+                    <li><code>"AvatarGroupItem{name/src/alt}: Option&lt;String&gt;"</code>" empty/blank values normalize to empty strings in logic output fields"</li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -2763,7 +5556,7 @@ pub(super) fn image() -> AnyView {
     let (source_index, set_source_index) = signal(Some(0usize));
     let (is_zoomed, set_is_zoomed) = signal(true);
     let (is_blurred, set_is_blurred) = signal(false);
-    let (disable_skeleton, set_disable_skeleton) = signal(false);
+    let (is_skeleton_disabled, set_is_skeleton_disabled) = signal(false);
     let (with_fallback, set_with_fallback) = signal(true);
     let (custom_class, set_custom_class) = signal(false);
 
@@ -2787,8 +5580,50 @@ pub(super) fn image() -> AnyView {
     });
     let source_mode = Signal::derive(move || source_index.get().unwrap_or(0));
 
-    let code =
-        Signal::derive(move || r#"<Image src=src.into() alt="Demo".to_string() />"#.to_string());
+    let code = Signal::derive(move || {
+        r#"<Image
+  src="https://images.unsplash.com/photo-1516117172878-fd2c41f4a759".to_string()
+  alt="Demo image".to_string()
+/>"#
+        .to_string()
+    });
+    let source_first_code = Signal::derive(move || {
+        r#"<Image
+  src="https://images.unsplash.com/photo-1516117172878-fd2c41f4a759".to_string()
+  fallback_src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee".to_string()
+  alt="Copy-ready starter".to_string()
+  radius=ImageRadius::Lg
+  shadow=ImageShadow::Sm
+/>"#
+        .to_string()
+    });
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let upstream_zoomed = true;
+
+<Image
+  src="https://images.unsplash.com/photo-1516117172878-fd2c41f4a759".to_string()
+  alt="Default path".to_string()
+/>
+<Image
+  src="https://images.unsplash.com/photo-1516117172878-fd2c41f4a759".to_string()
+  alt="Upstream mapped".to_string()
+  is_zoomed=upstream_zoomed
+/>"#
+        .to_string()
+    });
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Image
+  src="https://images.unsplash.com/photo-1516117172878-fd2c41f4a759".to_string()
+  alt="Snapshot baseline".to_string()
+/>
+// Streaming Optional; fallback=snapshot.
+// Image renders deterministic snapshot output while keeping semantic markers stable."#
+            .to_string()
+    });
+    let basic_imports = "use leptos::prelude::*;\nuse ui_components::Image;".to_string();
+    let advanced_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Image, ImageMotion, ImageRadius, ImageShadow};"
+            .to_string();
     let workbench_code = Signal::derive(move || {
         let radius = radius.get();
         let shadow = shadow.get();
@@ -2796,7 +5631,7 @@ pub(super) fn image() -> AnyView {
         let source_mode = source_mode.get();
         let is_zoomed = is_zoomed.get();
         let is_blurred = is_blurred.get();
-        let disable_skeleton = disable_skeleton.get();
+        let is_skeleton_disabled = is_skeleton_disabled.get();
         let with_fallback = with_fallback.get();
         let custom_class = custom_class.get();
 
@@ -2811,8 +5646,8 @@ pub(super) fn image() -> AnyView {
         if with_fallback {
             snippet.push("  fallback_src=fallback_src.into()".to_string());
         }
-        if disable_skeleton {
-            snippet.push("  disable_skeleton=true".to_string());
+        if is_skeleton_disabled {
+            snippet.push("  is_skeleton_disabled=true".to_string());
         }
         if is_blurred {
             snippet.push("  is_blurred=true".to_string());
@@ -2857,9 +5692,9 @@ pub(super) fn image() -> AnyView {
             _ => "valid",
         };
         format!(
-            "ImageActualConfig {{\n  source_mode: \"{source_mode}\",\n  has_fallback: {},\n  disable_skeleton: {},\n  is_blurred: {},\n  is_zoomed: {},\n  radius: {radius:?},\n  shadow: {shadow:?},\n  motion: \"{motion_mode}\",\n  custom_class: {},\n}}",
+            "ImageActualConfig {{\n  source_mode: \"{source_mode}\",\n  has_fallback: {},\n  is_skeleton_disabled: {},\n  is_blurred: {},\n  is_zoomed: {},\n  radius: {radius:?},\n  shadow: {shadow:?},\n  motion: \"{motion_mode}\",\n  custom_class: {},\n}}",
             with_fallback.get(),
-            disable_skeleton.get(),
+            is_skeleton_disabled.get(),
             is_blurred.get(),
             is_zoomed.get(),
             custom_class.get(),
@@ -2871,6 +5706,12 @@ pub(super) fn image() -> AnyView {
 <Image src="https://example.invalid/rust-ui-image.png".to_string() fallback_src=fallback_src.into() alt="Invalid -> Fallback".to_string() radius=ImageRadius::Sm shadow=ImageShadow::None />
 <Image src="".to_string() fallback_src=fallback_src.into() alt="Missing -> Fallback".to_string() radius=ImageRadius::Full shadow=ImageShadow::Sm />"#.to_string()
     });
+    let visual_baseline_code = Signal::derive(move || {
+        r#"<Image src=src.into() alt="Editorial baseline".to_string() class_name="docs-image-frame".to_string() />
+<Image src=src.into() alt="Hover feedback baseline".to_string() is_zoomed=true class_name="docs-image-frame".to_string() />
+<Image src=src.into() alt="Depth baseline".to_string() is_blurred=true class_name="docs-image-frame".to_string() />"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -2879,19 +5720,78 @@ pub(super) fn image() -> AnyView {
             group="Display"
             description="Image with skeleton, blur, and zoom motion."
         >
-            <Playground title="Image" code_signal=code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=code
+                code_imports=basic_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Image
                         src=into_owned_string(src)
                         alt="Demo image".to_string()
-                        radius=ImageRadius::Lg
-                        shadow=ImageShadow::Md
-                        is_zoomed=true
                     />
                 </div>
             </Playground>
 
-            <Playground title="Comparison Matrix: Loaded / Blurred / Fallback / Missing" code_signal=matrix_code>
+            <Playground
+                title="Default Theme Visual Baseline (Visual Desire)"
+                description="Default-theme hierarchy, contrast, and hover feedback baseline."
+                code_signal=visual_baseline_code
+            >
+                <div
+                    class="docs-stack docs-stack--tight docs-image-visual-baseline"
+                    data-visual-baseline="image-default-theme"
+                >
+                    <span class="ui-muted">
+                        "HeroUI-quality visual direction baseline for Image under default theme."
+                    </span>
+                    <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Editorial baseline"</span>
+                            <Image
+                                src=into_owned_string(src)
+                                alt="Editorial baseline".to_string()
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Hover feedback baseline"</span>
+                            <Image
+                                src=into_owned_string(src)
+                                alt="Hover feedback baseline".to_string()
+                                is_zoomed=true
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Depth / blur baseline"</span>
+                            <Image
+                                src=into_owned_string(src)
+                                alt="Depth / blur baseline".to_string()
+                                is_blurred=true
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Fallback contrast baseline"</span>
+                            <Image
+                                src="https://example.invalid/rust-ui-image.png".to_string()
+                                fallback_src=into_owned_string(fallback_src)
+                                alt="Fallback contrast baseline".to_string()
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix: Loaded / Blurred / Fallback / Missing"
+                code_signal=matrix_code
+                code_imports=advanced_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
                 <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
                     <div class="docs-stack docs-stack--tight">
                         <span class="ui-muted">"Loaded + Zoom"</span>
@@ -2941,9 +5841,72 @@ pub(super) fn image() -> AnyView {
             </Playground>
 
             <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Image has no internal controlled/uncontrolled state axis; contrast default props and app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=basic_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Image
+                        src=into_owned_string(src)
+                        alt="Default path".to_string()
+                    />
+                    <Image
+                        src=into_owned_string(src)
+                        alt="Upstream mapped".to_string()
+                        is_zoomed=is_zoomed.get()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Image is not a body-reader surface: streaming is optional and fallback remains snapshot."
+                code_signal=stream_snapshot_code
+                code_imports=basic_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="image-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="image-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/image/src/view.rs."
+                    </p>
+                    <Image
+                        src=into_owned_string(src)
+                        alt="Snapshot baseline".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=advanced_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Image
+                        src=into_owned_string(src)
+                        fallback_src=into_owned_string(fallback_src)
+                        alt="Copy-ready starter".to_string()
+                        radius=ImageRadius::Lg
+                        shadow=ImageShadow::Sm
+                    />
+                    <span class="ui-muted">
+                        "Source-first path: copy snippet and run with imports auto-injected by Playground."
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
                 title="Workbench: Display + Config + Code + CSS Test"
                 description="Interactive panel with scoped CSS test + actual config snapshot."
                 code_signal=workbench_code
+                code_imports=advanced_imports.clone()
                 test_css_source=test_css_source
                 test_source_path="components/image/src/styles.rs".to_string()
                 test_config_signal=actual_config
@@ -2991,7 +5954,7 @@ pub(super) fn image() -> AnyView {
 
                         <Switch checked=is_zoomed set_checked=set_is_zoomed>"Zoomed"</Switch>
                         <Switch checked=is_blurred set_checked=set_is_blurred>"Blurred"</Switch>
-                        <Switch checked=disable_skeleton set_checked=set_disable_skeleton>
+                        <Switch checked=is_skeleton_disabled set_checked=set_is_skeleton_disabled>
                             "Disable skeleton"
                         </Switch>
                         <Switch checked=with_fallback set_checked=set_with_fallback>"Use fallback"</Switch>
@@ -2999,7 +5962,11 @@ pub(super) fn image() -> AnyView {
                     </div>
                 }
             >
-                <div class="docs-stack docs-stack--tight" style="width: min(100%, 360px);">
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="image-workbench-stage"
+                    style="width: min(100%, 360px);"
+                >
                     {move || {
                         let source = match source_mode.get() {
                             1 => "https://example.invalid/rust-ui-image.png".to_string(),
@@ -3022,7 +5989,7 @@ pub(super) fn image() -> AnyView {
                         src=source
                         fallback_src=fallback
                         alt="Demo image".to_string()
-                        disable_skeleton=disable_skeleton.get()
+                        is_skeleton_disabled=is_skeleton_disabled.get()
                         is_blurred=is_blurred.get()
                         is_zoomed=is_zoomed.get()
                         radius=radius.get()
@@ -3047,15 +6014,159 @@ pub(super) fn image() -> AnyView {
                     </span>
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="image-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="image-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-image"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text=source_first_code.get()
+                    label="Copy image starter".to_string()
+                    copyable=true
+                    class_name="docs-image-source-copy".to_string()
+                />
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn illustrated_message() -> AnyView {
-    let code = Signal::derive(move || {
+    let code_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Button, IllustratedMessage};".to_string();
+    let workbench_orientation_options = vec!["vertical".to_string(), "horizontal".to_string()];
+    let (workbench_orientation_index, set_workbench_orientation_index) = signal(Some(0_usize));
+    let (workbench_show_title, set_workbench_show_title) = signal(true);
+    let (workbench_show_description, set_workbench_show_description) = signal(true);
+    let (workbench_show_illustration, set_workbench_show_illustration) = signal(false);
+    let (workbench_show_actions, set_workbench_show_actions) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+
+    let hello_world_code = Signal::derive(move || {
         r#"<IllustratedMessage title="Empty".to_string() description="Nothing here".to_string() />"#
             .to_string()
+    });
+    let state_matrix_code = Signal::derive(move || {
+        r#"<div class="docs-stack docs-stack--tight">
+  <IllustratedMessage
+    title="Empty".to_string()
+    description="Nothing here".to_string()
+  />
+  <IllustratedMessage
+    title="No results".to_string()
+    description="Try changing your search.".to_string()
+    illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+    actions=move || view! { <Button>"Clear"</Button> }
+  />
+  <IllustratedMessage
+    description="Only description provided.".to_string()
+  />
+</div>"#
+            .to_string()
+    });
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let is_filtered_empty = true;
+
+<IllustratedMessage
+  title="Default path".to_string()
+  description="No controlled axis; props-only snapshot render.".to_string()
+/>
+<IllustratedMessage
+  title=if is_filtered_empty { "Filtered empty".to_string() } else { "Results ready".to_string() }
+  description="N/A: no value/on_value_change/default_value axis.".to_string()
+/>"#
+        .to_string()
+    });
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<IllustratedMessage
+  title="Snapshot result".to_string()
+  description="Complete validated output rendered in one pass.".to_string()
+/>
+<IllustratedMessage
+  title="Streaming Optional -> Snapshot".to_string()
+  description="Display leaf consumes snapshot output; upstream keeps streaming lifecycle.".to_string()
+/>"#
+            .to_string()
+    });
+    let source_first_code = Signal::derive(move || {
+        r#"<IllustratedMessage
+  title="No results".to_string()
+  description="Try changing your search.".to_string()
+  illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+  actions=move || view! { <Button>"Clear"</Button> }
+/>"#
+        .to_string()
+    });
+    let workbench_code = Signal::derive(move || {
+        let orientation_expr = match workbench_orientation_index.get().unwrap_or(0) {
+            1 => "ui_components::IllustratedMessageOrientation::Horizontal",
+            _ => "ui_components::IllustratedMessageOrientation::Vertical",
+        };
+
+        let mut lines = vec!["<IllustratedMessage".to_string()];
+        if workbench_show_title.get() {
+            lines.push("  title=\"Workbench empty\".to_string()".to_string());
+        }
+        if workbench_show_description.get() {
+            lines.push(
+                "  description=\"Preview updates as you toggle props.\".to_string()".to_string(),
+            );
+        }
+        if workbench_show_illustration.get() {
+            lines.push(
+                "  illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }"
+                    .to_string(),
+            );
+        }
+        if workbench_show_actions.get() {
+            lines.push(
+                "  actions=move || view! { <Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>\"Retry\"</Button> }".to_string(),
+            );
+        }
+        lines.push(format!("  orientation={orientation_expr}"));
+        if workbench_custom_class.get() {
+            lines.push(
+                "  class_name=\"docs-illustrated-message-workbench\".to_string()".to_string(),
+            );
+        }
+        if workbench_rtl.get() {
+            lines.push("  dir=ui_components::color::area::A11yDirection::Rtl".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+    let workbench_config = Signal::derive(move || {
+        let orientation = match workbench_orientation_index.get().unwrap_or(0) {
+            1 => "horizontal",
+            _ => "vertical",
+        };
+        format!(
+            "IllustratedMessageWorkbenchConfig {{ orientation: \"{orientation}\", show_title: {}, show_description: {}, show_illustration: {}, show_actions: {}, custom_class: {}, rtl: {} }}",
+            workbench_show_title.get(),
+            workbench_show_description.get(),
+            workbench_show_illustration.get(),
+            workbench_show_actions.get(),
+            workbench_custom_class.get(),
+            workbench_rtl.get(),
+        )
     });
 
     view! {
@@ -3065,7 +6176,87 @@ pub(super) fn illustrated_message() -> AnyView {
             group="Display"
             description="Empty-state component with optional illustration and actions."
         >
-            <Playground title="Empty state" code_signal=code>
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_world_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <IllustratedMessage
+                    title="Empty".to_string()
+                    description="Nothing here".to_string()
+                />
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="Covers default, rich slots, and partial-content states with stable aria/data markers."
+                code_signal=state_matrix_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <IllustratedMessage
+                        title="Empty".to_string()
+                        description="Nothing here".to_string()
+                    />
+                    <IllustratedMessage
+                        title="No results".to_string()
+                        description="Try changing your search.".to_string()
+                        illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+                        actions=move || view! { <ui_components::Button>"Clear"</ui_components::Button> }
+                    />
+                    <IllustratedMessage description="Only description provided.".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="IllustratedMessage is display-only; compare default props and app-state-mapped props without internal state axis."
+                code_signal=controlled_contrast_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <IllustratedMessage
+                        title="Default path".to_string()
+                        description="No controlled axis; props-only snapshot render.".to_string()
+                    />
+                    <IllustratedMessage
+                        title="Filtered empty".to_string()
+                        description="Mapped from external app state.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Display leaf keeps snapshot rendering; streaming lifecycle stays in upstream orchestration."
+                code_signal=stream_snapshot_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="illustrated-message-streaming-preview">
+                    <p class="ui-muted" data-slot="illustrated-message-streaming-policy">
+                        "Streaming Optional -> fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="illustrated-message-copy-ready-hint">
+                        "Copy-ready snippets prepend missing imports automatically."
+                    </p>
+                    <IllustratedMessage
+                        title="Snapshot result".to_string()
+                        description="Complete validated output rendered in one pass.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Playground copy action injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
                 <IllustratedMessage
                     title="No results".to_string()
                     description="Try changing your search.".to_string()
@@ -3073,6 +6264,213 @@ pub(super) fn illustrated_message() -> AnyView {
                     actions=move || view! { <ui_components::Button>"Clear"</ui_components::Button> }
                 />
             </Playground>
+
+            <Playground
+                title="Interactive Playground (Props + State + Preview)"
+                description="Live controls for slot toggles and orientation/dir mapping; preview state markers update in real time."
+                code_signal=workbench_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+                test_config_signal=workbench_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="illustrated-message-workbench-controls">
+                        <div data-slot="illustrated-message-workbench-orientation">
+                            <SegmentedControl
+                                id_base="docs-illustrated-message-workbench-orientation".to_string()
+                                options=workbench_orientation_options.clone()
+                                selected_index=workbench_orientation_index
+                                set_selected_index=set_workbench_orientation_index
+                                size=SegmentedControlSize::Sm
+                            />
+                        </div>
+                        <div class="docs-row">
+                            <div data-slot="illustrated-message-workbench-toggle-title">
+                                <Switch checked=workbench_show_title set_checked=set_workbench_show_title>
+                                    "Show title"
+                                </Switch>
+                            </div>
+                            <div data-slot="illustrated-message-workbench-toggle-description">
+                                <Switch checked=workbench_show_description set_checked=set_workbench_show_description>
+                                    "Show description"
+                                </Switch>
+                            </div>
+                            <div data-slot="illustrated-message-workbench-toggle-illustration">
+                                <Switch checked=workbench_show_illustration set_checked=set_workbench_show_illustration>
+                                    "Show illustration"
+                                </Switch>
+                            </div>
+                            <div data-slot="illustrated-message-workbench-toggle-actions">
+                                <Switch checked=workbench_show_actions set_checked=set_workbench_show_actions>
+                                    "Show actions"
+                                </Switch>
+                            </div>
+                        </div>
+                        <div class="docs-row">
+                            <div data-slot="illustrated-message-workbench-toggle-custom-class">
+                                <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                    "Custom class"
+                                </Switch>
+                            </div>
+                            <div data-slot="illustrated-message-workbench-toggle-rtl">
+                                <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                                    "RTL"
+                                </Switch>
+                            </div>
+                        </div>
+                    </div>
+                }
+            >
+                {move || {
+                    let orientation = match workbench_orientation_index.get().unwrap_or(0) {
+                        1 => ui_components::IllustratedMessageOrientation::Horizontal,
+                        _ => ui_components::IllustratedMessageOrientation::Vertical,
+                    };
+                    let orientation_label = match orientation {
+                        ui_components::IllustratedMessageOrientation::Horizontal => "horizontal",
+                        ui_components::IllustratedMessageOrientation::Vertical => "vertical",
+                    };
+                    let title = if workbench_show_title.get() {
+                        "Workbench empty".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let description = if workbench_show_description.get() {
+                        "Preview updates as you toggle props.".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if workbench_custom_class.get() {
+                        "docs-illustrated-message-workbench".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let dir = if workbench_rtl.get() {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="illustrated-message-workbench-preview">
+                            {if workbench_show_illustration.get() && workbench_show_actions.get() {
+                                view! {
+                                    <IllustratedMessage
+                                        title=title.clone()
+                                        description=description.clone()
+                                        illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+                                        actions=move || {
+                                            view! {
+                                                <ui_components::Button
+                                                    variant=ui_components::ButtonVariant::Secondary
+                                                    size=ui_components::ButtonSize::Sm
+                                                >
+                                                    "Retry"
+                                                </ui_components::Button>
+                                            }
+                                        }
+                                        orientation=orientation
+                                        class_name=class_name.clone()
+                                        dir=dir
+                                    />
+                                }
+                                    .into_any()
+                            } else if workbench_show_illustration.get() {
+                                view! {
+                                    <IllustratedMessage
+                                        title=title.clone()
+                                        description=description.clone()
+                                        illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+                                        orientation=orientation
+                                        class_name=class_name.clone()
+                                        dir=dir
+                                    />
+                                }
+                                    .into_any()
+                            } else if workbench_show_actions.get() {
+                                view! {
+                                    <IllustratedMessage
+                                        title=title.clone()
+                                        description=description.clone()
+                                        actions=move || {
+                                            view! {
+                                                <ui_components::Button
+                                                    variant=ui_components::ButtonVariant::Secondary
+                                                    size=ui_components::ButtonSize::Sm
+                                                >
+                                                    "Retry"
+                                                </ui_components::Button>
+                                            }
+                                        }
+                                        orientation=orientation
+                                        class_name=class_name.clone()
+                                        dir=dir
+                                    />
+                                }
+                                    .into_any()
+                            } else {
+                                view! {
+                                    <IllustratedMessage
+                                        title=title
+                                        description=description
+                                        orientation=orientation
+                                        class_name=class_name
+                                        dir=dir
+                                    />
+                                }
+                                    .into_any()
+                            }}
+                            <span class="ui-muted" data-slot="illustrated-message-workbench-state">
+                                {format!(
+                                    "orientation={orientation_label}, title={}, description={}, illustration={}, actions={}, rtl={}, custom_class={}",
+                                    workbench_show_title.get(),
+                                    workbench_show_description.get(),
+                                    workbench_show_illustration.get(),
+                                    workbench_show_actions.get(),
+                                    workbench_rtl.get(),
+                                    workbench_custom_class.get(),
+                                )}
+                            </span>
+                        </div>
+                    }
+                    .into_any()
+                }}
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="illustrated-message-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p data-slot="illustrated-message-source-first-contract">
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ul data-slot="illustrated-message-source-prerequisites">
+                    <li>
+                        "Dependency prerequisite: enable "
+                        <code>"component-illustrated_message"</code>
+                        " feature for package-mode consumption."
+                    </li>
+                    <li>
+                        "Style prerequisite: use "
+                        <code>"UiRoot"</code>
+                        " with components CSS injection (or enable "
+                        <code>"inject-css"</code>
+                        " path) to avoid unstyled copy-paste output."
+                    </li>
+                </ul>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::{Button, IllustratedMessage};\n\n<IllustratedMessage\n  title=\"No results\".to_string()\n  description=\"Try changing your search.\".to_string()\n  illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }\n  actions=move || view! { <Button>\"Clear\"</Button> }\n/>".to_string()
+                    label="Copy illustrated-message starter".to_string()
+                    copyable=true
+                    class_name="docs-illustrated-message-source-copy".to_string()
+                />
+                <ul data-slot="illustrated-message-source-paths">
+                    <li><code>"components/illustrated-message/src/mod.rs"</code></li>
+                    <li><code>"components/illustrated-message/src/logic.rs"</code></li>
+                    <li><code>"components/illustrated-message/src/view.rs"</code></li>
+                    <li><code>"components/illustrated-message/src/styles.rs"</code></li>
+                    <li><code>"components/illustrated-message/src/motion.rs"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()

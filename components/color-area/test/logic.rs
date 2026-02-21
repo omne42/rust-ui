@@ -43,6 +43,94 @@ fn normalize_default_value_uses_single_fallback_source() {
 }
 
 #[test]
+fn normalize_step_and_grid_size_use_single_fallback_sources() {
+    assert_eq!(normalize_step(None), DEFAULT_STEP);
+    assert_eq!(normalize_step(Some(0.2)), 0.2);
+
+    assert_eq!(normalize_grid_size(None), DEFAULT_GRID_SIZE);
+    assert_eq!(normalize_grid_size(Some(17)), 17);
+}
+
+#[test]
+fn reduce_axis_input_keeps_axis_rules_inside_logic() {
+    let next_x = reduce_axis_input(
+        ColorAreaInteractivity::Active,
+        (0.2, 0.8),
+        ColorAreaAxis::X,
+        Some(0.4),
+    );
+    assert_eq!(next_x.next_value, Some((0.4, 0.8)));
+    assert!(!next_x.prevent_default);
+
+    let next_y = reduce_axis_input(
+        ColorAreaInteractivity::Active,
+        (0.2, 0.8),
+        ColorAreaAxis::Y,
+        Some(0.3),
+    );
+    assert_eq!(next_y.next_value, Some((0.2, 0.3)));
+    assert!(!next_y.prevent_default);
+
+    assert_eq!(
+        reduce_axis_input(
+            ColorAreaInteractivity::Disabled,
+            (0.2, 0.8),
+            ColorAreaAxis::X,
+            Some(0.9)
+        ),
+        ColorAreaEventOutcome::noop()
+    );
+    assert_eq!(
+        reduce_axis_input(
+            ColorAreaInteractivity::Active,
+            (0.2, 0.8),
+            ColorAreaAxis::X,
+            None
+        ),
+        ColorAreaEventOutcome::noop()
+    );
+}
+
+#[test]
+fn reduce_cell_select_and_keyboard_result_keep_handler_logic_minimal() {
+    assert_eq!(
+        reduce_cell_select(ColorAreaInteractivity::Active, (1.2, -0.3)).next_value,
+        Some((1.0, 0.0))
+    );
+    assert_eq!(
+        reduce_cell_select(ColorAreaInteractivity::Disabled, (0.4, 0.6)),
+        ColorAreaEventOutcome::noop()
+    );
+
+    let keyboard = reduce_keyboard_result(ColorAreaInteractivity::Active, Some((0.7, 0.3)), true);
+    assert_eq!(keyboard.next_value, Some((0.7, 0.3)));
+    assert!(keyboard.prevent_default);
+
+    let keyboard_ignored = reduce_keyboard_result(ColorAreaInteractivity::Active, None, true);
+    assert_eq!(keyboard_ignored.next_value, None);
+    assert!(!keyboard_ignored.prevent_default);
+
+    assert_eq!(
+        reduce_keyboard_result(ColorAreaInteractivity::Disabled, Some((0.7, 0.3)), true),
+        ColorAreaEventOutcome::noop()
+    );
+}
+
+#[test]
+fn interactivity_is_modeled_as_enum_not_boolean_protocol() {
+    assert_eq!(
+        ColorAreaInteractivity::from_disabled(false),
+        ColorAreaInteractivity::Active
+    );
+    assert_eq!(
+        ColorAreaInteractivity::from_disabled(true),
+        ColorAreaInteractivity::Disabled
+    );
+    assert!(!ColorAreaInteractivity::Active.is_disabled());
+    assert!(ColorAreaInteractivity::Disabled.is_disabled());
+}
+
+#[test]
 fn normalize_root_state_uses_i18n_fallback_and_tracks_sources() {
     let root = normalize_root_state(ColorAreaRootInput {
         class_name: Some(" docs-color-area ".to_string()),

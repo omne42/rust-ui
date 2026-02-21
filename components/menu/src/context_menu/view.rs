@@ -18,8 +18,10 @@ pub fn ContextMenu(
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
+    #[prop(optional)] is_close_on_action: Option<bool>,
     #[prop(default = true)] close_on_action: bool,
     #[prop(optional)] placement: PopoverPlacement,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
@@ -30,6 +32,18 @@ pub fn ContextMenu(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let discrete_props = logic::normalize_discrete_props(logic::ContextMenuDiscreteInput {
+        is_disabled,
+        disabled,
+        is_close_on_action,
+        close_on_action,
+    });
+    let open_state_input = logic::normalize_open_state(logic::ContextMenuOpenStateInput {
+        is_open,
+        open,
+        default_open,
+        on_open_change,
+    });
     let motion = crate::context_menu::motion::sanitize_motion(motion);
     let id_base = logic::normalize_id_base(id_base);
     let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
@@ -55,24 +69,28 @@ pub fn ContextMenu(
     let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);
     let aria_label = StoredValue::new(aria_label);
 
-    let disabled = is_disabled.unwrap_or(disabled);
-    let has_custom_disabled = is_disabled.is_some() || disabled != logic::DEFAULT_DISABLED;
-    let has_custom_close_on_action = close_on_action != logic::DEFAULT_CLOSE_ON_ACTION;
+    let has_custom_disabled = is_disabled.is_some()
+        || discrete_props.disabled_state.is_disabled() != logic::DEFAULT_DISABLED;
+    let has_custom_close_on_action =
+        discrete_props.action_mode.is_close_on_action() != logic::DEFAULT_CLOSE_ON_ACTION;
     let has_custom_placement = placement != logic::DEFAULT_PLACEMENT;
 
-    let has_custom_open = open.is_some();
-    let has_custom_default_open = default_open.is_some();
-    let has_custom_on_open_change = on_open_change.is_some();
+    let has_custom_open = open_state_input.is_controlled;
+    let has_custom_default_open = open_state_input.default_open.is_some();
+    let has_custom_on_open_change = open_state_input.on_open_change.is_some();
     let has_custom_motion = motion != ContextMenuMotion::default();
 
-    let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count.get_value());
+    let trigger_disabled = logic::resolve_trigger_disabled(
+        discrete_props.disabled_state.is_disabled(),
+        item_count.get_value(),
+    );
 
-    let is_controlled = has_custom_open;
+    let is_controlled = open_state_input.is_controlled;
     let open_state = overlay_open::use_controllable_open_state_traced(
         "context-menu",
-        open,
-        default_open,
-        on_open_change,
+        open_state_input.open,
+        open_state_input.default_open,
+        open_state_input.on_open_change,
     );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
@@ -83,7 +101,7 @@ pub fn ContextMenu(
             is_open: open.get(),
             item_count: item_count.get_value(),
             trigger_disabled,
-            close_on_action,
+            close_on_action: discrete_props.action_mode.is_close_on_action(),
             placement,
             is_controlled,
             has_custom_id_base,
@@ -111,7 +129,7 @@ pub fn ContextMenu(
 
     let on_action_wrapped = Callback::new(move |index: usize| {
         on_action.run(index);
-        if close_on_action {
+        if discrete_props.action_mode.is_close_on_action() {
             request_open_change.run(false);
         }
     });
@@ -126,17 +144,12 @@ pub fn ContextMenu(
     let (open_focus, set_open_focus) = signal(MenuOpenFocusStrategy::First);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if trigger_disabled {
-            return;
-        }
-        if open.get_untracked() {
-            return;
-        }
-
-        let key = ev.key();
-        if let Some(strategy) =
-            crate::context_menu::focus_strategy_for_open_key(&key, ev.shift_key())
-        {
+        if let Some(strategy) = logic::resolve_open_focus_strategy(
+            &ev.key(),
+            ev.shift_key(),
+            trigger_disabled,
+            open.get_untracked(),
+        ) {
             set_open_focus.set(strategy);
             request_open_change.run(true);
             ev.prevent_default();
@@ -144,7 +157,7 @@ pub fn ContextMenu(
     };
 
     let on_context_menu = move |ev: ev::MouseEvent| {
-        if trigger_disabled {
+        if !logic::should_open_from_context_menu(trigger_disabled) {
             return;
         }
         ev.prevent_default();
@@ -212,25 +225,13 @@ pub fn ContextMenu(
             data-ui-schema="ui.context_menu.agent-contract.v1"
             data-ui-schema-version="1"
             data-ui-intent="open-context-actions"
-            data-ui-action=move || {
-                if root_state.get().is_open {
-                    "open"
-                } else {
-                    "idle"
-                }
-            }
+            data-ui-action=move || logic::resolve_ui_action(root_state.get().is_open)
             data-ui-state=move || root_state.get().state_attr
             data-ui-source=move || root_state.get().open_source_attr
             data-ui-stream-support="unsupported"
             data-ui-stream-fallback="snapshot"
             data-ui-stream-mode="snapshot"
-            data-ui-output-status=move || {
-                if root_state.get().is_open {
-                    "draft"
-                } else {
-                    "submittable"
-                }
-            }
+            data-ui-output-status=move || logic::resolve_ui_output_status(root_state.get().is_open)
         >
             <button
                 type="button"
@@ -240,7 +241,7 @@ pub fn ContextMenu(
                 disabled=move || root_state.get().is_trigger_disabled
                 aria-label=aria_label.get_value()
                 aria-haspopup="menu"
-                aria-expanded=move || if open.get() { "true" } else { "false" }
+                aria-expanded=move || logic::resolve_aria_expanded(open.get())
                 aria-controls=aria_controls
                 data-slot=trigger_slot.as_attr()
                 data-state=move || root_state.get().state_attr

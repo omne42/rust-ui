@@ -124,6 +124,8 @@ fn toggle_button_uses_logic_state_model() {
 
     for needle in [
         "pub struct ToggleButtonState",
+        "pub fn normalize_optional_text(value: Option<String>) -> Option<String>",
+        "pub fn compose_class_name(",
         "pub fn resolve_state(",
         "pub is_selected: bool",
         "pub is_enabled: bool",
@@ -137,9 +139,14 @@ fn toggle_button_uses_logic_state_model() {
     }
 
     for needle in [
+        "#[prop(optional)] is_pressed: Option<Signal<bool>>",
+        "#[prop(optional)] default_pressed: Option<bool>",
         "let state = Memo::new(move |_|",
+        "overlay_open::use_controllable_state(is_pressed, default_pressed, on_pressed_change)",
+        "let class_name = logic::normalize_optional_text(class_name);",
+        "let class = logic::compose_class_name(class_name, variant, size);",
         "logic::resolve_state(",
-        "selected.get()",
+        "pressed.get()",
         "state.get().data_state()",
     ] {
         assert!(
@@ -147,6 +154,11 @@ fn toggle_button_uses_logic_state_model() {
             "ToggleButton view should derive root state via logic::resolve_state; missing `{needle}`."
         );
     }
+
+    assert!(
+        !view_source.contains("set_selected: WriteSignal<bool>"),
+        "ToggleButton should not remain controlled-only via `set_selected` injection."
+    );
 }
 
 #[test]
@@ -257,7 +269,7 @@ fn toggle_button_docs_page_covers_primary_playgrounds() {
         "title=\"ToggleButton\"",
         "slug=\"toggle-button\"",
         "description=\"Pressable toggle state with baseline-level spring motion and baseline-style root state attrs.\"",
-        "title=\"Controlled + on_change\"",
+        "title=\"Controlled + on_pressed_change\"",
         "code_signal=code",
         "title=\"Variant + size + disabled matrix\"",
         "id_base=\"docs-toggle-button-variant\".to_string()",
@@ -266,7 +278,7 @@ fn toggle_button_docs_page_covers_primary_playgrounds() {
         "aria_label=\"ToggleButton size\".to_string()",
         "<Switch checked=disabled set_checked=set_disabled>\"Disabled\"</Switch>",
         "<ToggleButton",
-        "on_change=on_toggle_change",
+        "on_pressed_change=on_toggle_change",
         "variant=ToggleButtonVariant::Accent",
     ] {
         assert!(
@@ -282,21 +294,24 @@ fn toggle_button_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "let (selected, set_selected) = signal(false);",
+        "let selected_signal: Signal<bool> = Signal::derive(move || selected.get());",
+        "let on_toggle_change = Callback::new(move |next| set_selected.set(next));",
         "if variant != ToggleButtonVariant::Default {",
         "if size != ToggleButtonSize::M {",
         "if disabled {",
         "code_signal=code",
         "\"selected: \"",
-        "\"last on_change: \" {move || last_change.get()}",
-        "selected=notifications",
-        "set_selected=set_notifications",
+        "\"last on_pressed_change: \" {move || last_change.get()}",
+        "is_pressed=Some(selected_signal)",
+        "is_pressed=Some(notifications_signal)",
+        "on_pressed_change=on_notifications_change",
         "size=ToggleButtonSize::L",
         "\"notifications: \"",
-        "selected=disabled_selected",
-        "selected=disabled_unselected",
+        "is_pressed=Some(disabled_selected_signal)",
+        "is_pressed=Some(disabled_unselected_signal)",
         "\"Disabled on\"",
         "\"Disabled off\"",
-        "disabled=true",
+        "is_disabled=true",
     ] {
         assert!(
             source.contains(needle),

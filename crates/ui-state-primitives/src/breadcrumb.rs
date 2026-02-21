@@ -1,4 +1,4 @@
-pub const DEFAULT_ARIA_LABEL: &str = "breadcrumb";
+pub const DEFAULT_ARIA_LABEL: &str = "Breadcrumb";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct BreadcrumbRootStateInput {

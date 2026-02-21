@@ -121,6 +121,22 @@ fn legacy_parallel_arrays_still_bridge_when_item_specs_absent() {
 }
 
 #[test]
+fn normalize_open_state_centralizes_open_axis_aliases() {
+    let state = normalize_open_state(ActionMenuOpenStateInput {
+        is_open: None,
+        open: None,
+        default_open: Some(true),
+        on_open_change: None,
+    });
+
+    assert!(!state.has_custom_open);
+    assert!(state.has_custom_default_open);
+    assert!(!state.has_custom_on_open_change);
+    assert!(!state.is_controlled);
+    assert_eq!(state.default_open, Some(true));
+}
+
+#[test]
 fn normalize_props_centralizes_state_derivation() {
     let normalized = normalize_props(ActionMenuNormalizeInput {
         id_base: "  ".to_string(),
@@ -192,6 +208,15 @@ fn action_open_change_is_centralized() {
         resolve_action_open_change(ActionMenuActionMode::KeepOpenOnAction),
         None
     );
+}
+
+#[test]
+fn open_focus_strategy_decision_is_centralized() {
+    assert_eq!(
+        resolve_open_focus_strategy("ArrowDown", false, false),
+        Some(MenuOpenFocusStrategy::First)
+    );
+    assert_eq!(resolve_open_focus_strategy("Enter", false, false), None);
 }
 
 #[test]

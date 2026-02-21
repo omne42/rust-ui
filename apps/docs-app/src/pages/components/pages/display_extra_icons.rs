@@ -37,7 +37,7 @@ pub(super) fn icons() -> AnyView {
         let tone = picker_tone.get();
 
         format!(
-            "<Icons\n  name=\"{name}\".into()\n  set=IconsSet::{set:?}\n  scale=IconsScale::{scale:?}\n  tone=IconsTone::{tone:?}\n  decorative=false\n/>"
+            "<Icons\n  name=\"{name}\".into()\n  set=IconsSet::{set:?}\n  scale=IconsScale::{scale:?}\n  tone=IconsTone::{tone:?}\n  is_decorative=false\n/>"
         )
     });
     let picker_actual_config = Signal::derive(move || {
@@ -52,8 +52,8 @@ pub(super) fn icons() -> AnyView {
     });
 
     let default_code = Signal::derive(move || {
-        r#"<Icons name="check".to_string() set=IconsSet::Ui scale=IconsScale::Medium tone=IconsTone::Accent decorative=false />
-<Icons name="workflow:warning".to_string() scale=IconsScale::Large tone=IconsTone::Danger decorative=false />"#.to_string()
+        r#"<Icons name="check".to_string() set=IconsSet::Ui scale=IconsScale::Medium tone=IconsTone::Accent is_decorative=false />
+<Icons name="workflow:warning".to_string() scale=IconsScale::Large tone=IconsTone::Danger is_decorative=false />"#.to_string()
     });
 
     let custom_code = Signal::derive(move || {
@@ -63,7 +63,7 @@ pub(super) fn icons() -> AnyView {
   scale=IconsScale::Large
   tone=IconsTone::Default
   glyphs=vec![IconsGlyph::new("workflow:deploy", "🚀").with_aria_label("Workflow Deploy")]
-  decorative=false
+  is_decorative=false
   class_name="docs-icons-custom".to_string()
 />"#
         .to_string()
@@ -76,7 +76,7 @@ pub(super) fn icons() -> AnyView {
   scale=IconsScale::Large
   tone=IconsTone::Muted
   glyphs=vec![IconsGlyph::new("workflow:check", "✓").with_aria_label("Workflow Check")]
-  decorative=false
+  is_decorative=false
   aria_label="Explicit icon label".to_string()
   class_name="docs-icons-state".to_string()
 />"#
@@ -97,13 +97,13 @@ pub(super) fn icons() -> AnyView {
                         set=IconsSet::Ui
                         scale=IconsScale::Medium
                         tone=IconsTone::Accent
-                        decorative=false
+                        is_decorative=false
                     />
                     <Icons
                         name="workflow:warning".to_string()
                         scale=IconsScale::Large
                         tone=IconsTone::Danger
-                        decorative=false
+                        is_decorative=false
                     />
                 </div>
             </Playground>
@@ -133,7 +133,7 @@ pub(super) fn icons() -> AnyView {
                             set=picker_set.get()
                             scale=picker_scale.get()
                             tone=picker_tone.get()
-                            decorative=false
+                            is_decorative=false
                         />
                     </div>
                     <span class="ui-muted">{move || format!("selected: {}", picker_name.get())}</span>
@@ -151,7 +151,7 @@ pub(super) fn icons() -> AnyView {
                             IconsGlyph::new("workflow:deploy", "🚀")
                                 .with_aria_label("Workflow Deploy"),
                         ]
-                        decorative=false
+                        is_decorative=false
                         class_name="docs-icons-custom".to_string()
                     />
                 </div>
@@ -172,7 +172,7 @@ pub(super) fn icons() -> AnyView {
                             IconsGlyph::new("workflow:check", "✓")
                                 .with_aria_label("Workflow Check"),
                         ]
-                        decorative=false
+                        is_decorative=false
                         aria_label="Explicit icon label".to_string()
                         class_name="docs-icons-state".to_string()
                     />

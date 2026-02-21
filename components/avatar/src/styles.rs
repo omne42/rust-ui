@@ -1,20 +1,20 @@
 pub const CSS: &str = r#"
 .ui-avatar {
-  width: var(--ui-avatar-size, 32px);
-  height: var(--ui-avatar-size, 32px);
+  width: var(--ui-avatar-size, var(--ui-fallback-avatar-size-md));
+  height: var(--ui-avatar-size, var(--ui-fallback-avatar-size-md));
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
-  border-radius: 9999px;
+  border-radius: var(--ui-avatar-radius, var(--ui-fallback-avatar-radius, var(--ui-button-radius-full, var(--ui-fallback-button-radius-full))));
   overflow: hidden;
   box-sizing: border-box;
 
-  background: var(--ui-bg-muted);
-  border: 1px solid var(--ui-border);
-  color: var(--ui-fg);
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
+  color: var(--ui-fg, var(--ui-fallback-fg));
 
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -22,29 +22,29 @@ pub const CSS: &str = r#"
 
 .ui-avatar--sm,
 .ui-avatar[data-size="sm"] {
-  --ui-avatar-size: 24px;
+  --ui-avatar-size: var(--ui-avatar-size-sm, var(--ui-fallback-avatar-size-sm));
 }
 
 .ui-avatar--md,
 .ui-avatar[data-size="md"] {
-  --ui-avatar-size: 32px;
+  --ui-avatar-size: var(--ui-avatar-size-md, var(--ui-fallback-avatar-size-md));
 }
 
 .ui-avatar--lg,
 .ui-avatar[data-size="lg"] {
-  --ui-avatar-size: 40px;
+  --ui-avatar-size: var(--ui-avatar-size-lg, var(--ui-fallback-avatar-size-lg));
 }
 
 .ui-avatar--image,
 .ui-avatar[data-state="image"],
 .ui-avatar[data-image="true"] {
-  background: var(--ui-bg);
+  background: var(--ui-bg, var(--ui-fallback-bg));
 }
 
 .ui-avatar--fallback,
 .ui-avatar[data-state="fallback"],
 .ui-avatar[data-fallback="true"] {
-  background: var(--ui-bg-muted);
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
 }
 
 .ui-avatar--has-src.ui-avatar--image,
@@ -70,7 +70,7 @@ pub const CSS: &str = r#"
 
 .ui-avatar--has-alt[data-fallback="true"],
 .ui-avatar[data-has-alt="true"][data-fallback="true"] {
-  box-shadow: inset 0 0 0 1px var(--ui-border);
+  box-shadow: inset 0 0 0 var(--ui-border-width, var(--ui-fallback-border-width)) var(--ui-border, var(--ui-fallback-border));
 }
 
 .ui-avatar--custom-class,
@@ -87,11 +87,11 @@ pub const CSS: &str = r#"
 }
 
 .ui-avatar__initials {
-  font-size: calc(var(--ui-avatar-size, 32px) / 2.5);
-  line-height: var(--ui-line-height-100, 16px);
+  font-size: calc(var(--ui-avatar-size, var(--ui-fallback-avatar-size-md)) / 2.5);
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 "#;

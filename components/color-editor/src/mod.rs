@@ -10,3 +10,7 @@ pub use logic::{
 pub use motion::ColorEditorMotion;
 pub use ui_state_primitives::color_editor::{ColorEditorFormat, ColorEditorState};
 pub use view::ColorEditor;
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

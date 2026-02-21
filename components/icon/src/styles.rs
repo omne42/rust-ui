@@ -1,13 +1,13 @@
 pub const CSS: &str = r#"
 .ui-icon {
-  --ui-icon-size-sm-token: var(--ui-font-size-150, 14px);
-  --ui-icon-size-md-token: var(--ui-font-size-200, 16px);
-  --ui-icon-size-lg-token: var(--ui-icon-size-100, 20px);
+  --ui-icon-size-sm-token: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  --ui-icon-size-md-token: var(--ui-icon-size-200, var(--ui-fallback-icon-size-200));
+  --ui-icon-size-lg-token: var(--ui-icon-size-100, var(--ui-fallback-icon-size-100));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--ui-fg);
-  line-height: var(--ui-line-height-100, 16px);
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
   flex: 0 0 auto;
 }
 
@@ -40,22 +40,30 @@ pub const CSS: &str = r#"
 
 .ui-icon--tone-default,
 .ui-icon[data-tone="default"] {
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-icon--tone-muted,
 .ui-icon[data-tone="muted"] {
-  color: var(--ui-fg-muted);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-icon--tone-accent,
 .ui-icon[data-tone="accent"] {
-  color: color-mix(in oklab, var(--ui-accent) 82%, var(--ui-fg) 18%);
+  color: color-mix(
+    in oklab,
+    var(--ui-accent, var(--ui-fallback-accent)) 82%,
+    var(--ui-fg, var(--ui-fallback-fg)) 18%
+  );
 }
 
 .ui-icon--tone-danger,
 .ui-icon[data-tone="danger"] {
-  color: color-mix(in oklab, var(--ui-danger) 80%, var(--ui-fg) 20%);
+  color: color-mix(
+    in oklab,
+    var(--ui-danger, var(--ui-fallback-danger)) 80%,
+    var(--ui-fg, var(--ui-fallback-fg)) 20%
+  );
 }
 
 .ui-icon--disabled,

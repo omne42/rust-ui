@@ -1,0 +1,187 @@
+schema_version = "1"
+
+[component]
+name = "ComboBox"
+crate = "ui-combo-box"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "label"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "items"
+ty = "Vec<String>"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "selected_index"
+ty = "ReadSignal<Option<usize>>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "set_selected_index"
+ty = "WriteSignal<Option<usize>>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "disabled_indices"
+ty = "Vec<usize>"
+default = "[]"
+controlled = false
+
+[[inputs]]
+name = "is_required"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_invalid"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_describedby"
+ty = "Signal<Option<String>>"
+default = "Signal::derive(|| None)"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "error"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "placeholder"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "empty_message"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "toggle_button_aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_open"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_open"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_open_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ComboBoxMotion"
+default = "ComboBoxMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-open + data-disabled + data-controlled + data-*-source + role + aria-* + lang + dir"
+scope = "root-attribute"
+
+[[outputs]]
+name = "on_open_change"
+ty = "Callback<bool>"
+scope = "event"
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_open_state"
+enabled = true
+
+[[capabilities]]
+name = "source_markers_for_state_and_custom_inputs"
+enabled = true
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-and-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-popover"
+kind = "overlay-motion-contract"
+
+[[dependencies]]
+name = "ui-visual-primitive"
+kind = "active-highlight-motion"

@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-combo-box {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-combo-box[data-label-source="custom"],
@@ -54,7 +54,7 @@ pub const CSS: &str = r#"
 
 .ui-combo-box--controlled .ui-combo-box__trigger,
 .ui-combo-box[data-controlled="true"] .ui-combo-box__trigger {
-  box-shadow: inset 0 0 0 1px var(--ui-border);
+  box-shadow: inset 0 0 0 var(--ui-border-width, var(--ui-fallback-border-width)) var(--ui-border, var(--ui-fallback-border));
 }
 
 .ui-combo-box--has-disabled-options .ui-combo-box__listbox,
@@ -67,10 +67,10 @@ pub const CSS: &str = r#"
 }
 
 .ui-combo-box__label {
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
   font-weight: 500;
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-combo-box__control {
@@ -85,31 +85,31 @@ pub const CSS: &str = r#"
   box-sizing: border-box;
   flex: 1;
 
-  padding: var(--ui-space-sm) var(--ui-space-md);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm)) var(--ui-space-md, var(--ui-fallback-space-md));
 
-  border: 1px solid var(--ui-border);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
   border-right: 0;
-  border-radius: var(--ui-radius-md) 0 0 var(--ui-radius-md);
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md)) 0 0 var(--ui-radius-md, var(--ui-fallback-radius-md));
 
-  background: var(--ui-bg);
-  color: var(--ui-fg);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
   font: inherit;
 
   outline: none;
 }
 
 .ui-combo-box__trigger {
-  width: var(--ui-component-height-100);
+  width: var(--ui-component-height-100, var(--ui-fallback-component-height-100));
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid var(--ui-border);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
   border-left: 0;
-  border-radius: 0 var(--ui-radius-md) var(--ui-radius-md) 0;
+  border-radius: 0 var(--ui-radius-md, var(--ui-fallback-radius-md)) var(--ui-radius-md, var(--ui-fallback-radius-md)) 0;
 
-  background: var(--ui-bg);
-  color: var(--ui-fg);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -126,52 +126,52 @@ pub const CSS: &str = r#"
 
 .ui-combo-box--focus-visible .ui-combo-box__input,
 .ui-combo-box--focus-visible .ui-combo-box__trigger {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 3) solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 2);
 }
 
 .ui-combo-box--invalid .ui-combo-box__input,
 .ui-combo-box--invalid .ui-combo-box__trigger {
-  border-color: var(--ui-danger);
+  border-color: var(--ui-danger, var(--ui-fallback-danger));
 }
 
 .ui-combo-box--invalid.ui-combo-box--focus-visible .ui-combo-box__input,
 .ui-combo-box--invalid.ui-combo-box--focus-visible .ui-combo-box__trigger {
-  outline-color: var(--ui-danger);
+  outline-color: var(--ui-danger, var(--ui-fallback-danger));
 }
 
 .ui-combo-box__description,
 .ui-combo-box__error {
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
 }
 
 .ui-combo-box__description {
-  color: var(--ui-fg-muted);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-combo-box__error {
-  color: var(--ui-danger);
+  color: var(--ui-danger, var(--ui-fallback-danger));
 }
 
 .ui-combo-box__panel {
   position: fixed;
-  top: var(--ui-popover-top, 0px);
-  left: var(--ui-popover-left, 0px);
-  width: var(--ui-popover-anchor-width, var(--ui-overlay-panel-min-width, 240px));
-  max-width: calc(100vw - var(--ui-overlay-viewport-inset, 16px));
-  z-index: var(--ui-overlay-z-index, 1000);
+  top: var(--ui-popover-top, calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 0));
+  left: var(--ui-popover-left, calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 0));
+  width: var(--ui-popover-anchor-width, var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width)));
+  max-width: calc(100vw - var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset)));
+  z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index));
 
   padding: 0;
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  box-shadow: var(--ui-shadow-md);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
 
   --ui-popover-opacity: 0;
-  --ui-popover-scale: var(--ui-overlay-enter-scale, 0.98);
-  --ui-popover-y: var(--ui-overlay-enter-offset-y, 6px);
+  --ui-popover-scale: var(--ui-overlay-enter-scale, var(--ui-fallback-overlay-enter-scale));
+  --ui-popover-y: var(--ui-overlay-enter-offset-y, var(--ui-fallback-overlay-enter-offset-y));
 
   opacity: var(--ui-popover-opacity);
   transform: translateY(var(--ui-popover-y)) scale(var(--ui-popover-scale));
@@ -195,7 +195,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-combo-box__listbox {
-  padding: var(--ui-space-xs);
+  padding: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-combo-box__options {
@@ -204,8 +204,8 @@ pub const CSS: &str = r#"
 
 .ui-combo-box__option {
   position: relative;
-  padding: var(--ui-space-sm) var(--ui-space-md);
-  border-radius: var(--ui-radius-md);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm)) var(--ui-space-md, var(--ui-fallback-space-md));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -221,12 +221,12 @@ pub const CSS: &str = r#"
 }
 
 .ui-combo-box__option[data-focused=\"true\"] {
-  background: var(--ui-accent-soft);
+  background: var(--ui-accent-soft, var(--ui-fallback-accent-soft));
 }
 
 .ui-combo-box__empty {
-  padding: var(--ui-space-sm) var(--ui-space-md);
-  color: var(--ui-fg-muted);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm)) var(--ui-space-md, var(--ui-fallback-space-md));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-combo-box__option:focus-visible {

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 pub use ui_state_primitives::color_area::{
     ColorAreaState, ColorAreaStateInput, DEFAULT_GRID_SIZE, DEFAULT_LABEL, DEFAULT_STEP,
     DEFAULT_X_AXIS_LABEL, DEFAULT_Y_AXIS_LABEL, clamp_value, normalize_aria_label,
@@ -217,6 +219,47 @@ pub struct ColorAreaRootState {
     pub disabled_source_attr: ColorAreaDisabledSourceAttr,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorAreaAxis {
+    X,
+    Y,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorAreaInteractivity {
+    Active,
+    Disabled,
+}
+
+impl ColorAreaInteractivity {
+    pub const fn from_disabled(is_disabled: bool) -> Self {
+        if is_disabled {
+            Self::Disabled
+        } else {
+            Self::Active
+        }
+    }
+
+    pub const fn is_disabled(self) -> bool {
+        matches!(self, Self::Disabled)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ColorAreaEventOutcome {
+    pub next_value: Option<(f32, f32)>,
+    pub prevent_default: bool,
+}
+
+impl ColorAreaEventOutcome {
+    pub const fn noop() -> Self {
+        Self {
+            next_value: None,
+            prevent_default: false,
+        }
+    }
+}
+
 pub fn normalize_disable_state(input: ColorAreaDisableInput) -> ColorAreaDisableState {
     if let Some(is_disabled) = input.is_disabled {
         ColorAreaDisableState {
@@ -228,6 +271,65 @@ pub fn normalize_disable_state(input: ColorAreaDisableInput) -> ColorAreaDisable
             is_disabled: false,
             disabled_source_attr: ColorAreaDisabledSourceAttr::Default,
         }
+    }
+}
+
+pub fn resolve_interactivity(state: ColorAreaState) -> ColorAreaInteractivity {
+    ColorAreaInteractivity::from_disabled(state.is_disabled)
+}
+
+pub fn reduce_axis_input(
+    interactivity: ColorAreaInteractivity,
+    current_value: (f32, f32),
+    axis: ColorAreaAxis,
+    parsed_axis_value: Option<f32>,
+) -> ColorAreaEventOutcome {
+    if interactivity.is_disabled() {
+        return ColorAreaEventOutcome::noop();
+    }
+
+    let Some(next_axis) = parsed_axis_value else {
+        return ColorAreaEventOutcome::noop();
+    };
+
+    let current = clamp_value(current_value);
+    let next_value = match axis {
+        ColorAreaAxis::X => (next_axis, current.1),
+        ColorAreaAxis::Y => (current.0, next_axis),
+    };
+
+    ColorAreaEventOutcome {
+        next_value: Some(clamp_value(next_value)),
+        prevent_default: false,
+    }
+}
+
+pub fn reduce_cell_select(
+    interactivity: ColorAreaInteractivity,
+    cell_value: (f32, f32),
+) -> ColorAreaEventOutcome {
+    if interactivity.is_disabled() {
+        return ColorAreaEventOutcome::noop();
+    }
+
+    ColorAreaEventOutcome {
+        next_value: Some(clamp_value(cell_value)),
+        prevent_default: false,
+    }
+}
+
+pub fn reduce_keyboard_result(
+    interactivity: ColorAreaInteractivity,
+    next_value: Option<(f32, f32)>,
+    prevent_default: bool,
+) -> ColorAreaEventOutcome {
+    if interactivity.is_disabled() {
+        return ColorAreaEventOutcome::noop();
+    }
+
+    ColorAreaEventOutcome {
+        next_value: next_value.map(clamp_value),
+        prevent_default: next_value.is_some() && prevent_default,
     }
 }
 
@@ -247,6 +349,14 @@ pub fn normalize_value_axis(is_controlled: bool) -> ColorAreaValueAxis {
 
 pub fn normalize_default_value(default_value: Option<(f32, f32)>) -> (f32, f32) {
     clamp_value(default_value.unwrap_or((1.0, 1.0)))
+}
+
+pub fn normalize_step(step: Option<f32>) -> f32 {
+    step.unwrap_or(DEFAULT_STEP)
+}
+
+pub fn normalize_grid_size(grid_size: Option<usize>) -> usize {
+    grid_size.unwrap_or(DEFAULT_GRID_SIZE)
 }
 
 pub fn normalize_label_with_fallback(label: Option<String>, fallback: &str) -> (String, bool) {
@@ -282,7 +392,7 @@ pub fn normalize_axis_label_with_fallback(
     }
 
     let fallback =
-        normalize_optional_text(Some(fallback.into())).unwrap_or_else(|| default_value.to_string());
+        normalize_optional_text(Some(fallback.into())).unwrap_or_else(|| default_value.into());
     (fallback, false)
 }
 
@@ -331,22 +441,22 @@ pub fn normalize_root_state(input: ColorAreaRootInput) -> ColorAreaRootState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ColorAreaState) -> String {
-    let mut classes = vec!["ui-color-area".to_string()];
+    let mut classes: Vec<Cow<'static, str>> = vec![Cow::Borrowed("ui-color-area")];
 
     if state.is_disabled {
-        classes.push("ui-color-area--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-color-area--disabled"));
     }
 
     if state.has_preview_color {
-        classes.push("ui-color-area--with-preview".to_string());
+        classes.push(Cow::Borrowed("ui-color-area--with-preview"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-color-area--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-color-area--custom-class"));
     }
 
     if let Some(base_class_name) = base_class_name {
-        classes.push(base_class_name);
+        classes.push(Cow::Owned(base_class_name));
     }
 
     classes.join(" ")
@@ -356,15 +466,15 @@ pub fn resolve_agent_contract(
     state: ColorAreaState,
     value_axis: ColorAreaValueAxis,
 ) -> ColorAreaAgentContract {
-    let action = if state.is_disabled {
-        ColorAreaAgentAction::Disabled
-    } else {
-        ColorAreaAgentAction::Select
-    };
-    let state_axis = if state.is_disabled {
-        ColorAreaAgentState::Disabled
-    } else {
-        ColorAreaAgentState::Active
+    let interactivity = resolve_interactivity(state);
+    let (action, state_axis) = match interactivity {
+        ColorAreaInteractivity::Active => {
+            (ColorAreaAgentAction::Select, ColorAreaAgentState::Active)
+        }
+        ColorAreaInteractivity::Disabled => (
+            ColorAreaAgentAction::Disabled,
+            ColorAreaAgentState::Disabled,
+        ),
     };
 
     ColorAreaAgentContract {

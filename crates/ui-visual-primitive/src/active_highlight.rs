@@ -133,9 +133,17 @@ pub fn attach_active_highlight_motion(
         let element: leptos::web_sys::HtmlElement = highlight.unchecked_into();
         let style = element.style();
 
-        drop(style.set_property("--ui-active-highlight-y", "0px"));
-        drop(style.set_property("--ui-active-highlight-h", "0px"));
-        drop(style.set_property("--ui-active-highlight-o", "0"));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-active-highlight-y",
+            "0px"
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-active-highlight-h",
+            "0px"
+        );
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-active-highlight-o", "0");
         let measure_layout = {
             let container_ref = container_ref;
             let active_index = active_index;
@@ -162,19 +170,31 @@ pub fn attach_active_highlight_motion(
         let style_for_y = style.clone();
         let set_y = move |v: f64| {
             let v = v.clamp(-10000.0, 10000.0);
-            drop(style_for_y.set_property("--ui-active-highlight-y", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_y),
+                "--ui-active-highlight-y",
+                &format!("{v}px")
+            );
         };
 
         let style_for_h = style.clone();
         let set_h = move |v: f64| {
             let v = v.clamp(0.0, 10000.0);
-            drop(style_for_h.set_property("--ui-active-highlight-h", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_h),
+                "--ui-active-highlight-h",
+                &format!("{v}px")
+            );
         };
 
         let style_for_o = style.clone();
         let set_o = move |v: f64| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_o.set_property("--ui-active-highlight-o", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_o),
+                "--ui-active-highlight-o",
+                &format!("{v}")
+            );
         };
 
         let driver_instance = Rc::new(RefCell::new(ActiveHighlightMotionDriver::new(

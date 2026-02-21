@@ -97,7 +97,7 @@ pub fn ExtrasDemo() -> impl IntoView {
                         <div class="demo-kv">"FileTrigger"</div>
                         <FileTrigger
                             id="demo-file-trigger".to_string()
-                            multiple=true
+                            is_multiple=true
                             accept=".png,.jpg,.jpeg,.svg".to_string()
                             on_files=on_files
                         >

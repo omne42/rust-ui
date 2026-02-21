@@ -187,6 +187,8 @@ fn checkbox_attrs_reflect_checked_state_and_disabled() {
         is_disabled: false,
         is_checked: checked,
         on_press: Some(on_press),
+        lang: None,
+        dir: None,
     });
 
     assert_eq!(aria.attrs.role, "checkbox");
@@ -202,6 +204,8 @@ fn checkbox_attrs_reflect_checked_state_and_disabled() {
         is_disabled: true,
         is_checked: checked,
         on_press: Some(on_press),
+        lang: None,
+        dir: None,
     });
     assert_eq!(aria_disabled.attrs.tabindex, -1);
     assert_eq!(aria_disabled.attrs.aria_disabled, Some("true"));

@@ -1,3 +1,4 @@
+use super::spec::ButtonSchema;
 use ui_state_primitives::button::{ButtonStateCoreInput, resolve_state_core};
 
 pub use ui_state_primitives::button::ButtonLabelSource;
@@ -359,6 +360,8 @@ pub struct ButtonStateSource {
     pub full_width_input_source_attr: &'static str,
 }
 
+pub const BUTTON_AGENT_SCHEMA: &str = "ui.button.agent-contract";
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ButtonAgentSchemaVersion {
     V1,
@@ -386,6 +389,19 @@ impl ButtonAgentIntent {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonAgentAction {
+    Press,
+}
+
+impl ButtonAgentAction {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Press => "press",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ButtonAgentStateAxis {
     Disabled,
     Loading,
@@ -403,6 +419,19 @@ impl ButtonAgentStateAxis {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonAgentSource {
+    StatePrimitives,
+}
+
+impl ButtonAgentSource {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::StatePrimitives => "state-primitives",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ButtonAgentCapabilities {
     pub can_press: bool,
     pub can_focus: bool,
@@ -415,8 +444,71 @@ pub struct ButtonAgentContract {
     pub schema_name: &'static str,
     pub schema_version: ButtonAgentSchemaVersion,
     pub intent: ButtonAgentIntent,
+    pub action: ButtonAgentAction,
     pub state: ButtonAgentStateAxis,
+    pub source: ButtonAgentSource,
     pub capabilities: ButtonAgentCapabilities,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonSchemaInputSource {
+    Missing,
+    PropValidated,
+    PropRejected,
+}
+
+impl ButtonSchemaInputSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Missing => "missing",
+            Self::PropValidated => "prop-validated",
+            Self::PropRejected => "prop-rejected",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ButtonSchemaInputNormalization {
+    pub schema_json: Option<String>,
+    pub source: ButtonSchemaInputSource,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonOutputStatus {
+    Draft,
+    Verified,
+    Submittable,
+}
+
+impl ButtonOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Draft => "draft",
+            Self::Verified => "verified",
+            Self::Submittable => "submittable",
+        }
+    }
+}
+
+pub fn normalize_schema_json_input(schema_json: Option<String>) -> ButtonSchemaInputNormalization {
+    let normalized = normalize_optional_text(schema_json);
+    let Some(raw) = normalized else {
+        return ButtonSchemaInputNormalization {
+            schema_json: None,
+            source: ButtonSchemaInputSource::Missing,
+        };
+    };
+
+    match ButtonSchema::from_json(&raw).and_then(|schema| schema.to_json_result()) {
+        Ok(canonical_json) => ButtonSchemaInputNormalization {
+            schema_json: Some(canonical_json),
+            source: ButtonSchemaInputSource::PropValidated,
+        },
+        Err(_) => ButtonSchemaInputNormalization {
+            schema_json: None,
+            source: ButtonSchemaInputSource::PropRejected,
+        },
+    }
 }
 
 pub fn resolve_agent_state_axis(state: ButtonState) -> ButtonAgentStateAxis {
@@ -451,11 +543,23 @@ pub fn resolve_agent_contract_for_state_axis(
     has_popup_trigger: bool,
 ) -> ButtonAgentContract {
     ButtonAgentContract {
-        schema_name: "ui.button.agent-contract",
+        schema_name: BUTTON_AGENT_SCHEMA,
         schema_version: ButtonAgentSchemaVersion::V1,
         intent: ButtonAgentIntent::Trigger,
+        action: ButtonAgentAction::Press,
         state,
+        source: ButtonAgentSource::StatePrimitives,
         capabilities: resolve_agent_capabilities_for_state_axis(state, has_popup_trigger),
+    }
+}
+
+pub fn resolve_output_status(state: ButtonState, button_type: ButtonType) -> ButtonOutputStatus {
+    if state.is_loading {
+        ButtonOutputStatus::Draft
+    } else if !state.is_disabled && matches!(button_type, ButtonType::Submit) {
+        ButtonOutputStatus::Submittable
+    } else {
+        ButtonOutputStatus::Verified
     }
 }
 
@@ -733,6 +837,28 @@ pub fn resolve_button_group_state(
         has_explicit_label,
         has_fallback_label: !has_explicit_label,
     }
+}
+
+#[cfg(feature = "component-button_group")]
+pub fn compose_button_group_class_name(
+    base_class_name: Option<String>,
+    orientation: ButtonGroupOrientation,
+    is_attached: bool,
+) -> String {
+    let mut classes = vec![
+        "ui-button-group".to_string(),
+        orientation.class_name().to_string(),
+    ];
+
+    if is_attached {
+        classes.push("ui-button-group--attached".to_string());
+    }
+
+    if let Some(base_class_name) = base_class_name {
+        classes.push(base_class_name);
+    }
+
+    classes.join(" ")
 }
 
 #[cfg(test)]

@@ -1,13 +1,13 @@
 pub const CSS: &str = r#"
 .ui-command {
-  width: min(100%, 30rem);
+  width: min(100%, var(--ui-command-panel-max-width, var(--ui-fallback-command-panel-max-width)));
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-sm);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
   overflow: hidden;
 }
 
@@ -35,7 +35,7 @@ pub const CSS: &str = r#"
 .ui-command--disabled,
 .ui-command[data-disabled="disabled"],
 .ui-command[data-is-disabled="true"] {
-  opacity: 0.64;
+  opacity: var(--ui-command-disabled-opacity, var(--ui-fallback-command-disabled-opacity));
 }
 
 .ui-command--enabled,
@@ -93,64 +93,90 @@ pub const CSS: &str = r#"
 }
 
 .ui-command__input-wrap {
-  padding: 8px;
-  border-bottom: 1px solid color-mix(in oklab, var(--ui-border) 86%, var(--ui-bg) 14%);
-  background: color-mix(in oklab, var(--ui-bg) 94%, var(--ui-bg-muted) 6%);
+  padding: var(--ui-command-input-wrap-padding, var(--ui-fallback-command-input-wrap-padding));
+  border-bottom: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border))
+        var(--ui-command-input-wrap-border-mix, var(--ui-fallback-command-input-wrap-border-mix)),
+      var(--ui-bg, var(--ui-fallback-bg))
+        calc(100% - var(--ui-command-input-wrap-border-mix, var(--ui-fallback-command-input-wrap-border-mix)))
+    );
+  background: color-mix(
+    in oklab,
+    var(--ui-bg, var(--ui-fallback-bg))
+      var(--ui-command-input-wrap-bg-mix, var(--ui-fallback-command-input-wrap-bg-mix)),
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted))
+      calc(100% - var(--ui-command-input-wrap-bg-mix, var(--ui-fallback-command-input-wrap-bg-mix)))
+  );
 }
 
 .ui-command__input {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-md);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
   font: inherit;
-  line-height: var(--ui-line-height-150, 20px);
-  padding: 9px 12px;
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
+  padding:
+    var(--ui-command-input-padding-y, var(--ui-fallback-command-input-padding-y))
+    var(--ui-command-input-padding-x, var(--ui-fallback-command-input-padding-x));
   outline: none;
 }
 
 .ui-command__input:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 1px;
+  outline: var(--ui-command-input-focus-outline-width, var(--ui-fallback-command-input-focus-outline-width))
+    solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(--ui-command-input-focus-outline-offset, var(--ui-fallback-command-input-focus-outline-offset));
 }
 
 .ui-command__list {
-  max-height: 21rem;
+  max-height: var(--ui-command-list-max-height, var(--ui-fallback-command-list-max-height));
   overflow: auto;
 }
 
 .ui-command__options {
   position: relative;
-  padding: 6px;
+  padding: var(--ui-command-options-padding, var(--ui-fallback-command-options-padding));
 }
 
 .ui-command__group {
   display: grid;
-  gap: 4px;
+  gap: var(--ui-command-group-gap, var(--ui-fallback-command-group-gap));
 }
 
 .ui-command__group + .ui-command__group {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid color-mix(in oklab, var(--ui-border) 84%, var(--ui-bg) 16%);
+  margin-top: var(--ui-command-group-spacing, var(--ui-fallback-command-group-spacing));
+  padding-top: var(--ui-command-group-spacing, var(--ui-fallback-command-group-spacing));
+  border-top: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border))
+        var(--ui-command-group-border-mix, var(--ui-fallback-command-group-border-mix)),
+      var(--ui-bg, var(--ui-fallback-bg))
+        calc(100% - var(--ui-command-group-border-mix, var(--ui-fallback-command-group-border-mix)))
+    );
 }
 
 .ui-command__group-heading {
   margin: 0;
-  padding-inline: 10px;
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
+  padding-inline: var(--ui-command-group-heading-padding-x, var(--ui-fallback-command-group-heading-padding-x));
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
   font-weight: 600;
-  color: var(--ui-fg-muted);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: var(
+    --ui-command-group-heading-letter-spacing,
+    var(--ui-fallback-command-group-heading-letter-spacing)
+  );
 }
 
 .ui-command__group-items {
   display: grid;
-  gap: 2px;
+  gap: var(--ui-command-group-items-gap, var(--ui-fallback-command-group-items-gap));
 }
 
 .ui-command__option {
@@ -159,9 +185,11 @@ pub const CSS: &str = r#"
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 9px 10px;
-  border-radius: var(--ui-radius-md);
+  gap: var(--ui-command-option-gap, var(--ui-fallback-command-option-gap));
+  padding:
+    var(--ui-command-option-padding-y, var(--ui-fallback-command-option-padding-y))
+    var(--ui-command-option-padding-x, var(--ui-fallback-command-option-padding-x));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
   user-select: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -169,7 +197,13 @@ pub const CSS: &str = r#"
 
 .ui-command__option[data-focused="true"],
 .ui-command__option[data-state="focused"] {
-  color: color-mix(in oklab, var(--ui-fg) 96%, var(--ui-accent) 4%);
+  color: color-mix(
+    in oklab,
+    var(--ui-fg, var(--ui-fallback-fg))
+      var(--ui-command-option-focus-mix, var(--ui-fallback-command-option-focus-mix)),
+    var(--ui-accent, var(--ui-fallback-accent))
+      calc(100% - var(--ui-command-option-focus-mix, var(--ui-fallback-command-option-focus-mix)))
+  );
 }
 
 .ui-command__option[data-selected="true"] .ui-command__item-label,
@@ -179,25 +213,40 @@ pub const CSS: &str = r#"
 
 .ui-command__option[data-disabled="true"],
 .ui-command__option[data-state="disabled"] {
-  opacity: 0.52;
+  opacity: var(--ui-command-option-disabled-opacity, var(--ui-fallback-command-option-disabled-opacity));
   cursor: not-allowed;
 }
 
 .ui-command__shortcut {
-  border: 1px solid color-mix(in oklab, var(--ui-border) 84%, var(--ui-bg-muted) 16%);
-  border-radius: var(--ui-radius-sm);
-  padding-inline: 6px;
-  padding-block: 2px;
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
-  color: var(--ui-fg-muted);
-  background: color-mix(in oklab, var(--ui-bg) 88%, var(--ui-bg-muted) 12%);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    color-mix(
+      in oklab,
+      var(--ui-border, var(--ui-fallback-border))
+        var(--ui-command-shortcut-border-mix, var(--ui-fallback-command-shortcut-border-mix)),
+      var(--ui-bg-muted, var(--ui-fallback-bg-muted))
+        calc(100% - var(--ui-command-shortcut-border-mix, var(--ui-fallback-command-shortcut-border-mix)))
+    );
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
+  padding-inline: var(--ui-command-shortcut-padding-x, var(--ui-fallback-command-shortcut-padding-x));
+  padding-block: var(--ui-command-shortcut-padding-y, var(--ui-fallback-command-shortcut-padding-y));
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  background: color-mix(
+    in oklab,
+    var(--ui-bg, var(--ui-fallback-bg))
+      var(--ui-command-shortcut-bg-mix, var(--ui-fallback-command-shortcut-bg-mix)),
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted))
+      calc(100% - var(--ui-command-shortcut-bg-mix, var(--ui-fallback-command-shortcut-bg-mix)))
+  );
 }
 
 .ui-command__empty {
-  padding: 14px 12px;
-  color: var(--ui-fg-muted);
-  font-size: var(--ui-button-size-s-font-size, 13px);
-  line-height: var(--ui-button-size-s-line-height, 18px);
+  padding:
+    var(--ui-command-empty-padding-y, var(--ui-fallback-command-empty-padding-y))
+    var(--ui-command-empty-padding-x, var(--ui-fallback-command-empty-padding-x));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  font-size: var(--ui-button-size-s-font-size, var(--ui-fallback-button-size-s-font-size));
+  line-height: var(--ui-button-size-s-line-height, var(--ui-fallback-button-size-s-line-height));
 }
 "#;

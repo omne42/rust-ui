@@ -98,6 +98,10 @@ controlled = false
 name = "semantic-markers"
 ty = "data-* + role + aria-live"
 
+[[outputs]]
+name = "agent-contract"
+ty = "data-ui-schema + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-streaming + data-ui-fallback + data-ui-output-status"
+
 [[capabilities]]
 name = "a11y_status_region"
 enabled = true

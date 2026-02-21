@@ -1,171 +1,395 @@
-use crate::bottom_sheet::{BottomSheetState, BottomSheetStateInput};
+use leptos::prelude::Callback;
+pub use ui_state_primitives::bottom_sheet::{
+    BottomSheetState, BottomSheetStateInput, compose_class_name, normalize_bottom_inset_px,
+    normalize_id_base, normalize_optional_text, normalize_required_text, resolve_state,
+};
 
+pub const DEFAULT_TITLE: &str = "Bottom sheet";
 pub const DEFAULT_CLOSE_LABEL: &str = "Close bottom sheet";
+pub const DEFAULT_HANDLE_VISIBILITY: BottomSheetVisibility = BottomSheetVisibility::Visible;
+pub const DEFAULT_CLOSE_BUTTON_VISIBILITY: BottomSheetVisibility = BottomSheetVisibility::Visible;
+pub const DEFAULT_ATTACHMENT: BottomSheetAttachment = BottomSheetAttachment::Attached;
+pub const DEFAULT_BOTTOM_INSET_PX: f64 = 0.0;
+pub const DEFAULT_DISMISSABLE: bool = true;
+pub const DEFAULT_KEYBOARD_DISMISS_DISABLED: bool = false;
+pub const DEFAULT_MOTION_SOURCE_ATTR: &str = "default";
+pub const CUSTOM_MOTION_SOURCE_ATTR: &str = "custom";
 
-#[cfg(test)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BottomSheetAgentContract {
-    pub schema_attr: &'static str,
-    pub intent_attr: &'static str,
-    pub action_attr: &'static str,
-    pub state_axis_attr: &'static str,
-    pub source_axis_attr: &'static str,
-    pub render_mode_attr: &'static str,
-    pub streaming_attr: &'static str,
-    pub fallback_attr: &'static str,
-    pub output_status_attr: &'static str,
+pub enum BottomSheetVisibility {
+    Visible,
+    Hidden,
+}
+
+impl BottomSheetVisibility {
+    pub fn is_visible(self) -> bool {
+        matches!(self, Self::Visible)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAttachment {
+    Attached,
+    Detached,
+}
+
+impl BottomSheetAttachment {
+    pub fn is_detached(self) -> bool {
+        matches!(self, Self::Detached)
+    }
+}
+
+pub fn resolve_title(value: String) -> String {
+    normalize_required_text(value, DEFAULT_TITLE)
+}
+
+pub fn resolve_close_label(value: Option<&'static str>) -> &'static str {
+    value
+        .filter(|label| !label.trim().is_empty())
+        .unwrap_or(DEFAULT_CLOSE_LABEL)
+}
+
+pub fn resolve_description_text(value: Option<String>) -> String {
+    value.unwrap_or_default()
+}
+
+pub fn resolve_handle_visibility(
+    is_handle_visible: Option<bool>,
+    show_handle: Option<bool>,
+) -> BottomSheetVisibility {
+    if is_handle_visible
+        .or(show_handle)
+        .unwrap_or(DEFAULT_HANDLE_VISIBILITY.is_visible())
+    {
+        BottomSheetVisibility::Visible
+    } else {
+        BottomSheetVisibility::Hidden
+    }
+}
+
+pub fn resolve_close_button_visibility(
+    is_close_button_visible: Option<bool>,
+    show_close_button: Option<bool>,
+) -> BottomSheetVisibility {
+    if is_close_button_visible
+        .or(show_close_button)
+        .unwrap_or(DEFAULT_CLOSE_BUTTON_VISIBILITY.is_visible())
+    {
+        BottomSheetVisibility::Visible
+    } else {
+        BottomSheetVisibility::Hidden
+    }
+}
+
+pub fn resolve_attachment(
+    is_detached: Option<bool>,
+    detached: Option<bool>,
+) -> BottomSheetAttachment {
+    if is_detached
+        .or(detached)
+        .unwrap_or(DEFAULT_ATTACHMENT.is_detached())
+    {
+        BottomSheetAttachment::Detached
+    } else {
+        BottomSheetAttachment::Attached
+    }
 }
 
 #[cfg(test)]
-pub fn agent_contract() -> BottomSheetAgentContract {
-    BottomSheetAgentContract {
-        schema_attr: "bottom-sheet.v1",
-        intent_attr: "overlay",
-        action_attr: "dismiss",
-        state_axis_attr: "visibility|description|footer|detached|inset",
-        source_axis_attr: "default|custom",
-        render_mode_attr: "snapshot",
-        streaming_attr: "optional",
-        fallback_attr: "snapshot",
-        output_status_attr: "verified",
-    }
+pub fn resolve_detached(
+    is_detached: Option<bool>,
+    detached: Option<bool>,
+) -> BottomSheetAttachment {
+    resolve_attachment(is_detached, detached)
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+pub fn resolve_bottom_inset_px(value: Option<f64>) -> f64 {
+    normalize_bottom_inset_px(value.unwrap_or(DEFAULT_BOTTOM_INSET_PX))
 }
 
-pub fn normalize_required_text(value: String, fallback: &'static str) -> String {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        fallback.into()
-    } else {
-        trimmed.into()
-    }
+pub fn resolve_dismissable(value: Option<bool>) -> bool {
+    value.unwrap_or(DEFAULT_DISMISSABLE)
 }
 
-pub fn normalize_id_base(value: String) -> String {
-    let trimmed = value.trim();
-    if trimmed.is_empty() {
-        "ui-bottom-sheet".to_string()
-    } else {
-        trimmed.into()
-    }
+pub fn resolve_keyboard_dismiss_disabled(value: Option<bool>) -> bool {
+    value.unwrap_or(DEFAULT_KEYBOARD_DISMISS_DISABLED)
 }
 
-pub fn normalize_bottom_inset_px(value: f64) -> f64 {
-    if !value.is_finite() {
-        return 0.0;
-    }
-
-    value.clamp(0.0, 240.0)
+pub fn resolve_on_exit_complete(on_exit_complete: Option<Callback<()>>) -> Callback<()> {
+    on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}))
 }
 
-fn inset_bucket(detached: bool, bottom_inset_px: f64) -> (&'static str, &'static str) {
-    if !detached || bottom_inset_px < 4.0 {
-        return ("ui-bottom-sheet--inset-none", "none");
-    }
-
-    if bottom_inset_px < 12.0 {
-        ("ui-bottom-sheet--inset-sm", "sm")
-    } else if bottom_inset_px < 20.0 {
-        ("ui-bottom-sheet--inset-md", "md")
-    } else if bottom_inset_px < 28.0 {
-        ("ui-bottom-sheet--inset-lg", "lg")
-    } else {
-        ("ui-bottom-sheet--inset-xl", "xl")
-    }
+pub fn has_slot<T>(slot: &Option<T>) -> bool {
+    slot.is_some()
 }
 
-pub fn resolve_state(input: BottomSheetStateInput) -> BottomSheetState {
-    let (state_class, state_attr, description_attr) = if input.has_description {
-        (
-            "ui-bottom-sheet--with-description",
-            "with-description",
-            "present",
-        )
-    } else {
-        ("ui-bottom-sheet--title-only", "title-only", "absent")
-    };
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BottomSheetDeriveInput {
+    pub has_description: bool,
+    pub has_footer: bool,
+    pub handle_visibility: BottomSheetVisibility,
+    pub close_button_visibility: BottomSheetVisibility,
+    pub attachment: BottomSheetAttachment,
+    pub bottom_inset_px: f64,
+    pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
+}
 
-    let (handle_class, handle_attr) = if input.show_handle {
-        ("ui-bottom-sheet--handle-shown", "shown")
-    } else {
-        ("ui-bottom-sheet--handle-hidden", "hidden")
-    };
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BottomSheetDerivedState {
+    pub state: BottomSheetState,
+    pub motion_source_attr: &'static str,
+    pub has_custom_motion: bool,
+}
 
-    let (close_button_class, close_button_attr) = if input.show_close_button {
-        ("ui-bottom-sheet--close-shown", "shown")
-    } else {
-        ("ui-bottom-sheet--close-hidden", "hidden")
-    };
-
-    let (detached_class, detached_attr) = if input.detached {
-        ("ui-bottom-sheet--detached", "true")
-    } else {
-        ("ui-bottom-sheet--attached", "false")
-    };
-
-    let (inset_class, inset_attr) = inset_bucket(input.detached, input.bottom_inset_px);
-
-    BottomSheetState {
-        show_description: input.has_description,
-        description_attr,
-        show_footer: input.has_footer,
-        footer_attr: if input.has_footer {
-            "present"
-        } else {
-            "absent"
-        },
-        show_handle: input.show_handle,
-        handle_class,
-        handle_attr,
-        show_close_button: input.show_close_button,
-        close_button_class,
-        close_button_attr,
-        detached: input.detached,
-        detached_class,
-        detached_attr,
-        inset_class,
-        inset_attr,
-        state_class,
-        state_attr,
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
+pub fn derive_view_state(input: BottomSheetDeriveInput) -> BottomSheetDerivedState {
+    let state = resolve_state(BottomSheetStateInput {
+        has_description: input.has_description,
+        has_footer: input.has_footer,
+        show_handle: input.handle_visibility.is_visible(),
+        show_close_button: input.close_button_visibility.is_visible(),
+        detached: input.attachment.is_detached(),
+        bottom_inset_px: input.bottom_inset_px,
         has_custom_class_name: input.has_custom_class_name,
+    });
+
+    BottomSheetDerivedState {
+        state,
+        motion_source_attr: if input.has_custom_motion {
+            CUSTOM_MOTION_SOURCE_ATTR
+        } else {
+            DEFAULT_MOTION_SOURCE_ATTR
+        },
+        has_custom_motion: input.has_custom_motion,
     }
 }
 
-pub fn compose_class_name(base_class_name: Option<String>, state: BottomSheetState) -> String {
-    let mut classes = vec![
-        "ui-bottom-sheet".to_string(),
-        state.state_class.into(),
-        state.handle_class.into(),
-        state.close_button_class.into(),
-        state.detached_class.into(),
-        state.inset_class.into(),
-    ];
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentSchemaVersion {
+    V1,
+}
 
-    if state.show_footer {
-        classes.push("ui-bottom-sheet--with-footer".to_string());
-    } else {
-        classes.push("ui-bottom-sheet--no-footer".to_string());
-    }
-
-    if state.has_custom_class_name {
-        classes.push("ui-bottom-sheet--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+impl BottomSheetAgentSchemaVersion {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::V1 => "1",
         }
     }
+}
 
-    classes.join(" ")
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentIntent {
+    OverlayBottomSheet,
+}
+
+impl BottomSheetAgentIntent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::OverlayBottomSheet => "overlay.bottom-sheet",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentAction {
+    DismissAnyInput,
+    DismissPointerOnly,
+    NonDismissable,
+}
+
+impl BottomSheetAgentAction {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::DismissAnyInput => "dismiss-any-input",
+            Self::DismissPointerOnly => "dismiss-pointer-only",
+            Self::NonDismissable => "non-dismissible",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentStateAxis {
+    Closed,
+    OpenBasic,
+    OpenWithDescription,
+    OpenWithFooter,
+    OpenWithDescriptionFooter,
+    OpenDetached,
+}
+
+impl BottomSheetAgentStateAxis {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Closed => "closed",
+            Self::OpenBasic => "open-basic",
+            Self::OpenWithDescription => "open-with-description",
+            Self::OpenWithFooter => "open-with-footer",
+            Self::OpenWithDescriptionFooter => "open-with-description-footer",
+            Self::OpenDetached => "open-detached",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentSourceAxis {
+    StatePrimitivesDefaultMotion,
+    StatePrimitivesCustomMotion,
+}
+
+impl BottomSheetAgentSourceAxis {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::StatePrimitivesDefaultMotion => "state-primitives/default-motion",
+            Self::StatePrimitivesCustomMotion => "state-primitives/custom-motion",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentOutputStatus {
+    Verified,
+}
+
+impl BottomSheetAgentOutputStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentStreamSupport {
+    Optional,
+}
+
+impl BottomSheetAgentStreamSupport {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Optional => "optional",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentStreamMode {
+    Streaming,
+    Snapshot,
+}
+
+impl BottomSheetAgentStreamMode {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Streaming => "streaming",
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+const _: [BottomSheetAgentStreamMode; 2] = [
+    BottomSheetAgentStreamMode::Streaming,
+    BottomSheetAgentStreamMode::Snapshot,
+];
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentStreamFallback {
+    Snapshot,
+}
+
+impl BottomSheetAgentStreamFallback {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BottomSheetAgentRenderPolicy {
+    TypedOnly,
+}
+
+impl BottomSheetAgentRenderPolicy {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::TypedOnly => "typed-only",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BottomSheetAgentContract {
+    pub schema_name: &'static str,
+    pub schema_version: BottomSheetAgentSchemaVersion,
+    pub intent: BottomSheetAgentIntent,
+    pub action: BottomSheetAgentAction,
+    pub state: BottomSheetAgentStateAxis,
+    pub source: BottomSheetAgentSourceAxis,
+    pub output_status: BottomSheetAgentOutputStatus,
+    pub stream_support: BottomSheetAgentStreamSupport,
+    pub stream_mode: BottomSheetAgentStreamMode,
+    pub stream_fallback: BottomSheetAgentStreamFallback,
+    pub render_policy: BottomSheetAgentRenderPolicy,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BottomSheetAgentContractInput {
+    pub is_open: bool,
+    pub show_description: bool,
+    pub show_footer: bool,
+    pub detached: bool,
+    pub is_dismissable: bool,
+    pub is_keyboard_dismiss_disabled: bool,
+    pub motion_source_attr: &'static str,
+}
+
+fn resolve_agent_action(input: BottomSheetAgentContractInput) -> BottomSheetAgentAction {
+    if !input.is_dismissable {
+        BottomSheetAgentAction::NonDismissable
+    } else if input.is_keyboard_dismiss_disabled {
+        BottomSheetAgentAction::DismissPointerOnly
+    } else {
+        BottomSheetAgentAction::DismissAnyInput
+    }
+}
+
+fn resolve_agent_state(input: BottomSheetAgentContractInput) -> BottomSheetAgentStateAxis {
+    if !input.is_open {
+        BottomSheetAgentStateAxis::Closed
+    } else if input.detached {
+        BottomSheetAgentStateAxis::OpenDetached
+    } else if input.show_description && input.show_footer {
+        BottomSheetAgentStateAxis::OpenWithDescriptionFooter
+    } else if input.show_description {
+        BottomSheetAgentStateAxis::OpenWithDescription
+    } else if input.show_footer {
+        BottomSheetAgentStateAxis::OpenWithFooter
+    } else {
+        BottomSheetAgentStateAxis::OpenBasic
+    }
+}
+
+fn resolve_agent_source(input: BottomSheetAgentContractInput) -> BottomSheetAgentSourceAxis {
+    if input.motion_source_attr == CUSTOM_MOTION_SOURCE_ATTR {
+        BottomSheetAgentSourceAxis::StatePrimitivesCustomMotion
+    } else {
+        BottomSheetAgentSourceAxis::StatePrimitivesDefaultMotion
+    }
+}
+
+pub fn resolve_agent_contract(input: BottomSheetAgentContractInput) -> BottomSheetAgentContract {
+    BottomSheetAgentContract {
+        schema_name: "ui.bottom-sheet.agent-contract",
+        schema_version: BottomSheetAgentSchemaVersion::V1,
+        intent: BottomSheetAgentIntent::OverlayBottomSheet,
+        action: resolve_agent_action(input),
+        state: resolve_agent_state(input),
+        source: resolve_agent_source(input),
+        output_status: BottomSheetAgentOutputStatus::Verified,
+        stream_support: BottomSheetAgentStreamSupport::Optional,
+        stream_mode: BottomSheetAgentStreamMode::Snapshot,
+        stream_fallback: BottomSheetAgentStreamFallback::Snapshot,
+        render_policy: BottomSheetAgentRenderPolicy::TypedOnly,
+    }
 }
 
 #[cfg(test)]

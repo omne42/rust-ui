@@ -35,6 +35,9 @@ jobs:
       - name: Tests
         run: cargo test --workspace --exclude tauri-demo
 
+      - name: Tree Shaking Budget
+        run: ./scripts/check-ui-components-tree-shaking.sh
+
       - name: sccache stats
         if: always()
         run: sccache --show-stats || true

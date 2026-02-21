@@ -23,18 +23,19 @@
 
 | Prop | Type | Default |
 | --- | --- | --- |
-| `id_base` | `String` | required |
+| `id_base` | `Option<String>` | `None`（优先消费 `UiRoot` 注入的 `IdProvider`，否则回退 `ui-list`） |
 | `items` | `Arc<[String]>` | required |
-| `selected_index` | `ReadSignal<Option<usize>>` | required |
-| `set_selected_index` | `WriteSignal<Option<usize>>` | required |
+| `selected_index` | `Option<Signal<Option<usize>>>` | `None` |
+| `default_selected_index` | `Option<usize>` | `None` |
+| `on_selected_index_change` | `Option<Callback<Option<usize>>>` | `None` |
 | `id` | `Option<String>` | `None` |
 | `aria_label` | `Option<String>` | `None`（内部 fallback） |
 | `aria_labelledby` | `Option<String>` | `None` |
-| `disabled` | `bool` | `false` |
+| `is_disabled` | `bool` | `false` |
 | `disabled_indices` | `Vec<usize>` | `[]` |
 | `on_action` | `Option<Callback<usize>>` | `None` |
-| `default_index` | `usize` | `0` |
-| `sync_active_index_to_selected` | `bool` | `true` |
+| `default_active_index` | `usize` | `0` |
+| `is_active_index_synced_to_selected` | `bool` | `true` |
 | `motion` | `ListMotion` | `ListMotion::default()` |
 | `class_name` | `Option<String>` | `None` |
 
@@ -45,11 +46,11 @@
 | `children` | `Children` | required |
 | `id` | `Option<String>` | `None` |
 | `index` | `Option<usize>` | `None` |
-| `selected` | `bool` | `false` |
-| `focused` | `bool` | `false` |
-| `disabled` | `bool` | `false` |
-| `show_selection_indicator` | `bool` | `false` |
-| `has_divider` | `bool` | `false` |
+| `is_selected` | `bool` | `false` |
+| `is_focused` | `bool` | `false` |
+| `is_disabled` | `bool` | `false` |
+| `is_selection_indicator_visible` | `bool` | `false` |
+| `is_divider_visible` | `bool` | `false` |
 | `aria_label` | `Option<String>` | `None`（内部 fallback） |
 | `on_press` | `Option<Callback<()>>` | `None` |
 | `on_pointer_move` | `Option<Callback<()>>` | `None` |
@@ -63,18 +64,20 @@
 | `title` | `Option<String>` | `None` |
 | `item_count` | `Option<usize>` | `Some(1)` |
 | `heading_tone` | `ListSectionHeadingTone` | `Default` |
-| `disabled` | `bool` | `false` |
-| `sticky_heading` | `bool` | `false` |
-| `show_divider` | `bool` | `false` |
+| `is_disabled` | `bool` | `false` |
+| `is_sticky_heading` | `bool` | `false` |
+| `is_divider_visible` | `bool` | `false` |
 | `motion` | `ListSectionMotion` | `ListSectionMotion::default()` |
 | `aria_label` | `Option<String>` | `None`（内部 fallback） |
 | `class_name` | `Option<String>` | `None` |
 
 ## Controlled / Uncontrolled 语义
 
-- `List` 选择轴为受控模式：`selected_index + set_selected_index`。
-- `default_index` 仅用于初始 active roving 焦点，不作为选中值事实来源。
-- `sync_active_index_to_selected` 控制 active 索引是否跟随受控选中值。
+- `List` 选择轴统一为三件套：`selected_index + on_selected_index_change + default_selected_index`。
+- 受控模式：提供 `selected_index` 时，外部值为单一事实来源，组件仅通过 `on_selected_index_change` 发出变更请求。
+- 非受控模式：未提供 `selected_index` 时，仅使用 `default_selected_index` 初始化一次，后续由组件内部状态原语管理。
+- `default_active_index` 仅作用于 active roving 焦点，不作为选中值事实来源。
+- `is_active_index_synced_to_selected` 控制 active 索引是否跟随当前选中值。
 
 ## Streaming 策略
 
@@ -88,18 +91,8 @@ use leptos::prelude::*;
 use std::sync::Arc;
 use ui_components::List;
 
-let (selected, set_selected) = signal(Some(0_usize));
 let items: Arc<[String]> = vec!["Overview".to_string(), "Billing".to_string()].into();
-
-view! {
-    <List
-        id_base="settings-nav".to_string()
-        items=items
-        selected_index=selected
-        set_selected_index=set_selected
-        aria_label="Settings navigation".to_string()
-    />
-}
+view! { <List id_base="list-hello".to_string() items=items aria_label="Settings navigation".to_string() /> }
 ```
 
 ## 展示 (Display)
@@ -107,9 +100,15 @@ view! {
 - docs-app 页面：`apps/docs-app/src/pages/components/pages/collections.rs` 的 `list()`。
 - 展示区包含多场景对比：
   - 默认 + 禁用项（`disabled_indices`）
-  - active/selected 解耦（`sync_active_index_to_selected=false`）
-  - 根禁用（`disabled=true`）
+  - active/selected 解耦（`is_active_index_synced_to_selected=false`）
+  - 根禁用（`is_disabled=true`）
   - 空列表（`items=Vec::<String>::new().into()`）
+
+## 状态矩阵（受控 / 非受控）
+
+- docs-app `list()` 新增 `状态矩阵 State Matrix（受控 / 非受控）` Playground。
+- 同一组数据固定对照 `uncontrolled`、`controlled`、`disabled` 三个状态轴。
+- 受控路径通过 `selected_index + on_selected_index_change` 显式联动，便于回归验证。
 
 ## Config (Workbench Settings)
 
@@ -123,7 +122,7 @@ view! {
 ## Code (Workbench Snippet)
 
 - Workbench 通过 `code_signal` 输出当前配置对应的最小可复制代码。
-- 开关变化会同步体现在代码中（如 `sync_active_index_to_selected`、`disabled`、`disabled_indices`、`class_name`）。
+- 开关变化会同步体现在代码中（如 `is_active_index_synced_to_selected`、`is_disabled`、`disabled_indices`、`class_name`）。
 
 ## CSS Test (Scoped CSS)
 
@@ -132,6 +131,18 @@ view! {
   - `components/list/src/styles.rs::ITEM_CSS`
   - `components/list/src/styles.rs::SECTION_CSS`
 - CSS Test 面板用于局部覆盖与回放，`test_config_signal` 同步输出实际配置，保证样式测试可追溯。
+
+## Streaming/Snapshot Display
+
+- docs-app `list()` 提供 `Streaming/Snapshot Display` Playground。
+- `List` 在文档中按 `Streaming Optional` 展示，明确 `fallback=snapshot`。
+- 双列同时挂载 `data-ui-streaming="optional"` 与 `data-ui-fallback="snapshot"`，分别展示 `snapshot`/`streaming` 输出状态。
+
+## Source-first / Copy-Paste Ready
+
+- 所有 Playground 的 `Show code` 都走 `apps/docs-app/src/playground.rs::compose_copy_ready_code`，复制时自动补齐缺失 imports。
+- 页面包含 `Copy starter` 按钮与真实源码落点：`components/list/src/{mod,logic,view,styles,motion}.rs`。
+- 依赖前提固定为 `component-list` + `inject-css`，避免复制后缺 feature 报错。
 
 ## Semantics and Accessibility
 

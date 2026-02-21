@@ -1,10 +1,14 @@
+mod i18n;
 mod logic;
 mod motion;
 pub mod styles;
 mod view;
 
+pub use i18n::CarouselStrings;
 pub use logic::{
-    DEFAULT_ARIA_LABEL, DEFAULT_ID_BASE, DEFAULT_LOOP_NAVIGATION, DEFAULT_ORIENTATION,
+    DEFAULT_ARIA_LABEL, DEFAULT_CONTROLS_ARIA_LABEL, DEFAULT_ID_BASE,
+    DEFAULT_INDICATOR_ARIA_LABEL_TEMPLATE, DEFAULT_INDICATORS_ARIA_LABEL, DEFAULT_LOOP_NAVIGATION,
+    DEFAULT_NEXT_LABEL, DEFAULT_ORIENTATION, DEFAULT_PREVIOUS_LABEL,
 };
 pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion as CarouselMotion;
 pub use view::Carousel;
@@ -133,6 +137,25 @@ impl CarouselSlot {
             CarouselSlot::IndicatorHighlight => "ui-active-highlight",
             CarouselSlot::Title => "ui-carousel__title",
             CarouselSlot::Description => "ui-carousel__description",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CarouselItemStatus {
+    Idle,
+    Focused,
+    Selected,
+    Disabled,
+}
+
+impl CarouselItemStatus {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Idle => "idle",
+            Self::Focused => "focused",
+            Self::Selected => "selected",
+            Self::Disabled => "disabled",
         }
     }
 }

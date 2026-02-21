@@ -2,10 +2,16 @@ pub const CSS: &str = r#"
 .ui-flip-card {
   position: relative;
   display: inline-flex;
-  inline-size: min(21rem, 92vw);
-  aspect-ratio: 4 / 3;
-  perspective: 1200px;
-  border-radius: var(--ui-radius-lg);
+  inline-size: min(
+    var(--ui-flip-card-max-inline-size, var(--ui-fallback-flip-card-max-inline-size)),
+    var(--ui-flip-card-max-inline-viewport, var(--ui-fallback-flip-card-max-inline-viewport))
+  );
+  aspect-ratio:
+    var(--ui-flip-card-aspect-ratio-width, var(--ui-fallback-flip-card-aspect-ratio-width))
+    /
+    var(--ui-flip-card-aspect-ratio-height, var(--ui-fallback-flip-card-aspect-ratio-height));
+  perspective: var(--ui-flip-card-perspective, var(--ui-fallback-flip-card-perspective));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
   cursor: pointer;
   outline: none;
   user-select: none;
@@ -13,7 +19,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-flip-card[data-disabled="true"] {
-  opacity: 0.6;
+  opacity: var(--ui-flip-card-disabled-opacity, var(--ui-fallback-flip-card-disabled-opacity));
   cursor: not-allowed;
 }
 
@@ -44,14 +50,16 @@ pub const CSS: &str = r#"
 }
 
 .ui-flip-card:focus-visible {
-  box-shadow: 0 0 0 3px var(--ui-focus-ring);
+  box-shadow: 0 0 0
+    var(--ui-flip-card-focus-outline-width, var(--ui-fallback-flip-card-focus-outline-width))
+    var(--ui-focus-ring, var(--ui-fallback-focus-ring));
 }
 
 .ui-flip-card__inner {
   position: relative;
   inline-size: 100%;
   block-size: 100%;
-  transform-stYle: preserve-3d;
+  transform-style: preserve-3d;
   transform: rotateY(var(--ui-flip-card-rotation, 0deg))
     scale(var(--ui-flip-card-scale, 1))
     rotateX(var(--ui-flip-card-tilt, 0deg));
@@ -62,16 +70,17 @@ pub const CSS: &str = r#"
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-sm);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
   backface-visibility: hidden;
   display: grid;
   align-content: center;
   justify-items: start;
-  gap: var(--ui-space-xs);
-  padding: var(--ui-space-lg);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
+  padding: var(--ui-space-lg, var(--ui-fallback-space-lg));
 }
 
 .ui-flip-card__front {
@@ -93,15 +102,15 @@ pub const CSS: &str = r#"
 }
 
 .ui-flip-card__title {
-  font-size: var(--ui-heading-h6-font-size, 14px);
-  line-height: var(--ui-heading-h6-line-height, 20px);
-  font-weight: 650;
+  font-size: var(--ui-heading-h6-font-size, var(--ui-fallback-heading-h6-font-size));
+  line-height: var(--ui-heading-h6-line-height, var(--ui-fallback-heading-h6-line-height));
+  font-weight: var(--ui-flip-card-title-font-weight, var(--ui-fallback-flip-card-title-font-weight));
 }
 
 .ui-flip-card__description {
-  color: var(--ui-fg-muted);
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
 }
 
 @media (prefers-reduced-motion: reduce) {

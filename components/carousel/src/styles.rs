@@ -1,8 +1,37 @@
 pub const CSS: &str = r#"
 .ui-carousel {
+  --ui-carousel-gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  --ui-carousel-viewport-min-block-size: calc(
+    var(--ui-component-height-100, var(--ui-fallback-component-height-100)) * 4
+  );
+  --ui-carousel-slide-gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
+  --ui-carousel-slide-pad: var(--ui-space-lg, var(--ui-fallback-space-lg));
+  --ui-carousel-button-min-block-size: calc(
+    var(--ui-component-height-100, var(--ui-fallback-component-height-100)) * 0.8
+  );
+  --ui-carousel-button-min-inline-size: calc(
+    var(--ui-component-height-100, var(--ui-fallback-component-height-100)) * 2.2
+  );
+  --ui-carousel-button-inline-pad: var(--ui-space-sm, var(--ui-fallback-space-sm));
+  --ui-carousel-indicators-gap: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
+  --ui-carousel-indicators-pad: var(--ui-space-2xs, var(--ui-fallback-space-2xs));
+  --ui-carousel-indicator-size: calc(
+    var(--ui-component-height-100, var(--ui-fallback-component-height-100)) * 0.7
+  );
+  --ui-carousel-indicator-dot-size: calc(
+    var(--ui-component-height-100, var(--ui-fallback-component-height-100)) * 0.2
+  );
+  --ui-carousel-outline-width: calc(
+    var(--ui-border-width, var(--ui-fallback-border-width)) * 3
+  );
+  --ui-carousel-outline-offset: calc(
+    var(--ui-border-width, var(--ui-fallback-border-width)) * 2
+  );
+  --ui-carousel-border-width: var(--ui-border-width, var(--ui-fallback-border-width));
   display: grid;
-  gap: var(--ui-space-sm);
-  max-width: min(100%, 42rem);
+  gap: var(--ui-carousel-gap);
+  width: 100%;
+  max-width: 100%;
 }
 
 .ui-carousel--empty,
@@ -115,18 +144,22 @@ pub const CSS: &str = r#"
 .ui-carousel__viewport {
   position: relative;
   overflow: hidden;
-  min-height: 10rem;
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  background: color-mix(in oklab, var(--ui-bg) 92%, var(--ui-bg-muted) 8%);
+  min-block-size: var(--ui-carousel-viewport-min-block-size);
+  border: var(--ui-carousel-border-width) solid var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  background: color-mix(
+    in oklab,
+    var(--ui-bg, var(--ui-fallback-bg)) 92%,
+    var(--ui-bg-muted, var(--ui-fallback-bg-muted)) 8%
+  );
 }
 
 .ui-carousel__slide {
   display: none;
   grid-template-rows: auto auto;
-  gap: var(--ui-space-xs);
-  min-height: 10rem;
-  padding: var(--ui-space-lg);
+  gap: var(--ui-carousel-slide-gap);
+  min-block-size: var(--ui-carousel-viewport-min-block-size);
+  padding: var(--ui-carousel-slide-pad);
 }
 
 .ui-carousel__slide[data-selected="true"],
@@ -141,41 +174,42 @@ pub const CSS: &str = r#"
 
 .ui-carousel__title {
   margin: 0;
-  font-size: var(--ui-font-size-lg);
-  font-weight: var(--ui-font-weight-semibold);
-  color: var(--ui-fg);
+  font-size: var(--ui-font-size-lg, var(--ui-fallback-font-size-150));
+  font-weight: var(--ui-font-weight-semibold, 600);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-carousel__description {
   margin: 0;
-  color: var(--ui-fg-muted);
-  font-size: var(--ui-font-size-sm);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
+  font-size: var(--ui-font-size-sm, var(--ui-fallback-font-size-100));
 }
 
 .ui-carousel__controls {
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-carousel-slide-gap);
 }
 
 .ui-carousel__button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2rem;
-  min-width: 5.5rem;
-  padding: 0 var(--ui-space-sm);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-sm);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
+  min-block-size: var(--ui-carousel-button-min-block-size);
+  min-inline-size: var(--ui-carousel-button-min-inline-size);
+  padding: 0 var(--ui-carousel-button-inline-pad);
+  border: var(--ui-carousel-border-width) solid var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
   font: inherit;
   cursor: pointer;
 }
 
 .ui-carousel__button:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-carousel-outline-width) solid
+    var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(--ui-carousel-outline-offset);
 }
 
 .ui-carousel__button:disabled {
@@ -187,8 +221,8 @@ pub const CSS: &str = r#"
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-2xs);
-  padding: var(--ui-space-2xs);
+  gap: var(--ui-carousel-indicators-gap);
+  padding: var(--ui-carousel-indicators-pad);
 }
 
 .ui-carousel__indicator {
@@ -197,29 +231,34 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--ui-carousel-indicator-size);
+  height: var(--ui-carousel-indicator-size);
   border: 0;
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--ui-radius-sm, var(--ui-fallback-radius-sm));
   background: transparent;
   cursor: pointer;
 }
 
 .ui-carousel__indicator-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: var(--ui-radius-pill);
-  background: color-mix(in oklab, var(--ui-fg-muted) 72%, transparent 28%);
+  width: var(--ui-carousel-indicator-dot-size);
+  height: var(--ui-carousel-indicator-dot-size);
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  background: color-mix(
+    in oklab,
+    var(--ui-fg-muted, var(--ui-fallback-fg-muted)) 72%,
+    transparent 28%
+  );
 }
 
 .ui-carousel__indicator[data-selected="true"] .ui-carousel__indicator-dot,
 .ui-carousel__indicator[data-state="selected"] .ui-carousel__indicator-dot {
-  background: var(--ui-accent-contrast);
+  background: var(--ui-accent-fg, var(--ui-fallback-accent-fg));
 }
 
 .ui-carousel__indicator:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-carousel-outline-width) solid
+    var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(--ui-carousel-outline-offset);
 }
 
 .ui-carousel__indicator:disabled,
@@ -236,11 +275,15 @@ pub const CSS: &str = r#"
 
 .ui-carousel--empty .ui-carousel__viewport,
 .ui-carousel[data-state="empty"] .ui-carousel__viewport {
-  border-color: color-mix(in oklab, var(--ui-border) 72%, var(--ui-fg-muted) 28%);
+  border-color: color-mix(
+    in oklab,
+    var(--ui-border, var(--ui-fallback-border)) 72%,
+    var(--ui-fg-muted, var(--ui-fallback-fg-muted)) 28%
+  );
 }
 
 .ui-carousel--selected .ui-carousel__viewport,
 .ui-carousel[data-state="selected"] .ui-carousel__viewport {
-  box-shadow: var(--ui-shadow-sm);
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 "#;

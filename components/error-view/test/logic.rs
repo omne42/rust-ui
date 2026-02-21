@@ -40,3 +40,31 @@ fn normalize_props_centralizes_defaults_and_source_markers() {
     assert_eq!(normalized.compact_source_attr, "is-prop");
     assert_eq!(normalized.bordered_source_attr, "default");
 }
+
+#[test]
+fn normalize_props_uses_logic_layer_as_single_default_source() {
+    let normalized = normalize_props(ErrorViewNormalizeInput {
+        tone: None,
+        is_invalid: false,
+        is_compact: None,
+        is_bordered: None,
+        message: None,
+        aria_label: None,
+        class_name: None,
+        has_icon: false,
+        has_actions: false,
+        has_children: false,
+        has_custom_motion: false,
+    });
+
+    assert_eq!(normalized.state_input.tone, ErrorViewTone::Negative);
+    assert!(!normalized.state_input.is_invalid);
+    assert!(!normalized.state_input.compact);
+    assert!(!normalized.state_input.bordered);
+    assert_eq!(normalized.message, DEFAULT_MESSAGE);
+    assert_eq!(normalized.aria_label, DEFAULT_ARIA_LABEL);
+    assert_eq!(normalized.class_name, None);
+    assert_eq!(normalized.tone_source_attr, "default");
+    assert_eq!(normalized.compact_source_attr, "default");
+    assert_eq!(normalized.bordered_source_attr, "default");
+}

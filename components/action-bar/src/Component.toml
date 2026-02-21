@@ -104,6 +104,41 @@ ty = "controlled | uncontrolled"
 scope = "root-attribute"
 
 [[outputs]]
+name = "data-ui-schema"
+ty = "ui.action-bar.contract.v1"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-intent"
+ty = "bulk-selection"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-action"
+ty = "clear-selection"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-streaming-policy"
+ty = "optional"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-streaming-fallback"
+ty = "snapshot"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-output-mode"
+ty = "snapshot"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-output-status"
+ty = "validated"
+scope = "root-attribute"
+
+[[outputs]]
 name = "on_selected_count_change"
 ty = "Callback<usize>"
 scope = "event"
@@ -122,6 +157,14 @@ enabled = true
 
 [[capabilities]]
 name = "motion_contract_with_reduced_motion_fallback"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_v1_with_typed_state_source_markers"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_with_snapshot_fallback_and_output_status_markers"
 enabled = true
 
 [[dependencies]]

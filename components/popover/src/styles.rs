@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-popover {
   position: fixed;
   inset: 0;
-  z-index: var(--ui-overlay-z-index, 1000);
+  z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index));
 }
 
 .ui-popover[data-motion-source="custom"],
@@ -48,19 +48,29 @@ pub const CSS: &str = r#"
 
 .ui-popover__panel {
   position: fixed;
-  top: var(--ui-popover-top, 0px);
-  left: var(--ui-popover-left, 0px);
-  min-width: max(var(--ui-overlay-panel-min-width, 240px), var(--ui-popover-anchor-width, 0px));
-  padding: var(--ui-space-md);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  box-shadow: var(--ui-shadow-md);
+  top: var(--ui-popover-top, var(--ui-fallback-min-inline-size-none));
+  left: var(--ui-popover-left, var(--ui-fallback-min-inline-size-none));
+  min-width: max(
+    var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width)),
+    var(--ui-popover-anchor-width, var(--ui-fallback-min-inline-size-none))
+  );
+  padding: var(--ui-space-md, var(--ui-fallback-space-md));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
 
   --ui-popover-opacity: 0;
-  --ui-popover-scale: var(--ui-overlay-enter-scale, 0.98);
-  --ui-popover-y: var(--ui-overlay-enter-offset-y, 6px);
+  --ui-popover-scale: var(
+    --ui-overlay-enter-scale,
+    var(--ui-fallback-overlay-enter-scale)
+  );
+  --ui-popover-y: var(
+    --ui-overlay-enter-offset-y,
+    var(--ui-fallback-overlay-enter-offset-y)
+  );
 
   opacity: var(--ui-popover-opacity);
   transform: translateY(var(--ui-popover-y)) scale(var(--ui-popover-scale));

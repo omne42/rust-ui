@@ -54,3 +54,23 @@ fn resolve_state_tracks_custom_sources_and_flags() {
     assert_eq!(state.motion_source_class, "ui-code-block--motion-custom");
     assert!(state.has_custom_class_name);
 }
+
+#[test]
+fn resolve_state_from_content_derives_textual_flags() {
+    let view = resolve_state_from_content(CodeBlockContentInput {
+        code: "x\ny",
+        label: Some("  Demo  "),
+        language: Some("rs"),
+        copyable: true,
+        has_custom_class_name: true,
+        has_custom_motion: false,
+    });
+
+    assert_eq!(view.state_attr, "multiline");
+    assert!(!view.is_empty);
+    assert!(view.has_label);
+    assert!(view.has_language);
+    assert!(view.copyable);
+    assert_eq!(view.motion_source_attr, "default");
+    assert!(view.has_custom_class_name);
+}

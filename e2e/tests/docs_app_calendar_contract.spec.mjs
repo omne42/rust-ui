@@ -32,15 +32,27 @@ test("docs-app calendar key flow is repeatable with semantic contract breakpoint
   await expect(interactive).toBeVisible();
   await expect(interactive).toHaveAttribute("data-ui-state", "selected");
   await expect(interactive).toHaveAttribute("data-ui-source", "props-selected-day");
+  await expect(interactive).toHaveAttribute("data-ui-output-status", "verified");
   await expect(summary).toContainText("month=3");
   await expect(summary).toContainText("selected_day=Some(12)");
 
+  const firstPressableDay = interactive
+    .locator('[data-slot="calendar-day"][data-pressable="true"]')
+    .first();
+  await firstPressableDay.focus();
+  await expect(firstPressableDay).toBeFocused();
+  await firstPressableDay.press("Enter");
+  await expect(interactive).toHaveAttribute("data-ui-action", "select-day");
+  await expect(interactive).toHaveAttribute("data-ui-output-status", "verified");
+
   await page.locator('[data-action="next-month"]').click();
+  await expect(interactive).toHaveAttribute("data-ui-output-status", "verified");
   await expect(summary).toContainText("month=4");
 
   await page.locator('[data-action="clear-selection"]').click();
   await expect(interactive).toHaveAttribute("data-ui-state", "default");
   await expect(interactive).toHaveAttribute("data-ui-source", "implicit-default");
+  await expect(interactive).toHaveAttribute("data-ui-output-status", "verified");
   await expect(summary).toContainText("selected_day=None");
 
   await page.reload();
@@ -53,6 +65,7 @@ test("docs-app calendar key flow is repeatable with semantic contract breakpoint
   );
   await expect(interactiveAfterReload).toHaveAttribute("data-ui-state", "selected");
   await expect(interactiveAfterReload).toHaveAttribute("data-ui-source", "props-selected-day");
+  await expect(interactiveAfterReload).toHaveAttribute("data-ui-output-status", "verified");
   await expect(summaryAfterReload).toContainText("month=3");
   await expect(summaryAfterReload).toContainText("selected_day=Some(12)");
 });

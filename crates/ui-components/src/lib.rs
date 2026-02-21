@@ -522,7 +522,7 @@ mod web_demo_components {
     pub use link::Link;
     pub use link_button::LinkButton;
     pub use list::List;
-    pub use menu::Menu;
+    pub use menu::{Menu, MenuItemSpec};
     pub use menu_trigger::{MenuTrigger, MenuTriggerMotion};
     pub use meter::{Meter, MeterMotion, MeterSize, MeterVariant};
     pub use modal::Modal;
@@ -621,15 +621,16 @@ mod all_components {
     pub use calendar::{
         Calendar, CalendarFirstWeekday, CalendarGridCell, CalendarMotion, CalendarTone,
     };
-    pub use carousel::{Carousel, CarouselItem, CarouselMotion, CarouselOrientation};
+    pub use carousel::{
+        Carousel, CarouselItem, CarouselMotion, CarouselOrientation, CarouselStrings,
+    };
     pub use chart::{Chart, ChartKind, ChartMotion, ChartPoint};
-    pub use checkbox::motion::CheckboxMotion;
-    pub use checkbox::{Checkbox, CheckboxSize, CheckboxVariant};
+    pub use checkbox::{Checkbox, CheckboxMotion, CheckboxSize, CheckboxVariant};
     pub use checkbox_field::{CheckboxField, CheckboxFieldIndicatorPlacement, CheckboxFieldTone};
     pub use checkbox_group::CheckboxGroup;
     pub use chip::{Chip, ChipSize, ChipVariant};
     pub use circular_progress::CircularProgress;
-    pub use clear_button::{ClearButton, ClearButtonVariant};
+    pub use clear_button::{ClearButton, ClearButtonFocusMode, ClearButtonVariant};
     pub use close_button::{CloseButton, CloseButtonSize, CloseButtonVariant};
     pub use coachmark::{Coachmark, CoachmarkAssetVariant, CoachmarkMotion, CoachmarkVariant};
     pub use code::{Code, CodeVariant};
@@ -710,9 +711,9 @@ mod all_components {
         ListSectionHeadingTone, ListSectionMotion,
     };
     pub use logic_button::{LogicButton, LogicButtonVariant};
-    pub use menu::Menu;
     pub use menu::item::MenuItem;
     pub use menu::section::{MenuSection, MenuSectionHeadingTone};
+    pub use menu::{Menu, MenuItemSpec};
     pub use menu_trigger::{MenuTrigger, MenuTriggerMotion};
     pub use menubar::{Menubar, MenubarMenu, MenubarMotion};
     pub use meter::{Meter, MeterMotion, MeterSize, MeterVariant};

@@ -79,9 +79,17 @@ pub fn attach_motion(
         let scale_start = if is_inline { 0.98 } else { 0.985 };
         let scale_delta = if is_inline { 0.02 } else { 0.015 };
 
-        drop(style.set_property("--ui-alert-opacity", "0"));
-        drop(style.set_property("--ui-alert-translate-y", &format!("{translate_y_start}px")));
-        drop(style.set_property("--ui-alert-scale", &format!("{scale_start}")));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-alert-opacity", "0");
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-alert-translate-y",
+            &format!("{translate_y_start}px")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-alert-scale",
+            &format!("{scale_start}")
+        );
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
             let v = v.clamp(0.0, 1.0);
@@ -90,12 +98,21 @@ pub fn attach_motion(
             let translate_y_px = (1.0 - v) * translate_y_start;
             let scale = scale_start + (scale_delta * v);
 
-            drop(style_for_apply.set_property("--ui-alert-opacity", &format!("{opacity}")));
-            drop(
-                style_for_apply
-                    .set_property("--ui-alert-translate-y", &format!("{translate_y_px}px")),
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_apply),
+                "--ui-alert-opacity",
+                &format!("{opacity}")
             );
-            drop(style_for_apply.set_property("--ui-alert-scale", &format!("{scale}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_apply),
+                "--ui-alert-translate-y",
+                &format!("{translate_y_px}px")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_apply),
+                "--ui-alert-scale",
+                &format!("{scale}")
+            );
         });
 
         animator.set_target(1.0);

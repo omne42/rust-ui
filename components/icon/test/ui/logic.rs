@@ -24,6 +24,21 @@ fn default_ui_glyphs_includes_help_and_common_contract_entries() {
 }
 
 #[test]
+fn inner_defaults_are_resolved_in_logic() {
+    assert_eq!(resolve_inner_aria_label(None), "");
+    assert_eq!(
+        resolve_inner_aria_label(Some("ui label".to_string())),
+        "ui label"
+    );
+
+    assert_eq!(resolve_inner_class_name(None), "ui-icons-ui");
+    assert_eq!(
+        resolve_inner_class_name(Some("docs-ui".to_string())),
+        "ui-icons-ui docs-ui"
+    );
+}
+
+#[test]
 fn resolve_state_tracks_sources_and_markers() {
     let state = resolve_state(IconsUiStateInput {
         disabled: false,

@@ -51,10 +51,7 @@ test("docs-app autocomplete key flow is repeatable with semantic contract breakp
   await expect(openMarker).toHaveText("open: true");
   await expect(controlledRoot).toHaveAttribute("data-open", "true");
 
-  const option = page
-    .locator('[data-slot="autocomplete-option"]')
-    .filter({ hasText: "Shenzhen" })
-    .first();
+  const option = page.locator('[data-slot="autocomplete-option"]').first();
   await expect(option).toBeVisible();
   await option.click();
 
@@ -69,5 +66,46 @@ test("docs-app autocomplete key flow is repeatable with semantic contract breakp
   );
   await expect(page.locator('[data-slot="autocomplete-controlled-open"]').first()).toHaveText(
     "open: false"
+  );
+});
+
+test("docs-app autocomplete high-risk overlay/focus/keyboard path is replayable with semantic breakpoints", async ({
+  page,
+}) => {
+  await page.goto("/#/components/autocomplete");
+  await page.locator("body:not(:has(#boot))").waitFor();
+
+  const controlledInput = page.locator("#docs-autocomplete-controlled-input").first();
+  const controlledRoot = controlledInput
+    .locator('xpath=ancestor::*[@data-slot="autocomplete"][1]')
+    .first();
+  const openMarker = page.locator('[data-slot="autocomplete-controlled-open"]').first();
+  const selectedMarker = page.locator('[data-slot="autocomplete-controlled-selected"]').first();
+
+  await expect(selectedMarker).toHaveText("selected: 2");
+  await controlledInput.focus();
+  await expect(controlledInput).toBeFocused();
+
+  await controlledInput.press("Escape");
+  await expect(openMarker).toHaveText("open: false");
+  await expect(controlledRoot).toHaveAttribute("data-closed", "true");
+
+  await controlledInput.fill("Shen");
+  await expect(openMarker).toHaveText("open: true");
+  await expect(controlledRoot).toHaveAttribute("data-open", "true");
+
+  await controlledInput.press("ArrowDown");
+  const activeDescendant = await controlledInput.getAttribute("aria-activedescendant");
+  expect(activeDescendant).toBeTruthy();
+
+  await controlledInput.press("Enter");
+  await expect(selectedMarker).toHaveText("selected: 3");
+  await expect(openMarker).toHaveText("open: false");
+  await expect(controlledRoot).toHaveAttribute("data-closed", "true");
+
+  await page.reload();
+  await page.locator("body:not(:has(#boot))").waitFor();
+  await expect(page.locator('[data-slot="autocomplete-controlled-selected"]').first()).toHaveText(
+    "selected: 2"
   );
 });

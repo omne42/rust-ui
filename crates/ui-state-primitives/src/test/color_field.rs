@@ -56,7 +56,8 @@ fn resolve_state_and_class_name_track_state_and_sources() {
         has_custom_class_name: true,
     });
 
-    assert_eq!(valid.data_state_attr, "valid");
+    assert_eq!(valid.visual_state, ColorFieldVisualState::Valid);
+    assert_eq!(valid.visual_state.as_attr(), "valid");
     assert_eq!(valid.label_source_attr, "custom");
     assert_eq!(valid.placeholder_source_attr, "custom");
     assert_eq!(valid.aria_source_attr, "default");
@@ -77,7 +78,7 @@ fn resolve_state_and_class_name_track_state_and_sources() {
         has_custom_aria_label: false,
         has_custom_class_name: false,
     });
-    assert_eq!(invalid.data_state_attr, "invalid");
+    assert_eq!(invalid.visual_state, ColorFieldVisualState::Invalid);
 
     let empty = resolve_state(ColorFieldStateInput {
         disabled: false,
@@ -89,7 +90,7 @@ fn resolve_state_and_class_name_track_state_and_sources() {
         has_custom_aria_label: false,
         has_custom_class_name: false,
     });
-    assert_eq!(empty.data_state_attr, "empty");
+    assert_eq!(empty.visual_state, ColorFieldVisualState::Empty);
 
     let disabled = resolve_state(ColorFieldStateInput {
         disabled: true,
@@ -101,5 +102,5 @@ fn resolve_state_and_class_name_track_state_and_sources() {
         has_custom_aria_label: false,
         has_custom_class_name: false,
     });
-    assert_eq!(disabled.data_state_attr, "disabled");
+    assert_eq!(disabled.visual_state, ColorFieldVisualState::Disabled);
 }

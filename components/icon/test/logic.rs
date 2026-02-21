@@ -40,11 +40,14 @@ fn normalize_helpers_trim_and_fallback() {
 
 #[test]
 fn slot_kind_contract_is_stable() {
-    assert_eq!(resolve_slot_kind_attr(None), "none");
-    assert_eq!(resolve_slot_kind_attr(Some("label")), "label");
-    assert_eq!(resolve_slot_kind_attr(Some("DESCRIPTION")), "description");
-    assert_eq!(resolve_slot_kind_attr(Some("icon")), "icon");
-    assert_eq!(resolve_slot_kind_attr(Some("trailing")), "custom");
+    assert_eq!(resolve_slot_kind(None), IconSlotKind::None);
+    assert_eq!(resolve_slot_kind(Some("label")), IconSlotKind::Label);
+    assert_eq!(
+        resolve_slot_kind(Some("DESCRIPTION")),
+        IconSlotKind::Description
+    );
+    assert_eq!(resolve_slot_kind(Some("icon")), IconSlotKind::Icon);
+    assert_eq!(resolve_slot_kind(Some("trailing")), IconSlotKind::Custom);
 }
 
 #[test]
@@ -56,7 +59,7 @@ fn resolve_state_tracks_accessibility_and_sources() {
         decorative: false,
         has_custom_aria_label: true,
         has_custom_class_name: true,
-        slot_kind_attr: "icon",
+        slot_kind: IconSlotKind::Icon,
         has_named_slot: true,
     });
 
@@ -64,7 +67,7 @@ fn resolve_state_tracks_accessibility_and_sources() {
     assert!(state.has_accessible_name);
     assert_eq!(state.aria_source_attr, "custom");
     assert_eq!(state.class_source_attr, "custom");
-    assert_eq!(state.slot_kind_attr, "icon");
+    assert_eq!(state.slot_kind, IconSlotKind::Icon);
     assert!(state.has_named_slot);
 
     let decorative = resolve_state(IconStateInput {
@@ -74,7 +77,7 @@ fn resolve_state_tracks_accessibility_and_sources() {
         decorative: true,
         has_custom_aria_label: false,
         has_custom_class_name: false,
-        slot_kind_attr: "none",
+        slot_kind: IconSlotKind::None,
         has_named_slot: false,
     });
 
@@ -89,7 +92,7 @@ fn resolve_state_tracks_accessibility_and_sources() {
         decorative: false,
         has_custom_aria_label: false,
         has_custom_class_name: false,
-        slot_kind_attr: "none",
+        slot_kind: IconSlotKind::None,
         has_named_slot: false,
     });
     assert!(non_decorative_with_default_label.has_accessible_name);
@@ -108,7 +111,7 @@ fn compose_class_name_includes_state_markers() {
         decorative: true,
         has_custom_aria_label: false,
         has_custom_class_name: true,
-        slot_kind_attr: "none",
+        slot_kind: IconSlotKind::None,
         has_named_slot: false,
     });
 

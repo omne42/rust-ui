@@ -1,3 +1,6 @@
+use crate::DropZoneMotion;
+use ui_state_primitives::drop_zone::DragDepth;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DroppedFile {
     pub name: String,
@@ -5,103 +8,371 @@ pub struct DroppedFile {
     pub mime: String,
 }
 
-pub const DEFAULT_ARIA_LABEL: &str = "Drop files";
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DisabledSource {
+    IsDisabled,
+    DisabledAlias,
+    Default,
 }
 
-pub fn resolve_labels(
-    label: Option<String>,
-    aria_label: Option<String>,
-) -> (Option<String>, String, bool) {
-    let label = normalize_optional_text(label);
-    let aria_label = normalize_optional_text(aria_label)
-        .or_else(|| label.clone())
-        .unwrap_or_else(|| DEFAULT_ARIA_LABEL.into());
-    let has_custom_aria_label = aria_label != DEFAULT_ARIA_LABEL;
-
-    (label, aria_label, has_custom_aria_label)
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(crate) struct DragDepth {
-    depth: usize,
-}
-
-impl DragDepth {
-    pub fn enter(self) -> Self {
-        Self {
-            depth: self.depth.saturating_add(1),
+impl DisabledSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::IsDisabled => "is_disabled",
+            Self::DisabledAlias => "disabled",
+            Self::Default => "default",
         }
     }
+}
 
-    pub fn leave(self) -> Self {
-        Self {
-            depth: self.depth.saturating_sub(1),
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MotionSource {
+    Default,
+    Custom,
+}
+
+impl MotionSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Custom => "custom",
         }
     }
+}
 
-    pub fn reset(self) -> Self {
-        Self { depth: 0 }
-    }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DisabledInput {
+    IsDisabled(bool),
+    DisabledAlias(bool),
+    Default,
+}
 
-    pub fn is_active(self) -> bool {
-        self.depth > 0
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AriaLabelSource {
+    Default,
+    Custom,
+}
+
+impl AriaLabelSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Custom => "custom",
+        }
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-fn collect_files_from_data_transfer(dt: &leptos::web_sys::DataTransfer) -> Vec<DroppedFile> {
-    let Some(files) = dt.files() else {
-        return Vec::new();
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct DropZonePropsInput {
+    pub disabled_input: DisabledInput,
+    pub motion: Option<DropZoneMotion>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct DropZoneResolvedProps {
+    pub is_disabled: bool,
+    pub disabled_source: DisabledSource,
+    pub motion: DropZoneMotion,
+    pub motion_source: MotionSource,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DragInteractionAction {
+    Enter,
+    Leave,
+    Drop,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DragLifecyclePhase {
+    Idle,
+    Dragging,
+}
+
+impl DragLifecyclePhase {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Idle => "idle",
+            Self::Dragging => "dragging",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DragLifecycleAction {
+    DragStart,
+    DragEnd,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DragInteractionState {
+    pub depth: DragDepth,
+    pub is_drop_target: bool,
+}
+
+pub const DROP_ZONE_AGENT_SCHEMA: &str = "ui.drop_zone.agent-contract";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DropZoneAgentSchemaVersion {
+    V1,
+}
+
+impl DropZoneAgentSchemaVersion {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::V1 => "v1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DropZoneAgentIntent {
+    FileIngestion,
+}
+
+impl DropZoneAgentIntent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::FileIngestion => "file-ingestion",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DropZoneAgentAction {
+    AwaitInput,
+    CaptureDrop,
+    Blocked,
+}
+
+impl DropZoneAgentAction {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::AwaitInput => "await-input",
+            Self::CaptureDrop => "capture-drop",
+            Self::Blocked => "blocked",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DropZoneAgentState {
+    Idle,
+    Dragging,
+    Disabled,
+}
+
+impl DropZoneAgentState {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Idle => "idle",
+            Self::Dragging => "dragging",
+            Self::Disabled => "disabled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DropZoneAgentSource {
+    IsDisabled,
+    DisabledAlias,
+    Default,
+}
+
+impl DropZoneAgentSource {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::IsDisabled => "is_disabled",
+            Self::DisabledAlias => "disabled",
+            Self::Default => "default",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DropZoneAgentConfigPolicy {
+    Whitelist,
+}
+
+impl DropZoneAgentConfigPolicy {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Whitelist => "whitelist",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DropZoneAgentOutputStatus {
+    Verified,
+}
+
+impl DropZoneAgentOutputStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DropZoneAgentCapabilities {
+    pub can_drop: bool,
+    pub can_paste: bool,
+    pub has_drop_callback: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DropZoneAgentContractInput {
+    pub drag_phase: DragLifecyclePhase,
+    pub is_disabled: bool,
+    pub disabled_source: DisabledSource,
+    pub motion_source: MotionSource,
+    pub aria_source: AriaLabelSource,
+    pub has_drop_callback: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DropZoneAgentContract {
+    pub schema_name: &'static str,
+    pub schema_version: DropZoneAgentSchemaVersion,
+    pub intent: DropZoneAgentIntent,
+    pub action: DropZoneAgentAction,
+    pub state: DropZoneAgentState,
+    pub source: DropZoneAgentSource,
+    pub config_policy: DropZoneAgentConfigPolicy,
+    pub output_status: DropZoneAgentOutputStatus,
+    pub capabilities: DropZoneAgentCapabilities,
+    pub motion_source: MotionSource,
+    pub aria_source: AriaLabelSource,
+}
+
+const fn resolve_agent_source(source: DisabledSource) -> DropZoneAgentSource {
+    match source {
+        DisabledSource::IsDisabled => DropZoneAgentSource::IsDisabled,
+        DisabledSource::DisabledAlias => DropZoneAgentSource::DisabledAlias,
+        DisabledSource::Default => DropZoneAgentSource::Default,
+    }
+}
+
+pub fn resolve_agent_contract(input: DropZoneAgentContractInput) -> DropZoneAgentContract {
+    let state = if input.is_disabled {
+        DropZoneAgentState::Disabled
+    } else {
+        match input.drag_phase {
+            DragLifecyclePhase::Idle => DropZoneAgentState::Idle,
+            DragLifecyclePhase::Dragging => DropZoneAgentState::Dragging,
+        }
     };
 
-    let mut out = Vec::new();
-    for idx in 0..files.length() {
-        let Some(file) = files.get(idx) else {
-            continue;
-        };
-        out.push(DroppedFile {
-            name: file.name(),
-            size: file.size().max(0.0) as u64,
-            mime: file.type_(),
-        });
+    let action = if input.is_disabled {
+        DropZoneAgentAction::Blocked
+    } else {
+        match input.drag_phase {
+            DragLifecyclePhase::Idle => DropZoneAgentAction::AwaitInput,
+            DragLifecyclePhase::Dragging => DropZoneAgentAction::CaptureDrop,
+        }
+    };
+
+    DropZoneAgentContract {
+        schema_name: DROP_ZONE_AGENT_SCHEMA,
+        schema_version: DropZoneAgentSchemaVersion::V1,
+        intent: DropZoneAgentIntent::FileIngestion,
+        action,
+        state,
+        source: resolve_agent_source(input.disabled_source),
+        config_policy: DropZoneAgentConfigPolicy::Whitelist,
+        output_status: DropZoneAgentOutputStatus::Verified,
+        capabilities: DropZoneAgentCapabilities {
+            can_drop: !input.is_disabled,
+            can_paste: !input.is_disabled,
+            has_drop_callback: input.has_drop_callback,
+        },
+        motion_source: input.motion_source,
+        aria_source: input.aria_source,
     }
-    out
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) fn collect_files_from_drag_event(ev: &leptos::ev::DragEvent) -> Vec<DroppedFile> {
-    let Some(dt) = ev.data_transfer() else {
-        return Vec::new();
+pub const fn classify_disabled_input(
+    is_disabled: Option<bool>,
+    disabled: Option<bool>,
+) -> DisabledInput {
+    if let Some(value) = is_disabled {
+        return DisabledInput::IsDisabled(value);
+    }
+
+    if let Some(value) = disabled {
+        return DisabledInput::DisabledAlias(value);
+    }
+
+    DisabledInput::Default
+}
+
+pub const fn resolve_is_disabled(input: DisabledInput) -> (bool, DisabledSource) {
+    match input {
+        DisabledInput::IsDisabled(value) => (value, DisabledSource::IsDisabled),
+        DisabledInput::DisabledAlias(value) => (value, DisabledSource::DisabledAlias),
+        DisabledInput::Default => (false, DisabledSource::Default),
+    }
+}
+
+pub const fn resolve_motion_source(is_default: bool) -> MotionSource {
+    if is_default {
+        MotionSource::Default
+    } else {
+        MotionSource::Custom
+    }
+}
+
+pub const fn resolve_aria_label_source(has_custom_aria_label: bool) -> AriaLabelSource {
+    if has_custom_aria_label {
+        AriaLabelSource::Custom
+    } else {
+        AriaLabelSource::Default
+    }
+}
+
+pub(crate) fn resolve_props(input: DropZonePropsInput) -> DropZoneResolvedProps {
+    let (is_disabled, disabled_source) = resolve_is_disabled(input.disabled_input);
+    let motion = crate::motion::sanitize_motion(input.motion.unwrap_or_default());
+    let motion_source = resolve_motion_source(motion == DropZoneMotion::default());
+
+    DropZoneResolvedProps {
+        is_disabled,
+        disabled_source,
+        motion,
+        motion_source,
+    }
+}
+
+pub(crate) fn reduce_drag_interaction(
+    depth: DragDepth,
+    action: DragInteractionAction,
+) -> DragInteractionState {
+    let depth = match action {
+        DragInteractionAction::Enter => depth.enter(),
+        DragInteractionAction::Leave => depth.leave(),
+        DragInteractionAction::Drop => depth.reset(),
     };
-    collect_files_from_data_transfer(&dt)
+
+    DragInteractionState {
+        is_drop_target: depth.is_active(),
+        depth,
+    }
 }
 
-#[cfg(target_arch = "wasm32")]
-pub(crate) fn collect_files_from_clipboard_event(
-    ev: &leptos::ev::ClipboardEvent,
-) -> Vec<DroppedFile> {
-    let Some(dt) = ev.clipboard_data() else {
-        return Vec::new();
-    };
-    collect_files_from_data_transfer(&dt)
+pub const fn reduce_drag_lifecycle(
+    _phase: DragLifecyclePhase,
+    action: DragLifecycleAction,
+) -> DragLifecyclePhase {
+    match action {
+        DragLifecycleAction::DragStart => DragLifecyclePhase::Dragging,
+        DragLifecycleAction::DragEnd => DragLifecyclePhase::Idle,
+    }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) fn collect_files_from_drag_event(_ev: &leptos::ev::DragEvent) -> Vec<DroppedFile> {
-    Vec::new()
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) fn collect_files_from_clipboard_event(
-    _ev: &leptos::ev::ClipboardEvent,
-) -> Vec<DroppedFile> {
-    Vec::new()
+pub const fn bool_data_attr(value: bool) -> Option<&'static str> {
+    if value { Some("true") } else { None }
 }
 
 #[cfg(test)]

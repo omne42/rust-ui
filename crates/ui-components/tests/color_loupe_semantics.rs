@@ -93,7 +93,7 @@ fn color_loupe_uses_logic_state_model() {
     );
 
     for needle in [
-        "logic::resolve_state(ColorLoupeStateInput {",
+        "logic::resolve_component_state(ColorLoupeLogicInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
         "<ColorSwatch",
     ] {
@@ -115,6 +115,8 @@ fn color_loupe_exposes_baseline_style_data_markers() {
         "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
         "data-x-bucket=move || state.get().x_bucket_attr",
         "data-y-bucket=move || state.get().y_bucket_attr",
+        "data-aria-source=move || state.get().aria_source_attr",
+        "data-class-source=move || state.get().class_source_attr",
         "data-slot=\"color-loupe-bubble\"",
         "data-slot=\"color-loupe-checker\"",
         "data-slot=\"color-loupe-fill\"",
@@ -123,6 +125,27 @@ fn color_loupe_exposes_baseline_style_data_markers() {
         assert!(
             source.contains(attr),
             "ColorLoupe should expose `{attr}` for baseline-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn color_loupe_a11y_i18n_locale_entry_uses_headless_contract() {
+    let source = load_source("../../components/color-loupe/src/view.rs");
+
+    for needle in [
+        "use ui_headless::a11y::{A11yDirection, locale_attrs};",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let locale = locale_attrs(logic::normalize_optional_text(lang), dir);",
+        "role=\"img\"",
+        "aria-label=move || aria_label.get_value()",
+        "lang=locale.lang",
+        "dir=locale.dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorLoupe a11y/i18n locale entry should keep `{needle}`.",
         );
     }
 }
@@ -184,10 +207,10 @@ fn color_loupe_docs_playgrounds_lock_state_matrix_contract_values() {
         "id_base=\"docs-color-loupe-start\".to_string()",
         "id_base=\"docs-color-loupe-center\".to_string()",
         "id_base=\"docs-color-loupe-end\".to_string()",
-        "open=true",
+        "is_open=true",
         "<Playground title=\"Disabled + Custom Label + Custom Class\" code_signal=states_code>",
         "id_base=\"docs-color-loupe-disabled\".to_string()",
-        "disabled=true",
+        "is_disabled=true",
         "id_base=\"docs-color-loupe-custom\".to_string()",
         "aria_label=\"Accent loupe\".to_string()",
         "class_name=\"docs-color-loupe-custom\".to_string()",
@@ -195,6 +218,130 @@ fn color_loupe_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "color-loupe docs playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_loupe_performance_governance_contract_is_budgeted_traceable_and_blocking() {
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+    let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
+    let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
+    let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
+    let check2_source = load_source("../../components/color-loupe/check2.md");
+    let todo_source = load_source("../../docs/plan/TODO.md");
+    let view_source = load_source("../../components/color-loupe/src/view.rs");
+    let styles_source = load_source("../../components/color-loupe/src/styles.rs");
+
+    for needle in [
+        "\"button\" => UiPerfBudget {",
+        "max_mount_ms: 24.0,",
+        "max_update_ms: Some(8.0),",
+        "\"input\" => UiPerfBudget {",
+        "max_mount_ms: 28.0,",
+        "max_update_ms: Some(10.0),",
+        "\"color-loupe\" => UiPerfBudget {",
+        "max_mount_ms: 20.0,",
+        "max_update_ms: Some(6.0),",
+        "max_heap_kb: Some(320.0),",
+    ] {
+        assert!(
+            shell_source.contains(needle),
+            "component shell should keep performance budget token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "data-perf-mount-ms",
+        "data-perf-budget-ms",
+        "data-perf-budget-update-ms",
+        "data-perf-budget-heap-kb",
+        "data-perf-violation",
+        "data-perf-observability",
+        "(mount_ms > budget.max_mount_ms).then_some(\"true\")",
+    ] {
+        assert!(
+            perf_probe_source.contains(needle),
+            "UiPerfProbe should expose performance regression marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "toHaveAttribute(\"data-perf-mount-ms\", /[0-9]/);",
+        "toHaveAttribute(\"data-perf-budget-ms\", /[0-9]/);",
+        "toHaveAttribute(\"data-perf-observability\", /mount/);",
+        "not.toHaveAttribute(\"data-perf-violation\", \"true\");",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "docs coverage e2e should enforce perf regression guard `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let trace = ui_headless::use_ui_trace();",
+        "trace.emit(",
+        "fn render_events(trace: ui_headless::UiTrace) -> AnyView",
+    ] {
+        assert!(
+            debug_overlay_source.contains(needle),
+            "debug overlay should keep trace-based performance attribution token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "性能治理：关键路径有预算",
+        "渲染次数预算为 `1`",
+        "render_count",
+        "等价证据",
+        "Button`、`Input`",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "ColorLoupe checklist should keep performance governance marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "render_count",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+    ] {
+        assert!(
+            todo_source.contains(needle),
+            "performance governance follow-up plan should keep `{needle}`."
+        );
+    }
+
+    for needle in [
+        "data-state=move || state.get().data_state_attr",
+        "data-open=move || state.get().is_open.then_some(\"true\")",
+        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-aria-source=move || state.get().aria_source_attr",
+        "data-class-source=move || state.get().class_source_attr",
+        "animation:",
+        "var(--ui-text-field-motion-duration",
+        "@media (prefers-reduced-motion: reduce)",
+    ] {
+        assert!(
+            view_source.contains(needle) || styles_source.contains(needle),
+            "ColorLoupe should expose performance attribution marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn color_loupe_performance_check_script_covers_budget_and_follow_up_gates() {
+    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+
+    for needle in [
+        "cargo test -p ui-components --test color_loupe_semantics color_loupe_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+    ] {
+        assert!(
+            script_source.contains(needle),
+            "performance gate script should include `{needle}`."
         );
     }
 }

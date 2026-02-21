@@ -174,6 +174,16 @@ pub fn resolve_view_state(
     }
 }
 
+pub fn resolve_shortcut_labels(
+    meta_key_label: Option<String>,
+    key_label: Option<String>,
+) -> (String, String) {
+    (
+        meta_key_label.unwrap_or_default(),
+        key_label.unwrap_or_default(),
+    )
+}
+
 pub fn compose_class_name(
     base_class_name: Option<String>,
     state: SearchInputButtonState,

@@ -67,3 +67,80 @@ fn resolve_state_tracks_sources_and_priority() {
     assert_eq!(state.aria_source_attr, "default");
     assert_eq!(state.class_source_attr, "custom");
 }
+
+#[test]
+fn status_resolution_normalizes_invalid_bool_combinations() {
+    assert_eq!(
+        resolve_status(ErrorMessageStateFlags {
+            disabled: false,
+            truncate: false,
+        }),
+        ErrorMessageStatus::Default
+    );
+    assert_eq!(
+        resolve_status(ErrorMessageStateFlags {
+            disabled: false,
+            truncate: true,
+        }),
+        ErrorMessageStatus::Truncate
+    );
+    assert_eq!(
+        resolve_status(ErrorMessageStateFlags {
+            disabled: true,
+            truncate: false,
+        }),
+        ErrorMessageStatus::Disabled
+    );
+    assert_eq!(
+        resolve_status(ErrorMessageStateFlags {
+            disabled: true,
+            truncate: true,
+        }),
+        ErrorMessageStatus::Disabled
+    );
+
+    assert_eq!(
+        status_to_primitive_flags(ErrorMessageStatus::Default),
+        ErrorMessageStateFlags {
+            disabled: false,
+            truncate: false,
+        }
+    );
+    assert_eq!(
+        status_to_primitive_flags(ErrorMessageStatus::Truncate),
+        ErrorMessageStateFlags {
+            disabled: false,
+            truncate: true,
+        }
+    );
+    assert_eq!(
+        status_to_primitive_flags(ErrorMessageStatus::Disabled),
+        ErrorMessageStateFlags {
+            disabled: true,
+            truncate: false,
+        }
+    );
+}
+
+#[test]
+fn resolve_model_derives_state_from_typed_status_axis() {
+    let model = resolve_model(ErrorMessageModelInput {
+        tone: ErrorMessageTone::Auto,
+        is_disabled: Some(false),
+        disabled: Some(true),
+        is_truncated: None,
+        truncate: Some(true),
+        text: Some("custom message".to_string()),
+        aria_label: None,
+        class_name: Some("   ".to_string()),
+    });
+
+    assert_eq!(model.text, "custom message");
+    assert_eq!(model.aria_label, DEFAULT_ARIA_LABEL);
+    assert_eq!(model.class_name, None);
+    assert_eq!(model.status, ErrorMessageStatus::Truncate);
+    assert_eq!(model.state.data_state_attr, "truncate");
+    assert_eq!(model.state.message_source_attr, "custom");
+    assert_eq!(model.state.aria_source_attr, "default");
+    assert_eq!(model.state.class_source_attr, "default");
+}

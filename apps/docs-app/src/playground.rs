@@ -221,7 +221,7 @@ pub fn Playground(
     });
 
     view! {
-        <section class="playground" id=anchor_id>
+        <section class="playground" id=anchor_id attr:data-slot="playground">
             <style>{move || compose_scoped_css(&scope_selector.get_value(), &test_css.get())}</style>
 
             <Flex
@@ -271,6 +271,7 @@ pub fn Playground(
                                 <Button
                                     variant=ButtonVariant::Secondary
                                     size=ButtonSize::Sm
+                                    attr:data-slot="playground-toggle-settings"
                                     on_press=on_toggle_settings
                                 >
                                     {move || if show_settings_panel.get() { "Hide settings" } else { "Show settings" }}
@@ -285,6 +286,7 @@ pub fn Playground(
                                 <Button
                                     variant=ButtonVariant::Secondary
                                     size=ButtonSize::Sm
+                                    attr:data-slot="playground-toggle-code"
                                     on_press=on_toggle_code
                                 >
                                     {move || if show_code_panel.get() { "Hide code" } else { "Show code" }}
@@ -296,6 +298,7 @@ pub fn Playground(
                     <Button
                         variant=ButtonVariant::Secondary
                         size=ButtonSize::Sm
+                        attr:data-slot="playground-toggle-test"
                         on_press=on_toggle_test
                     >
                         {move || if show_test_panel.get() { "Hide test" } else { "Show test" }}
@@ -317,7 +320,7 @@ pub fn Playground(
                 has_controls.then(|| {
                     view! {
                         <Show when=move || show_settings_panel.get()>
-                            <div data-slot="playground-controls">
+                            <div attr:data-slot="playground-controls">
                                 <Card class_name="playground__panel playground__controls".to_string()>
                                     {controls
                                         .get_value()
@@ -334,7 +337,7 @@ pub fn Playground(
                 has_code.get().then(|| {
                     view! {
                         <Show when=move || show_code_panel.get()>
-                            <div data-slot="playground-code">
+                            <div attr:data-slot="playground-code">
                                 <Card class_name="playground__panel playground__code".to_string()>
                                     <CodeBlock code=resolved_code.get() />
                                 </Card>
@@ -345,7 +348,7 @@ pub fn Playground(
             }}
 
             <Show when=move || show_test_panel.get()>
-                <div data-slot="playground-test">
+                <div attr:data-slot="playground-test">
                     <Card class_name="playground__panel playground__test".to_string()>
                         <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-stack docs-stack--tight".to_string()>
                             <div class="docs-search__label">"Scoped CSS"</div>

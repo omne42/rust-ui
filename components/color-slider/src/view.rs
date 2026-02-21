@@ -4,7 +4,151 @@ use crate::{
     motion,
 };
 use leptos::{html, prelude::*};
+use ui_headless::SliderAria;
 use ui_headless::{A11yDirection, SliderOptions, use_slider};
+
+const CLASS_HEADER: &str = "ui-color-slider__header";
+const CLASS_LABEL: &str = "ui-color-slider__label";
+const CLASS_VALUE: &str = "ui-color-slider__value";
+const CLASS_CONTROL: &str = "ui-color-slider__control";
+const CLASS_INPUT: &str = "ui-color-slider__input";
+const CLASS_TRACK: &str = "ui-color-slider__track";
+const CLASS_FILL: &str = "ui-color-slider__fill";
+const CLASS_THUMB: &str = "ui-color-slider__thumb";
+
+struct ColorSliderHeaderRenderInput {
+    label_id: String,
+    input_id: String,
+    label: StoredValue<String>,
+    state: Memo<logic::ColorSliderState>,
+    value_id_for_output: StoredValue<String>,
+    input_id_for_output: StoredValue<String>,
+    channel: ColorSliderChannel,
+}
+
+fn render_header(input: ColorSliderHeaderRenderInput) -> impl IntoView {
+    let ColorSliderHeaderRenderInput {
+        label_id,
+        input_id,
+        label,
+        state,
+        value_id_for_output,
+        input_id_for_output,
+        channel,
+    } = input;
+
+    view! {
+        <div class=CLASS_HEADER data-slot="color-slider-header">
+            <label
+                id=label_id
+                class=CLASS_LABEL
+                for=input_id
+                data-slot="color-slider-label"
+            >
+                {label.get_value()}
+            </label>
+
+            <Show when=move || state.get().show_value_label>
+                <output
+                    id=move || value_id_for_output.get_value()
+                    class=CLASS_VALUE
+                    for=move || input_id_for_output.get_value()
+                    data-slot="color-slider-value"
+                    aria-live="polite"
+                >
+                    {move || logic::format_channel_value(channel, state.get().value)}
+                </output>
+            </Show>
+        </div>
+    }
+}
+
+struct ColorSliderInputRenderInput {
+    input_id: String,
+    state: Memo<logic::ColorSliderState>,
+    slider_aria: SliderAria,
+    locale_lang: StoredValue<Option<String>>,
+    locale_dir: Option<&'static str>,
+    aria_label: StoredValue<String>,
+    label_id_for_input: String,
+    value_id_for_input: StoredValue<String>,
+    channel: ColorSliderChannel,
+}
+
+fn render_input(input: ColorSliderInputRenderInput) -> impl IntoView {
+    let ColorSliderInputRenderInput {
+        input_id,
+        state,
+        slider_aria,
+        locale_lang,
+        locale_dir,
+        aria_label,
+        label_id_for_input,
+        value_id_for_input,
+        channel,
+    } = input;
+
+    view! {
+        <input
+            id=input_id
+            class=CLASS_INPUT
+            data-slot="color-slider-input"
+            type="range"
+            min=move || state.get().min
+            max=move || state.get().max
+            step=move || state.get().step
+            prop:value=move || state.get().value
+            disabled=move || state.get().is_disabled
+            role=slider_aria.input.role
+            lang=move || locale_lang.get_value()
+            dir=locale_dir
+            aria-label=aria_label.get_value()
+            aria-labelledby=label_id_for_input
+            aria-describedby=move || {
+                state
+                    .get()
+                    .show_value_label
+                    .then_some(value_id_for_input.get_value())
+            }
+            aria-disabled=slider_aria.input.aria_disabled
+            aria-valuemin=move || slider_aria.input.aria_valuemin.get()
+            aria-valuemax=move || slider_aria.input.aria_valuemax.get()
+            aria-valuenow=move || slider_aria.input.aria_valuenow.get()
+            aria-valuetext=move || logic::format_channel_value(channel, state.get().value)
+            on:input=move |ev| {
+                slider_aria.handlers.on_input.run(event_target_value(&ev));
+            }
+            on:pointerdown=move |_| slider_aria.handlers.on_pointer_down.run(())
+            on:pointerup=move |_| slider_aria.handlers.on_pointer_up.run(())
+            on:pointercancel=move |_| slider_aria.handlers.on_pointer_cancel.run(())
+            on:pointerenter=move |_| slider_aria.handlers.on_pointer_enter.run(())
+            on:pointerleave=move |_| slider_aria.handlers.on_pointer_leave.run(())
+            on:focus=move |_| slider_aria.handlers.on_focus.run(())
+            on:blur=move |_| slider_aria.handlers.on_blur.run(())
+        />
+    }
+}
+
+fn render_track() -> impl IntoView {
+    view! {
+        <div class=CLASS_TRACK data-slot="color-slider-track" aria-hidden="true">
+            <div class=CLASS_FILL data-slot="color-slider-fill"></div>
+            <div class=CLASS_THUMB data-slot="color-slider-thumb"></div>
+        </div>
+    }
+}
+
+fn render_control(input: ColorSliderInputRenderInput) -> impl IntoView {
+    let input_view = render_input(input);
+    let track_view = render_track();
+
+    view! {
+        <div class=CLASS_CONTROL data-slot="color-slider-control">
+            {input_view}
+            {track_view}
+        </div>
+    }
+}
 
 #[component]
 pub fn ColorSlider(
@@ -28,26 +172,17 @@ pub fn ColorSlider(
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let has_external_value = value.is_some();
-    let has_default_value = default_value.is_some();
-    let has_on_value_change = on_value_change.is_some();
-    let control_mode_attr = if has_external_value {
-        logic::ColorSliderControlMode::Controlled.as_attr()
-    } else {
-        logic::ColorSliderControlMode::Uncontrolled.as_attr()
+    let source_presence = logic::ColorSliderInputPresence {
+        has_external_value: value.is_some(),
+        has_default_value: default_value.is_some(),
+        has_value_change_handler: on_value_change.is_some(),
     };
-    let value_source_attr = if has_external_value {
-        logic::ColorSliderValueSource::External.as_attr()
-    } else {
-        logic::ColorSliderValueSource::DefaultValue.as_attr()
-    };
-    let value_change_source_attr = if has_on_value_change {
-        logic::ColorSliderValueChangeSource::OnValueChange.as_attr()
-    } else {
-        logic::ColorSliderValueChangeSource::None.as_attr()
-    };
-    let default_value_source_attr = logic::source_attr_from_presence(has_default_value);
-    let agent_contract = logic::resolve_agent_contract(has_on_value_change);
+    let source_attrs = logic::resolve_source_attrs(source_presence);
+    let control_mode_attr = source_attrs.control_mode_attr;
+    let value_source_attr = source_attrs.value_source_attr;
+    let value_change_source_attr = source_attrs.value_change_source_attr;
+    let default_value_source_attr = source_attrs.default_value_source_attr;
+    let agent_contract = logic::resolve_agent_contract(source_presence.has_value_change_handler);
 
     let accessibility_state = logic::normalize_accessibility_state(is_disabled, disabled);
     let is_disabled = accessibility_state.is_disabled;
@@ -70,13 +205,7 @@ pub fn ColorSlider(
 
     let (min, max) = logic::sanitize_bounds(channel, min, max);
     let step = logic::sanitize_step(channel, step, min, max);
-    let default_value = logic::sanitize_value(
-        channel,
-        default_value.unwrap_or_else(|| channel.default_value()),
-        min,
-        max,
-        step,
-    );
+    let default_value = logic::normalize_default_value(channel, default_value, min, max, step);
 
     let (label, has_custom_label) = logic::normalize_label(label, channel);
     let label = StoredValue::new(label);
@@ -142,6 +271,28 @@ pub fn ColorSlider(
     let locale_lang = StoredValue::new(slider_aria.input.lang.clone());
     let locale_dir = slider_aria.input.dir;
 
+    let header = render_header(ColorSliderHeaderRenderInput {
+        label_id: label_id_for_label,
+        input_id: input_id_for_label,
+        label,
+        state,
+        value_id_for_output,
+        input_id_for_output,
+        channel,
+    });
+
+    let control = render_control(ColorSliderInputRenderInput {
+        input_id,
+        state,
+        slider_aria: slider_aria.clone(),
+        locale_lang,
+        locale_dir,
+        aria_label,
+        label_id_for_input,
+        value_id_for_input,
+        channel,
+    });
+
     view! {
         <div
             id=id_base
@@ -189,73 +340,8 @@ pub fn ColorSlider(
             data-ui-source=value_change_source_attr
             data-ui-state=move || state.get().data_state_attr
         >
-            <div class="ui-color-slider__header" data-slot="color-slider-header">
-                <label
-                    id=label_id_for_label
-                    class="ui-color-slider__label"
-                    for=input_id_for_label
-                    data-slot="color-slider-label"
-                >
-                    {label.get_value()}
-                </label>
-
-                <Show when=move || state.get().show_value_label>
-                    <output
-                        id=move || value_id_for_output.get_value()
-                        class="ui-color-slider__value"
-                        for=move || input_id_for_output.get_value()
-                        data-slot="color-slider-value"
-                        aria-live="polite"
-                    >
-                        {move || logic::format_channel_value(channel, state.get().value)}
-                    </output>
-                </Show>
-            </div>
-
-            <div class="ui-color-slider__control" data-slot="color-slider-control">
-                <input
-                    id=input_id
-                    class="ui-color-slider__input"
-                    data-slot="color-slider-input"
-                    type="range"
-                    min=move || state.get().min
-                    max=move || state.get().max
-                    step=move || state.get().step
-                    prop:value=move || state.get().value
-                    disabled=move || state.get().is_disabled
-                    role=slider_aria.input.role
-                    lang=move || locale_lang.get_value()
-                    dir=locale_dir
-                    aria-label=aria_label.get_value()
-                    aria-labelledby=label_id_for_input
-                    aria-describedby=move || {
-                        state
-                            .get()
-                            .show_value_label
-                            .then_some(value_id_for_input.get_value())
-                    }
-                    aria-disabled=slider_aria.input.aria_disabled
-                    aria-valuemin=move || slider_aria.input.aria_valuemin.get()
-                    aria-valuemax=move || slider_aria.input.aria_valuemax.get()
-                    aria-valuenow=move || slider_aria.input.aria_valuenow.get()
-                    aria-valuetext=move || logic::format_channel_value(channel, state.get().value)
-                    on:input=move |ev| {
-                        slider_aria.handlers.on_input.run(event_target_value(&ev));
-                    }
-                    on:pointerdown=move |_| slider_aria.handlers.on_pointer_down.run(())
-                    on:pointerup=move |_| slider_aria.handlers.on_pointer_up.run(())
-                    on:pointercancel=move |_| slider_aria.handlers.on_pointer_cancel.run(())
-                    on:pointerenter=move |_| slider_aria.handlers.on_pointer_enter.run(())
-                    on:pointerleave=move |_| slider_aria.handlers.on_pointer_leave.run(())
-                    on:focus=move |_| slider_aria.handlers.on_focus.run(())
-                    on:blur=move |_| slider_aria.handlers.on_blur.run(())
-                />
-
-                <div class="ui-color-slider__track" data-slot="color-slider-track" aria-hidden="true">
-                    <div class="ui-color-slider__fill" data-slot="color-slider-fill"></div>
-                    <div class="ui-color-slider__thumb" data-slot="color-slider-thumb"></div>
-                </div>
-            </div>
+            {header}
+            {control}
         </div>
     }
 }

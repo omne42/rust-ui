@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,8 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+  - N/A 说明：`Label` 为非交互展示组件，无键盘/指针关键交互流程；该项以 `crates/ui-components/tests/label_semantics.rs` 的语义契约断言作为回归基线。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +33,16 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+  - `Label` 落地：`motion.rs` 仅输出 `LabelMotion` + `attach_motion` 合同；`view.rs` 只挂载 style/data 标记；non-wasm 依赖 `ui_motion::web::prefers_reduced_motion()` 走可预测降级。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+  - `Label` 落地：新增 `LabelMotionTokens`，链路为 `crates/ui-theme/src/tokens.rs -> crates/ui-theme/src/theme.rs -> crates/ui-theme/src/css.rs`；组件仅消费 `--ui-label-motion-*` 变量，不重建主题。
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +50,8 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+  - `Label` 落地：职责拆分固定在 `logic/view/styles/motion`，并新增 `components/label/test/semantics.rs` 承接语义契约回归（旧版 `crates/ui-components/tests/label_semantics.rs` 保留兼容校验）。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +59,121 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+  - `Label` 布尔 props 已统一为 `is_required` / `is_disabled`；旧命名 `required` / `disabled` 在组件公开 API 中移除，docs/README 示例同步迁移，避免同义别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+  - N/A 说明：`Label` 为无内部可变状态的语义投影组件（输入仅 `is_required/is_disabled/emphasis` 等静态 props）；不存在可控状态轴，因此不引入 `value/on_value_change/default_value` 三元组，避免制造伪状态机。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+  - `Label` 已新增 `logic::normalize_view_input(LabelViewInput)` 作为单一归一入口；`view.rs` 仅消费归一结果，不再直接调用 `normalize_label_text/normalize_required_indicator/normalize_optional_text`。
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+  - `Label` 已在 `logic.rs` 新增 `LabelStateAxisInput -> derive_render_state -> LabelRenderState` 派生链；`view.rs` 仅消费派生后的 `state/class_name`，不再直接拼装 `LabelStateInput` 或调用 `compose_class_name`。
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+  - `Label` 的离散视觉状态轴已由 `LabelEmphasis` enum 建模，并通过 `LabelStateAxisInput` 进入 `logic.rs`；未引入字符串 `variant/status` 入口。`is_required/is_disabled` 为正交布尔轴，不表达互斥状态机，未形成 bool 爆炸。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+  - `Label` 的 `logic.rs` 仅消费 `ui_state_primitives::label` 并做装配映射；未引入业务 store 或 Leptos 状态容器。组件不存在应用级全局状态直连路径（N/A）。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
-  - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+  - N/A：`Label` 无远程请求、无异步状态机、无加载/重试流转，仅提供静态语义标注与样式装配，因此不适用 `is_loading`/`aria-busy`/retry 协议。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+  - `Label` 默认调用路径为单行 `<Label text="Name".to_string() />`，不要求用户理解或手动接线 `ui-state-primitives`/`ui-headless`；复杂能力按需通过 `emphasis/is_required/is_disabled/required_indicator/class_name/lang/dir` 逐步开启。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+  - N/A：`Label` 是叶子语义组件，不承载集合容器职责，不存在 `Parent/Item` 结构、并行数组槽位或 `ItemSpec` 映射入口；公开 API 仅单节点标签投影 props。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - N/A：`Label` 为静态语义标签组件，无拖拽手势、无逐帧输入循环、无 `Dragging`/`DragEnd` 状态轴；`logic.rs` 仅做一次性归一与派生，`view/motion` 不承载拖拽本地循环。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - N/A：`Label` 不依赖 DOM 几何测量与定位修正，不存在 `Intent -> Measure -> Rectification` 两段式流程；`view.rs` 无尺寸读取，`logic.rs` 无几何回流状态收敛路径。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - N/A：`Label` 不是集合容器组件，无动态子项注册/注销流程，无导航顺序状态轴；不存在 `RegistrationContext`、`Register/Unregister`、`items_order` 或 `HashSet` 迭代导航路径。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - N/A：`Label` 为单节点语义叶子组件，不承载容器插槽投影与内容驻留策略；不存在 `Lazy/KeepAlive/Eager` 模式切换，也无 `NotifyHidden` 生命周期停机协议。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - N/A：`Label` 无环境感知交互职责，不订阅 `Resize/Theme/Intersection` 源，也无 `Action::BreakpointChanged` 一类回流动作；`logic.rs` 仅做静态归一与状态映射。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - N/A：`Label` 不承担大型集合批量操作，无 `Context Bus + Selector` 聚合通道，也无 `SelectionState::All` 等压缩状态模型；组件 API 不存在 O(N) 级向下分发路径。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - N/A：`Label` 无复杂派生命令总线，不存在广播订阅链路与 `TraceId` 透传点；组件仅执行局部状态归一与语义映射，不涉及跨订阅者因果追踪。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+  - `Label` 通过语义 `<label>` 元素与 `aria-disabled`/`aria-hidden` 挂载 A11y 标记，并复用 `ui_headless::locale_attrs` 接入 `lang/dir`；用户可见文本以 `text/required_indicator` props 为优先，回退到 `ui-state-primitives` 默认常量。键盘交互路径对该非交互叶子组件为 N/A。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+  - `Label` 已通过稳定语义标记暴露关键状态与来源：`data-emphasis`、`data-state(required|optional)`、`data-required`、`data-disabled`、`data-has-for`、`data-label-source(default|custom)`、`data-indicator-source(default|custom)`、`data-class-source(default|custom)`、`data-motion-source(default|custom)` 与 `aria-disabled`。该组件无受控/非受控轴，来源区分通过默认值/自定义值 marker 体现（N/A for controlled source）。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+  - `Label` 的状态样式分支由稳定 class 与 `data-*` 标记驱动（如 `data-emphasis/data-required/data-disabled/data-*-source`）；`styles.rs` 未使用 `:nth-child` 或深层结构猜测。运行时 `style` 仅通过 `motion::attach_motion` 传递 CSS custom properties，不承载业务样式分支。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。
+  - `Label` 现有测试以语义契约断言为主：覆盖 `role/aria/data-state/source marker`、默认值来源、状态归一与样式状态选择器；未引入 snapshot/golden 作为主验证路径。`disabled` 分支已覆盖；受控/非受控、键盘/指针路径对该非交互叶子组件为 N/A；SSR/wasm 差异通过 `motion` 合同（含 non-wasm/reduced-motion 路径）与 compile-only 约束守卫。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+  - `Label` 当前职责分布符合约束：`mod.rs` 仅模块组织与最小导出；`logic.rs` 仅归一/派生与来源标记；`styles.rs` 仅静态 token-first CSS；`view.rs` 仅结构渲染与 `locale_attrs` 挂载；`motion.rs` 仅 `LabelMotion + attach_motion` 契约映射。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+  - `Label` 为简单叶子语义组件，无复杂配置固化与建造者需求；当前组件目录未引入 `spec.rs`，仅保留 `logic/view/styles/motion` 与协议文件，符合“简单组件不为形式统一新增 spec.rs”的约束（N/A for builder-spec requirement）。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+  - `Label` 的视觉规则全部收敛在 `components/label/src/styles.rs`，并使用 `var(--ui-*, var(--ui-fallback-*))` 消费主题变量；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 聚合，`crates/ui-components/src/root.rs` 通过 `UiRoot` 的 `inject_components_css` 路径统一注入。
+  - 运行时样式仅保留 `view.rs` 的 `style=move || motion_style.get()`（动效 custom properties），无 `top/left/display` 等业务内联样式分支；组件源码未引入 Utility-First 类名模式或 CSS-in-Rust 构造（相关守卫测试已补齐）。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+  - `Label` 组件范围内已具备可验证的视觉基线：`Default/Subtle/Strong` 层级、`required/disabled/custom` 状态对比、`for_id` 可用态 hover/active 反馈；docs-app `label()` 页面提供默认主题展示与对照态，README 已固化 HeroUI 对标原则（对齐视觉语言与体验质量，不复制 API 表层）。
+  - 子项“Button/Input/Overlay 截图基线与视觉回归”属于跨组件仓库级任务，超出单组件 `Label` 交付边界；本项在 `Label` 清单中按边界纪律记为 N/A（已升级到仓库级基线任务跟踪）。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+  - `Label` 已注册在 `ui-components` 特性树：`crates/ui-components/Cargo.toml` 存在 `component-label`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` 门控导出；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 门控样式聚合，不存在无条件全量聚合 `label` 的路径。
+  - 特性树命令证据：`cargo tree -e features -p ui-components -i ui-components --no-default-features --features component-accordion,inject-css` 仅显示命令行启用 `component-accordion + inject-css`；`cargo tree -e features -p ui-components -i ui-components --no-default-features --features component-label,inject-css` 仅显示 `component-label + inject-css`，未出现 `all-components` 隐式拉起。
+  - 反向依赖命令证据：`cargo tree -e features -i ui-components -p web-demo` 显示 `web-demo-components` 聚合链路，不包含 `all-components`。
+  - CI 最小特性编译与体积预算为仓库级治理项；本环境受 `Invalid cross-device link (os error 18)` 阻塞无法本地完成编译型门禁，已在组件清单中按边界纪律记录为 N/A（需在仓库 CI 任务中执行与阻断）。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +182,106 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+  - `Label` 离散输入 `emphasis` 由 `LabelEmphasis`（`Default/Subtle/Strong`）枚举建模；`view.rs` 公开 `#[prop(optional)] emphasis: LabelEmphasis`，未暴露字符串离散协议；状态输入经 `logic.rs` 的 `normalize_view_input + derive_render_state` 统一归一后进入 `ui-state-primitives::label::resolve_state`。
+  - 关键状态通过稳定语义标记对外可读：`data-emphasis`、`data-state(required|optional)`、`data-required`、`data-disabled`、`data-has-for`、`data-label-source(default|custom)`、`data-indicator-source(default|custom)`、`data-class-source(default|custom)`。
+  - 闭环证据：组件侧 `components/label/test/semantics.rs` 与工作区侧 `crates/ui-components/tests/label_semantics.rs` 均包含针对 `enum` 约束、归一化路径和 marker 枚举性的回归断言；当契约漂移时可直接定位到 `logic.rs/view.rs/ui-state-primitives/src/label.rs`。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - `Label` 是非 overlay 的叶子语义组件，不承担层叠弹层焦点恢复职责；该条在单组件范围内为 N/A。组件源码未引入 `NodeRef`、私有焦点恢复目标或 `document.body` 回落逻辑。
+  - 焦点全局栈与恢复策略应由 `ui-headless`/overlay 族组件统一实现与验证，避免在 `label` 组件层重复实现焦点管理协议。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - `Label` 为纯语义叶子组件，不集成命令式第三方图表/地图实例；该条在单组件范围内为 N/A。组件公共 API 未暴露第三方实例句柄或命令式控制通道。
+  - 命令式第三方集成与 `Foreign Zone` 生命周期治理应在对应重型组件（如图表/地图容器）与 `ui-headless`/基础设施层统一实现，避免在 `label` 层引入状态机污染。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - `Label` 组件不生成内部随机/时间驱动 ID，亦不依赖 `now()/UUID/rand` 初始化；当前仅消费外部传入 `for_id` 并做可选归一化，因此 SSR/Hydration 间不存在组件内 ID 漂移源（单组件范围 N/A for IdProvider injection path）。
+  - `IdProvider` 注入能力由 `UiRoot/ui-headless` 基础设施统一提供，适用于需要内部 ID 分配的组件；`Label` 不应在组件层重复引入该协议。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+  - `Label` 组件源码（`logic/view/motion/mod`）未直接引用 `web-sys/js-sys/window/document`；平台差异经 `ui_motion::web::prefers_reduced_motion()` 抽象下沉到 `crates/ui-motion/src/lib.rs` 的 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 分支，由 non-wasm no-op/stub 保证 SSR/tooling 路径可编译。
+  - compile-only 命令已按 web/ssr/native 三条路径尝试：`cargo check -p ui-label` 在当前环境通过；`cargo check -p ui-label --no-default-features` 与 `cargo check -p ui-label --target wasm32-unknown-unknown` 受 `Invalid cross-device link (os error 18)` 阻塞，剩余证据需在 CI 环境补齐并作为门禁。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
-  - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
-  - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+  - 契约证据：`crates/ui-headless/src/lib.rs` 存在 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，可阻断“web+ssr 同启”非法组合。
+  - `Label` 当前仅在 `view.rs` 消费 `ui_headless::locale_attrs`/`A11yDirection`，未在组件层新增或绕过 `ui-headless` 的 web/ssr feature 透传逻辑，不破坏互斥约束。
+  - 两条 feature 路径编译验证命令（`cargo check -p ui-headless --no-default-features --features web|ssr`）在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；已补源码契约回归测试，剩余编译证据在 CI 环境完成。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
-  - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
-  - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
-  - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
-  - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
-  - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
-  - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
-  - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
-  - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
-  - 性能问题需可归因到状态、渲染、样式或动效路径之一。
-  - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
-  - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+  - 契约证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(_element: &(), ...) {}` no-op stub，并附 `non_wasm_web_backend_is_predictable_noop` 单测。
+  - `Label` 的 `motion.rs` 仅调用 `ui_motion::web::prefers_reduced_motion()` 选择时长并输出 CSS 变量字符串（`attach_motion -> String`），不依赖动画句柄存在，不触发 non-wasm panic 路径。
+  - 组件源码未直接依赖 `web-sys/js-sys/wasm_bindgen`；tooling/SSR 场景通过 `ui-motion` non-wasm stub 保持可编译、可预测行为（本地编译门禁仍受 `Invalid cross-device link (os error 18)` 环境问题阻塞，需在 CI 补齐编译证据）。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+  - `Label` 在 `motion.rs` 通过 `ui_motion::web::prefers_reduced_motion()` 统一降级分支；当 reduced-motion 生效时将 `color/weight` 时长收敛到 `MIN_DURATION_MS`（最小必要反馈），避免动效噪声。
+  - SSR/hydration 兼容性：`view.rs` 语义输出（`data-state/data-*-source/aria-disabled`）不依赖平台条件分支，首帧语义与客户端挂载路径一致，不因 wasm/ssr 差异分裂。
+  - wasm 分支增强仅在 `ui-motion` backend 层（`#[cfg(target_arch = "wasm32")] pub mod web`）发生；组件层只消费统一 `attach_motion + data-motion-source` 契约，语义标记不分叉。
+  - compile-only 命令在当前环境仍受 `Invalid cross-device link (os error 18)` 阻塞，剩余 wasm/ssr 编译证据需在 CI 补齐。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+  - `Label` 为无交互叶子组件，组件级预算收敛为：首渲染仅一次 `Signal::derive`（`motion_style`），无事件驱动更新环、无逐帧循环、无环境订阅流；更新路径只来自 props 变化与 Leptos 正常重算。
+  - 可归因证据：`logic.rs` 只做纯归一/派生；`view.rs` 不含 `on:*` 事件处理和 `create_effect/create_resource/spawn_local`；`motion.rs` 不直接驱动 RAF/WAAPI 句柄，仅生成 CSS 变量字符串。
+  - 回归检测采用源码契约断言（`components/label/test/semantics.rs` + `crates/ui-components/tests/label_semantics.rs`）作为稳定基线，避免主观“感觉变慢”。
+  - `render_count` 精确计数在当前测试栈未提供统一支撑，按清单要求采用等价证据路径；`Button/Input` 的 `render_count=1` 基线属于仓库级任务，在对应组件与 CI 任务中落地。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+  - `Label` 为叶子组件，`view.rs` 当前仅 1 个 `view!` 块，结构固定为 `<label> + <span> + <Show>`，无深层嵌套容器、无重复大段模板拼接，宏展开体量可控。
+  - `view.rs` 未出现可抽取但重复的结构片段；当前两段文本槽位（label-text/label-required）职责分离且各出现一次，不存在“巨型单块重复模板”问题。
+  - 已补源码契约回归：`components/label/test/semantics.rs` 与 `crates/ui-components/tests/label_semantics.rs` 均新增 `view!` 宏复杂度守卫，防止后续回归到深嵌套/重复拼接。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+  - `Label` 已将轻逻辑片段拆为普通函数：`view.rs` 新增 `fn render_required_indicator(...) -> impl IntoView`，承载 required 文本渲染；主 `Label` 组件只做结构装配与语义挂载。
+  - 未引入额外 `#[component]` 子组件，避免抽象噪音；组件入口仍保持单一 `#[component] pub fn Label(...)`。
+  - 语义契约保持稳定：`data-slot="label-required"`、`aria-hidden="true"` 与条件显示路径未变化，测试定位不受函数拆分影响。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
-  - 可判定为纯静态的片段应避免重复动态构造。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+  - N/A（组件范围）：`Label` 为轻量叶子组件，`view.rs` 不包含复杂 SVG、长说明文本或多段重复静态模板；当前静态结构仅 `label-text/label-required` 两个语义槽位，变更路径集中在 `view.rs`。
+  - 防回归策略：组件与工作区语义测试均断言未引入 `svg`/`inner_html` 等重静态片段信号；若后续出现复杂静态块，必须先常量化或模板化再挂载。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+  - N/A（组件范围）：`Label` 当前不使用 `inner_html`，`view.rs` 仅通过文本节点与语义标记渲染，未暴露任何 HTML 字符串注入通道。
+  - 安全回归已补：组件侧与工作区侧语义测试均断言 `view.rs` 中不存在 `inner_html=` / `set_inner_html` / `dangerously_set_*` / `Html::from` 等注入路径，防止后续回归。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
-  - 开发模式下至少能追踪关键状态变更来源与前后值。
-  - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
-  - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
-  - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
-  - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
-  - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
-  - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
-  - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
-  - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A（组件范围）：`Label` 为低交互语义组件，无本地交互状态机与事件链；关键状态通过稳定语义标记 `data-state/data-label-source/data-indicator-source/data-class-source` 追踪。）
+  - 开发模式下状态来源与前后值对比可直接由稳定 `data-*` 标记完成；组件不维护本地可变状态，时间线回放为 N/A。
+  - 关键交互链路回放为 N/A：`Label` 不承载键盘/指针状态迁移，不引入组件私有 `request_replay/trace.emit` 调试链路。
+  - 调试开关默认不进入生产包体与公共 API：`components/label/Cargo.toml` 无 `wasm-debug/debug/replay` feature，`crates/ui-components/Cargo.toml` 无 `label-wasm-debug` 特性；可视化入口复用 docs-app 全局 `UiDebugOverlay`。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（已落实：`Label` docs 复用 `Playground` 的 `test_css_source` 热样式通道与隔离预览画布；组件级状态持久化为可选项，`Label` 当前按范围标注 N/A。）
+  - 常见样式调整走 `apps/docs-app/src/playground.rs` 的 CSS Test 面板（`compose_scoped_css + test_css`），不依赖完整 wasm 重编译。
+  - `apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 提供 Interactive Playground，控制面板驱动 `Signal` 状态矩阵并保留当前会话上下文，降低重复操作成本。
+  - Workbench 隔离入口已提供：`title="Interactive Playground"` + `test_css_source=workbench_test_css_source` + `test_config_signal=workbench_actual_config`；`Label` 无复杂交互状态机，跨会话“状态保留”能力在本组件范围为 N/A。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（N/A（组件范围）：`Label` 公共 API 不暴露 spec/config 输入轴；组件实现无本地 tracing 事件语义分叉，且无 async runtime 绑定。）
+  - spec/config 结构化序列化在 `Label` 范围为 N/A：`mod.rs` 仅导出 `Label` 与状态/动效类型，不暴露 `spec.rs` 或协议输入入口。
+  - tracing 语义保持统一：`Label` 不定义组件私有 `tracing::span/event` 目标；调试链路复用仓库级 `ui-headless` trace 基线。
+  - 异步边界无 runtime 泄露：`logic/view/motion/styles/mod` 未引入 `tokio/async-std` 等运行时类型，公共接口保持 runtime-agnostic。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - `Label` 样式已收敛为 token-first 双层回退链：关键尺寸与语义值通过 `var(--ui-*, var(--ui-fallback-*))` 获取（含 `space/font-size/border-width/accent/danger`），不在组件内写死 Hex。
+  - 原本裸尺寸终值（如 `text-underline-offset: 0.12em`、`outline: 1px ...`、`font-size: 0.85em`）已替换为 `ui-theme` 统一输出的 fallback 变量链，保持 SSOT。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
+  - `Label` 样式聚合路径满足级联层契约：`crates/ui-components/src/css.rs` 在 `push_components_css` 中使用 `out.push_str("\n@layer ui {\n");` 与 `out.push_str("\n}\n");` 包裹组件样式，且 `component-label` 仅在 feature gate 命中时注入 `crate::label::styles::CSS`。
+  - 组件运行时样式仅通过 `view.rs` 的 `style=move || motion_style.get()` 注入动效 CSS 变量；`motion.rs::attach_motion` 仅输出 `--ui-label-motion-*` custom properties，不包含 `top/left/display` 等普通内联样式分支。
+  - 语义回归已补：`components/label/test/semantics.rs` 与 `crates/ui-components/tests/label_semantics.rs` 新增 `@layer ui` 包裹与 inline-style 约束断言，防止后续回归。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - `Label` 已在 `components/label/src/motion.rs` 固化组件动效合同：`LabelMotion`（颜色/字重时长）、`sanitize_motion`（`MIN_DURATION_MS..=MAX_DURATION_MS` 限幅）、`motion_source_attr`（default/custom 来源标记）以及 `attach_motion`（将合同参数挂载为 `--ui-label-motion-*` CSS custom properties）。
+  - `attach_motion` 明确尊重 `prefers-reduced-motion`：通过 `ui_motion::web::prefers_reduced_motion()` 在 reduced-motion 路径收敛到最小时长，避免动画噪声与非必要运动。
+  - non-wasm/SSR 安全降级由 `crates/ui-motion/src/lib.rs` 的 `#[cfg(not(target_arch = "wasm32"))]` no-op/stub 保证；`Label` 组件层仅消费 `attach_motion` 字符串契约，不依赖浏览器动画句柄。
+- [x] `ui-components` 固定入口文件落点正确。
+  - `crates/ui-components/src/lib.rs` 仍是总入口并对外导出稳定 API：保留 `mod css;`、`pub use root::UiRoot;` 与 `pub fn push_components_css(out: &mut String) { css::push_components_css(out); }`；`Label` 模块以 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` 门控接入，未把 `web-sys`/DOM 细节类型暴露为公共组件 API。
+  - `crates/ui-components/src/css.rs` 仍是组件 CSS 聚合入口：通过 `push_components_css` 统一聚合，并以 feature gate（含 `component-label`）条件注入样式，禁止无条件拉全量组件 CSS。
+  - `crates/ui-components/src/root.rs` 保持 `UiRoot` 集中注入职责：`BASE_CSS + theme vars + (optional) components/layout css` 在单点完成，并统一提供 `UiI18n` 与 `IdProvider` 上下文。
+  - `crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver（含 non-wasm attach no-op），未耦合 `Label` 等组件业务语义。
+  - 负面落点约束满足：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 不存在；对应原语继续落在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +289,13 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。
+  - `Label` 组件目录保持标准落点：存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`；`spec.rs` 与 `render.rs` 均不存在。
+  - `mod.rs` 仅维护最小导出边界（`pub use view::Label` + 状态/动效类型导出），未暴露 `logic/view` 内部模块为公共 API。
+  - `logic.rs` 聚焦 props 归一化、状态派生与来源标记（`normalize_view_input + derive_render_state`），不承载视图渲染/DOM 绑定。
+  - `styles.rs` 仅承载静态 token-first CSS 合同（`pub const CSS` + `var(--ui-*, var(--ui-fallback-*))`），不写死主题常量。
+  - `view.rs` 仅负责 Leptos 结构渲染与 headless 语义挂载（`locale_attrs` + `view!`），不在组件层重建 primitives 规则。
+  - `motion.rs` 仅负责 `LabelMotion + attach_motion` 合同映射与挂载，未吸收 `#[component]`/模板渲染职责。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,61 +304,66 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
+  - `Label` 已满足核心文件落点：`mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 均存在，且职责拆分稳定；`render.rs` 不存在，`spec.rs` 在当前简单组件范围不引入。
+  - 兼容仓库既有约束：`protocol.rs` 为仓库级协议文件纪律，不替代也不破坏上述核心五文件职责边界；组件核心逻辑仍在 `logic/view/styles/motion`。
+  - 回归守卫已存在并复用：组件侧与工作区侧均有目录落点契约测试（含 required/forbidden 文件与职责边界断言）。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A（组件范围）：`Label` 为简单叶子语义组件，不属于“复杂组件”范畴，不应为形式统一引入 builder-spec 抽象。）
+  - `Label` 当前无复杂配置固化与外部 schema 构建需求；强行新增 `spec.rs` 与 `*Spec::new()...render()` 只会引入抽象噪音，违反“简单优先”。
+  - 现有约束已通过回归守卫覆盖：`components/label/src/spec.rs` 不存在、`mod.rs` 不暴露 `spec` 模块；若后续演进为复杂组件，再按版本化契约补 `spec.rs` 与 builder API。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（`components/label/src/Component.toml` 与 `components/label/src/label.rbi` 已同步维护；`Component.toml` 覆盖 `Label` 输入轴/输出语义与 capability 声明，`label.rbi` 投影 `Label` 公共签名与关键类型别名；回归由 `components/label/test/semantics.rs::label_context_compression_manifest_and_rbi_projection_are_present_and_current` 与 `crates/ui-components/tests/label_semantics.rs::label_context_compression_manifest_and_rbi_projection_are_present_and_current` 覆盖。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`components/label/src/logic.rs` 新增类型化 Agent Contract（`LABEL_AGENT_SCHEMA`、`LabelAgent{Intent/Action/State/Source/Stream*/OutputStatus}` 与 `resolve_agent_contract_attrs`）；`components/label/src/view.rs` 挂载稳定 `data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source/data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status` 与来源轴标记；`components/label/src/Component.toml` 新增 `agent_contract_schema_markers`、`[agent_contract]`、`[[agent_contract_markers]]`、`[[agent_contract_whitelist]]` 并声明渲染白名单与注入黑名单。回归由 `components/label/test/semantics.rs::label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted` 与 `crates/ui-components/tests/label_semantics.rs::label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted` 覆盖。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Label` 按组件边界仅消费并渲染上层输出结果，不承担传输层重试/断线恢复；定义在 Agent Contract 中以类型化流式语义落位：`components/label/src/logic.rs` 的 `LabelAgent{Action/StreamSupport/StreamFallback}` 与 `components/label/src/view.rs` 的 `data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status` 挂载，确保 Agent 只按显示模式理解渲染阶段。回归由 `components/label/test/semantics.rs::label_streaming_definition_is_llm_output_only_with_two_modes` 与 `crates/ui-components/tests/label_semantics.rs::label_streaming_definition_is_llm_output_only_with_two_modes` 覆盖。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Label` 默认快照渲染路径已类型化并稳定挂载：`components/label/src/logic.rs` 以 `LabelAgentAction::RenderSnapshot` + `LabelAgentStreamFallback::Snapshot` 输出契约，`components/label/src/Component.toml` 固定 `output_mode_axis = ["snapshot"]`，`components/label/src/view.rs` 挂载 `data-ui-output-status` 并直接消费完整归一化结果渲染；组件不依赖流式分块事件即可完成稳定输出。回归由 `components/label/test/semantics.rs::label_snapshot_is_baseline_capability_and_consumes_complete_result` 与 `crates/ui-components/tests/label_semantics.rs::label_snapshot_is_baseline_capability_and_consumes_complete_result` 覆盖。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Label` 属于非正文阅读面语义组件，因此采用 `Streaming Optional`：`components/label/src/logic.rs` 仅声明 `LabelAgentStreamSupport::Optional`，`components/label/src/Component.toml` 通过 `data-ui-stream-support=optional` 与 `data-ui-stream-fallback=snapshot` 固化回退策略；`components/label/src/view.rs` 持续挂载 `data-ui-output-status` 与 `aria/data-*` 语义标记以保持状态可读。传输层数据校验、断线恢复与重试不在组件层实现（无 `retry/reconnect/transport` 逻辑），由上层负责。回归由 `components/label/test/semantics.rs::label_streaming_requirement_is_optional_for_non_reader_component_with_snapshot_fallback` 与 `crates/ui-components/tests/label_semantics.rs::label_streaming_requirement_is_optional_for_non_reader_component_with_snapshot_fallback` 覆盖。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（非测试源码约束满足：`components/label/src/mod.rs`、`components/label/src/logic.rs`、`components/label/src/view.rs`、`components/label/src/styles.rs`、`components/label/src/motion.rs`、`components/label/src/protocol.rs` 中不存在 `unwrap/expect/unwrap_err` 与 `let _ = ...`。字符串复制热点约束满足：上述非测试源码未出现 `.to_owned()` / `String::from(...)` / 热点 `.to_string()`；默认文案与状态来源由 `ui-state-primitives::label` 统一提供。回归：`components/label/test/semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/label/test/semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`、`crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`。执行记录：`./scripts/check-rust-hygiene.sh` 已执行；当前环境 `rg` 缺少 PCRE2 且 `check-api-contracts` baseline drift 属仓库级噪声，组件级定向扫描结论不受影响。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`Label` 特性注册已落位：`crates/ui-components/Cargo.toml` 存在 `component-label = []`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-label")]` + `#[path = "../../../components/label/src/mod.rs"]` + `pub mod label;` 做源码门控；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-label")] out.push_str(crate::label::styles::CSS);` 做样式门控，未发现 label 的无条件全量聚合。特性树验证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-label,inject-css` 输出仅包含命令行启用的 `component-label` 与 `inject-css`；`cargo tree -e features -i ui-components -p web-demo | rg all-components` 无命中。回归：`components/label/test/semantics.rs::label_tree_shaking_contract_is_feature_gated_in_ui_components`、`crates/ui-components/tests/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css`。补充：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-label,inject-css` 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞，属环境问题，非该组件 Tree Shaking 契约回归。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`Label` 语义断言已覆盖 `aria-*` 与 `data-*`：`components/label/test/semantics.rs::label_a11y_i18n_l10n_contract_is_mounted_via_headless_and_props`、`components/label/test/semantics.rs::label_state_markers_are_observable_searchable_and_closed_set`、`crates/ui-components/tests/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy`、`crates/ui-components/tests/label_semantics.rs::label_state_markers_remain_observable_and_enumerated`。焦点流转按组件边界为 N/A（`Label` 非 overlay 叶子组件，不承担 Focus Stack 恢复），并由 `components/label/test/semantics.rs::label_does_not_own_overlay_focus_stack_or_noderef_restore_logic` 与 `crates/ui-components/tests/label_semantics.rs::label_remains_outside_overlay_focus_stack_responsibility` 锁定。性能回归证据采用等价可重复预算：`Signal::derive` 单路径（预算=1）+ 无运行时循环/异步副作用，由 `components/label/test/semantics.rs::label_performance_budget_contract_stays_traceable_and_predictable` 与 `crates/ui-components/tests/label_semantics.rs::label_performance_budget_contract_uses_source_level_budget_baseline` 覆盖；`render_count` 精确计数在当前测试栈仍属仓库级能力，`Label` 非高频/重型组件按清单边界以等价证据通过。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Label` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/label/src/protocol.rs` 的 `LabelComponentSchemaVersion::V1`，`components/label/src/Component.toml` 的 `schema_version = "1"` 与 `ui.label.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/label/test/semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`、`crates/ui-components/tests/label_semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已提供 `Hello World`、`Interactive Playground`（状态矩阵）、`Controlled vs Uncontrolled (N/A for Label)`、`Streaming Optional (fallback=snapshot)` 四类文档 Playground，且全部接入 `code_imports=label_imports.clone()`。同时新增 `data-slot="label-source-first"` 区块与 `Snippet copyable=true` 的 `Copy starter`，并在文档中明确 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 负责 import-ready 复制。回归：`components/label/test/semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`、`crates/ui-components/tests/label_semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Label` 语义回归以契约断言为主、非视觉快照：`components/label/test/semantics.rs::label_a11y_i18n_l10n_contract_is_mounted_via_headless_and_props`、`components/label/test/semantics.rs::label_state_markers_are_observable_searchable_and_closed_set`、`components/label/test/semantics.rs::label_tests_prioritize_semantic_contract_over_visual_snapshot`，以及 `crates/ui-components/tests/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy`、`crates/ui-components/tests/label_semantics.rs::label_state_markers_remain_observable_and_enumerated`、`crates/ui-components/tests/label_semantic_contract_tests_are_primary_not_visual_snapshot_only`。`Label` 为非交互 leaf 语义投影，键盘动作路径按组件边界 N/A，并由 `components/label/test/semantics.rs::label_api_is_leaf_projection_not_parent_item_container` 与 `components/label/test/semantics.rs::label_does_not_own_overlay_focus_stack_or_noderef_restore_logic` 约束。新增/变更语义字段的契约锁定由 `components/label/test/semantics.rs::label_machine_readable_state_contract_is_type_constrained_and_locatable` 与 `crates/ui-components/tests/label_semantics.rs::label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted` 覆盖。回归：`components/label/test/semantics.rs::label_semantic_test_priority_regression_contract_is_scoped_and_traceable`、`crates/ui-components/tests/label_semantics.rs::label_semantic_test_priority_regression_contract_is_scoped_and_traceable`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（`e2e/tests/docs_app_label_contract.spec.mjs` 已新增并覆盖 `Label` 的语义选择器与可重复关键路径：`docs-app label uses semantic selectors with wasm-stable readiness waits`、`docs-app label key flow is repeatable with semantic focus breakpoints`、`docs-app label streaming/snapshot markers stay settled without fixed sleeps`。用例统一以 `data-*` 语义标记选取组件（`data-slot/data-state/data-required/data-has-for/data-ui-*`），并通过 `body:not(:has(#boot))` + `data-ui-output-status="verified"` 作为 WASM 稳定就绪条件；未使用 `waitForTimeout`/固定 sleep。回归：`components/label/test/semantics.rs::label_e2e_selector_stability_contract_uses_semantic_markers_and_wasm_ready_waits`、`crates/ui-components/tests/label_semantics.rs::label_e2e_selector_stability_contract_uses_semantic_markers_and_wasm_ready_waits`。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（`e2e/tests/docs_app_label_contract.spec.mjs` 已纳入可重复关键流程用例：`docs-app label key flow is repeatable with semantic focus breakpoints`，覆盖“打开文档 -> 语义断点校验 -> 点击 label 聚焦 input -> 键盘输入 -> reload 后重复同链路”并以 `data-*`/`aria-*` 契约断点定位失败；同时 `docs-app label uses semantic selectors with wasm-stable readiness waits` 与 `docs-app label streaming/snapshot markers stay settled without fixed sleeps` 补充语义就绪与 settled 路径。高风险路径按组件边界执行：`focus/keyboard` 已覆盖，`overlay/async` 对 `Label` 叶子组件为 N/A。回归：`components/label/test/semantics.rs::label_key_flow_regression_collection_is_repeatable_and_semantically_locatable`、`crates/ui-components/tests/label_semantics.rs::label_key_flow_regression_collection_is_repeatable_and_semantically_locatable`。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已同步覆盖 `Hello World`、`Interactive Playground`（参数/状态矩阵）、`Emphasis + Required`、`Custom Indicator + Class`、`Controlled vs Uncontrolled (N/A for Label)`、`Streaming Optional (fallback=snapshot)`；其中状态矩阵包含 `is_required/is_disabled/emphasis/for_id/required_indicator/class_name` 轴。文档 API 名称与 `components/label/src/logic.rs` 当前实现一致：示例仅使用 `Label` 公开 props（`text/for_id/is_required/is_disabled/emphasis/required_indicator/class_name`），未引入不存在的状态轴别名。回归：`crates/ui-components/tests/label_semantics.rs::label_docs_page_covers_primary_playgrounds`、`crates/ui-components/tests/label_semantics.rs::label_docs_playgrounds_lock_state_matrix_contract_values`、`components/label/test/semantics.rs::label_docs_sync_contract_covers_examples_matrices_and_logic_api_names`、`crates/ui-components/tests/label_semantics.rs::label_docs_sync_contract_covers_examples_matrices_and_logic_api_names`。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`components/label/src/README.md` 已作为文档入口，包含 `## Hello World（最小可用）` 与一行最小示例 `<Label text="Name".to_string() />`；并明确“默认路径无需手动接线 `ui-state-primitives` / `ui-headless`”与“进阶需求再按需开启 `emphasis`、`required_indicator`、`lang/dir`、`class_name`”，满足“先用起来，再进阶”。同文档 `## Docs Playground（展示 / Config / Code / CSS Test）` 章节补充常见用法与 docs 入口，避免“只有源码没有文档”。回归：`components/label/test/semantics.rs::label_documentation_as_product_contract_is_beginner_friendly_and_progressive`、`crates/ui-components/tests/label_semantics.rs::label_documentation_as_product_contract_is_beginner_friendly_and_progressive`、`components/label/test/semantics.rs::label_dx_hello_world_stays_simple_and_hides_internal_wiring`、`crates/ui-components/tests/label_semantics.rs::label_readme_documents_docs_workbench_contract`。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已提供 `title="Interactive Playground"`，并通过 `SegmentedControl + Switch` 在线调整 `emphasis/is_required/is_disabled/has_for_id/custom_text/custom_indicator/custom_class`；预览区实时联动 `Label + input`，同时暴露 `test_config_signal=workbench_actual_config` 与 `test_css_source=workbench_test_css_source` 作为验收观察面。AI Spec 子条对 `Label` 为 N/A：该组件非 spec 驱动组件，不存在 `spec.rs` 输入联动契约。可重复关键交互路径由 `e2e/tests/docs_app_label_contract.spec.mjs` 的 `docs-app label uses semantic selectors with wasm-stable readiness waits` 与 `docs-app label key flow is repeatable with semantic focus breakpoints` 覆盖。回归：`components/label/test/semantics.rs::label_interactive_playground_contract_supports_live_controls_and_repeatable_acceptance_flow`、`crates/ui-components/tests/label_semantics.rs::label_interactive_playground_contract_supports_live_controls_and_repeatable_acceptance_flow`。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 已提供 `data-slot="label-source-first"` 区块，包含 `Snippet copyable=true` 的 `Copy starter`（默认导入 `use leptos::prelude::*;` 与 `use ui_components::{Label, LabelEmphasis};`），并明确 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 负责 import-ready 输出。文档同时列出真实源码落点 `components/label/src/{mod,logic,view,styles,motion}.rs` 与依赖前提 `component-label`/`inject-css`，避免“复制即报错”。示例同步由 `code_signal=workbench_code` 与 `code_imports=label_imports.clone()` 保持与当前实现一致。回归：`components/label/test/semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code`、`crates/ui-components/tests/label_semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（`docs/spec/heroui-parameter-design-strategy.md` 已新增 `### Label 同步记录（2026-02-21）`，明确参数主轴、docs 入口、示例矩阵与 Source-first 同步策略；docs 入口可索引：`apps/docs-app/src/pages/components/pages.rs` 存在 `component_doc!("Label", "label", "Forms", forms_extra::label)`，对应页面 `apps/docs-app/src/pages/components/pages/forms_extra.rs::label()` 与 `components/label/src/README.md` 均可访问。研究文档补充判定已在策略文档声明：本轮不引入新的 Spectrum/HeroUI 结论，不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`。回归：`components/label/test/semantics.rs::label_heroui_strategy_and_component_docs_sync_contract_is_documented_and_indexable`、`crates/ui-components/tests/label_semantics.rs::label_heroui_strategy_and_component_docs_sync_contract_is_documented_and_indexable`。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

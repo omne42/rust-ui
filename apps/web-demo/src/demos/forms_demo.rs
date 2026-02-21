@@ -97,8 +97,8 @@ pub fn FormsDemo() -> impl IntoView {
                     label="Notifications".to_string()
                     description="Pick at least one when required.".to_string()
                     error="Select at least one option.".to_string()
-                    required=group_required
-                    invalid=group_invalid
+                    is_required=group_required
+                    is_invalid=group_invalid
                 >
                     <Checkbox checked=group_a set_checked=set_group_a>"Email"</Checkbox>
                     <Checkbox checked=group_b set_checked=set_group_b>"SMS"</Checkbox>

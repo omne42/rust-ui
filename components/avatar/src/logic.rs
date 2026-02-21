@@ -1,9 +1,7 @@
-#[cfg(test)]
-use ui_state_primitives::avatar::AvatarRenderMode;
 pub use ui_state_primitives::avatar::{
-    AvatarImageRenderInput, AvatarLabelSource, AvatarSize, AvatarState, AvatarStateInput,
-    normalize_optional_text, resolve_accessibility, resolve_image_render_state, resolve_initials,
-    resolve_state,
+    AvatarImageRenderInput, AvatarLabelSource, AvatarRenderMode, AvatarSize, AvatarState,
+    AvatarStateInput, normalize_optional_text, resolve_accessibility, resolve_image_render_state,
+    resolve_initials, resolve_state,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -17,6 +15,61 @@ pub struct AvatarNormalizedInput {
     pub has_alt: bool,
     pub has_custom_class_name: bool,
     pub image_src: String,
+}
+
+pub const AVATAR_AGENT_SCHEMA: &str = "ui.avatar.agent.v1";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarAgentIntent {
+    DisplayIdentity,
+}
+
+impl AvatarAgentIntent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::DisplayIdentity => "display-identity",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarAgentAction {
+    ImageFallbackOnError,
+    PassiveFallback,
+}
+
+impl AvatarAgentAction {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::ImageFallbackOnError => "image-fallback-on-error",
+            Self::PassiveFallback => "passive-fallback",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AvatarAgentSource {
+    Name,
+    Alt,
+    Fallback,
+}
+
+impl AvatarAgentSource {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Name => "name",
+            Self::Alt => "alt",
+            Self::Fallback => "fallback",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AvatarAgentContract {
+    pub schema: &'static str,
+    pub intent: AvatarAgentIntent,
+    pub action: AvatarAgentAction,
+    pub source: AvatarAgentSource,
 }
 
 pub fn normalize_lang(value: Option<String>) -> Option<String> {
@@ -45,6 +98,42 @@ pub fn normalize_input(
         alt,
         class_name,
         image_src,
+    }
+}
+
+pub fn resolve_aria_label(
+    label_source: AvatarLabelSource,
+    normalized_aria_label: String,
+    fallback_aria_label: String,
+) -> String {
+    if label_source == AvatarLabelSource::Fallback {
+        fallback_aria_label
+    } else {
+        normalized_aria_label
+    }
+}
+
+pub fn resolve_agent_contract(
+    label_source: AvatarLabelSource,
+    render_mode: AvatarRenderMode,
+) -> AvatarAgentContract {
+    let action = if render_mode.shows_image() {
+        AvatarAgentAction::ImageFallbackOnError
+    } else {
+        AvatarAgentAction::PassiveFallback
+    };
+
+    let source = match label_source {
+        AvatarLabelSource::Name => AvatarAgentSource::Name,
+        AvatarLabelSource::Alt => AvatarAgentSource::Alt,
+        AvatarLabelSource::Fallback => AvatarAgentSource::Fallback,
+    };
+
+    AvatarAgentContract {
+        schema: AVATAR_AGENT_SCHEMA,
+        intent: AvatarAgentIntent::DisplayIdentity,
+        action,
+        source,
     }
 }
 

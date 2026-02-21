@@ -136,11 +136,19 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
+  - `Label` 为简单叶子组件，不引入 `spec.rs` 建造者入口；本项在当前组件作用域判定为 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_does_not_introduce_spec_rs_for_simple_leaf_component`。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
+  - 语义回归：`components/label/test/semantics.rs::label_cascade_layer_contract_wraps_css_in_ui_layer_and_restricts_inline_style`。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
+  - `Label` 的样式变量链统一采用 `var(--ui-*, var(--ui-fallback-*))`，并在 `styles.rs` 中保持一致。
+  - 语义回归：`components/label/test/semantics.rs::label_defensive_variables_contract_uses_double_fallback_chain_and_ssot_tokens`。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -155,6 +163,16 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
+  - `component-label = []`
+  - `#[cfg(feature = "component-label")]`
+  - `#[path = "../../../components/label/src/mod.rs"]`
+  - `out.push_str(crate::label::styles::CSS);`
+  - `cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-label,inject-css`
+  - `cargo tree -e features -i ui-components -p web-demo | rg all-components`
+  - `Invalid cross-device link (os error 18)`
+  - `components/label/test/semantics.rs::label_tree_shaking_contract_is_feature_gated_in_ui_components`
+  - `crates/ui-components/tests/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css`
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -178,6 +196,12 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
+  - 语义回归：`components/label/test/semantics.rs::label_motion_contract_covers_reduced_motion_ssr_and_wasm_without_semantic_split`。
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
+  - `Label` 为静态语义叶子组件，不生成随机 ID、时间戳或 hydration 专属种子；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_ssr_hydration_path_stays_deterministic_without_time_or_random_id_init` 断言 `now()/Instant::now/SystemTime/Uuid/rand::/getrandom/IdProvider/hydrate` 等 token 不得进入 `mod.rs`、`logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入 SSR 侧 ID 生成能力，必须改为由 `IdProvider` 提供确定性种子，禁止使用时间与随机源直接初始化。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
@@ -189,6 +213,42 @@
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
+  - `Label` 为叶子投影组件，不承载拖拽/手势交互状态机；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_has_no_macro_micro_dragging_state_machine_contract` 断言 `Dragging`/`Action::DragEnd`/`request_animation_frame` 等 token 不得出现在 `logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入拖拽能力，必须按本条要求把高频帧循环留在 `view/motion`，并只在结束事件回流业务收敛动作。
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
+  - `Label` 为静态叶子投影组件，不承载 overlay 定位与 DOM 几何测量流程；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_has_no_two_pass_geometry_measurement_contract` 断言 `Intent/Measure/Rectification/get_bounding_client_rect/ResizeObserver` 等 token 不得出现在 `logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入定位依赖 DOM 测量的能力，必须改为两段式收敛流程，并补充幂等防回流死循环测试。
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
+  - `Label` 为单节点叶子投影组件，不存在动态子项集合注册与顺序导航；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_has_no_collection_registration_protocol_contract` 断言 `RegistrationContext/Register/Unregister/items_order/HashSet` 等 token 不得出现在 `logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入动态子项容器语义，必须将注册/反注册与顺序维护统一收敛到逻辑层并补齐导航回归测试。
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
+  - `Label` 为叶子投影组件，不承载容器插槽投影与可见性生命周期策略；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_has_no_slot_projection_strategy_contract` 断言 `Lazy/KeepAlive/Eager/NotifyHidden` 等 token 不得出现在 `logic.rs`、`view.rs`、`motion.rs` 与组件文档中。
+  - 若未来引入容器化插槽能力，必须显式定义投影模式并在 `KeepAlive` 隐藏态挂载生命周期通知以暂停高耗能副作用。
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
+  - `Label` 为静态叶子投影组件，不承载环境订阅采样与断点语义 Action 投影链路；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_has_no_env_stream_sampling_or_action_projection_contract` 断言 `BreakpointChanged/Action::BreakpointChanged/IntersectionObserver/ResizeObserver/debounce/throttle` 等 token 不得出现在 `logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入环境订阅能力，必须在 `view.rs` 完成采样/防抖并仅向 `logic` 推送高层语义 Action，禁止原始事件直通逻辑层。
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
+  - `Label` 为单节点叶子投影组件，不承载大型集合批量操作与上下文总线分发链路；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_has_no_event_light_cone_batch_bus_or_selector_contract` 断言 `Context Bus/Selector/SelectionState::All/prop drilling` 等 token 不得进入 `logic.rs`、`view.rs`、`motion.rs` 与组件文档。
+  - 若未来引入批量集合语义，必须以 `Context Bus + Selector` 与状态压缩表达收敛更新，禁止 O(N) prop drilling。
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
+  - `Label` 为静态叶子投影组件，不承载复杂派生命令总线与跨订阅者因果追踪链路；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_has_no_causality_bus_trace_id_contract` 断言 `TraceId/CausalityBus/broadcast/subscriber/publish` 等 token 不得出现在 `logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入复杂总线派生流程，必须在派生链路中透传 `TraceId` 并保证事件因果链可追踪、可验证。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
+  - `Label` 为非 overlay 叶子投影组件，不承载焦点栈管理、恢复目标缓存与 GC 回收职责；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_does_not_own_overlay_focus_stack_or_noderef_restore_logic` 断言 `NodeRef/node_ref/FocusManager/FallbackTo/document.body/restore_focus/overlay_stack` 等 token 不得出现在 `logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入 overlay 焦点恢复能力，必须迁移到共享 Focus Manager 契约，禁止在组件内私存 `NodeRef` 作为恢复目标。
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
+  - `Label` 为纯语义文本叶子组件，不承载命令式第三方图形/地图引擎接入；本项判定 `N/A`（通过）。
+  - 语义回归：`components/label/test/semantics.rs::label_does_not_expose_foreign_zone_or_imperative_third_party_handles` 断言 `ECharts/Mapbox/Leaflet/GoogleMap/ForeignZone/YieldControl/CleanupForeign/imperative_handle/third_party_instance` 等 token 不得出现在 `mod.rs`、`logic.rs`、`view.rs`、`motion.rs`。
+  - 若未来引入第三方命令式引擎，必须经 `Foreign Zone` 受控隔离并禁止把引擎实例暴露到公共 API 或反向渗透状态机。
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
@@ -213,6 +273,11 @@
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
+  - N/A：本次 `Label` 改动未引入跨大版本 API 破坏升级。
+  - 版本锚点保持 `LabelComponentSchemaVersion::V1`、`schema_version = "1"` 与 `ui.label.agent-contract.v1`，当前无需注册 `deprecation_window` 或引入 `migrate_v1_to_v2` 迁移层。
+  - `components/label/test/semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`
+  - `crates/ui-components/tests/label_semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui-components` 固定入口文件落点正确。
@@ -230,6 +295,8 @@
   - `<component>/view.rs`：纯 Leptos 结构渲染 + headless 语义挂载；禁止 `render.rs` 漂移；不隐藏关键状态决策。
   - `<component>/motion.rs`：`XxxMotion + attach_motion`；交互组件必须有；只做语义到 motion contract 的映射与挂载。
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
+  - 语义回归：`components/label/test/semantics.rs::label_component_directory_contract_keeps_standard_file_layout_and_responsibility_split`。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
@@ -248,12 +315,29 @@
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
+  - `components/label/src/Component.toml`
+  - `components/label/src/label.rbi`
+  - `label_context_compression_manifest_and_rbi_projection_are_present_and_current`
+  - `crates/ui-components/tests/label_semantics.rs::label_context_compression_manifest_and_rbi_projection_are_present_and_current`
 
 ### 7. 测试与文档（验证闭环）
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
+  - `components/label/test/semantics.rs::label_a11y_i18n_l10n_contract_is_mounted_via_headless_and_props`
+  - `components/label/test/semantics.rs::label_state_markers_are_observable_searchable_and_closed_set`
+  - `crates/ui-components/tests/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy`
+  - `crates/ui-components/tests/label_semantics.rs::label_state_markers_remain_observable_and_enumerated`
+  - `components/label/test/semantics.rs::label_does_not_own_overlay_focus_stack_or_noderef_restore_logic`
+  - `crates/ui-components/tests/label_semantics.rs::label_remains_outside_overlay_focus_stack_responsibility`
+  - `components/label/test/semantics.rs::label_performance_budget_contract_stays_traceable_and_predictable`
+  - `crates/ui-components/tests/label_semantics.rs::label_performance_budget_contract_uses_source_level_budget_baseline`
+  - `Signal::derive` 单路径（预算=1）
+  - `render_count` 精确计数在当前测试栈仍属仓库级能力
+  - `Label` 非高频/重型组件按清单边界以等价证据通过
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -278,10 +362,27 @@
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
+  - `apps/docs-app/src/pages/components/pages/forms_extra.rs::label()`
+  - `code_imports=label_imports.clone()`
+  - `Controlled vs Uncontrolled (N/A for Label)`
+  - `Streaming Optional (fallback=snapshot)`
+  - `data-slot="label-source-first"`
+  - `compose_copy_ready_code`
+  - `components/label/test/semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`
+  - `crates/ui-components/tests/label_semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
+  - 非测试源码约束满足：`components/label/src/mod.rs`、`components/label/src/logic.rs`、`components/label/src/view.rs`、`components/label/src/styles.rs`、`components/label/src/motion.rs`、`components/label/src/protocol.rs` 中不存在 `unwrap/expect/unwrap_err` 与 `let _ = ...`。
+  - 字符串复制热点约束满足：上述非测试源码未出现 `.to_owned()` / `String::from(...)` / 热点 `.to_string()`；默认文案与状态来源由 `ui-state-primitives::label` 统一提供。
+  - `components/label/test/semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`
+  - `components/label/test/semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`
+  - `crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`
+  - `crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`
+  - 执行记录：`./scripts/check-rust-hygiene.sh` 已执行；当前环境 `rg` 缺少 PCRE2 且 `check-api-contracts` baseline drift 属仓库级噪声，组件级定向扫描结论不受影响。
 
 ### 8. 明确禁止的反模式
 - [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。

@@ -27,9 +27,8 @@
 | `default_active_index` | `Option<usize>` | `Some(0)` |
 | `on_active_index_change` | `Option<Callback<usize>>` | `None` |
 | `on_action` | `Option<Callback<String>>` | `None` |
-| `is_disabled` | `Option<bool>` | `None`（优先级高于 `disabled`） |
-| `disabled` | `bool` | `false` |
-| `show_grid` | `bool` | `true` |
+| `is_disabled` | `bool` | `false` |
+| `is_show_grid` | `bool` | `true` |
 | `motion` | `ChartMotion` | `ChartMotion::default()` |
 | `aria_label` | `Option<String>` | `"Chart"` |
 | `class_name` | `Option<String>` | `None` |
@@ -46,13 +45,7 @@
 ## Hello World（最小可用）
 
 ```rust
-<Chart
-  points=vec![
-    ChartPoint::new("jan", "Jan", 12.0),
-    ChartPoint::new("feb", "Feb", 18.5),
-    ChartPoint::new("mar", "Mar", 17.2),
-  ]
-/>
+<Chart points=vec![ChartPoint::new("jan", "Jan", 12.0), ChartPoint::new("feb", "Feb", 18.5), ChartPoint::new("mar", "Mar", 17.2)] />
 ```
 
 - 默认路径不需要手动接线 `ui-state-primitives` / `ui-headless`。
@@ -73,7 +66,7 @@
 - `Interactive Playground` 的设置面板提供：
   - `kind` 切换（bar / line）
   - `dataset` 切换（revenue / growth / flat）
-  - `disabled` / `show_grid` / `custom class` / `lang` 开关
+  - `is_disabled` / `is_show_grid` / `custom class` / `lang` 开关
 - 同步输出 `Actual config` 文本，包含当前 class/marker 预期，方便契约核对。
 
 ## Code 展示区
@@ -123,7 +116,7 @@ let (active_raw, set_active_raw) = signal(1_usize);
   kind=ChartKind::Line
   active_index=Signal::derive(move || active_raw.get())
   on_active_index_change=Callback::new(move |next| set_active_raw.set(next))
-  is_disabled=Some(false)
+  is_disabled=false
   aria_label="Quarterly growth line chart".to_string()
   class_name="docs-chart-custom".to_string()
   lang="en-US".to_string()

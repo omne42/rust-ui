@@ -60,3 +60,45 @@ fn controls_are_present_only_when_open() {
         Some("lang-listbox".to_string())
     );
 }
+
+#[test]
+fn option_attrs_are_derived_from_headless_selection_focus_and_disabled_state() {
+    init_executor();
+
+    let (is_open, set_open) = signal(true);
+    let (item_count, _set_item_count) = signal(3usize);
+    let (selected_index, set_selected_index) = signal(Some(1usize));
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: false,
+        id_base: "city".to_string(),
+        is_open: is_open.into(),
+        set_open: Callback::new(move |next| set_open.set(next)),
+        item_count,
+        selected_index: selected_index.into(),
+        on_action: None,
+        is_item_disabled: Some(Callback::new(|index| index == 2)),
+        lang: None,
+        dir: None,
+    });
+
+    let selected = aria.option_attrs.run(1);
+    assert_eq!(selected.role, "option");
+    assert_eq!(selected.aria_selected, Some("true"));
+    assert_eq!(selected.data_selected, Some("true"));
+    assert_eq!(selected.data_focused, None);
+    assert_eq!(selected.aria_disabled, None);
+    assert_eq!(selected.data_disabled, None);
+
+    let active = aria.option_attrs.run(0);
+    assert_eq!(active.data_focused, Some("true"));
+
+    let disabled = aria.option_attrs.run(2);
+    assert_eq!(disabled.aria_selected, None);
+    assert_eq!(disabled.aria_disabled, Some("true"));
+    assert_eq!(disabled.data_disabled, Some("true"));
+
+    set_selected_index.set(Some(0));
+    let updated = aria.option_attrs.run(0);
+    assert_eq!(updated.aria_selected, Some("true"));
+}

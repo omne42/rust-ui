@@ -1,0 +1,124 @@
+schema_version = "1"
+
+[component]
+name = "FileTrigger"
+crate = "ui-file-trigger"
+
+[[inputs]]
+name = "id"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None (normalized to false)"
+controlled = false
+
+[[inputs]]
+name = "disabled"
+ty = "Option<bool>"
+default = "None (legacy alias)"
+controlled = false
+
+[[inputs]]
+name = "is_multiple"
+ty = "Option<bool>"
+default = "None (normalized to false)"
+controlled = false
+
+[[inputs]]
+name = "multiple"
+ty = "Option<bool>"
+default = "None (legacy alias)"
+controlled = false
+
+[[inputs]]
+name = "accept"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_accept_directory"
+ty = "Option<bool>"
+default = "None (normalized to false)"
+controlled = false
+
+[[inputs]]
+name = "accept_directory"
+ty = "Option<bool>"
+default = "None (legacy alias)"
+controlled = false
+
+[[inputs]]
+name = "capture"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "FileTriggerMotion"
+default = "FileTriggerMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "on_files"
+ty = "Option<Callback<Vec<FileTriggerFile>>>"
+scope = "event-callback"
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-disabled + data-enabled + data-motion-source + data-custom-motion + data-ui-schema + data-ui-schema-version + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-stream-support + data-ui-stream-fallback + data-ui-output-status + aria-hidden + tabindex + lang + dir"
+scope = "root-and-input-attributes"
+
+[[slots]]
+name = "children"
+required = true
+description = "Trigger content rendered inside Button."
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema"
+enabled = true
+
+[[capabilities]]
+name = "snapshot_rendering"
+enabled = true
+
+[[capabilities]]
+name = "streaming_optional_snapshot_fallback"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"

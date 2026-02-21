@@ -109,12 +109,9 @@ fn file_trigger_uses_logic_state_model() {
     let view_source = load_source("src/file_trigger/view.rs");
 
     for needle in [
-        "pub struct FileTriggerStateInput",
-        "pub struct FileTriggerState",
-        "pub fn resolve_state(input: FileTriggerStateInput)",
+        "pub use ui_state_primitives::file_trigger::{",
+        "FileTriggerState, FileTriggerStateInput, resolve_state,",
         "pub fn compose_class_name(state: FileTriggerState)",
-        "pub motion_source_attr: &'static str",
-        "pub has_custom_motion: bool",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -125,6 +122,8 @@ fn file_trigger_uses_logic_state_model() {
     for needle in [
         "let state = Signal::derive(move ||",
         "super::logic::resolve_state(super::logic::FileTriggerStateInput {",
+        "let semantics = Signal::derive(move || {",
+        "use_file_trigger(FileTriggerOptions {",
         "let class = Signal::derive(move || super::logic::compose_class_name(state.get()));",
     ] {
         assert!(
@@ -145,6 +144,24 @@ fn file_trigger_clears_input_value_before_click() {
 }
 
 #[test]
+fn file_trigger_mounts_ui_headless_locale_contract() {
+    let source = load_source("src/file_trigger/view.rs");
+
+    for needle in [
+        "use ui_headless::{A11yDirection, FileTriggerOptions, use_file_trigger};",
+        "#[prop(optional, into)] lang: Option<String>,",
+        "#[prop(optional)] dir: Option<A11yDirection>,",
+        "lang=move || semantics.get().attrs.lang",
+        "dir=move || semantics.get().attrs.dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "FileTrigger should mount locale-aware ui-headless contract; missing `{needle}`.",
+        );
+    }
+}
+
+#[test]
 fn file_trigger_forwards_motion_to_button() {
     let source = load_source("src/file_trigger/view.rs");
 
@@ -160,9 +177,9 @@ fn file_trigger_emits_motion_source_markers() {
 
     for needle in [
         "data-slot=\"file-trigger\"",
-        "data-state=move || state.get().state_attr",
-        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
-        "data-enabled=move || state.get().is_enabled.then_some(\"true\")",
+        "data-state=move || semantics.get().attrs.data_state",
+        "data-disabled=move || semantics.get().attrs.data_disabled",
+        "data-enabled=move || semantics.get().attrs.data_enabled",
         "data-motion-source=move || state.get().motion_source_attr",
         "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
     ] {
@@ -178,13 +195,13 @@ fn file_trigger_input_is_hidden_from_tab_order() {
     let source = load_source("src/file_trigger/view.rs");
 
     assert!(
-        source.contains("tabindex=\"-1\""),
-        "FileTrigger should set `tabindex=\"-1\"` on the hidden input to avoid it receiving focus."
+        source.contains("tabindex=move || semantics.get().attrs.input_tabindex"),
+        "FileTrigger should mount hidden input tabindex from ui-headless contract."
     );
 
     assert!(
-        source.contains("aria-hidden=\"true\""),
-        "FileTrigger should set `aria-hidden=\"true\"` on the hidden input to keep the accessibility tree focused on the trigger."
+        source.contains("aria-hidden=move || semantics.get().attrs.input_aria_hidden"),
+        "FileTrigger should mount hidden input aria-hidden from ui-headless contract."
     );
 }
 
@@ -289,7 +306,7 @@ fn file_trigger_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Pick files\"",
-        "<FileTrigger multiple=true on_files=on_files>",
+        "<FileTrigger is_multiple=true on_files=on_files>",
         "\"Pick files\"",
         "\"No files selected.\"",
         "title=\"Pick files with custom motion\"",

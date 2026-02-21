@@ -88,3 +88,14 @@ fn compose_class_name_includes_state_markers() {
         );
     }
 }
+
+#[test]
+fn normalize_item_count_and_title_text_apply_single_default_source() {
+    assert_eq!(normalize_item_count(None), 1);
+    assert_eq!(normalize_item_count(Some(3)), 3);
+    assert_eq!(resolve_title_text(None), "");
+    assert_eq!(
+        resolve_title_text(Some("Preferred regions".to_string())),
+        "Preferred regions"
+    );
+}

@@ -1,8 +1,6 @@
 #[cfg(all(target_arch = "wasm32", feature = "component-button"))]
 pub(crate) fn warn_js_error(context: &str, error: &leptos::wasm_bindgen::JsValue) {
-    use leptos::wasm_bindgen::JsValue;
-
-    leptos::web_sys::console::warn_2(&JsValue::from_str(context), error);
+    ui_observability::warn_js_error(context, error);
 }
 
 #[cfg(all(
@@ -20,8 +18,5 @@ pub(crate) fn set_css_property_observed(
     value: &str,
     context: &str,
 ) {
-    if let Err(error) = css.set_property(name, value) {
-        let message = format!("{context}: failed to set CSS property `{name}`");
-        warn_js_error(&message, &error);
-    }
+    ui_observability::set_css_property_observed(css, name, value, context);
 }

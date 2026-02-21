@@ -79,12 +79,15 @@ fn toggle_view_contains_press_and_state_contracts() {
     let source = load_source("src/button/toggle/view.rs");
 
     for needle in [
+        "#[prop(optional)] is_pressed: Option<Signal<bool>>",
+        "#[prop(optional)] default_pressed: Option<bool>",
         "logic::normalize_optional_text(class_name)",
         "logic::normalize_optional_text(aria_label)",
         "let has_custom_class_name = class_name.is_some();",
         "let has_custom_motion = motion != ToggleMotion::default();",
         "let has_custom_aria_label = aria_label.is_some();",
         "let has_on_pressed_change = on_pressed_change.is_some();",
+        "overlay_open::use_controllable_state(is_pressed, default_pressed, on_pressed_change)",
         "let state = Memo::new(move |_| {",
         "logic::resolve_state(ToggleStateInput {",
         "let class = logic::compose_class_name(class_name, state.get_untracked());",
@@ -111,6 +114,11 @@ fn toggle_view_contains_press_and_state_contracts() {
             "Toggle view should include `{needle}` for stable behavior contracts."
         );
     }
+
+    assert!(
+        !source.contains("set_pressed: WriteSignal<bool>"),
+        "Toggle should not remain controlled-only via `set_pressed` injection."
+    );
 }
 
 #[test]
@@ -179,7 +187,7 @@ fn toggle_docs_outline_disabled_playground_locks_contract_values() {
         "size=ToggleSize::Sm",
         "\"Italic\"",
         "variant=ToggleVariant::Ghost",
-        "disabled=true",
+        "is_disabled=true",
         "\"Disabled\"",
     ] {
         assert!(
@@ -195,6 +203,7 @@ fn toggle_docs_state_source_playground_locks_contract_values() {
 
     for needle in [
         "title=\"State + Source Markers\"",
+        "is_pressed=Some(pressed_signal)",
         "variant=ToggleVariant::Outline",
         "size=ToggleSize::Sm",
         "motion=ToggleMotion {",

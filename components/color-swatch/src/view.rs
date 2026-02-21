@@ -1,11 +1,21 @@
 use crate::color::swatch::{
     ColorSwatchMotion, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize,
-    ColorSwatchStateInput,
     logic::{self},
     motion,
 };
 use leptos::{html, prelude::*};
-use ui_headless::a11y::{A11yDirection, locale_attrs};
+use ui_headless::{A11yDirection, ColorSwatchA11yOptions, use_color_swatch_a11y};
+
+const SLOT_COLOR_SWATCH: &str = "color-swatch";
+const SLOT_COLOR_SWATCH_CHECKER: &str = "color-swatch-checker";
+const SLOT_COLOR_SWATCH_SAMPLE: &str = "color-swatch-sample";
+const SLOT_COLOR_SWATCH_SLASH: &str = "color-swatch-slash";
+
+const CLASS_COLOR_SWATCH_CHECKER: &str = "ui-color-swatch__checker";
+const CLASS_COLOR_SWATCH_SAMPLE: &str = "ui-color-swatch__sample";
+const CLASS_COLOR_SWATCH_SLASH: &str = "ui-color-swatch__slash";
+
+const BOOL_TRUE: &str = "true";
 
 #[component]
 pub fn ColorSwatch(
@@ -22,45 +32,42 @@ pub fn ColorSwatch(
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let locale = locale_attrs(lang, dir);
-    let color = logic::sanitize_color_value(color);
-    let alpha = logic::resolve_alpha(color.as_deref());
-    let (aria_label, has_custom_aria_label) =
-        logic::normalize_aria_label(aria_label, color_name, color.as_deref(), alpha);
-    let (is_bordered, bordered_source) = logic::normalize_is_bordered(is_bordered);
-    let (is_decorative, decorative_source) = logic::normalize_is_decorative(is_decorative);
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let motion = motion::sanitize_motion(motion);
-    let has_custom_motion = motion != ColorSwatchMotion::default();
-
-    let state = logic::resolve_state(ColorSwatchStateInput {
+    let render_state = logic::resolve_render_state(logic::ColorSwatchRenderInput {
+        color,
+        color_name,
         size,
         rounding,
         shape,
-        bordered: is_bordered,
-        alpha,
-        has_color: color.is_some(),
-        has_custom_aria_label,
-        has_custom_class_name,
+        is_bordered,
+        is_decorative,
+        aria_label,
+        class_name,
+    });
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ColorSwatchMotion::default();
+    let agent_contract = logic::resolve_agent_contract();
+    let a11y = use_color_swatch_a11y(ColorSwatchA11yOptions {
+        is_decorative: render_state.is_decorative,
+        aria_label: render_state.aria_label,
+        lang,
+        dir,
     });
 
-    let class = logic::compose_class_name(class_name, state);
+    let state = render_state.state;
     let root_ref: NodeRef<html::Div> = NodeRef::new();
     motion::attach_motion(root_ref, motion);
 
     view! {
         <div
             node_ref=root_ref
-            class=class
-            role=(!is_decorative).then_some("img")
-            aria-label=(!is_decorative).then_some(aria_label)
-            aria-hidden=is_decorative.then_some("true")
-            lang=locale.lang
-            dir=locale.dir
-            style=logic::compose_inline_style(color.as_deref()).unwrap_or_default()
-            data-slot="color-swatch"
+            class=render_state.class_name
+            role=a11y.attrs.role
+            aria-label=a11y.attrs.aria_label.clone()
+            aria-hidden=a11y.attrs.aria_hidden
+            lang=a11y.attrs.lang.clone()
+            dir=a11y.attrs.dir
+            style=render_state.inline_style
+            data-slot=SLOT_COLOR_SWATCH
             data-size=state.size_attr
             data-rounding=state.rounding_attr
             data-shape=state.shape_attr
@@ -68,27 +75,27 @@ pub fn ColorSwatch(
             data-state=state.data_state_attr
             data-has-color=state.has_color.then_some("true")
             data-bordered=state.is_bordered.then_some("true")
-            data-bordered-source=bordered_source.as_attr()
-            data-decorative=is_decorative.then_some("true")
-            data-decorative-source=decorative_source.as_attr()
+            data-bordered-source=render_state.bordered_source.as_attr()
+            data-decorative=render_state.is_decorative.then_some("true")
+            data-decorative-source=render_state.decorative_source.as_attr()
             data-aria-source=state.aria_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-class-source=state.class_source_attr
             data-motion-source=if has_custom_motion { "custom" } else { "default" }
             data-custom-motion=has_custom_motion.then_some("true")
-            data-ui-schema="ui.color-swatch.agent-contract"
-            data-ui-schema-version="1"
-            data-ui-intent="color-preview"
-            data-ui-action="render"
+            data-ui-schema=agent_contract.schema_attr
+            data-ui-schema-version=agent_contract.schema_version_attr
+            data-ui-intent=agent_contract.intent_attr
+            data-ui-action=agent_contract.action_attr
             data-ui-state=state.data_state_attr
             data-ui-source=state.aria_source_attr
-            data-ui-stream-support="optional"
-            data-ui-stream-fallback="snapshot"
-            data-ui-output-status="verified"
+            data-ui-stream-support=agent_contract.stream_support_attr
+            data-ui-stream-fallback=agent_contract.stream_fallback_attr
+            data-ui-output-status=agent_contract.output_status_attr
         >
-            <span class="ui-color-swatch__checker" data-slot="color-swatch-checker" aria-hidden="true"></span>
-            <span class="ui-color-swatch__sample" data-slot="color-swatch-sample" aria-hidden="true"></span>
-            <span class="ui-color-swatch__slash" data-slot="color-swatch-slash" aria-hidden="true"></span>
+            <span class=CLASS_COLOR_SWATCH_CHECKER data-slot=SLOT_COLOR_SWATCH_CHECKER aria-hidden=BOOL_TRUE></span>
+            <span class=CLASS_COLOR_SWATCH_SAMPLE data-slot=SLOT_COLOR_SWATCH_SAMPLE aria-hidden=BOOL_TRUE></span>
+            <span class=CLASS_COLOR_SWATCH_SLASH data-slot=SLOT_COLOR_SWATCH_SLASH aria-hidden=BOOL_TRUE></span>
         </div>
     }
 }

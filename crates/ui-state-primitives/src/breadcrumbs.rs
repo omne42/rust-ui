@@ -5,7 +5,6 @@ pub const DEFAULT_ARIA_LABEL: &str = "Breadcrumb";
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct BreadcrumbsItemInput<'a> {
     pub href: Option<&'a str>,
-    pub is_last: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -44,15 +43,31 @@ pub fn resolve_root_class(class_name: Option<String>) -> (String, &'static str) 
     (BASE_CLASS.to_string(), "default")
 }
 
+pub fn is_last_item(item_index: usize, item_count: usize) -> bool {
+    item_count > 0 && item_index.saturating_add(1) == item_count
+}
+
+pub fn resolve_item_href(
+    item: BreadcrumbsItemInput<'_>,
+    item_index: usize,
+    item_count: usize,
+) -> Option<String> {
+    if item_index >= item_count || is_last_item(item_index, item_count) {
+        return None;
+    }
+
+    item.href
+        .and_then(|href| normalize_optional_text(Some(href.to_string())))
+}
+
 pub fn resolve_state(input: BreadcrumbsStateInput<'_>) -> BreadcrumbsState {
     let item_count = input.items.len();
     let has_items = item_count > 0;
-    let has_links = input.items.iter().any(|item| {
-        !item.is_last
-            && item
-                .href
-                .is_some_and(|href| normalize_optional_text(Some(href.into())).is_some())
-    });
+    let has_links = input
+        .items
+        .iter()
+        .enumerate()
+        .any(|(index, item)| resolve_item_href(*item, index, item_count).is_some());
 
     BreadcrumbsState {
         item_count,

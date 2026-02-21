@@ -205,11 +205,31 @@ pub fn attach_indicator_motion(
         let element: leptos::web_sys::HtmlElement = indicator.unchecked_into();
         let style = element.style();
 
-        drop(style.set_property("--ui-segmented-control-indicator-x", "0px"));
-        drop(style.set_property("--ui-segmented-control-indicator-y", "0px"));
-        drop(style.set_property("--ui-segmented-control-indicator-w", "0px"));
-        drop(style.set_property("--ui-segmented-control-indicator-h", "0px"));
-        drop(style.set_property("--ui-segmented-control-indicator-o", "0"));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-segmented-control-indicator-x",
+            "0px"
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-segmented-control-indicator-y",
+            "0px"
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-segmented-control-indicator-w",
+            "0px"
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-segmented-control-indicator-h",
+            "0px"
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-segmented-control-indicator-o",
+            "0"
+        );
         let measure_layout = {
             let container_ref = container_ref;
             let active_index = active_index;
@@ -249,31 +269,51 @@ pub fn attach_indicator_motion(
         let style_for_x = style.clone();
         let set_x = move |v: f64| {
             let v = v.clamp(-10000.0, 10000.0);
-            drop(style_for_x.set_property("--ui-segmented-control-indicator-x", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_x),
+                "--ui-segmented-control-indicator-x",
+                &format!("{v}px")
+            );
         };
 
         let style_for_y = style.clone();
         let set_y = move |v: f64| {
             let v = v.clamp(-10000.0, 10000.0);
-            drop(style_for_y.set_property("--ui-segmented-control-indicator-y", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_y),
+                "--ui-segmented-control-indicator-y",
+                &format!("{v}px")
+            );
         };
 
         let style_for_w = style.clone();
         let set_w = move |v: f64| {
             let v = v.clamp(0.0, 10000.0);
-            drop(style_for_w.set_property("--ui-segmented-control-indicator-w", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_w),
+                "--ui-segmented-control-indicator-w",
+                &format!("{v}px")
+            );
         };
 
         let style_for_h = style.clone();
         let set_h = move |v: f64| {
             let v = v.clamp(0.0, 10000.0);
-            drop(style_for_h.set_property("--ui-segmented-control-indicator-h", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_h),
+                "--ui-segmented-control-indicator-h",
+                &format!("{v}px")
+            );
         };
 
         let style_for_o = style.clone();
         let set_o = move |v: f64| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_o.set_property("--ui-segmented-control-indicator-o", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_o),
+                "--ui-segmented-control-indicator-o",
+                &format!("{v}")
+            );
         };
 
         let driver_instance = Rc::new(RefCell::new(IndicatorMotionDriver::new(

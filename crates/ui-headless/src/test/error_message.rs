@@ -33,6 +33,23 @@ fn use_error_message_maps_live_region_locale_and_state_attrs() {
     assert_eq!(contract.attrs.data_aria_source, "custom");
     assert_eq!(contract.attrs.data_custom_class, Some("true"));
     assert_eq!(contract.attrs.data_class_source, "custom");
+    assert_eq!(
+        contract.attrs.data_ui_schema,
+        "ui.error-message.agent-contract.v1"
+    );
+    assert_eq!(contract.attrs.data_ui_schema_version, "1");
+    assert_eq!(contract.attrs.data_ui_intent, "form-validation-feedback");
+    assert_eq!(contract.attrs.data_ui_action, "read-only");
+    assert_eq!(contract.attrs.data_ui_stream_support, "optional");
+    assert_eq!(contract.attrs.data_ui_stream_mode, "snapshot");
+    assert_eq!(contract.attrs.data_ui_stream_fallback, "snapshot");
+    assert_eq!(contract.attrs.data_ui_output_status, "draft");
+    assert_eq!(contract.attrs.data_stream_mode, "snapshot");
+    assert_eq!(contract.attrs.data_stream_fallback, "snapshot");
+    assert_eq!(contract.attrs.data_output_status, "draft");
+    assert_eq!(contract.state.ui_output_mode, "snapshot");
+    assert_eq!(contract.state.ui_action, "read-only");
+    assert_eq!(contract.state.ui_output_status, "draft");
 }
 
 #[test]
@@ -66,4 +83,21 @@ fn use_error_message_preserves_default_state_without_optional_attrs() {
     assert_eq!(contract.attrs.data_aria_source, "default");
     assert_eq!(contract.attrs.data_custom_class, None);
     assert_eq!(contract.attrs.data_class_source, "default");
+    assert_eq!(
+        contract.attrs.data_ui_schema,
+        "ui.error-message.agent-contract.v1"
+    );
+    assert_eq!(contract.attrs.data_ui_schema_version, "1");
+    assert_eq!(contract.attrs.data_ui_intent, "form-validation-feedback");
+    assert_eq!(contract.attrs.data_ui_action, "announce-error");
+    assert_eq!(contract.attrs.data_ui_stream_support, "optional");
+    assert_eq!(contract.attrs.data_ui_stream_mode, "snapshot");
+    assert_eq!(contract.attrs.data_ui_stream_fallback, "snapshot");
+    assert_eq!(contract.attrs.data_ui_output_status, "verified");
+    assert_eq!(contract.attrs.data_stream_mode, "snapshot");
+    assert_eq!(contract.attrs.data_stream_fallback, "snapshot");
+    assert_eq!(contract.attrs.data_output_status, "verified");
+    assert_eq!(contract.state.ui_output_mode, "snapshot");
+    assert_eq!(contract.state.ui_action, "announce-error");
+    assert_eq!(contract.state.ui_output_status, "verified");
 }

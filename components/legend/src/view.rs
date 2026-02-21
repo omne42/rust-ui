@@ -1,59 +1,53 @@
 use crate::{
-    LegendMotion, LegendStateInput,
+    LegendMotion,
     logic::{self, LegendTone},
     motion,
 };
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, LegendOptions, use_legend};
 
+fn required_indicator_view(is_required: bool, required_indicator: String) -> impl IntoView {
+    view! {
+        <Show when=move || is_required>
+            <span class="ui-legend__required" data-slot="legend-required" aria-hidden="true">
+                {required_indicator.clone()}
+            </span>
+        </Show>
+    }
+}
+
 #[component]
 pub fn Legend(
     #[prop(optional, into)] text: Option<String>,
     #[prop(optional)] tone: LegendTone,
     #[prop(optional)] is_required: Option<bool>,
-    #[prop(optional)] required: bool,
     #[prop(optional)] is_disabled: Option<bool>,
-    #[prop(optional)] disabled: bool,
     #[prop(optional)] motion: LegendMotion,
     #[prop(optional, into)] required_indicator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let required_state = logic::normalize_required_state(is_required, required);
-    let accessibility_state = logic::normalize_accessibility_state(is_disabled, disabled);
-
-    let (text, has_custom_text) = logic::normalize_text(text);
-    let (required_indicator, has_custom_indicator) =
-        logic::normalize_required_indicator(required_indicator);
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let class_name = StoredValue::new(class_name);
+    let normalized = logic::normalize_component_state(logic::LegendNormalizeInput {
+        tone,
+        is_required,
+        is_disabled,
+        text,
+        required_indicator,
+        class_name,
+    });
+    let required_state = normalized.required_state;
+    let accessibility_state = normalized.accessibility_state;
+    let state = normalized.state;
+    let class = logic::compose_class_name(normalized.class_name, state);
+    let text = normalized.text;
+    let required_indicator = normalized.required_indicator;
 
     let motion = motion::sanitize_motion(motion);
     let has_custom_motion = motion != LegendMotion::default();
     let motion_style = motion::attach_motion(motion);
 
-    let state = Signal::derive(move || {
-        logic::resolve_state(LegendStateInput {
-            tone,
-            is_required: required_state.is_required,
-            is_disabled: accessibility_state.is_disabled,
-            has_custom_text,
-            has_custom_indicator,
-            has_custom_class_name,
-        })
-    });
-
-    let class =
-        Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
-
-    let semantics = use_legend(LegendOptions {
-        state: state.get_untracked(),
-        lang: logic::normalize_optional_text(lang),
-        dir,
-    });
+    let semantics = use_legend(LegendOptions { state, lang, dir });
     let attrs = semantics.attrs;
     let legend_lang = attrs.lang;
     let legend_dir = attrs.dir;
@@ -70,7 +64,7 @@ pub fn Legend(
 
     view! {
         <legend
-            class=move || class.get()
+            class=class
             style=motion_style.clone()
             lang=legend_lang
             dir=legend_dir
@@ -95,7 +89,7 @@ pub fn Legend(
             data-ui-output-status=agent_contract.output_status_attr
             data-ui-intent=agent_contract.intent_attr
             data-ui-action=logic::LegendUiAction::Idle.as_attr()
-            data-ui-source="component"
+            data-ui-source=logic::LegendUiSource::Component.as_attr()
             data-ui-state=legend_data_state
             aria-disabled=legend_aria_disabled
         >
@@ -103,11 +97,7 @@ pub fn Legend(
                 {text}
             </span>
 
-            <Show when=move || state.get().is_required>
-                <span class="ui-legend__required" data-slot="legend-required" aria-hidden="true">
-                    {required_indicator.clone()}
-                </span>
-            </Show>
+            {required_indicator_view(state.is_required, required_indicator)}
         </legend>
     }
 }

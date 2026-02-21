@@ -1,0 +1,162 @@
+schema_version = "1"
+
+[component]
+name = "Carousel"
+crate = "ui-carousel"
+rbi = "carousel.rbi"
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "items"
+ty = "Vec<CarouselItem>"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "selected_index"
+ty = "Option<Signal<Option<usize>>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_selected_index"
+ty = "Option<usize>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_selected_index_change"
+ty = "Option<Callback<Option<usize>>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "orientation"
+ty = "CarouselOrientation"
+default = "CarouselOrientation::Horizontal"
+controlled = false
+
+[[inputs]]
+name = "is_loop_navigation"
+ty = "bool"
+default = "true"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "CarouselMotion"
+default = "CarouselMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "controls_aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "indicators_aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "previous_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "next_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "indicator_aria_label_template"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-items + data-selection-mode + data-navigation-mode + data-orientation + data-selected-index + data-focused-index + data-*source + role + aria-* + lang + dir"
+scope = "root/viewport/item/controls/indicator"
+
+[[outputs]]
+name = "on_selected_index_change"
+ty = "Option<Callback<Option<usize>>>"
+scope = "selection-state"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_selection_state"
+enabled = true
+
+[[capabilities]]
+name = "keyboard_navigation_and_a11y_mount"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_attach"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-and-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-driver"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"

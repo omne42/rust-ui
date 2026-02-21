@@ -41,6 +41,14 @@ fn source_attr_distinguishes_default_and_custom_motion() {
 
 #[test]
 fn attach_motion_outputs_css_variable() {
+    assert_eq!(attach_motion(None, ColorAreaMotion::default()), "");
+    assert_eq!(
+        attach_motion(
+            Some("--ui-color-area-preview-color: #09f;".to_string()),
+            ColorAreaMotion::default()
+        ),
+        "--ui-color-area-preview-color: #09f;"
+    );
     assert_eq!(
         attach_motion(None, ColorAreaMotion { duration_ms: 220.0 }),
         "--ui-color-area-motion-duration: 220ms;"

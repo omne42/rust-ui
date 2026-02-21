@@ -5,7 +5,49 @@ use crate::{
 };
 use leptos::children::{Children, ViewFn};
 use leptos::{html, prelude::*};
-use ui_headless::{A11yDirection, locale_attrs};
+use ui_headless::{A11yDirection, error_view_attrs};
+
+fn render_content(children: Option<Children>, message: StoredValue<String>) -> AnyView {
+    if let Some(children) = children {
+        view! {
+            <div class="ui-error-view__content" data-slot="error-view-content">
+                {children()}
+            </div>
+        }
+        .into_any()
+    } else {
+        view! {
+            <div class="ui-error-view__content" data-slot="error-view-content">
+                <p class="ui-error-view__text" data-slot="error-view-text">
+                    {message.get_value()}
+                </p>
+            </div>
+        }
+        .into_any()
+    }
+}
+
+fn render_icon(icon: Option<StoredValue<ViewFn>>) -> Option<AnyView> {
+    icon.map(|icon| {
+        view! {
+            <span class="ui-error-view__icon" data-slot="error-view-icon" aria-hidden="true">
+                {icon.get_value().run()}
+            </span>
+        }
+        .into_any()
+    })
+}
+
+fn render_actions(actions: Option<StoredValue<ViewFn>>) -> Option<AnyView> {
+    actions.map(|actions| {
+        view! {
+            <div class="ui-error-view__actions" data-slot="error-view-actions">
+                {actions.get_value().run()}
+            </div>
+        }
+        .into_any()
+    })
+}
 
 #[component]
 pub fn ErrorView(
@@ -27,7 +69,6 @@ pub fn ErrorView(
     let has_actions = actions.is_some();
     let has_children = children.is_some();
     let has_custom_motion = motion != ErrorViewMotion::default();
-    let locale = locale_attrs(lang, dir);
 
     let normalized = logic::normalize_props(logic::ErrorViewNormalizeInput {
         tone,
@@ -43,7 +84,6 @@ pub fn ErrorView(
         has_custom_motion,
     });
     let message = StoredValue::new(normalized.message);
-    let aria_label = normalized.aria_label;
     let class_name = StoredValue::new(normalized.class_name);
     let state_input = StoredValue::new(normalized.state_input);
 
@@ -51,31 +91,35 @@ pub fn ErrorView(
     let actions = actions.map(StoredValue::new);
 
     let state = Signal::derive(move || logic::resolve_state(state_input.get_value()));
+    let agent_contract = Memo::new(move |_| {
+        let resolved_state = state.get();
+        logic::resolve_agent_contract(logic::ErrorViewAgentContractInput {
+            is_visible: resolved_state.is_visible,
+            message_source_attr: resolved_state.message_source_attr,
+            aria_source_attr: resolved_state.aria_source_attr,
+            class_source_attr: resolved_state.class_source_attr,
+            motion_source_attr: resolved_state.motion_source_attr,
+            has_actions: resolved_state.has_actions,
+        })
+    });
 
     let class =
         Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
     let visible = Signal::derive(move || state.get().is_visible);
+    let a11y = error_view_attrs(visible, normalized.aria_label, lang, dir);
+    let role = a11y.role;
+    let aria_live = a11y.aria_live;
+    let aria_hidden = a11y.aria_hidden;
+    let aria_label = a11y.aria_label;
+    let lang = a11y.lang;
+    let dir = a11y.dir;
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
     motion::attach_motion(root_ref, visible, motion);
 
-    let content: AnyView = if let Some(children) = children {
-        view! {
-            <div class="ui-error-view__content" data-slot="error-view-content">
-                {children()}
-            </div>
-        }
-        .into_any()
-    } else {
-        view! {
-            <div class="ui-error-view__content" data-slot="error-view-content">
-                <p class="ui-error-view__text" data-slot="error-view-text">
-                    {message.get_value()}
-                </p>
-            </div>
-        }
-        .into_any()
-    };
+    let content = render_content(children, message);
+    let icon = render_icon(icon);
+    let actions = render_actions(actions);
 
     view! {
         <div
@@ -99,30 +143,28 @@ pub fn ErrorView(
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
             data-motion-source=move || state.get().motion_source_attr
-            role="alert"
-            aria-live=move || if state.get().is_visible { "assertive" } else { "off" }
-            aria-hidden=move || state.get().is_hidden.then_some("true")
+            data-ui-schema=move || agent_contract.get().schema_name
+            data-ui-schema-version=move || agent_contract.get().schema_version.as_str()
+            data-ui-intent=move || agent_contract.get().intent.as_str()
+            data-ui-action=move || agent_contract.get().action.as_str()
+            data-ui-state=move || agent_contract.get().state.as_str()
+            data-ui-source=move || agent_contract.get().source.as_str()
+            data-ui-state-source=move || agent_contract.get().state_source.as_str()
+            data-ui-action-source=move || agent_contract.get().action_source.as_str()
+            data-ui-motion-source=move || agent_contract.get().motion_source.as_str()
+            data-ui-config-policy=move || agent_contract.get().config_policy.as_str()
+            role=role
+            aria-live=move || aria_live.get()
+            aria-hidden=move || aria_hidden.get()
             aria-label=aria_label
-            lang=locale.lang
-            dir=locale.dir
+            lang=lang
+            dir=dir
         >
-            {icon.map(|icon| {
-                view! {
-                    <span class="ui-error-view__icon" data-slot="error-view-icon" aria-hidden="true">
-                        {icon.get_value().run()}
-                    </span>
-                }
-            })}
+            {icon}
 
             {content}
 
-            {actions.map(|actions| {
-                view! {
-                    <div class="ui-error-view__actions" data-slot="error-view-actions">
-                        {actions.get_value().run()}
-                    </div>
-                }
-            })}
+            {actions}
         </div>
     }
 }

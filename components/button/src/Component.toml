@@ -1,0 +1,195 @@
+schema_version = "1"
+
+[component]
+name = "Button"
+crate = "ui-components"
+
+[[inputs]]
+name = "id"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_loading"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "variant"
+ty = "ButtonVariant"
+default = "ButtonVariant::Default"
+controlled = false
+
+[[inputs]]
+name = "color"
+ty = "ButtonColor"
+default = "ButtonColor::Primary"
+controlled = false
+
+[[inputs]]
+name = "radius"
+ty = "ButtonRadius"
+default = "ButtonRadius::Md"
+controlled = false
+
+[[inputs]]
+name = "size"
+ty = "ButtonSize"
+default = "ButtonSize::M"
+controlled = false
+
+[[inputs]]
+name = "is_icon_only"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_full_width"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ButtonMotion"
+default = "ButtonMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "loading_placement"
+ty = "ButtonLoadingPlacement"
+default = "ButtonLoadingPlacement::Start"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "schema_json"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "button_type"
+ty = "ButtonType"
+default = "ButtonType::Button"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_press"
+ty = "Option<OnPress>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "data-state"
+ty = "open|loading|disabled|default"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-ui-output-status"
+ty = "draft|verified|submittable"
+scope = "root-attribute"
+
+[[outputs]]
+name = "agent-contract-markers"
+ty = "data-ui-schema + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-schema-input-source"
+scope = "root-attribute"
+
+[[slots]]
+name = "default"
+required = true
+description = "Button label/content slot"
+
+[[slots]]
+name = "start_content"
+required = false
+description = "Optional leading icon/content slot"
+
+[[slots]]
+name = "end_content"
+required = false
+description = "Optional trailing icon/content slot"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "schema_builder_render_path"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "whitelist_render_policy_no_script_injection"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_press_path"
+enabled = true
+
+[[capabilities]]
+name = "aria_and_marker_contract"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[[dependencies]]
+name = "serde"
+kind = "schema-serialization"

@@ -6,3 +6,7 @@ mod view;
 pub use motion::ColorAreaMotion;
 pub use ui_headless::A11yDirection;
 pub use view::ColorArea;
+
+#[cfg(test)]
+#[path = "../test/semantics.rs"]
+mod semantics_tests;

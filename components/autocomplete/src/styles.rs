@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-autocomplete {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-autocomplete[data-label-source="custom"],
@@ -54,7 +54,7 @@ pub const CSS: &str = r#"
 
 .ui-autocomplete--controlled .ui-autocomplete__control,
 .ui-autocomplete[data-controlled="true"] .ui-autocomplete__control {
-  box-shadow: inset 0 0 0 1px var(--ui-border);
+  box-shadow: inset 0 0 0 var(--ui-border-width, var(--ui-fallback-border-width)) var(--ui-border, var(--ui-fallback-border));
 }
 
 .ui-autocomplete--has-disabled-options .ui-autocomplete__listbox,
@@ -63,10 +63,10 @@ pub const CSS: &str = r#"
 }
 
 .ui-autocomplete__label {
-  font-size: var(--ui-font-size-150, 14px);
-  line-height: var(--ui-line-height-150, 20px);
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
   font-weight: 500;
-  color: var(--ui-fg);
+  color: var(--ui-fg, var(--ui-fallback-fg));
 }
 
 .ui-autocomplete__control {
@@ -79,62 +79,62 @@ pub const CSS: &str = r#"
   width: 100%;
   box-sizing: border-box;
 
-  padding: var(--ui-space-sm) var(--ui-space-md);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm)) var(--ui-space-md, var(--ui-fallback-space-md));
 
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-md);
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
 
-  background: var(--ui-bg);
-  color: var(--ui-fg);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
   font: inherit;
   outline: none;
 }
 
 .ui-autocomplete--focus-visible .ui-autocomplete__input {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 3) solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 2);
 }
 
 .ui-autocomplete--invalid .ui-autocomplete__input {
-  border-color: var(--ui-danger);
+  border-color: var(--ui-danger, var(--ui-fallback-danger));
 }
 
 .ui-autocomplete--invalid.ui-autocomplete--focus-visible .ui-autocomplete__input {
-  outline-color: var(--ui-danger);
+  outline-color: var(--ui-danger, var(--ui-fallback-danger));
 }
 
 .ui-autocomplete__description,
 .ui-autocomplete__error {
-  font-size: var(--ui-font-size-100, 12px);
-  line-height: var(--ui-line-height-100, 16px);
+  font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));
+  line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));
 }
 
 .ui-autocomplete__description {
-  color: var(--ui-fg-muted);
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-autocomplete__error {
-  color: var(--ui-danger);
+  color: var(--ui-danger, var(--ui-fallback-danger));
 }
 
 .ui-autocomplete__panel {
   position: fixed;
-  top: var(--ui-popover-top, 0px);
-  left: var(--ui-popover-left, 0px);
-  width: var(--ui-popover-anchor-width, var(--ui-overlay-panel-min-width, 240px));
-  max-width: calc(100vw - var(--ui-overlay-viewport-inset, 16px));
-  z-index: var(--ui-overlay-z-index, 1000);
+  top: var(--ui-popover-top, calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 0));
+  left: var(--ui-popover-left, calc(var(--ui-border-width, var(--ui-fallback-border-width)) * 0));
+  width: var(--ui-popover-anchor-width, var(--ui-overlay-panel-min-width, var(--ui-fallback-overlay-panel-min-width)));
+  max-width: calc(100vw - var(--ui-overlay-viewport-inset, var(--ui-fallback-overlay-viewport-inset)));
+  z-index: var(--ui-overlay-z-index, var(--ui-fallback-overlay-z-index));
 
   padding: 0;
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-lg);
-  box-shadow: var(--ui-shadow-md);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid var(--ui-border, var(--ui-fallback-border));
+  border-radius: var(--ui-radius-lg, var(--ui-fallback-radius-lg));
+  box-shadow: var(--ui-shadow-md, var(--ui-fallback-shadow-md));
 
   --ui-popover-opacity: 0;
-  --ui-popover-scale: var(--ui-overlay-enter-scale, 0.98);
-  --ui-popover-y: var(--ui-overlay-enter-offset-y, 6px);
+  --ui-popover-scale: var(--ui-overlay-enter-scale, var(--ui-fallback-overlay-enter-scale));
+  --ui-popover-y: var(--ui-overlay-enter-offset-y, var(--ui-fallback-overlay-enter-offset-y));
 
   opacity: var(--ui-popover-opacity);
   transform: translateY(var(--ui-popover-y)) scale(var(--ui-popover-scale));
@@ -158,7 +158,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-autocomplete__listbox {
-  padding: var(--ui-space-xs);
+  padding: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-autocomplete__options {
@@ -167,8 +167,8 @@ pub const CSS: &str = r#"
 
 .ui-autocomplete__option {
   position: relative;
-  padding: var(--ui-space-sm) var(--ui-space-md);
-  border-radius: var(--ui-radius-md);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm)) var(--ui-space-md, var(--ui-fallback-space-md));
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -184,12 +184,12 @@ pub const CSS: &str = r#"
 }
 
 .ui-autocomplete__option[data-focused=\"true\"] {
-  background: var(--ui-accent-soft);
+  background: var(--ui-accent-soft, var(--ui-fallback-accent-soft));
 }
 
 .ui-autocomplete__empty {
-  padding: var(--ui-space-sm) var(--ui-space-md);
-  color: var(--ui-fg-muted);
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm)) var(--ui-space-md, var(--ui-fallback-space-md));
+  color: var(--ui-fg-muted, var(--ui-fallback-fg-muted));
 }
 
 .ui-autocomplete__option:focus-visible {

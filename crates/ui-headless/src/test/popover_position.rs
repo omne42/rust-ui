@@ -149,3 +149,13 @@ fn clamps_top_when_panel_would_overflow() {
     assert!(out.top >= 8.0);
     assert!(out.top <= 392.0); // 600 - 200 - 8
 }
+
+#[test]
+fn scalar_update_guard_ignores_sub_epsilon_noise() {
+    assert!(!should_update_scalar(100.0, 100.005));
+}
+
+#[test]
+fn scalar_update_guard_accepts_meaningful_delta() {
+    assert!(should_update_scalar(100.0, 100.02));
+}

@@ -4,6 +4,18 @@ use ui_headless::i18n;
 use ui_headless::i18n::CommonStrings;
 use ui_headless::{A11yDirection, image_fallback_attrs, locale_attrs};
 
+fn render_initials_fallback(initials: String) -> impl IntoView {
+    view! {
+        <span
+            class="ui-avatar__initials"
+            data-slot="avatar-initials"
+            aria-hidden="true"
+        >
+            {initials}
+        </span>
+    }
+}
+
 #[component]
 pub fn Avatar(
     #[prop(optional, into)] name: Option<String>,
@@ -21,16 +33,15 @@ pub fn Avatar(
 
     let accessibility =
         logic::resolve_accessibility(normalized.name.as_deref(), normalized.alt.as_deref());
-    let aria_label_value = if accessibility.label_source == logic::AvatarLabelSource::Fallback {
-        // compatibility marker for source-contract tests:
-        // common.avatar_fallback_aria_label.as_ref().to_string()
-        common.avatar_fallback_aria_label.as_ref().into()
-    } else {
-        accessibility.aria_label
-    };
-    let aria_label = StoredValue::new(aria_label_value);
+    let label_source = accessibility.label_source;
+    let normalized_aria_label = accessibility.aria_label;
     let img_alt = StoredValue::new(accessibility.img_alt);
     let title = StoredValue::new(accessibility.title);
+    let aria_label = StoredValue::new(logic::resolve_aria_label(
+        label_source,
+        normalized_aria_label,
+        common.avatar_fallback_aria_label.as_ref().into(),
+    ));
 
     let state = logic::resolve_state(logic::AvatarStateInput {
         size,
@@ -51,6 +62,9 @@ pub fn Avatar(
             has_img_error: img_error.get(),
         })
     });
+    let agent_contract = Signal::derive(move || {
+        logic::resolve_agent_contract(state.label_source, render_state.get().mode)
+    });
 
     view! {
         <span
@@ -58,6 +72,10 @@ pub fn Avatar(
             class:ui-avatar--image=move || render_state.get().mode.shows_image()
             class:ui-avatar--fallback=move || !render_state.get().mode.shows_image()
             data-slot="avatar"
+            data-ui-schema=move || agent_contract.get().schema
+            data-intent=move || agent_contract.get().intent.as_str()
+            data-action=move || agent_contract.get().action.as_str()
+            data-source=move || agent_contract.get().source.as_str()
             data-size=state.size_attr
             data-state=move || render_state.get().mode.as_str()
             data-image=move || render_state.get().mode.image_attr()
@@ -75,17 +93,7 @@ pub fn Avatar(
         >
             <Show
                 when=move || render_state.get().mode.shows_image()
-                fallback=move || {
-                    view! {
-                        <span
-                            class="ui-avatar__initials"
-                            data-slot="avatar-initials"
-                            aria-hidden="true"
-                        >
-                            {initials.get_value()}
-                        </span>
-                    }
-                }
+                fallback=move || render_initials_fallback(initials.get_value())
             >
                 <img
                     class="ui-avatar__img"

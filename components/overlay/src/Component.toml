@@ -1,0 +1,101 @@
+schema_version = "1"
+
+[component]
+name = "Overlay"
+crate = "ui-overlay"
+
+[[inputs]]
+name = "open"
+ty = "leptos::prelude::Signal<bool>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "aria_labelledby"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_describedby"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "role"
+ty = "&'static str"
+default = "\"dialog\""
+controlled = false
+
+[[inputs]]
+name = "is_dismissable"
+ty = "bool"
+default = "true"
+controlled = false
+
+[[inputs]]
+name = "is_keyboard_dismiss_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "OverlayMotion"
+default = "OverlayMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_exit_complete"
+ty = "Option<leptos::prelude::Callback<()>>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "on_close"
+ty = "ui_headless::OnPress"
+scope = "overlay-root"
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-*"
+scope = "overlay-root/panel/backdrop"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "overlay_stack_topmost_escape"
+enabled = true
+
+[[capabilities]]
+name = "focus_trap_restore_policy"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_wasm_and_non_wasm_noop"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"

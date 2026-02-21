@@ -68,6 +68,46 @@ pub struct ListBoxAria {
     pub handlers: ListBoxHandlers,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ListBoxOptionA11yInput {
+    pub is_disabled: bool,
+    pub is_selected: bool,
+    pub is_focused: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ListBoxOptionA11yAttrs {
+    pub role: &'static str,
+    pub data_state: &'static str,
+    pub aria_selected: Option<&'static str>,
+    pub aria_disabled: Option<&'static str>,
+    pub data_selected: Option<&'static str>,
+    pub data_focused: Option<&'static str>,
+    pub data_disabled: Option<&'static str>,
+}
+
+pub fn listbox_option_a11y_attrs(input: ListBoxOptionA11yInput) -> ListBoxOptionA11yAttrs {
+    let data_state = if input.is_disabled {
+        "disabled"
+    } else if input.is_selected {
+        "selected"
+    } else if input.is_focused {
+        "focused"
+    } else {
+        "idle"
+    };
+
+    ListBoxOptionA11yAttrs {
+        role: "option",
+        data_state,
+        aria_selected: input.is_selected.then_some("true"),
+        aria_disabled: input.is_disabled.then_some("true"),
+        data_selected: input.is_selected.then_some("true"),
+        data_focused: input.is_focused.then_some("true"),
+        data_disabled: input.is_disabled.then_some("true"),
+    }
+}
+
 #[derive(Clone)]
 pub struct ListBoxOptions {
     pub is_disabled: bool,
@@ -272,3 +312,7 @@ pub fn use_listbox(options: ListBoxOptions) -> ListBoxAria {
         },
     }
 }
+
+#[cfg(test)]
+#[path = "test/listbox.rs"]
+mod tests;

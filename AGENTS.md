@@ -1,38 +1,48 @@
 # Repository Guidelines（仓库指南）
 
 ## 项目结构与模块组织
-本仓库是 Rust Workspace，采用分层 UI 架构：
-- `crates/ui-state-primitives`：状态原语与核心模型。
+本仓库是 Rust Workspace（`members = ["crates/*", "components/*", "apps/*"]`），核心结构如下：
+- `crates/ui-state-primitives`：平台无关状态原语（Core）。
+- `crates/ui-logic-calendar`：日期/时间等领域逻辑卫星包。
 - `crates/ui-headless`：交互行为与 A11y 语义契约。
-- `crates/ui-theme`：设计 token 与 CSS 变量生成。
-- `crates/ui-motion`：动效能力（spring、keyframes、presets）。
-- `crates/ui-components`：组件组装层。
-- `apps/web-demo`、`apps/docs-app`、`apps/tauri-demo`：可运行验收应用。
+- `crates/ui-theme`：设计 token 与 CSS 变量输出。
+- `crates/ui-motion`：动效能力（spring/WAAPI）。
+- `crates/ui-visual-primitive`：供 `ui-components/ui-layout` 复用的内部视觉原语。
+- `crates/ui-layout`：布局类组件聚合层。
+- `crates/ui-components`：通用组件聚合层。
+- `crates/ui-ai-runtime`：AI 渲染模式与状态上下文基础能力。
+- `components/*`：组件源实现分片（大量按组件拆分的独立 crate）。
+- `apps/web-demo`、`apps/docs-app`、`apps/tauri-demo`：可运行验收应用（CSR/Tauri）。
 
-大改前优先阅读：`docs/DOCS_INDEX.md`、`docs/philosophy.md`、`docs/README.md`、`docs/RULES_ZH.md`。`examples/_upstream/` 仅作调研镜像，默认不作为提交实现。
+大改前优先阅读：`docs/README.md`、`docs/philosophy.md`、`docs/RULES_ZH.md`、`docs/DOCS_INDEX.md`。`examples/_upstream/` 仅作调研镜像，默认不作为提交实现。
 
 ## 构建、测试与开发命令
 - `./scripts/dev-web-demo.sh`：启动 `apps/web-demo`（Trunk CSR）。
 - `./scripts/dev-docs-app.sh`：启动文档应用。
 - `./scripts/smoke-web-demo.sh` / `./scripts/smoke-docs-app.sh`：空白页回归检查。
-- `./scripts/check.sh`：统一门禁（`fmt -> clippy -D warnings -> test -> ssr check -> wasm check`）。
+- `./scripts/e2e-docs-app.sh`：docs-app Playwright E2E 套件。
+- `./scripts/check.sh`：统一门禁（`fmt -> rust-hygiene -> protocol -> clippy -D warnings -> test -> feature matrix(native/wasm) -> ssr/wasm checks`）。
 - `SKIP_WASM=1 ./scripts/check.sh`：本机缺 wasm target 时临时跳过 wasm 检查。
+- `./scripts/gate.sh`：按环境自动决定是否跳过 wasm，再调用 `check.sh`（pre-commit 默认入口）。
 
 ## 代码风格与命名约定
-统一使用 Rust `edition = "2024"`，提交前必须通过：
+仓库内 `crates/*`、`components/*`、`apps/*` 统一使用 Rust `edition = "2024"`（`vendor/tachys` 为三方代码例外）。提交前至少通过：
 - `cargo fmt --all`
 - `cargo clippy --workspace --all-targets -- -D warnings`
+- `./scripts/check-rust-hygiene.sh`
 
-禁止用 `#![allow(...)]` 压告警；非底层驱动/FFI 场景避免 `unsafe`。命名规则：模块/文件/函数用 `snake_case`，类型用 `PascalCase`，测试文件优先语义命名（如 `button_semantics.rs`）。组件实现按职责拆分为 `logic.rs`、`styles.rs`、`motion.rs`、`view.rs`。
+禁止用 `#![allow(...)]` 压告警；非底层驱动/FFI 场景避免 `unsafe`。命名规则：模块/文件/函数用 `snake_case`，类型用 `PascalCase`，测试文件优先语义命名（如 `button_semantics.rs`）。组件实现按职责拆分为 `logic.rs`、`styles.rs`、`motion.rs`、`view.rs`，并维护 `protocol.rs`（含 serde schema 标记）。
 
 ## 测试规范
-基线命令为 `cargo test --workspace`。新增功能需补最小回归测试；修复 bug 必须附对应失败用例。若改动 docs/demo 行为，至少执行对应 smoke 脚本。
+基线命令为 `cargo test --workspace`。新增功能需补最小回归测试；修复 bug 必须附对应失败用例。若改动 docs/demo 行为，至少执行对应 smoke 脚本；改动 docs-app 交互契约建议执行 `./scripts/e2e-docs-app.sh`。
 
 ## 提交与 PR 规范
-首次开发先执行 `./scripts/setup-githooks.sh`。提交信息必须遵循 Conventional Commits（如 `feat(scope): ...`、`fix(scope): ...`），分支命名使用 `feat/*`、`fix/*`、`docs/*`。每次提交需同步更新 `CHANGELOG.md` 的 `[Unreleased]`，且不能只改 changelog。PR 需包含：变更摘要、风险点、验证命令与结果；涉及 UI 的改动需附截图或录屏。
+首次开发先执行 `./scripts/setup-githooks.sh`。提交信息必须遵循 Conventional Commits（允许类型：`feat|fix|docs|refactor|perf|test|chore|build|ci|revert`）。分支命名使用：`feat/*`、`fix/*`、`docs/*`、`refactor/*`、`perf/*`、`test/*`、`chore/*`、`build/*`、`ci/*`、`revert/*`（或 `main/master`）。
+
+每次提交需同步更新 `CHANGELOG.md` 的 `[Unreleased]`，且不能只改 changelog；默认禁止改动已发布版本区段（release 场景除外）。PR 需包含：变更摘要、风险点、验证命令与结果；涉及 UI 的改动需附截图或录屏。
 
 ## 评审要求
-采用严格 Rust 评审标准：重点检查所有权/生命周期、错误处理、抽象复杂度与并发安全。评审结论必须包含：`品味评分`、`致命问题`、`改进方向`。
+采用严格 Rust 评审标准：重点检查所有权/生命周期、错误处理、抽象复杂度、并发安全、分层边界是否被破坏（尤其 `state/headless/theme/motion/components/layout`）。评审结论必须包含：`品味评分`、`致命问题`、`改进方向`。
 
 
 ## 角色定义

@@ -166,10 +166,87 @@ fn disabled_does_not_open() {
         is_disabled: true,
         open_delay_ms: 0,
         close_delay_ms: 0,
+        ..Default::default()
     });
 
     hover_card.handlers.on_trigger_pointer_enter.run(());
     hover_card.handlers.on_trigger_focus_in.run(());
     any_spawner::Executor::poll_local();
     assert!(!hover_card.state.is_open.get_untracked());
+}
+
+#[test]
+fn uncontrolled_open_respects_default_open_initialization() {
+    let _owner = reset_owner();
+
+    let hover_card = use_hover_card_trigger(HoverCardTriggerOptions {
+        default_open: Some(true),
+        open_delay_ms: 0,
+        close_delay_ms: 0,
+        ..Default::default()
+    });
+
+    assert!(hover_card.state.is_open.get_untracked());
+}
+
+#[test]
+fn controlled_open_uses_external_signal_and_emits_on_open_change() {
+    use std::sync::{Arc, Mutex};
+
+    let _owner = reset_owner();
+
+    let (open, set_open) = signal(false);
+    let changes = Arc::new(Mutex::new(Vec::new()));
+    let changes_for_callback = Arc::clone(&changes);
+
+    let hover_card = use_hover_card_trigger(HoverCardTriggerOptions {
+        open: Some(open.into()),
+        default_open: Some(true),
+        on_open_change: Some(Callback::new(move |next| {
+            match changes_for_callback.lock() {
+                Ok(mut changes) => changes.push(next),
+                Err(_) => panic!("mutex should not be poisoned"),
+            }
+        })),
+        open_delay_ms: 0,
+        close_delay_ms: 0,
+        ..Default::default()
+    });
+
+    assert!(
+        !hover_card.state.is_open.get_untracked(),
+        "controlled signal must remain the single source of truth"
+    );
+
+    hover_card.handlers.on_trigger_pointer_enter.run(());
+    any_spawner::Executor::poll_local();
+    let changes_after_open = match changes.lock() {
+        Ok(changes) => changes.clone(),
+        Err(_) => panic!("mutex should not be poisoned"),
+    };
+    assert_eq!(changes_after_open, vec![true]);
+    assert!(
+        !hover_card.state.is_open.get_untracked(),
+        "internal state must not diverge before external signal updates"
+    );
+
+    set_open.set(true);
+    any_spawner::Executor::poll_local();
+    assert!(hover_card.state.is_open.get_untracked());
+
+    hover_card.handlers.on_trigger_pointer_leave.run(());
+    any_spawner::Executor::poll_local();
+    let changes_after_close = match changes.lock() {
+        Ok(changes) => changes.clone(),
+        Err(_) => panic!("mutex should not be poisoned"),
+    };
+    assert_eq!(changes_after_close, vec![true, false]);
+}
+
+#[test]
+fn should_dismiss_on_escape_requires_open_non_composing_escape_key() {
+    assert!(should_dismiss_on_escape("Escape", true, false));
+    assert!(!should_dismiss_on_escape("Enter", true, false));
+    assert!(!should_dismiss_on_escape("Escape", false, false));
+    assert!(!should_dismiss_on_escape("Escape", true, true));
 }

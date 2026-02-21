@@ -56,6 +56,7 @@ fn toggle_group_uses_logic_state_model() {
         "pub enum ToggleGroupSelectionMode",
         "pub fn normalize_toggle_group_items(",
         "pub fn sanitize_toggle_group_selected_ids(",
+        "pub fn normalize_toggle_group_default_selected_ids(",
         "pub fn toggle_toggle_group_selected_id(",
         "pub fn resolve_toggle_group_state(",
         "pub fn compose_toggle_group_class_name(",
@@ -68,8 +69,10 @@ fn toggle_group_uses_logic_state_model() {
 
     for needle in [
         "let selected_state = overlay_open::use_controllable_state(",
+        "let default_selected_ids = logic::normalize_toggle_group_default_selected_ids(",
         "let selected_ids = selected_state.value;",
         "let request_selected_ids_change = selected_state.request_change;",
+        "let group_a11y = labeled_group_attrs(aria_label, lang, dir);",
         "let resolved_selected_ids = Signal::derive(move ||",
         "logic::resolve_toggle_group_state(super::ToggleGroupStateInput {",
         "logic::compose_toggle_group_class_name(class_name.get_value(), state.get())",
@@ -92,7 +95,7 @@ fn toggle_group_supports_controlled_and_uncontrolled_selection_contracts() {
         "on_selected_ids_change: Option<Callback<BTreeSet<String>>>",
         "selection_mode: logic::ToggleGroupSelectionMode",
         "orientation: logic::ToggleGroupOrientation",
-        "on_change=on_item_change",
+        "on_pressed_change=on_item_change",
     ] {
         assert!(
             source.contains(needle),
@@ -118,6 +121,10 @@ fn toggle_group_emits_baseline_style_state_data_attributes() {
         "data-selected-count=move || state.get().selected_count.to_string()",
         "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
         "data-disabled-item-count=move || state.get().disabled_item_count.to_string()",
+        "role=group_a11y.role",
+        "aria-label=group_a11y.aria_label.clone()",
+        "lang=group_a11y.lang.clone()",
+        "dir=group_a11y.dir",
         "data-slot=\"toggle-group-items\"",
     ] {
         assert!(
@@ -175,12 +182,12 @@ fn toggle_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Multiple + Attached\"",
         "id_base=\"docs-toggle-group-formatting\".to_string()",
         "selection_mode=ToggleGroupSelectionMode::Multiple",
-        "attached=true",
+        "is_attached=true",
         "title=\"Single + Vertical + Disabled Item\"",
         "id_base=\"docs-toggle-group-alignment\".to_string()",
         "selection_mode=ToggleGroupSelectionMode::Single",
         "orientation=ToggleGroupOrientation::Vertical",
-        "attached=false",
+        "is_attached=false",
         "aria_label=\"Alignment controls\".to_string()",
         "class_name=\"docs-toggle-group-custom\".to_string()",
     ] {

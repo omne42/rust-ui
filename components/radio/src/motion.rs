@@ -96,7 +96,11 @@ pub fn attach_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(1.0, config, move |scale| {
             let scale = scale.clamp(0.0, 10.0);
-            drop(style.set_property("--ui-radio-scale", &format!("{scale}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-radio-scale",
+                &format!("{scale}")
+            );
         });
 
         let spring_for_cleanup = spring;

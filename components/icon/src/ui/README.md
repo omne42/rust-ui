@@ -20,7 +20,7 @@
 ```rust
 use ui_components::IconsUi;
 
-view! { <IconsUi icon="check".to_string() decorative=true /> }
+view! { <IconsUi icon="check".to_string() is_decorative=true /> }
 ```
 
 ## 自定义 Glyph
@@ -32,13 +32,13 @@ let glyphs = vec![
     IconsetGlyph::new("ui:rocket", "🚀").with_aria_label("Rocket"),
 ];
 
-view! { <IconsUi icon="rocket".to_string() decorative=false glyphs=glyphs /> }
+view! { <IconsUi icon="rocket".to_string() is_decorative=false glyphs=glyphs /> }
 ```
 
 ## API 约定
 
 - 必填：`icon`
-- 可选：`size`、`tone`、`disabled`、`decorative`、`aria_label`、`class_name`、`glyphs`
+- 可选：`size`、`tone`、`is_disabled`、`is_decorative`、`aria_label`、`class_name`、`glyphs`
 - 图标引用归一化：
   - `""` -> 默认 `ui:help`
   - 无命名空间（如 `check`）-> 自动前缀为 `ui:check`

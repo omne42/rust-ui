@@ -1,0 +1,68 @@
+[component]
+id = "ui-link"
+name = "Link"
+kind = "snapshot"
+manifest_version = 1
+
+[projection]
+rbi = "Component.rbi"
+
+[files]
+mod_rs = "src/mod.rs"
+logic_rs = "src/logic.rs"
+styles_rs = "src/styles.rs"
+view_rs = "src/view.rs"
+
+[capabilities]
+snapshot = true
+streaming = false
+spec_builder = false
+motion_runtime = false
+
+[streaming_policy]
+required = false
+fallback = "snapshot"
+owner = "upstream"
+
+[a11y]
+role = "link"
+supports_lang_dir = true
+
+[markers]
+required = [
+  "data-state",
+  "data-enabled",
+  "data-disabled",
+  "data-disabled-source",
+  "data-missing-href",
+  "data-target",
+  "data-external",
+  "data-rel",
+  "data-aria-label",
+  "data-custom-class",
+  "data-ui-schema",
+  "data-ui-schema-version",
+  "data-ui-intent",
+  "data-ui-action",
+  "data-ui-state",
+  "data-ui-source",
+  "data-ui-stream-support",
+  "data-ui-stream-fallback",
+  "data-ui-output-status",
+]
+
+[agent_contract]
+schema = "ui.link.agent-contract/v1"
+fields = [
+  "intent",
+  "action",
+  "state",
+  "source.disabled",
+  "stream.support",
+  "stream.fallback",
+  "output.status",
+]
+
+[output_state]
+default = "verified"
+allowed = ["draft", "verified", "committable"]

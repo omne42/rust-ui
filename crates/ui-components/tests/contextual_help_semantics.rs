@@ -113,9 +113,17 @@ fn contextual_help_uses_logic_state_model() {
     for needle in [
         "pub struct ContextualHelpStateInput",
         "pub struct ContextualHelpState",
+        "pub struct ContextualHelpOpenStateInput",
+        "pub struct ContextualHelpOpenStateConfig",
+        "use ui_state_primitives::contextual_help as contextual_help_state;",
+        "pub use contextual_help_state::{",
         "pub fn normalize_optional_text(",
         "pub fn resolve_trigger_aria_label(",
         "pub fn resolve_id(",
+        "pub fn resolve_is_disabled(",
+        "pub fn resolve_open_state_config(",
+        "contextual_help_state::resolve_open_config(",
+        "pub fn resolve_generated_id(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
         "class_source_attr",
@@ -131,7 +139,12 @@ fn contextual_help_uses_logic_state_model() {
     for needle in [
         "logic::normalize_optional_text(heading)",
         "logic::resolve_trigger_aria_label(variant, aria_label)",
-        "logic::resolve_id(id, format!(\"ui-contextual-help-{}\", next_id()))",
+        "logic::resolve_is_disabled(is_disabled, disabled)",
+        "logic::resolve_open_state_config(ContextualHelpOpenStateInput {",
+        "use_ui_id_provider()",
+        "provider.next_prefixed_id(\"ui-contextual-help\")",
+        "logic::resolve_generated_id(",
+        "logic::resolve_id(id, generated_id)",
         "logic::resolve_state(ContextualHelpStateInput {",
         "logic::compose_class_name(class_name, state)",
         "motion: ContextualHelpMotion",
@@ -156,6 +169,58 @@ fn contextual_help_uses_controllable_open_and_presence() {
         assert!(
             source.contains(needle),
             "ContextualHelp should keep open/presence contracts (`{needle}`)."
+        );
+    }
+}
+
+#[test]
+fn contextual_help_open_state_axis_is_fully_paired_without_semi_controlled_behavior() {
+    let view_source = load_source("../../components/contextual-help/src/view.rs");
+    let headless_source = load_source("../../crates/ui-headless/src/controllable_state.rs");
+    let headless_test_source =
+        load_source("../../crates/ui-headless/src/test/controllable_state.rs");
+
+    for needle in [
+        "#[prop(optional)] open: Option<Signal<bool>>",
+        "#[prop(optional)] default_open: Option<bool>",
+        "#[prop(optional)] on_open_change: Option<Callback<bool>>",
+        "let open_state_config = logic::resolve_open_state_config(ContextualHelpOpenStateInput {",
+        "let has_custom_open = open_state_config.has_custom_open;",
+        "let is_controlled = open_state_config.is_controlled;",
+        "overlay_open::use_controllable_open_state_traced(",
+        "\"contextual-help\",",
+        "open_state_config.open,",
+        "open_state_config.default_open,",
+        "open_state_config.on_open_change,",
+        "let open = open_state.open;",
+        "let request_open_change = open_state.request_open_change;",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ContextualHelp open axis contract should include `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "pub fn resolve_open_state_config(",
+        "contextual_help_state::resolve_open_config(",
+        "default_open: primitive.default_open,",
+    ] {
+        assert!(
+            load_source("../../components/contextual-help/src/logic.rs").contains(needle),
+            "ContextualHelp logic should define explicit default-open precedence `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "if !is_controlled {",
+        "set_uncontrolled_value.set(next);",
+        "fn controlled_open_does_not_update_internal_state()",
+        "fn controlled_open_ignores_default_open_value()",
+    ] {
+        assert!(
+            headless_source.contains(needle) || headless_test_source.contains(needle),
+            "ui-headless controllable primitive should keep single-source semantics `{needle}`.",
         );
     }
 }
@@ -232,6 +297,33 @@ fn contextual_help_styles_include_state_marker_contracts() {
 }
 
 #[test]
+fn contextual_help_styles_consume_theme_tokens_for_sizing_and_typography() {
+    let source = load_source("../../components/contextual-help/src/styles.rs");
+
+    for needle in [
+        "width: var(--ui-icon-size-200, 18px);",
+        "min-width: var(--ui-overlay-panel-min-width, 240px);",
+        "max-width: calc(var(--ui-overlay-panel-min-width, 240px) * 1.5);",
+        "font-size: var(--ui-heading-h6-font-size, var(--ui-fallback-heading-h6-font-size));",
+        "line-height: var(--ui-heading-h6-line-height, var(--ui-fallback-heading-h6-line-height));",
+        "font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));",
+        "line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));",
+        "font-size: var(--ui-font-size-100, var(--ui-fallback-font-size-100));",
+        "line-height: var(--ui-line-height-100, var(--ui-fallback-line-height-100));",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ContextualHelp styles should consume ui-theme token variables (`{needle}`).",
+        );
+    }
+
+    assert!(
+        !source.contains("--ui-contextual-help-icon-size"),
+        "ContextualHelp should not define private icon size tokens; consume ui-theme icon tokens instead.",
+    );
+}
+
+#[test]
 fn contextual_help_exposes_motion_contract_and_internal_module() {
     let mod_source = load_source("../../components/contextual-help/src/mod.rs");
     let motion_source = load_source("../../components/contextual-help/src/motion.rs");
@@ -282,8 +374,12 @@ fn contextual_help_docs_page_covers_primary_playgrounds() {
         "title=\"ContextualHelp\"",
         "slug=\"contextual-help\"",
         "description=\"Non-modal popover help trigger with centralized variant/placement/heading/footer state attrs.\"",
-        "<Playground title=\"Help Variant + Slots\" code_signal=semantic_code>",
+        "<Playground title=\"Hello World (Default API)\" code_signal=semantic_code>",
         "<Playground title=\"Info Variant + Controlled\" code_signal=controlled_code>",
+        "<Playground title=\"State Matrix\" code_signal=comparison_code>",
+        "<Playground title=\"Streaming/Snapshot Display\" code_signal=output_mode_code>",
+        "data-slot=\"contextual-help-api-matrix\"",
+        "data-slot=\"contextual-help-state-matrix\"",
         "<ContextualHelp",
         "ContextualHelpVariant::Info",
         "open=controlled_open",
@@ -310,11 +406,19 @@ fn contextual_help_docs_playgrounds_lock_state_matrix_contract_values() {
         "variant=ContextualHelpVariant::Info",
         "open=controlled_open",
         "on_open_change=on_controlled_open_change",
+        "is_disabled=true",
         "aria_label=\"More info\".to_string()",
         "class_name=\"docs-contextual-help-custom\".to_string()",
         "\"Toggle controlled help\"",
         "\"open: \"",
         "\"Controlled mode keeps parent state as the source of truth.\"",
+        "compatibility alias for `is_disabled`; precedence = is_disabled -> disabled -> false",
+        "\"size axis\"",
+        "N/A (ContextualHelp trigger is fixed ButtonSize::IconSm)",
+        "\"Streaming Optional; fallback=snapshot.\"",
+        "data-slot=\"contextual-help-source-first\"",
+        "\"apps/docs-app/src/playground.rs::compose_copy_ready_code\"",
+        "class_name=\"docs-contextual-help-source-copy\".to_string()",
     ] {
         assert!(
             docs.contains(needle),

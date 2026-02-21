@@ -1,5 +1,5 @@
 pub(crate) mod action_button_logic {
-    use super::super::ActionButtonSize;
+    use super::super::{ActionButtonSize, ActionButtonType};
     use crate::button::ButtonVariant;
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -39,6 +39,10 @@ pub(crate) mod action_button_logic {
             is_quiet,
             variant,
         }
+    }
+
+    pub fn resolve_button_type(button_type: Option<ActionButtonType>) -> ActionButtonType {
+        button_type.unwrap_or_default()
     }
 
     #[cfg(test)]
@@ -137,10 +141,7 @@ pub(crate) mod action_button_group_logic {
     }
 
     pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-        value.and_then(|value| {
-            let trimmed = value.trim();
-            (!trimmed.is_empty()).then(|| trimmed.into())
-        })
+        ui_state_primitives::button::normalize_optional_text(value)
     }
 
     pub fn normalize_aria_label(aria_label: Option<String>) -> (String, bool) {
@@ -290,10 +291,7 @@ pub(crate) mod action_group_logic {
     }
 
     pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-        value.and_then(|value| {
-            let trimmed = value.trim();
-            (!trimmed.is_empty()).then(|| trimmed.into())
-        })
+        action_group_state::normalize_optional_text(value)
     }
 
     pub fn normalize_aria_label(
@@ -308,19 +306,8 @@ pub(crate) mod action_group_logic {
         (fallback_aria_label.into(), false)
     }
 
-    fn normalize_item(mut item: ActionGroupItem, index: usize) -> ActionGroupItem {
-        let fallback_id = format!("action-{}", index + 1);
-        item.id = normalize_optional_text(Some(item.id)).unwrap_or(fallback_id);
-        item.label = normalize_optional_text(Some(item.label)).unwrap_or_else(|| item.id.clone());
-        item
-    }
-
     pub fn normalize_items(items: Vec<ActionGroupItem>) -> Vec<ActionGroupItem> {
-        items
-            .into_iter()
-            .enumerate()
-            .map(|(index, item)| normalize_item(item, index))
-            .collect()
+        action_group_state::normalize_items(items)
     }
 
     pub fn collect_item_ids(items: &[ActionGroupItem]) -> BTreeSet<String> {
@@ -339,6 +326,26 @@ pub(crate) mod action_group_logic {
         )
     }
 
+    pub fn resolve_selected_ids(
+        selected_ids: BTreeSet<String>,
+        item_ids: &BTreeSet<String>,
+        selection_mode: ActionGroupSelectionMode,
+    ) -> BTreeSet<String> {
+        sanitize_selected_ids(selected_ids, item_ids, selection_mode)
+    }
+
+    pub fn normalize_default_selected_ids(
+        default_selected_ids: Option<BTreeSet<String>>,
+        item_ids: &BTreeSet<String>,
+        selection_mode: ActionGroupSelectionMode,
+    ) -> BTreeSet<String> {
+        resolve_selected_ids(
+            default_selected_ids.unwrap_or_default(),
+            item_ids,
+            selection_mode,
+        )
+    }
+
     pub fn toggle_selected_id(
         selected_ids: BTreeSet<String>,
         id: &str,
@@ -351,6 +358,55 @@ pub(crate) mod action_group_logic {
             item_ids,
             selection_mode.as_state_primitive(),
         )
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct ActionGroupItemRenderState {
+        pub is_disabled: bool,
+        pub is_selected: bool,
+        pub class_name: String,
+    }
+
+    pub fn resolve_item_render_state(
+        is_group_disabled: bool,
+        is_item_disabled: bool,
+        is_selected: bool,
+    ) -> ActionGroupItemRenderState {
+        let is_disabled = is_group_disabled || is_item_disabled;
+        let mut class_name = String::from("ui-action-group__item");
+
+        if is_selected {
+            class_name.push_str(" ui-action-group__item--selected");
+        }
+        if is_disabled {
+            class_name.push_str(" ui-action-group__item--disabled");
+        }
+
+        ActionGroupItemRenderState {
+            is_disabled,
+            is_selected,
+            class_name,
+        }
+    }
+
+    pub fn resolve_next_selected_ids(
+        current_selected_ids: BTreeSet<String>,
+        id: &str,
+        item_ids: &BTreeSet<String>,
+        selection_mode: ActionGroupSelectionMode,
+        is_item_disabled: bool,
+    ) -> Option<BTreeSet<String>> {
+        if is_item_disabled {
+            return None;
+        }
+
+        let selected_ids = resolve_selected_ids(current_selected_ids, item_ids, selection_mode);
+        Some(toggle_selected_id(
+            selected_ids,
+            id,
+            item_ids,
+            selection_mode,
+        ))
     }
 
     pub fn resolve_state(input: ActionGroupStateInput) -> ActionGroupState {

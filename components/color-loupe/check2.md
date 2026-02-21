@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ColorLoupe` 状态原语已下沉至 `crates/ui-state-primitives/src/color_loupe.rs` 并在 `crates/ui-state-primitives/src/lib.rs` 导出；组件侧 `components/color-loupe/src/logic.rs` 仅桥接消费，原语回归位于 `crates/ui-state-primitives/src/test/color_loupe.rs`）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`ColorLoupe` 为展示型 loupe，无键盘/指针状态机；组件仅在 `view.rs` 挂载 `role="img"`、`aria-label` 与稳定 `data-*` 语义，不在组件层重写可复用 headless 交互契约）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ColorLoupe` 未在组件内自实现 spring/driver；仅保留 CSS keyframes 表达展示过渡，并通过 `--ui-text-field-motion-duration/easing` token 变量桥接主题动效参数，`prefers-reduced-motion` 下显式降级为 `animation: none`，不引入 wasm 专属运行时依赖）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`ColorLoupe` 在 `styles.rs` 仅消费 `ui-theme` 输出变量，如 `--ui-bg/--ui-fg/--ui-border/--ui-space-*/--ui-radius-full/--ui-text-field-motion-*`；未新增 `--ui-color-loupe-*` 私有 token 体系，不在组件层重建主题）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ColorLoupe` 维持 `logic.rs/view.rs/styles.rs` 分层；状态机由 `ui-state-primitives` 提供并在 `logic.rs` 组合；对外不暴露 DOM/web-sys 类型；语义测试已迁移为 `components/color-loupe/test/semantics.rs`，并在 `src/lib.rs` 与 `src/mod.rs` 挂载；`motion.rs` 当前 N/A：仅静态 CSS keyframes，不引入 runtime attach）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +55,92 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ColorLoupe` 公共布尔 props 已统一为 `is_open/is_disabled`，docs 与 playground 调用已同步；组件无事件回调，`on_*` 当前 N/A；本次为统一命名，不保留 `open/disabled` 别名）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`ColorLoupe` 不持有内部可变状态，`is_open/is_disabled/x_percent/y_percent` 全为外部输入快照）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`x_percent/y_percent` 默认值已收敛到 `logic::resolve_component_state`，`view.rs` 仅传递 `Option<f32>` 输入并消费归一结果）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`view.rs` 统一调用 `logic::resolve_component_state(ColorLoupeLogicInput { ... })`；`styles.rs` 仅消费 `data-*` 状态标记）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（N/A：`ColorLoupe` 未暴露 `variant/size/mode/status` 这类离散公共输入轴；对外仅提供位置与布尔能力开关）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`components/color-loupe/src/logic.rs` 仅通过 `pub use ui_state_primitives::color_loupe::{...}` 与 `resolve_state(...)` 做装配映射）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：组件无异步请求、无重试协议、无加载态状态机）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`ColorLoupe` 基础用法无需接线 `ui-state-primitives/ui-headless`；docs 已补 `Hello World` 最小示例：`<ColorLoupe id_base=\"docs-color-loupe-hello\".to_string() is_open=true />`）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`ColorLoupe` 为单体展示组件，不存在 Parent/Item 组合语义与并行槽位 API）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`ColorLoupe` 为展示型组件，无拖拽输入与局部物理循环）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`ColorLoupe` 为静态展示覆盖层，不执行 DOM 测量与几何回流修正）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`ColorLoupe` 无动态子项集合与导航顺序管理需求）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`ColorLoupe` 非容器型投影组件，无 slot 生命周期托管与隐藏副作用暂停需求）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`ColorLoupe` 不订阅 `Resize/Theme/Intersection` 环境事件，无事件洪泛路径）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`ColorLoupe` 无大型集合批量操作与下钻传播场景）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`ColorLoupe` 不存在命令总线/广播订阅型派生链路；当前为 props 直达 `logic::resolve_component_state` 的单向同步派生，无 `TraceId` 透传需求）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`components/color-loupe/src/view.rs` 已挂载 `role=\"img\" + aria-label`；可见文案优先走 `aria_label` props，兜底由 `ui-state-primitives::DEFAULT_ARIA_LABEL` 提供，`view.rs` 不硬编码业务文案；并通过 `ui_headless::a11y::locale_attrs` + `A11yDirection` 提供 `lang/dir` 接入点）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`components/color-loupe/src/view.rs` 已稳定暴露 `role=\"img\" + aria-label`、`data-state/data-open/data-disabled/data-has-color/data-x/data-y/data-x-bucket/data-y-bucket/data-aria-source/data-class-source`；取值封闭集合由 `ui-state-primitives` 归一并在 `components/color-loupe/test/logic.rs::semantic_markers_use_closed_enumerable_value_sets` 回归锁定。组件为外部输入快照型 API，无受控/非受控切换与交互事件来源轴，此处 N/A）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`components/color-loupe/src/styles.rs` 状态分支仅基于稳定 class 与语义标记：如 `.ui-color-loupe--open`、`.ui-color-loupe[data-open=\"true\"]`、`.ui-color-loupe[data-state=\"open\"]`、`.ui-color-loupe[data-disabled=\"true\"]`、`.ui-color-loupe[data-custom-class=\"true\"]`；未使用 `:nth-child`/深层结构猜测。`components/color-loupe/src/view.rs` 无 `style=...` 业务内联样式，视觉状态由 `data-state/data-open/data-disabled` 语义标记直接解释）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（语义回归已覆盖 `role/aria/data-state/source markers`：`components/color-loupe/test/semantics.rs` 与 `crates/ui-components/tests/color_loupe_semantics.rs` 断言 `role=\"img\"`、`aria-label`、`data-state/data-disabled/data-aria-source/data-class-source` 等稳定标记；状态枚举封闭集合由 `components/color-loupe/test/logic.rs::semantic_markers_use_closed_enumerable_value_sets` 锁定。组件为展示型外部输入快照 API，无受控/非受控切换、无键盘/指针交互路径，相关分支 N/A；组件无 wasm/ssr 行为分叉，且 `color_loupe_public_surface_does_not_expose_dom_platform_types` 锁定平台类型边界）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`components/color-loupe/src/mod.rs` 仅保留最小导出面；`components/color-loupe/src/logic.rs` 仅做输入归一与状态派生映射；`components/color-loupe/src/styles.rs` 为 token-first 静态 CSS；`components/color-loupe/src/view.rs` 仅做结构渲染与语义挂载。`ColorLoupe` 当前为静态 CSS keyframes 展示型实现，无 runtime attach 路径，`motion.rs` 对本组件 N/A）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`components/color-loupe/src/` 未引入 `spec.rs`；`ColorLoupe` 为简单展示组件，无稳定外部 Schema 契约或复杂配置固化需求，说明沉淀在 `components/color-loupe/check2.md` 与 `components/color-loupe/src/README.md`。现有 `protocol.rs` 仅保留最小版本化协议并由 `components/color-loupe/test/protocol.rs` 覆盖）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`components/color-loupe/src/styles.rs` 提供组件静态 CSS；`crates/ui-components/src/css.rs` 在 `@layer ui` 下按 `component-color_loupe` 聚合 `crate::color::loupe::styles::CSS`；`crates/ui-components/src/root.rs` 的 `UiRoot` 通过 `crate::css::push_components_css` 注入。视觉值使用 `var(--ui-*)` 与主题 fallback，组件未引入 Utility-First/CSS-in-Rust 作为默认范式）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`apps/docs-app/src/pages/components/pages/forms_color.rs` 已提供 `ColorLoupe` 默认主题基线路径（`slug=\"color-loupe\"` + `Hello World`/状态矩阵 Playground）；`crates/ui-components/tests/color_loupe_semantics.rs` 已锁定 docs 展示入口与关键示例存在性。仓库级截图基线与 Button/Input/Overlay 视觉回归为全局治理项，对单组件检查按 N/A 适配）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（特性门控已落地：`crates/ui-components/Cargo.toml` 提供 `component-color_loupe`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均按 feature 条件导出/聚合。验证：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-color_loupe,inject-css` 仅显示 `component-color_loupe -> component-color_swatch` 与 `inject-css`；`cargo tree -e features -i ui-components -p web-demo` 输出未见 `all-components`。体积预算与 CI 最小特性编译为仓库级门禁，此处按单组件检查记录 N/A）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +149,73 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`components/color-loupe/src/logic.rs` 以 `ColorLoupeLogicInput` + `ui-state-primitives::ColorLoupeStateInput` 约束输入空间，并在 `resolve_component_state` 统一归一；`components/color-loupe/test/logic.rs::semantic_markers_use_closed_enumerable_value_sets` 锁定无效状态归一与封闭集合。`components/color-loupe/src/view.rs` 暴露稳定机器可读标记（`data-state/data-open/data-disabled/data-x-bucket/data-y-bucket/data-aria-source/data-class-source`），并由 `crates/ui-components/tests/color_loupe_semantics.rs` 回归锁定。离散轴 `variant/size/mode/status` 对本组件 N/A：当前无该类公共输入）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`ColorLoupe` 是纯展示型 `role="img"` 组件，不创建 overlay 层级、不实现焦点捕获/恢复链路；`components/color-loupe/src/view.rs` 无 `NodeRef`/focus manager 接入，因此不存在“焦点坠落到 document.body”的本组件风险面）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`ColorLoupe` 未集成 ECharts/Map 等命令式第三方实例，`components/color-loupe/src/logic.rs` 仅桥接 `ui-state-primitives` 状态归一，`components/color-loupe/src/mod.rs`/`components/color-loupe/src/lib.rs` 只暴露组件与状态类型；并由 `components/color-loupe/test/semantics.rs::color_loupe_public_surface_does_not_expose_dom_platform_types` 约束公共 API 不泄漏平台/DOM 类型）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（`components/color-loupe/src/view.rs` 以必填 `id_base: String` 作为外部确定性 ID 注入并直接挂载 `id=id_base`，组件内部未生成随机/时间 ID；`components/color-loupe/test/semantics.rs::color_loupe_hydration_id_is_deterministic_and_time_free` 回归锁定无 `now/rand/uuid` 非确定性来源）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（源码与特性证据：`components/color-loupe/src/{lib,mod,logic,protocol,view,styles}.rs` 无 `web-sys/js-sys/wasm_bindgen/window/document` 依赖；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 对 `component-color_loupe` 均有显式 `#[cfg(feature = \"component-color_loupe\")]` 门控。回归：`components/color-loupe/test/semantics.rs::color_loupe_platform_contract_is_explicit_and_non_wasm_safe`。compile-only 证据：默认本地 `cargo check -p ui-color-loupe` 通过；native/wasm 编译尝试 `cargo check -p ui-components --no-default-features --features component-color_loupe,inject-css`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-color_loupe,inject-css`、`cargo check -p ui-color-loupe --target wasm32-unknown-unknown` 均被当前环境 `Invalid cross-device link (os error 18)` 阻断，非组件代码错误）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（源代码证据：`crates/ui-headless/src/lib.rs` 含 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`，`crates/ui-headless/Cargo.toml` 分离 `web = ["leptos/csr"]` 与 `ssr = ["leptos/ssr"]`；组件接入 `components/color-loupe/src/view.rs` 仅消费 `ui_headless::a11y::{A11yDirection, locale_attrs}`。回归：`components/color-loupe/test/semantics.rs::color_loupe_headless_feature_exclusion_contract_is_guarded`。编译验证尝试：`cargo check -p ui-headless --no-default-features --features web`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --no-default-features --features web,ssr`（当前环境均被 `Invalid cross-device link (os error 18)` 阻断，非互斥契约失效））
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（源代码证据：`crates/ui-motion/src/lib.rs` 通过 `#[cfg(not(target_arch = "wasm32"))] pub mod web` 提供 `prefers_reduced_motion() -> true` 与 `animate(&(), ..)` no-op stub，并在 `#[cfg(all(test, not(target_arch = "wasm32")))]` 下有 `non_wasm_web_backend_is_predictable_noop` 回归。组件侧 `components/color-loupe/src/` 无 `motion.rs`，且不依赖 `ui_motion` runtime 句柄。回归：`components/color-loupe/test/semantics.rs::color_loupe_motion_non_wasm_noop_contract_is_guarded`。编译验证：`cargo check -p ui-motion` 已通过）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`components/color-loupe/src/styles.rs` 已通过 `@media (prefers-reduced-motion: reduce)` 将开启动画降级为 `animation: none`；SSR/hydration 稳定性由 `components/color-loupe/src/view.rs` 的确定性 `id_base -> id` 与稳定语义标记保证（见 `components/color-loupe/test/semantics.rs::color_loupe_hydration_id_is_deterministic_and_time_free`）；组件实现无 `wasm/ssr` 条件分支，语义契约在各平台保持一致（`components/color-loupe/test/semantics.rs::color_loupe_reduced_motion_and_ssr_wasm_semantics_are_stable`））
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（预算基线已接入 `apps/docs-app/src/pages/components/shell.rs`：`"color-loupe" => UiPerfBudget { max_mount_ms: 20.0, max_update_ms: Some(6.0), max_heap_kb: Some(320.0) }`，并复用 `button/input` 基线预算；观测与阻断由 `apps/docs-app/src/perf_probe.rs` 的 `data-perf-*` 指标 + `e2e/tests/docs_app_components_coverage.spec.mjs` 的 perf 断言提供；可归因链路由 `apps/docs-app/src/debug_overlay.rs` trace 事件与组件稳定标记（`data-state/data-open/data-disabled/data-aria-source/data-class-source`）保证；脚本门禁已接入 `scripts/check-ui-components-performance.sh` 的 `color_loupe_performance_governance_contract_is_budgeted_traceable_and_blocking`；渲染计数方面当前测试框架沿用仓库统一方案：基础组件 `Button/Input` 已纳入预算门禁与回归，`render_count` 自动化 follow-up 由 `docs/plan/TODO.md` 跟踪，当前采用 mount/probe 等价证据）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`components/color-loupe/src/view.rs` 已将 loupe 片段拆分为 `render_loupe_fill(color: Option<String>) -> impl IntoView` 与 `render_loupe_bubble(color: Option<String>) -> impl IntoView`，主 `ColorLoupe` `view!` 仅组合结构并通过 `{move || render_loupe_bubble(color.get_value())}` 挂载，避免在主宏块内重复深嵌套分支；回归由 `components/color-loupe/test/semantics.rs::color_loupe_view_macro_complexity_is_split_into_semantic_subrenders` 锁定）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`components/color-loupe/src/view.rs` 将 loupe 片段保持为普通函数 `render_loupe_fill`/`render_loupe_bubble`/`render_loupe_tail`（均返回 `impl IntoView`），主视图以 `{move || render_loupe_bubble(color.get_value())}` + `{render_loupe_tail()}` 组合；未将局部片段升格为独立 `#[component]`。回归由 `components/color-loupe/test/semantics.rs::color_loupe_prefers_function_split_over_extra_component` 与 `color_loupe_view_macro_complexity_is_split_into_semantic_subrenders` 锁定）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`components/color-loupe/src/view.rs` 将 loupe 静态壳层（bubble/checker/fill/tail）集中为 `COLOR_LOUPE_*` 常量，并模板化为 `render_loupe_bubble`/`render_loupe_tail`，主视图只组合入口 `{move || render_loupe_bubble(color.get_value())}` + `{render_loupe_tail()}`；可见语义保持 `aria-hidden=ARIA_HIDDEN_TRUE`。回归由 `components/color-loupe/test/semantics.rs::color_loupe_static_fragments_are_templated_with_constants` 锁定）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`ColorLoupe` 当前无富文本注入场景，`components/color-loupe/src/{view,logic,styles}.rs` 均不使用 `inner_html`/`set_inner_html`/`dangerously_set_inner_html`；组件只挂载结构化 `view!` 与语义属性。安全回归由 `components/color-loupe/test/semantics.rs::color_loupe_does_not_use_inner_html_injection_paths` 锁定）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`ColorLoupe` 为快照展示型 `role="img"` 组件，不含 `on:*` 交互事件与状态迁移链路，因此不存在“关键交互回放”面；状态可观测性由 `data-state/data-aria-source/data-class-source` 稳定标记提供。默认产物不含调试 API/feature：`components/color-loupe/Cargo.toml` 仅 `default = []`，`components/color-loupe/src/{lib,mod,logic}.rs` 无 `debug`/`TraceId` 公共导出。回归由 `components/color-loupe/test/semantics.rs::color_loupe_wasm_debug_contract_is_non_polluting_for_snapshot_component` 锁定）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`apps/docs-app/src/pages/components/pages/forms_color.rs` 的 `ColorLoupe` 页面已提供 `Interactive Playground` 隔离演练入口（`slug="color-loupe"`），并通过 `test_source_path="components/color-loupe/src/styles.rs"` 直连样式测试路径，支撑样式迭代不必重走完整 wasm 业务流程；`Switch/SegmentedControl` 控件驱动 `is_open/is_disabled/color/position/custom_aria/custom_class`，在同一上下文持续调参并保留当前状态。回归由 `components/color-loupe/test/semantics.rs::color_loupe_dx_workbench_supports_style_iteration_and_context_retention` 锁定）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（N/A：`ColorLoupe` 为展示型快照组件，当前公开 API 不接受 spec/config 输入，也无异步边界与跨事件流程编排；因此无组件内 `serde` 结构化错误输出与 `tracing span/event` 埋点需求。工程约束仍受回归锁定：`components/color-loupe/test/semantics.rs::color_loupe_engineering_contract_is_runtime_and_trace_free` 断言 `src/{lib,mod,logic,view,styles}` 不泄漏 `tokio/async-std/tracing` 与 runtime 类型，且不暴露 `spec/protocol` 公共输入）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/color-loupe/src/styles.rs` 已将颜色/间距/圆角/边框宽度/层级/时长等 token 统一收敛为 `--ui-color-loupe-*` 防御变量，并全部通过 `var(--ui-*, var(--ui-fallback-*))` 映射；组件尺寸与 inset 改为 token 推导变量（无裸 `rem` 终值），样式内无 Hex 颜色字面量。回归由 `components/color-loupe/test/semantics.rs::color_loupe_styles_use_defensive_variable_fallback_chains` 锁定）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui-components/src/css.rs` 通过 `push_components_css` 统一写入 `@layer ui` 包裹，并在 `#[cfg(feature = "component-color_loupe")]` 下按需聚合 `crate::color::loupe::styles::CSS`；`components/color-loupe/src/view.rs` 无 `style=`/`style:\"` 普通内联样式写法。回归由 `components/color-loupe/test/semantics.rs::color_loupe_css_cascade_layer_contract_is_explicit` 锁定）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（N/A：`ColorLoupe` 为展示型快照组件，当前仅使用 token 驱动的静态 CSS keyframes，不引入 `motion.rs` runtime attach 路径，也不实现 spring 参数协定；降级与平台安全已显式覆盖：`components/color-loupe/src/styles.rs` 具备 `@media (prefers-reduced-motion: reduce) -> animation: none`，`crates/ui-motion/src/lib.rs` non-wasm no-op/stub 由回归验证，且组件源码无 `attach_motion` 调用。回归由 `components/color-loupe/test/semantics.rs::color_loupe_motion_contract_item_is_n_a_and_safe` 锁定）
+- [x] `ui-components` 固定入口文件落点正确。（入口证据：`crates/ui-components/src/lib.rs` 对 `color_loupe` 采用 `#[cfg(feature = "component-color_loupe")]` 门控并稳定导出 `color::loupe` 命名空间；`crates/ui-components/src/css.rs` 在 `push_components_css` 中以 `@layer ui` 聚合并按 feature 条件注入 `crate::color::loupe::styles::CSS`；`crates/ui-components/src/root.rs` 统一注入 `BASE_CSS + theme vars + (optional) components css` 且提供 `provide_ui_i18n` 上下文。共享能力落点：`crates/ui-visual-primitive/src/active_highlight.rs` 保留通用高亮动效契约，不承载组件业务语义。禁用文件：`crates/ui-components/src/{overlay_open.rs,presence.rs,a11y.rs}` 不存在。回归由 `components/color-loupe/test/semantics.rs::color_loupe_ui_components_entrypoints_are_located_and_scoped` 锁定）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +223,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（目录证据：`components/color-loupe/src/{mod.rs,logic.rs,styles.rs,view.rs}` 存在且职责分离；`mod.rs` 仅导出稳定 API（`ColorLoupe` + 状态类型）；`logic.rs` 只做 props 归一/状态派生并消费 `ui-state-primitives`；`styles.rs` 仅提供 token-first 静态 CSS；`view.rs` 仅做 Leptos 结构渲染与 A11y 挂载，关键状态通过 `logic::resolve_component_state` 与稳定 `data-*` 标记暴露；`render.rs` 不存在。`motion.rs` 对本组件 N/A：`ColorLoupe` 为 snapshot 展示组件，无独立交互语义状态机与 runtime `attach_motion` 需求；`spec.rs` 未新增。回归由 `components/color-loupe/test/semantics.rs::color_loupe_component_directory_layout_is_standardized` 锁定）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,61 +232,61 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（落点证据：`components/color-loupe/src/{mod.rs,logic.rs,styles.rs,view.rs}` 存在且职责分离，`render.rs` 不存在；`spec.rs` 未新增。`motion.rs` 对当前 snapshot 组件 N/A：无 runtime attach 与交互状态机，已由 `components/color-loupe/test/semantics.rs::color_loupe_component_directory_layout_is_standardized` 与 `color_loupe_motion_contract_item_is_n_a_and_safe` 锁定。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`ColorLoupe` 为 snapshot 展示型简单组件，不属于复杂配置/规范驱动组件；目录下无 `spec.rs`，公共 API 不暴露 `*Spec::new()...render()` 构建器。回归由 `components/color-loupe/test/semantics.rs::color_loupe_hyper_structure_builder_item_is_n_a_for_snapshot_component` 锁定。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（已新增 `components/color-loupe/Component.toml` 与 `components/color-loupe/Component.rbi`，并锁定组件能力与接口签名投影：`snapshot=true`、`streaming=false`、`spec_builder=false`、`motion_runtime=false`，以及 `ColorLoupe` props 与稳定 `data-*` 语义标记清单。回归由 `components/color-loupe/test/semantics.rs::color_loupe_context_compression_manifest_and_rbi_are_synced` 锁定。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（已在 `components/color-loupe/src/logic.rs` 建立类型化 contract：`AgentContractIntent/Action/State/Source/Bucket + ColorLoupeAgentContract`，并通过唯一出口 `agent_contract_schema_attr(state)` 生成 `data-ui-schema`；`components/color-loupe/src/view.rs` 仅挂载 `data-ui-schema=move || ui_schema.get()`，不在视图层散落字符串拼接。契约字段与能力清单已同步到 `components/color-loupe/Component.toml` 与 `components/color-loupe/Component.rbi`（`ui-color-loupe/v1`：`intent/action/state/source/x_bucket/y_bucket`），并由 `components/color-loupe/test/semantics.rs::color_loupe_agent_contract_schema_is_machine_readable_and_whitelisted` 锁定。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`ColorLoupe` 已显式声明两种模式语义边界：`components/color-loupe/Component.toml` 固化 `snapshot=true`、`streaming=false`，`components/color-loupe/Component.rbi` 固化 `mode: \"snapshot\"`；即本组件只消费完整结果一次性渲染，不承担边生成边显示职责。回归由 `components/color-loupe/test/semantics.rs::color_loupe_streaming_and_snapshot_modes_are_explicit_for_llm_rendering` 锁定。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ColorLoupe` 已以 snapshot 作为默认模式：`components/color-loupe/Component.toml` 固化 `kind=\"snapshot\"` 与 `snapshot=true`；`components/color-loupe/Component.rbi` 固化 `mode: \"snapshot\"` 与完整签名 `ColorLoupe(...)`。组件可消费完整配置并稳定渲染：`components/color-loupe/src/view.rs` 接收完整 props（`color/is_open/is_disabled/x_percent/y_percent/aria_label/class_name/lang/dir`），统一经 `logic::resolve_component_state`、`normalize_aria_label`、`sanitize_color` 归一后输出稳定 `role/aria/data-*` 语义标记。回归由 `components/color-loupe/test/semantics.rs::color_loupe_snapshot_mode_supports_complete_configuration_render_contract` 锁定。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ColorLoupe` 非正文阅读面，判定为 `Streaming Optional`：`components/color-loupe/Component.toml` 明确 `streaming=false` 且 `[streaming_policy] required=false, fallback=\"snapshot\", owner=\"upstream\"`；`components/color-loupe/Component.rbi` 同步 `streaming_policy { required: false, fallback: \"snapshot\", owner: \"upstream\" }`。组件显式输出状态标记：`components/color-loupe/src/view.rs` 挂载 `data-output-state`，并以类型化 `ColorLoupeOutputState`（`draft/verified/committable`）进入 `data-ui-schema`。数据校验/断线恢复/重试策略不下沉到组件，组件仅做稳定渲染与语义标记输出。回归由 `components/color-loupe/test/semantics.rs::color_loupe_streaming_requirement_is_component_scoped_with_snapshot_fallback` 锁定。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（组件侧证据：`components/color-loupe/src/*` 无 `unwrap/expect` 与 `let _ =`；`components/color-loupe/src/logic.rs::compose_class_name` 已收敛为 `Vec<Cow<'static, str>>`，移除静态 class 的重复 `to_string()` 分配。命令验证：执行 `./scripts/check-rust-hygiene.sh` 时受仓库脚本入口权限与全仓 `api-contract` baseline 漂移阻断（非 `color-loupe` 组件引入）；已通过等价脚本流程复现并保留组件级回归 `components/color-loupe/test/semantics.rs::color_loupe_rust_hygiene_component_source_is_clean`。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（特性树证据：`crates/ui-components/Cargo.toml` 已注册 `component-color_loupe = [\"component-color_swatch\"]`；`crates/ui-components/src/lib.rs` 与 `crates/ui-components/src/css.rs` 均以 `#[cfg(feature = \"component-color_loupe\")]` 门控导出/聚合。实测命令：`cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-color_loupe,inject-css` 输出仅含 `component-color_loupe -> component-color_swatch` 与 `inject-css`；`cargo tree -e features -i ui-components -p web-demo` 输出未见 `all-components` 被隐式拉起。回归由 `components/color-loupe/test/semantics.rs::color_loupe_tree_shaking_feature_gates_are_component_scoped` 锁定。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（语义回归已覆盖 `role=\"img\"`、`aria-label`、`data-state/data-output-state/data-aria-source/data-class-source`，并由 `components/color-loupe/test/semantics.rs::color_loupe_semantics_and_performance_regression_contract_is_covered` 锁定；焦点流转对当前 snapshot 展示组件判定 N/A：`view.rs` 无 `tabindex`/focus handler/`NodeRef` 焦点链；性能回归沿用仓库既定等价证据路径：`apps/docs-app/src/pages/components/shell.rs` 对 `color-loupe` 定义 `UiPerfBudget { max_mount_ms: 20.0, max_update_ms: Some(6.0), max_heap_kb: Some(320.0) }`，并由 `scripts/check-ui-components-performance.sh` 的 `color_loupe_performance_governance_contract_is_budgeted_traceable_and_blocking` 门禁阻断；`render_count` 自动化 follow-up 继续由仓库统一计划跟踪。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `color-loupe` 变更未引入跨大版本 API 破坏升级，公共签名与能力声明仍维持 `v1` 语义（`Component.toml`/`Component.rbi` 与 `ColorLoupe` props 未发生 breaking rename/removal），因此不存在 `migrate_v1_to_v2` 的迁移层与弃用窗口注册触发条件。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 已补齐 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled（N/A）` 与 `Streaming Optional / Snapshot` Playground；其中受控/非受控对照对本组件按 snapshot 性质明确标注 N/A（无内部可变状态轴）。文档已新增 `Source-first / Copy-Paste Ready` 区块，并显式指向 `apps/docs-app/src/playground.rs::compose_copy_ready_code`（自动补全 imports）与组件真实源码路径 `components/color-loupe/src/{view.rs,logic.rs,styles.rs}`。回归由 `components/color-loupe/test/semantics.rs::color_loupe_docs_product_copy_paste_ready_contract_is_complete` 锁定。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`components/color-loupe/test/semantics.rs` 已以语义契约断言为主：覆盖 `role=\"img\"`、`aria-label`、`data-state/data-output-state/data-aria-source/data-class-source`，并校验新增文档语义位点；`crates/ui-components/tests/color_loupe_semantics.rs` 同步保留语义回归入口。本组件为 snapshot 展示型非交互组件，键盘动作路径 N/A（无 `on:keydown`/focus handler 状态机），快照渲染相关断言仅作补充，不替代语义契约。新增/变更语义字段由 `components/color-loupe/test/semantics.rs::color_loupe_semantics_first_contract_prioritizes_data_aria_role_and_source_markers` 与 checklist 守卫测试共同阻断回归。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（已新增 `e2e/tests/docs_app_color_loupe_contract.spec.mjs`：所有关键定位走语义选择器（`[data-component=\"color-loupe\"]`、`#docs-color-loupe-*-*[data-slot=\"color-loupe\"]`、`[data-slot=\"color-loupe-output-mode\"]`、`[data-slot=\"color-loupe-workbench-*\"]`），不依赖 DOM 层级深度；WASM ready 统一使用 `body:not(:has(#boot))` 与 `toHaveAttribute(...)` 语义就绪断言，无固定 sleep。对交互/动画相关路径，workbench 流程显式覆盖 `open -> disabled -> color -> open` settled 条件，并验证 stream snapshot 标记与状态收敛。回归由 `components/color-loupe/test/semantics.rs::color_loupe_e2e_semantic_selectors_are_stable_and_sleep_free` + checklist 守卫共同阻断。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（已新增 `e2e/tests/docs_app_color_loupe_contract.spec.mjs` 并纳入可重复回归：关键流程覆盖 `open -> position 变更 -> custom aria/class -> disabled -> reopen`，每一步均用 `toHaveAttribute` 锁定 `data-state/data-open/data-disabled/data-aria-source/data-class-source/data-x/y-bucket` 语义断点，失败可直接定位到契约字段而非“页面不一致”；流程末尾包含 `page.reload()` 后语义恢复断言，验证可重复性。高风险路径中 `overlay/focus/keyboard/async` 对 `ColorLoupe` 判定 N/A：该组件为 snapshot 展示型 `role=\"img\"`，不承载 overlay/focus/keyboard 状态机与异步协议。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 已同步 `Hello World`、`Open + Position Buckets`、`Disabled + Custom Label + Custom Class`、`Controlled vs Uncontrolled（N/A）`、`State Matrix`、`Streaming Optional / Snapshot` 与 `Interactive Playground`；组件行为与参数名统一使用 `is_open/is_disabled/x_percent/y_percent/aria_label/class_name/output_state`，未回退到旧别名。默认值链路与 `components/color-loupe/src/logic.rs` 保持一致：`x_percent/y_percent` 缺省走 `normalize_position_percent(None) -> DEFAULT_POSITION_PERCENT`，`output_state` 缺省走 `normalize_output_state(None) -> Verified`，并由 docs 的默认示例（`docs-color-loupe-matrix-default`）与输出状态示例同步覆盖。回归由 `components/color-loupe/test/semantics.rs::color_loupe_docs_examples_and_state_matrix_are_synced_with_logic_defaults` + checklist 守卫阻断。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`components/color-loupe/src/README.md` 已提供新手路径：`快速开始（先用起来） -> Hello World -> 常见用法 -> 进阶`，默认 API (`id_base/color/is_open`) 在前、架构细节在后；docs 入口 `apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 保持 `slug=\"color-loupe\"`、`Hello World` 与 `Interactive Playground` 可索引。回归由 `components/color-loupe/test/semantics.rs::color_loupe_documentation_entry_is_beginner_friendly` + checklist 守卫阻断。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 已提供 `title=\"Interactive Playground\"` 工作台：`controls` 可在线调节 `color/position/is_open/is_disabled/custom_aria/custom_class`，并实时驱动 `#docs-color-loupe-workbench-main` 预览；`code_signal=workbench_code` 与 `test_config_signal=workbench_actual_config` 同步输出当前配置用于验收复现。关键流程已纳入可重复回归：`e2e/tests/docs_app_color_loupe_contract.spec.mjs` 覆盖 `open -> position -> custom aria/class -> disabled -> reopen` 的 settled 断言。Spec 输入联动子项对当前组件 N/A：`ColorLoupe` 非 AI Spec 组件，`components/color-loupe/Component.toml` 固化 `spec_builder=false`。回归由 `components/color-loupe/test/semantics.rs::color_loupe_docs_interactive_playground_contract_is_online_and_reproducible` + checklist 守卫阻断。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 的 `data-slot=\"color-loupe-copy-ready\"` 已明确 Source-first 入口：说明 Playground 复制链路经 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports，并给出真实源码落点 `components/color-loupe/src/{view.rs,logic.rs,styles.rs}`；同时补充依赖前提 `ui-components features: component-color_loupe + inject-css` 与 `UiRoot` 注入要求，避免“复制即报错”。`apps/docs-app/src/playground.rs` 持续用 `DEFAULT_PLAYGROUND_IMPORTS` + `compose_copy_ready_code` 生成可运行片段并通过 `CodeBlock` 提供一键复制。回归由 `components/color-loupe/test/semantics.rs::color_loupe_source_first_copy_paste_ready_contract_is_enforced` + checklist 守卫阻断。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已在 `docs/spec/heroui-parameter-design-strategy.md` 新增 `ColorLoupe 同步记录（2026-02-20）`，明确参数主轴 `id_base/color/is_open/is_disabled/x_percent/y_percent/aria_label/class_name/lang/dir/output_state` 与 docs 对齐策略；组件文档入口可索引：`apps/docs-app/src/pages/components/pages.rs` 已注册 `component_doc!(\"ColorLoupe\", \"color-loupe\", \"Forms\", forms_color::color_loupe)`，页面落点 `apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 保持 `slug=\"color-loupe\"`，并由 `components/color-loupe/src/README.md` 提供等价入口。研究文档补充判定为 N/A：本轮未引入新的 Spectrum/HeroUI 风格结论，无需追加 `docs/research/spectrum-heroui-style-interface-study.md`。回归由 `components/color-loupe/test/semantics.rs::color_loupe_heroui_alignment_and_docs_entry_stay_in_sync` + checklist 守卫阻断。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

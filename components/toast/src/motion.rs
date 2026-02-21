@@ -81,16 +81,16 @@ pub fn attach_motion(
         let y_initial = motion.initial_y_px;
         let scale_initial = motion.initial_scale;
 
-        drop(style.set_property("--ui-toast-opacity", &format!("{opacity_initial}")));
-        drop(style.set_property("--ui-toast-y", &format!("{y_initial}px")));
-        drop(style.set_property("--ui-toast-scale", &format!("{scale_initial}")));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-toast-opacity", &format!("{opacity_initial}"));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-toast-y", &format!("{y_initial}px"));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-toast-scale", &format!("{scale_initial}"));
         if ui_motion::web::prefers_reduced_motion() {
             if open_now {
                 // compatibility marker for source-contract tests:
                 // let _ = style.set_property("--ui-toast-opacity", "1");
-                drop(style.set_property("--ui-toast-opacity", "1"));
-                drop(style.set_property("--ui-toast-y", "0px"));
-                drop(style.set_property("--ui-toast-scale", "1"));
+                ui_observability::set_css_property_observed_auto!(&(style), "--ui-toast-opacity", "1");
+                ui_observability::set_css_property_observed_auto!(&(style), "--ui-toast-y", "0px");
+                ui_observability::set_css_property_observed_auto!(&(style), "--ui-toast-scale", "1");
             }
             return;
         }
@@ -98,19 +98,19 @@ pub fn attach_motion(
         let style_for_opacity = style.clone();
         let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_opacity.set_property("--ui-toast-opacity", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(&(style_for_opacity), "--ui-toast-opacity", &format!("{v}"));
         });
 
         let style_for_y = style.clone();
         let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
             let v = v.clamp(-1000.0, 1000.0);
-            drop(style_for_y.set_property("--ui-toast-y", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(&(style_for_y), "--ui-toast-y", &format!("{v}px"));
         });
 
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
             let v = v.clamp(0.0, 10.0);
-            drop(style_for_scale.set_property("--ui-toast-scale", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(&(style_for_scale), "--ui-toast-scale", &format!("{v}"));
         });
 
         let springs_for_cleanup = springs;

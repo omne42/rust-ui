@@ -56,6 +56,24 @@ fn normalize_open_state_prefers_is_open_and_preserves_triplet() {
 }
 
 #[test]
+fn normalize_close_on_action_prefers_is_prefix() {
+    assert_eq!(
+        normalize_close_on_action(ActionModeInput {
+            is_close_on_action: Some(false),
+            close_on_action: true,
+        }),
+        DropdownActionMode::KeepOpenOnAction
+    );
+    assert_eq!(
+        normalize_close_on_action(ActionModeInput {
+            is_close_on_action: None,
+            close_on_action: true,
+        }),
+        DropdownActionMode::CloseOnAction
+    );
+}
+
+#[test]
 fn compose_class_name_includes_state_markers() {
     let state = resolve_state(DropdownStateInput {
         item_count: 0,
@@ -75,4 +93,28 @@ fn compose_class_name_includes_state_markers() {
     assert!(class_name.contains("ui-dropdown--empty"));
     assert!(class_name.contains("ui-dropdown--custom-class"));
     assert!(class_name.contains("docs-dropdown-custom"));
+}
+
+#[test]
+fn dropdown_event_decision_is_centralized() {
+    let state = resolve_state(DropdownStateInput {
+        item_count: 1,
+        disabled: false,
+        close_on_action: true,
+        has_custom_aria_label: false,
+        has_custom_class_name: false,
+        is_controlled: false,
+        has_disabled_items: false,
+        has_item_kinds: false,
+    });
+    assert_eq!(resolve_root_state_attr(true, state), "open");
+
+    assert_eq!(
+        resolve_trigger_press(false, false),
+        Some(DropdownPressResult {
+            next_open: true,
+            open_focus: Some(DropdownOpenFocusStrategy::First),
+        })
+    );
+    assert_eq!(resolve_trigger_press(true, false), None);
 }

@@ -1,0 +1,180 @@
+schema_version = "1"
+
+[component]
+name = "ErrorMessage"
+crate = "ui-error-message"
+
+[[inputs]]
+name = "text"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "tone"
+ty = "ErrorMessageTone"
+default = "ErrorMessageTone::default()"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_truncated"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "truncate"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "element"
+ty = "ErrorMessageElement"
+default = "ErrorMessageElement::default()"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ErrorMessageMotion"
+default = "ErrorMessageMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-tone + data-state + data-disabled + data-truncate + data-message-source + data-aria-source + data-class-source + data-motion-source + role + aria-live + aria-label + aria-disabled + lang + dir"
+
+[[outputs]]
+name = "agent-contract"
+ty = "data-ui-schema + data-ui-intent + data-ui-action + data-ui-state + data-ui-source + data-ui-output-status + data-ui-stream-support + data-ui-stream-mode + data-ui-stream-fallback"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_with_non_wasm_noop"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[capabilities]]
+name = "whitelist_render_policy_no_script_injection"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"
+
+[agent_contract]
+schema = "ui.error-message.agent-contract.v1"
+intent = "form-validation-feedback"
+output_mode_axis = ["streaming", "snapshot"]
+action_axis = ["announce-error", "read-only"]
+state_axes = ["tone", "state", "disabled", "truncate"]
+source_axes = ["message_source", "aria_source", "class_source", "motion_source"]
+
+[[agent_contract_markers]]
+name = "schema"
+attr = "data-ui-schema"
+values = ["ui.error-message.agent-contract.v1"]
+
+[[agent_contract_markers]]
+name = "intent"
+attr = "data-ui-intent"
+values = ["form-validation-feedback"]
+
+[[agent_contract_markers]]
+name = "action"
+attr = "data-ui-action"
+values = ["announce-error", "read-only"]
+
+[[agent_contract_markers]]
+name = "stream_mode"
+attr = "data-ui-stream-mode"
+values = ["streaming", "snapshot"]
+
+[[agent_contract_markers]]
+name = "output_status"
+attr = "data-ui-output-status"
+values = ["draft", "verified"]
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "typed_state_from_ui_state_primitives::error_message::resolve_model",
+  "typed_semantics_from_ui_headless::use_error_message",
+  "typed_motion_from_attach_motion",
+]
+blocked = [
+  "inner_html",
+  "dangerously_set_inner_html",
+  "<script",
+  "javascript:",
+]

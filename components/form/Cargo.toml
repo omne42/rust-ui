@@ -12,3 +12,4 @@ default = []
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../../crates/ui-headless" }

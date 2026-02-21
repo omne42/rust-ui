@@ -1,0 +1,125 @@
+schema_version = "1"
+
+[component]
+name = "Image"
+crate = "ui-image"
+
+[[inputs]]
+name = "src"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "alt"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "fallback_src"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_skeleton_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_blurred"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_zoomed"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "radius"
+ty = "ImageRadius"
+default = "ImageRadius::Lg"
+controlled = false
+
+[[inputs]]
+name = "shadow"
+ty = "ImageShadow"
+default = "ImageShadow::Sm"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ImageMotion"
+default = "ImageMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-slot + data-state + data-loaded + data-zoomed + data-fallback + data-skeleton + data-blurred + data-radius + data-shadow + data-status-source + data-motion-source + data-custom-motion + lang + dir"
+
+[[outputs]]
+name = "signature-projection"
+ty = "src/image.rbi"
+
+[[outputs]]
+name = "agent-contract-schema"
+ty = "data-ui-schema + data-ui-intent + data-ui-action + data-ui-state + data-ui-status-source + data-ui-motion-source + data-ui-content-source + data-ui-radius-source + data-ui-shadow-source + data-ui-stream-support + data-ui-stream-fallback + data-ui-llm-mode + data-ui-output-status"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "schema_protocol_versioning"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "serde"
+kind = "protocol-serialization"

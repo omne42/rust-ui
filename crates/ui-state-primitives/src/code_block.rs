@@ -12,6 +12,16 @@ pub struct CodeBlockStateInput {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CodeBlockContentInput<'a> {
+    pub code: &'a str,
+    pub label: Option<&'a str>,
+    pub language: Option<&'a str>,
+    pub copyable: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CodeBlockViewState {
     pub show_header: bool,
     pub is_multiline: bool,
@@ -75,14 +85,25 @@ pub fn resolve_view_state(
     language: Option<&str>,
     copyable: bool,
 ) -> CodeBlockViewState {
-    resolve_state(CodeBlockStateInput {
-        is_multiline: code.contains('\n'),
-        is_empty: code.trim().is_empty(),
-        has_label: has_non_empty_text(label),
-        has_language: has_non_empty_text(language),
+    resolve_state_from_content(CodeBlockContentInput {
+        code,
+        label,
+        language,
         copyable,
         has_custom_class_name: false,
         has_custom_motion: false,
+    })
+}
+
+pub fn resolve_state_from_content(input: CodeBlockContentInput<'_>) -> CodeBlockViewState {
+    resolve_state(CodeBlockStateInput {
+        is_multiline: input.code.contains('\n'),
+        is_empty: input.code.trim().is_empty(),
+        has_label: has_non_empty_text(input.label),
+        has_language: has_non_empty_text(input.language),
+        copyable: input.copyable,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_motion: input.has_custom_motion,
     })
 }
 

@@ -1,13 +1,40 @@
 use crate::{
     ActionBarMotion, ActionBarPosition, ActionBarStrings,
     logic::{self, resolve_selection_text},
-    motion,
+    motion, protocol,
 };
 use leptos::{html, prelude::*};
 use ui_button::{Button, ButtonSize, ButtonVariant};
 use ui_headless::i18n;
 use ui_headless::use_controllable_state;
 use ui_headless::{A11yDirection, locale_attrs};
+
+fn render_clear_action(
+    clear_label: String,
+    request_selected_count_change: Callback<usize>,
+    on_clear_selection: Callback<()>,
+) -> impl IntoView {
+    let clear_label_attr = clear_label.clone();
+    let clear_label_text = clear_label;
+    let on_press = Callback::new(move |_| {
+        request_selected_count_change.run(0);
+        on_clear_selection.run(());
+    });
+
+    view! {
+        <span data-slot="action-bar-clear">
+            <Button
+                variant=ButtonVariant::Link
+                size=ButtonSize::S
+                class_name="ui-action-bar__clear"
+                aria_label=clear_label_attr
+                on_press=on_press
+            >
+                {clear_label_text}
+            </Button>
+        </span>
+    }
+}
 
 #[component]
 pub fn ActionBar(
@@ -26,6 +53,10 @@ pub fn ActionBar(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] children: Option<Children>,
 ) -> impl IntoView {
+    let render_policy = protocol::ActionBarComponentSpec::default().render_policy();
+    let allow_clear_action = render_policy.allow_clear_action;
+    let allow_children_slot = render_policy.allow_children_slot;
+
     let i18n = i18n::use_ui_i18n();
     let strings = i18n.strings::<ActionBarStrings>();
     let is_controlled_selected_count = selected_count.is_some();
@@ -53,8 +84,14 @@ pub fn ActionBar(
 
     let motion = motion::sanitize_motion(motion);
 
-    let has_clear_action = on_clear_selection.is_some();
+    let has_clear_action = allow_clear_action && on_clear_selection.is_some();
+    let on_clear_selection = if allow_clear_action {
+        on_clear_selection
+    } else {
+        None
+    };
     let on_clear_selection = StoredValue::new(on_clear_selection);
+    let children = if allow_children_slot { children } else { None };
 
     let strings = StoredValue::new(strings);
 
@@ -85,6 +122,7 @@ pub fn ActionBar(
         )
     });
     let visible = Signal::derive(move || state.get().is_visible);
+    let agent_attrs = Signal::derive(move || protocol::agent_data_attrs(state.get()));
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
     motion::attach_motion(root_ref, visible, motion);
@@ -116,6 +154,19 @@ pub fn ActionBar(
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
             data-motion-source=move || state.get().motion_source_attr
+            data-ui-schema=move || agent_attrs.get().schema
+            data-ui-intent=move || agent_attrs.get().intent
+            data-ui-action=move || agent_attrs.get().action
+            data-ui-streaming-policy=move || agent_attrs.get().streaming_policy
+            data-ui-streaming-fallback=move || agent_attrs.get().streaming_fallback
+            data-ui-output-mode=move || agent_attrs.get().output_mode
+            data-ui-output-status=move || agent_attrs.get().output_status
+            data-ui-state-phase=move || agent_attrs.get().state_phase
+            data-ui-state-position=move || agent_attrs.get().state_position
+            data-ui-state-selection=move || agent_attrs.get().state_selection
+            data-ui-source-selected-count=move || agent_attrs.get().source_selected_count
+            data-ui-source-clear-action=move || agent_attrs.get().source_clear_action
+            data-ui-source-motion=move || agent_attrs.get().source_motion
             role="toolbar"
             aria-label=aria_label
             aria-hidden=move || state.get().is_hidden.then_some("true")
@@ -135,25 +186,11 @@ pub fn ActionBar(
                 {children.map(|children| children())}
 
                 {on_clear_selection.get_value().map(|on_clear_selection| {
-                    let clear_label_attr = clear_label.clone();
-                    let clear_label_text = clear_label.clone();
-                    let on_press = Callback::new(move |_| {
-                        request_selected_count_change.run(0);
-                        on_clear_selection.run(());
-                    });
-                    view! {
-                        <span data-slot="action-bar-clear">
-                            <Button
-                                variant=ButtonVariant::Link
-                                size=ButtonSize::S
-                                class_name="ui-action-bar__clear".to_string()
-                                aria_label=clear_label_attr
-                                on_press=on_press
-                            >
-                                {clear_label_text}
-                            </Button>
-                        </span>
-                    }
+                    render_clear_action(
+                        clear_label.clone(),
+                        request_selected_count_change,
+                        on_clear_selection,
+                    )
                 })}
             </div>
         </div>

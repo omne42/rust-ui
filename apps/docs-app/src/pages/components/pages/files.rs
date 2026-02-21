@@ -12,7 +12,7 @@ pub(super) fn file_trigger() -> AnyView {
     // <Playground title="Pick files with custom motion" code_signal=motion_code>
     // title="Pick files"
     // title="Pick files with custom motion"
-    // <FileTrigger multiple=true on_files=on_files>
+    // <FileTrigger is_multiple=true on_files=on_files>
     // "Pick files (custom motion)"
     // "No files selected (custom motion example)."
     let accept_options = vec![
@@ -63,6 +63,15 @@ pub(super) fn file_trigger() -> AnyView {
         signal(Vec::<FileTriggerFile>::new());
     let on_comparison_custom_files =
         Callback::new(move |next: Vec<FileTriggerFile>| set_comparison_custom_files.set(next));
+    let (quick_start_files, set_quick_start_files) = signal(Vec::<FileTriggerFile>::new());
+    let on_quick_start_files =
+        Callback::new(move |next: Vec<FileTriggerFile>| set_quick_start_files.set(next));
+
+    let quick_start_code = Signal::derive(move || {
+        r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| { /* ... */ });
+<FileTrigger on_files=on_files>"Pick files"</FileTrigger>"#
+            .to_string()
+    });
 
     let workbench_code = Signal::derive(move || {
         let mut lines = vec![
@@ -74,10 +83,10 @@ pub(super) fn file_trigger() -> AnyView {
         ];
 
         if multiple.get() {
-            lines.push("  multiple=true".to_string());
+            lines.push("  is_multiple=true".to_string());
         }
         if disabled.get() {
-            lines.push("  disabled=true".to_string());
+            lines.push("  is_disabled=true".to_string());
         }
         if let Some(accept) = selected_accept.get() {
             lines.push(format!("  accept=\"{accept}\".into()"));
@@ -133,11 +142,11 @@ pub(super) fn file_trigger() -> AnyView {
         r#"<FileTrigger on_files=on_default_files>
   "Default"
 </FileTrigger>
-<FileTrigger disabled=true on_files=on_disabled_files>
+<FileTrigger is_disabled=true on_files=on_disabled_files>
   "Disabled"
 </FileTrigger>
 <FileTrigger
-  multiple=true
+  is_multiple=true
   motion=FileTriggerMotion {
     trigger: ButtonMotion {
       hover_scale: 1.04,
@@ -159,6 +168,22 @@ pub(super) fn file_trigger() -> AnyView {
             group="Files"
             description="A Button that forwards to an invisible <input type=file>."
         >
+            <Playground
+                title="Quick Start (Default API)"
+                description="默认调用路径：只需要 `on_files` 即可使用，无需接线内部状态原语。"
+                code_signal=quick_start_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <FileTrigger on_files=on_quick_start_files>
+                        "Pick files"
+                    </FileTrigger>
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || quick_start_files.get().len()}
+                    </span>
+                </div>
+            </Playground>
+
             <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 description="展示区支持文件选择结果回显；Config 区切换 accept/multiple/disabled/motion；Code + CSS Test 区用于契约回归。"
@@ -192,8 +217,8 @@ pub(super) fn file_trigger() -> AnyView {
                 <div class="docs-stack docs-stack--tight">
                     <FileTrigger
                         accept=selected_accept.get().unwrap_or_default()
-                        multiple=multiple.get()
-                        disabled=disabled.get()
+                        is_multiple=multiple.get()
+                        is_disabled=disabled.get()
                         motion=selected_motion.get()
                         on_files=on_files
                     >
@@ -260,7 +285,7 @@ pub(super) fn file_trigger() -> AnyView {
 
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Disabled"</div>
-                        <FileTrigger disabled=true>
+                        <FileTrigger is_disabled=true>
                             "Disabled"
                         </FileTrigger>
                         <span class="ui-muted">"state is fixed to disabled"</span>
@@ -269,7 +294,7 @@ pub(super) fn file_trigger() -> AnyView {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Custom motion + multiple"</div>
                         <FileTrigger
-                            multiple=true
+                            is_multiple=true
                             motion=FileTriggerMotion {
                                 trigger: ButtonMotion {
                                     hover_scale: 1.04,
@@ -294,8 +319,238 @@ pub(super) fn file_trigger() -> AnyView {
 }
 
 pub(super) fn drop_zone() -> AnyView {
+    #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+    struct DropZoneWorkbenchState {
+        is_disabled: bool,
+        custom_motion: bool,
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    impl DropZoneWorkbenchState {
+        fn parse(raw: &str) -> Option<Self> {
+            let parts = raw.split(',').map(str::trim).collect::<Vec<_>>();
+            if parts.len() != 2 {
+                return None;
+            }
+
+            let parse_bool = |at: usize| match *parts.get(at)? {
+                "1" => Some(true),
+                "0" => Some(false),
+                _ => None,
+            };
+
+            Some(Self {
+                is_disabled: parse_bool(0)?,
+                custom_motion: parse_bool(1)?,
+            })
+        }
+
+        fn encode(self) -> String {
+            let bool_digit = |value: bool| if value { '1' } else { '0' };
+            format!(
+                "{},{}",
+                bool_digit(self.is_disabled),
+                bool_digit(self.custom_motion),
+            )
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    const DROP_ZONE_WORKBENCH_STORAGE_KEY: &str = "docs:drop-zone:workbench:state";
+
+    #[cfg(target_arch = "wasm32")]
+    fn load_drop_zone_workbench_state() -> Option<DropZoneWorkbenchState> {
+        let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+        let raw = storage
+            .get_item(DROP_ZONE_WORKBENCH_STORAGE_KEY)
+            .ok()
+            .flatten()?;
+        DropZoneWorkbenchState::parse(&raw)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn load_drop_zone_workbench_state() -> Option<DropZoneWorkbenchState> {
+        None
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn save_drop_zone_workbench_state(state: DropZoneWorkbenchState) {
+        if let Some(storage) =
+            web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+        {
+            drop(storage.set_item(DROP_ZONE_WORKBENCH_STORAGE_KEY, &state.encode()));
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn save_drop_zone_workbench_state(_state: DropZoneWorkbenchState) {}
+
+    #[cfg(target_arch = "wasm32")]
+    fn clear_drop_zone_workbench_state() {
+        if let Some(storage) =
+            web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+        {
+            drop(storage.remove_item(DROP_ZONE_WORKBENCH_STORAGE_KEY));
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn clear_drop_zone_workbench_state() {}
+
     let (files, set_files) = signal(Vec::<DroppedFile>::new());
     let on_drop_files = Callback::new(move |next: Vec<DroppedFile>| set_files.set(next));
+    let persisted_workbench_state = load_drop_zone_workbench_state();
+    let has_persisted_workbench_state = persisted_workbench_state.is_some();
+    let initial_workbench_state = persisted_workbench_state.unwrap_or_default();
+    let (workbench_files, set_workbench_files) = signal(Vec::<DroppedFile>::new());
+    let on_workbench_drop_files =
+        Callback::new(move |next: Vec<DroppedFile>| set_workbench_files.set(next));
+    let (workbench_is_disabled, set_workbench_is_disabled) =
+        signal(initial_workbench_state.is_disabled);
+    let (workbench_custom_motion, set_workbench_custom_motion) =
+        signal(initial_workbench_state.custom_motion);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(has_persisted_workbench_state);
+
+    Effect::new(move |_| {
+        let state = DropZoneWorkbenchState {
+            is_disabled: workbench_is_disabled.get(),
+            custom_motion: workbench_custom_motion.get(),
+        };
+
+        if workbench_persist_state.get() {
+            save_drop_zone_workbench_state(state);
+        } else {
+            clear_drop_zone_workbench_state();
+        }
+    });
+
+    let workbench_motion = Signal::derive(move || {
+        if workbench_custom_motion.get() {
+            DropZoneMotion {
+                hover_scale: 1.015,
+                drop_scale: 1.03,
+                hover_highlight: 0.42,
+                ..DropZoneMotion::default()
+            }
+        } else {
+            DropZoneMotion::default()
+        }
+    });
+    let workbench_code = Signal::derive(move || {
+        let mut lines = vec![
+            "let on_drop_files = Callback::new(|files: Vec<DroppedFile>| {".to_string(),
+            "  // handle dropped files".to_string(),
+            "});".to_string(),
+            "".to_string(),
+            "<DropZone".to_string(),
+        ];
+
+        if workbench_is_disabled.get() {
+            lines.push("  is_disabled=true".to_string());
+        }
+        if workbench_custom_motion.get() {
+            lines.push("  motion=DropZoneMotion {".to_string());
+            lines.push("    hover_scale: 1.015,".to_string());
+            lines.push("    drop_scale: 1.03,".to_string());
+            lines.push("    hover_highlight: 0.42,".to_string());
+            lines.push("    ..DropZoneMotion::default()".to_string());
+            lines.push("  }".to_string());
+        }
+        lines.push("  on_drop_files=on_drop_files".to_string());
+        lines.push(">".to_string());
+        lines.push("  <div class=\"docs-drop-zone\">\"Drop files here\"</div>".to_string());
+        lines.push("</DropZone>".to_string());
+        lines.join("\n")
+    });
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* components/drop-zone/src/styles.rs */\n{}",
+            ui_components::drop_zone::styles::CSS
+        )
+    });
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "DropZoneWorkbenchConfig {{\n  disabled: {},\n  motion_source: \"{}\",\n  persist_state: {},\n  dropped_file_count: {},\n}}",
+            workbench_is_disabled.get(),
+            if workbench_custom_motion.get() {
+                "custom"
+            } else {
+                "default"
+            },
+            workbench_persist_state.get(),
+            workbench_files.get().len(),
+        )
+    });
+
+    let quick_start_code = Signal::derive(move || {
+        r#"<DropZone>
+  <div class="docs-drop-zone">"Drop files here"</div>
+</DropZone>"#
+            .to_string()
+    });
+    let hello_world_code = Signal::derive(move || {
+        r#"<DropZone>
+  <div class="docs-drop-zone">"Drop files here"</div>
+</DropZone>"#
+            .to_string()
+    });
+    let state_matrix_code = Signal::derive(move || {
+        r#"<DropZone label="Default".to_string()>
+  <div class="docs-drop-zone">"Default state"</div>
+</DropZone>
+
+<DropZone label="Disabled".to_string() is_disabled=true>
+  <div class="docs-drop-zone">"Disabled state"</div>
+</DropZone>
+
+<DropZone
+  label="Custom motion".to_string()
+  motion=DropZoneMotion {
+    hover_scale: 1.015,
+    drop_scale: 1.03,
+    hover_highlight: 0.42,
+    ..DropZoneMotion::default()
+  }
+>
+  <div class="docs-drop-zone">"Custom motion state"</div>
+</DropZone>"#
+            .to_string()
+    });
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"// DropZone has no persistent controlled/uncontrolled state axis.
+// It is event-driven: consume `on_drop_files` callback for app state sync.
+let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
+
+<DropZone on_drop_files=on_drop_files>
+  <div class="docs-drop-zone">"Drop files here"</div>
+</DropZone>"#
+            .to_string()
+    });
+    let streaming_snapshot_code = Signal::derive(move || {
+        r#"// Streaming Optional (fallback=snapshot):
+// DropZone renders stable semantics while upper layer validates stream data.
+<DropZone>
+  <div class="docs-drop-zone">"Streaming fallback=snapshot: waiting for final validation"</div>
+</DropZone>"#
+            .to_string()
+    });
+    let source_first_code = Signal::derive(move || {
+        r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| {
+  // sync files to app state
+});
+
+<DropZone
+  motion=DropZoneMotion::default()
+  on_drop_files=on_drop_files
+>
+  <div class="docs-drop-zone">"Drop files here"</div>
+</DropZone>"#
+            .to_string()
+    });
+    let source_first_imports =
+        "use leptos::prelude::*;\nuse ui_components::{DropZone, DropZoneMotion, DroppedFile};"
+            .to_string();
 
     let code = Signal::derive(move || {
         r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
@@ -330,6 +585,184 @@ pub(super) fn drop_zone() -> AnyView {
             group="Files"
             description="Drag-and-drop + paste file ingestion with focus handling."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <DropZone>
+                    <div class="docs-drop-zone">"Drop files here"</div>
+                </DropZone>
+            </Playground>
+
+            <Playground
+                title="Quick Start (Default API)"
+                description="默认调用路径：无需手动接线状态原语，只需渲染组件内容。"
+                code_signal=quick_start_code
+            >
+                <div data-slot="drop-zone-e2e-quick-start">
+                    <DropZone>
+                        <div class="docs-drop-zone">"Drop files here"</div>
+                    </DropZone>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Disabled / Motion / Callback)"
+                code_signal=state_matrix_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div data-slot="drop-zone-e2e-state-default">
+                        <DropZone label="Default".to_string()>
+                            <div class="docs-drop-zone">"Default state"</div>
+                        </DropZone>
+                    </div>
+                    <div data-slot="drop-zone-e2e-state-disabled">
+                        <DropZone label="Disabled".to_string() is_disabled=true>
+                            <div class="docs-drop-zone">"Disabled state"</div>
+                        </DropZone>
+                    </div>
+                    <div data-slot="drop-zone-e2e-state-custom-motion">
+                        <DropZone
+                            label="Custom motion".to_string()
+                            motion=DropZoneMotion {
+                                hover_scale: 1.015,
+                                drop_scale: 1.03,
+                                hover_highlight: 0.42,
+                                ..DropZoneMotion::default()
+                            }
+                            on_drop_files=on_drop_files
+                        >
+                            <div class="docs-drop-zone">"Custom motion state"</div>
+                        </DropZone>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                code_signal=controlled_contrast_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="ui-muted">
+                        "DropZone has no persistent controlled/uncontrolled state axis."
+                    </div>
+                    <div class="ui-muted">
+                        "Use on_drop_files callback to sync dropped files into app state."
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                code_signal=streaming_snapshot_code
+            >
+                <DropZone>
+                    <div class="docs-drop-zone">
+                        <div>"Streaming fallback=snapshot: waiting for final validation"</div>
+                        <div class="ui-muted">
+                            "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
+                        </div>
+                    </div>
+                </DropZone>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="代码面板默认可复制运行片段；同时给出真实源码路径与最小依赖前提，避免“复制即报错”。"
+                code_signal=source_first_code
+                code_imports=source_first_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-first">
+                    <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-first-contract">
+                        <h3>"Source-first / Copy-Paste Ready Contract"</h3>
+                        <div class="ui-muted">
+                            "Open "
+                            <code>"Show code"</code>
+                            " then use the copy button. Snippets prepend imports automatically."
+                        </div>
+                        <div class="ui-muted">
+                            "docs entry: apps/docs-app/src/pages/components/pages/files.rs::drop_zone"
+                        </div>
+                    </div>
+
+                    <div
+                        class="docs-stack docs-stack--tight"
+                        data-slot="drop-zone-source-first-dependency-baseline"
+                    >
+                        <div class="docs-search__label">"Dependency baseline (Cargo.toml)"</div>
+                        <code>
+                            "ui-components = { default-features = false, features = [\"component-drop_zone\", \"inject-css\"] }"
+                        </code>
+                    </div>
+
+                    <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-paths">
+                        <div class="docs-search__label">"Source paths"</div>
+                        <div class="ui-muted">"components/drop-zone/src/mod.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/logic.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/view.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/styles.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/motion.rs"</div>
+                    </div>
+
+                    <div class="ui-muted" data-slot="drop-zone-source-prerequisites">
+                        "Feature prerequisites: component-drop_zone (inject-css optional for runtime style injection)."
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench（展示 + Config + Code + CSS Test）"
+                description="隔离画布用于拖放/粘贴演练；样式支持 scoped 热编辑；可选保留 workbench 状态。"
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="components/drop-zone/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="drop-zone-workbench-controls">
+                        <div data-slot="drop-zone-workbench-toggle-disabled">
+                            <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                                "Disabled"
+                            </Switch>
+                        </div>
+                        <div data-slot="drop-zone-workbench-toggle-custom-motion">
+                            <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                                "Custom motion"
+                            </Switch>
+                        </div>
+                        <div data-slot="drop-zone-workbench-toggle-persist">
+                            <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                                "Persist workbench state"
+                            </Switch>
+                        </div>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="drop-zone-workbench">
+                    <div class="docs-card docs-stack docs-stack--tight" data-slot="drop-zone-workbench-canvas">
+                        <div data-slot="drop-zone-workbench-surface">
+                            <DropZone
+                                label=if workbench_custom_motion.get() {
+                                    "Upload (custom motion)".to_string()
+                                } else {
+                                    "Upload".to_string()
+                                }
+                                is_disabled=workbench_is_disabled.get()
+                                motion=workbench_motion.get()
+                                on_drop_files=on_workbench_drop_files
+                            >
+                                <div class="docs-drop-zone">
+                                    <div>"Drop files here"</div>
+                                    <div class="ui-muted">"…or paste an image/file."</div>
+                                </div>
+                            </DropZone>
+                        </div>
+                    </div>
+                    <span class="ui-muted">
+                        "files: "
+                        {move || workbench_files.get().len()}
+                        " · persist: "
+                        {move || if workbench_persist_state.get() { "on" } else { "off" }}
+                    </span>
+                </div>
+            </Playground>
+
             <Playground title="Drop / paste" code_signal=code>
                 <div class="docs-stack">
                     <DropZone label="Upload".to_string() on_drop_files=on_drop_files>

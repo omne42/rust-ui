@@ -3,6 +3,29 @@ pub struct EmptyStateMotion {
     pub animate_in: bool,
 }
 
+#[cfg(target_arch = "wasm32")]
+const EMPTY_STATE_SPRING_STIFFNESS: f64 = 280.0;
+#[cfg(target_arch = "wasm32")]
+const EMPTY_STATE_SPRING_DAMPING: f64 = 20.0;
+#[cfg(target_arch = "wasm32")]
+const EMPTY_STATE_SPRING_MASS: f64 = 1.0;
+#[cfg(target_arch = "wasm32")]
+const EMPTY_STATE_SPRING_PRECISION: f64 = 0.001;
+
+#[cfg(target_arch = "wasm32")]
+fn empty_state_spring_contract() -> ui_motion::spring::SpringConfig {
+    let fallback = ui_motion::presets::spring_soft();
+    ui_motion::spring::sanitize_config(
+        ui_motion::spring::SpringConfig {
+            stiffness: EMPTY_STATE_SPRING_STIFFNESS,
+            damping: EMPTY_STATE_SPRING_DAMPING,
+            mass: EMPTY_STATE_SPRING_MASS,
+            precision: EMPTY_STATE_SPRING_PRECISION,
+        },
+        fallback,
+    )
+}
+
 pub fn sanitize_motion(motion: EmptyStateMotion) -> EmptyStateMotion {
     EmptyStateMotion {
         animate_in: motion.animate_in,
@@ -35,16 +58,17 @@ where
 
         let element: leptos::web_sys::HtmlElement = node.unchecked_into();
         let style = element.style();
-        drop(style.set_property("--ui-empty-state-enter", "0"));
+        ui_observability::set_css_property_observed_auto!(&(style), "--ui-empty-state-enter", "0");
         let style_for_apply = style.clone();
-        let animator = ui_motion::spring::SpringAnimator::new(
-            0.0,
-            ui_motion::presets::spring_soft(),
-            move |v| {
+        let animator =
+            ui_motion::spring::SpringAnimator::new(0.0, empty_state_spring_contract(), move |v| {
                 let v = v.clamp(0.0, 1.0);
-                drop(style_for_apply.set_property("--ui-empty-state-enter", &format!("{v}")));
-            },
-        );
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_apply),
+                    "--ui-empty-state-enter",
+                    &format!("{v}")
+                );
+            });
         animator.set_target(1.0);
 
         let spring_for_cleanup = spring;

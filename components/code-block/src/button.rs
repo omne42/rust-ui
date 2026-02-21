@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use leptos::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -28,18 +30,44 @@ impl ButtonSize {
     }
 }
 
+fn normalize_class_name(class_name: Option<Cow<'static, str>>) -> Option<Cow<'static, str>> {
+    class_name.and_then(|value| match value {
+        Cow::Borrowed(value) => {
+            let trimmed = value.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(Cow::Borrowed(trimmed))
+            }
+        }
+        Cow::Owned(mut value) => {
+            let trimmed_end_len = value.trim_end().len();
+            value.truncate(trimmed_end_len);
+
+            let leading_whitespace = value.len() - value.trim_start().len();
+            if leading_whitespace > 0 {
+                value.drain(..leading_whitespace);
+            }
+
+            if value.is_empty() {
+                None
+            } else {
+                Some(Cow::Owned(value))
+            }
+        }
+    })
+}
+
 #[component]
 pub fn Button(
-    #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] class_name: Option<Cow<'static, str>>,
     #[prop(optional)] variant: ButtonVariant,
     #[prop(optional)] size: ButtonSize,
     #[prop(into)] aria_label: String,
     on_press: Callback<()>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = class_name
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty());
+    let class_name = normalize_class_name(class_name);
 
     let class_name = if let Some(class_name) = class_name {
         format!(

@@ -108,25 +108,49 @@ pub fn attach_motion(
         let scale_initial = motion.initial_scale;
         let y_initial = offset_y;
 
-        drop(style.set_property("--ui-preview-card-opacity", &format!("{opacity_initial}")));
-        drop(style.set_property("--ui-preview-card-scale", &format!("{scale_initial}")));
-        drop(style.set_property("--ui-preview-card-y", &format!("{y_initial}px")));
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-preview-card-opacity",
+            &format!("{opacity_initial}")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-preview-card-scale",
+            &format!("{scale_initial}")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-preview-card-y",
+            &format!("{y_initial}px")
+        );
         let style_for_opacity = style.clone();
         let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_opacity.set_property("--ui-preview-card-opacity", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_opacity),
+                "--ui-preview-card-opacity",
+                &format!("{v}")
+            );
         });
 
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
             let v = v.clamp(0.0, 10.0);
-            drop(style_for_scale.set_property("--ui-preview-card-scale", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_scale),
+                "--ui-preview-card-scale",
+                &format!("{v}")
+            );
         });
 
         let style_for_y = style.clone();
         let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
             let v = v.clamp(-1000.0, 1000.0);
-            drop(style_for_y.set_property("--ui-preview-card-y", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_y),
+                "--ui-preview-card-y",
+                &format!("{v}px")
+            );
         });
 
         let springs_for_cleanup = springs;

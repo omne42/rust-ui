@@ -11,7 +11,6 @@ pub enum DrawerComponentSchemaVersion {
     V1,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DrawerComponentSpec {
     #[serde(default)]
@@ -19,5 +18,5 @@ pub struct DrawerComponentSpec {
 }
 
 #[cfg(test)]
-#[path = "test/protocol.rs"]
+#[path = "../test/protocol.rs"]
 mod tests;

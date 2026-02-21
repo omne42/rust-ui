@@ -1,175 +1,349 @@
-use crate::color::swatch;
-use crate::color::swatch_picker::{ColorSwatchPickerState, ColorSwatchPickerStateInput};
-use std::collections::BTreeSet;
+use std::borrow::Cow;
 
-pub const DEFAULT_ARIA_LABEL: &str = "Color swatches";
+pub use ui_state_primitives::swatch_picker::{
+    DEFAULT_ARIA_LABEL, SwatchPickerItem as ColorSwatchPickerItem,
+    SwatchPickerState as ColorSwatchPickerState,
+    SwatchPickerStateInput as ColorSwatchPickerStateInput,
+};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ColorSwatchPickerItem {
-    pub color: String,
-    pub color_name: Option<String>,
-    pub disabled: bool,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerAgentSchema {
+    V1,
 }
 
-impl ColorSwatchPickerItem {
-    pub fn new(color: impl Into<String>) -> Self {
-        Self {
-            color: color.into(),
-            color_name: None,
-            disabled: false,
+impl ColorSwatchPickerAgentSchema {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::V1 => "ui.color-swatch-picker.agent-contract.v1",
         }
-    }
-
-    pub fn named(color: impl Into<String>, color_name: impl Into<String>) -> Self {
-        Self {
-            color: color.into(),
-            color_name: Some(color_name.into()),
-            disabled: false,
-        }
-    }
-
-    pub fn disabled(mut self, disabled: bool) -> Self {
-        self.disabled = disabled;
-        self
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerAgentSchemaVersion {
+    V1,
+}
+
+impl ColorSwatchPickerAgentSchemaVersion {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::V1 => "1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerStreamSupport {
+    Unsupported,
+}
+
+impl ColorSwatchPickerStreamSupport {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Unsupported => "unsupported",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerStreamFallback {
+    Snapshot,
+}
+
+impl ColorSwatchPickerStreamFallback {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerOutputStatus {
+    Verified,
+}
+
+impl ColorSwatchPickerOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerIntent {
+    PickColorSwatch,
+}
+
+impl ColorSwatchPickerIntent {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::PickColorSwatch => "pick-color-swatch",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerUiAction {
+    Select,
+    Sync,
+}
+
+impl ColorSwatchPickerUiAction {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Select => "select",
+            Self::Sync => "sync",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerUiState {
+    Active,
+    Disabled,
+    Empty,
+}
+
+impl ColorSwatchPickerUiState {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Active => "active",
+            Self::Disabled => "disabled",
+            Self::Empty => "empty",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchPickerUiSource {
+    Interaction,
+    External,
+    DefaultValue,
+    Internal,
+}
+
+impl ColorSwatchPickerUiSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Interaction => "interaction",
+            Self::External => "external",
+            Self::DefaultValue => "default",
+            Self::Internal => "internal",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ColorSwatchPickerAgentContract {
+    pub schema_attr: &'static str,
+    pub schema_version_attr: &'static str,
+    pub stream_support_attr: &'static str,
+    pub stream_fallback_attr: &'static str,
+    pub output_status_attr: &'static str,
+    pub intent_attr: &'static str,
+}
+
+pub fn resolve_agent_contract() -> ColorSwatchPickerAgentContract {
+    ColorSwatchPickerAgentContract {
+        schema_attr: ColorSwatchPickerAgentSchema::V1.as_attr(),
+        schema_version_attr: ColorSwatchPickerAgentSchemaVersion::V1.as_attr(),
+        stream_support_attr: ColorSwatchPickerStreamSupport::Unsupported.as_attr(),
+        stream_fallback_attr: ColorSwatchPickerStreamFallback::Snapshot.as_attr(),
+        output_status_attr: ColorSwatchPickerOutputStatus::Verified.as_attr(),
+        intent_attr: ColorSwatchPickerIntent::PickColorSwatch.as_attr(),
+    }
+}
+
+pub fn resolve_ui_action(selection_source_attr: &'static str) -> ColorSwatchPickerUiAction {
+    if selection_source_attr == ColorSwatchPickerUiSource::Interaction.as_attr() {
+        ColorSwatchPickerUiAction::Select
+    } else {
+        ColorSwatchPickerUiAction::Sync
+    }
+}
+
+pub fn resolve_ui_state(is_disabled: bool, is_empty: bool) -> ColorSwatchPickerUiState {
+    if is_disabled {
+        ColorSwatchPickerUiState::Disabled
+    } else if is_empty {
+        ColorSwatchPickerUiState::Empty
+    } else {
+        ColorSwatchPickerUiState::Active
+    }
+}
+
+pub fn resolve_ui_source(selection_source_attr: &'static str) -> ColorSwatchPickerUiSource {
+    match selection_source_attr {
+        "interaction" => ColorSwatchPickerUiSource::Interaction,
+        "external" => ColorSwatchPickerUiSource::External,
+        "default" => ColorSwatchPickerUiSource::DefaultValue,
+        "internal" => ColorSwatchPickerUiSource::Internal,
+        _ => ColorSwatchPickerUiSource::Internal,
+    }
+}
+
+pub const DEFAULT_ID_BASE: &str = "ui-color-swatch-picker";
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.into())
-    })
+    ui_state_primitives::swatch_picker::normalize_optional_text(value)
 }
 
-fn canonical_color_key(value: &str) -> String {
-    value.trim().to_ascii_lowercase()
+pub fn normalize_id_base(value: Option<String>) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
+}
+
+pub fn normalize_is_disabled(is_disabled: Option<bool>, disabled: bool) -> bool {
+    is_disabled.unwrap_or(disabled)
+}
+const _: fn(Option<bool>, bool) -> bool = normalize_is_disabled;
+
+pub fn resolve_selection_mode_attr(is_controlled: bool) -> &'static str {
+    if is_controlled {
+        "controlled"
+    } else {
+        "uncontrolled"
+    }
+}
+
+pub fn resolve_selection_init_source_attr(
+    is_controlled: bool,
+    has_default_selected_color: bool,
+) -> &'static str {
+    if is_controlled {
+        "external"
+    } else if has_default_selected_color {
+        "default"
+    } else {
+        "internal"
+    }
+}
+
+pub fn resolve_selection_source_attr(
+    current_source: &'static str,
+    selection_mode_attr: &'static str,
+    selection_init_source_attr: &'static str,
+    pending_user_selection: bool,
+) -> &'static str {
+    if pending_user_selection {
+        return "interaction";
+    }
+
+    if selection_mode_attr == "controlled" {
+        return "external";
+    }
+
+    if current_source == "interaction" {
+        "interaction"
+    } else {
+        selection_init_source_attr
+    }
 }
 
 pub fn normalize_items(items: Vec<ColorSwatchPickerItem>) -> Vec<ColorSwatchPickerItem> {
-    let mut seen = BTreeSet::new();
-    let mut out = Vec::new();
-
-    for item in items {
-        let Some(color) = swatch::sanitize_color_value(Some(item.color)) else {
-            continue;
-        };
-
-        let key = canonical_color_key(&color);
-        if !seen.insert(key) {
-            continue;
-        }
-
-        out.push(ColorSwatchPickerItem {
-            color,
-            color_name: normalize_optional_text(item.color_name),
-            disabled: item.disabled,
-        });
-    }
-
-    out
+    ui_state_primitives::swatch_picker::normalize_items(items)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.into(), false)
+    ui_state_primitives::swatch_picker::normalize_aria_label(value)
 }
 
 pub fn sanitize_selected_color(selected_color: Option<String>) -> Option<String> {
-    swatch::sanitize_color_value(selected_color)
+    ui_state_primitives::swatch_picker::sanitize_selected_color(selected_color)
 }
 
 pub fn resolve_selected_index(
     items: &[ColorSwatchPickerItem],
     selected_color: Option<String>,
 ) -> Option<usize> {
-    let selected_color = sanitize_selected_color(selected_color)?;
-    let selected_key = canonical_color_key(&selected_color);
-
-    items
-        .iter()
-        .position(|item| canonical_color_key(&item.color) == selected_key)
+    ui_state_primitives::swatch_picker::resolve_selected_index(items, selected_color)
 }
 
 pub fn resolve_selected_color(
     items: &[ColorSwatchPickerItem],
     selected_index: Option<usize>,
 ) -> Option<String> {
-    let index = selected_index?;
-    items.get(index).map(|item| item.color.clone())
+    ui_state_primitives::swatch_picker::resolve_selected_color(items, selected_index)
 }
 
 pub fn resolve_option_label(item: &ColorSwatchPickerItem, index: usize) -> String {
-    if let Some(color_name) = normalize_optional_text(item.color_name.clone()) {
-        return color_name;
-    }
-
-    if !item.color.trim().is_empty() {
-        return format!("Color {} ({})", index + 1, item.color);
-    }
-
-    format!("Color {}", index + 1)
+    ui_state_primitives::swatch_picker::resolve_option_label(item, index)
 }
 
 pub fn resolve_state(input: ColorSwatchPickerStateInput) -> ColorSwatchPickerState {
-    let has_items = input.item_count > 0;
-    let has_selection = input.selected_index.is_some();
+    ui_state_primitives::swatch_picker::resolve_state(input)
+}
 
-    let data_state_attr = if input.disabled {
-        "disabled"
-    } else if !has_items {
-        "empty"
-    } else if has_selection {
-        "selected"
+pub fn count_disabled_items(items: &[ColorSwatchPickerItem]) -> usize {
+    items.iter().filter(|item| item.disabled).count()
+}
+
+pub fn is_item_disabled_at(
+    is_disabled: bool,
+    items: &[ColorSwatchPickerItem],
+    index: usize,
+) -> bool {
+    is_disabled || items.get(index).is_none_or(|item| item.disabled)
+}
+
+pub fn resolve_option_disabled(is_disabled: bool, item_disabled: bool) -> bool {
+    is_disabled || item_disabled
+}
+
+pub fn resolve_option_tabindex(
+    option_disabled: bool,
+    active_index: usize,
+    option_index: usize,
+) -> i32 {
+    if option_disabled {
+        -1
+    } else if active_index == option_index {
+        0
     } else {
-        "default"
-    };
-
-    ColorSwatchPickerState {
-        is_disabled: input.disabled,
-        item_count: input.item_count,
-        selected_index: input.selected_index,
-        has_selection,
-        selection_empty: !has_selection,
-        is_empty: !has_items,
-        has_items,
-        disabled_item_count: input.disabled_item_count,
-        has_disabled_items: input.disabled_item_count > 0,
-        data_state_attr,
-        aria_source_attr: if input.has_custom_aria_label {
-            "custom"
-        } else {
-            "default"
-        },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_class_name: input.has_custom_class_name,
+        -1
     }
+}
+
+pub fn resolve_component_state(
+    is_disabled: bool,
+    items: &[ColorSwatchPickerItem],
+    selected_index: Option<usize>,
+    has_custom_aria_label: bool,
+    has_custom_class_name: bool,
+) -> ColorSwatchPickerState {
+    resolve_state(ColorSwatchPickerStateInput {
+        disabled: is_disabled,
+        item_count: items.len(),
+        selected_index,
+        disabled_item_count: count_disabled_items(items),
+        has_custom_aria_label,
+        has_custom_class_name,
+    })
 }
 
 pub fn compose_class_name(
     base_class_name: Option<String>,
     state: ColorSwatchPickerState,
 ) -> String {
-    let mut classes = vec!["ui-color-swatch-picker".to_string()];
+    let mut classes: Vec<Cow<'static, str>> = vec![Cow::Borrowed("ui-color-swatch-picker")];
 
     if state.is_disabled {
-        classes.push("ui-color-swatch-picker--disabled".to_string());
+        classes.push(Cow::Borrowed("ui-color-swatch-picker--disabled"));
     }
 
     if state.has_custom_class_name {
-        classes.push("ui-color-swatch-picker--custom-class".to_string());
+        classes.push(Cow::Borrowed("ui-color-swatch-picker--custom-class"));
         if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+            classes.push(Cow::Owned(base_class_name));
         }
     }
 
-    classes.join(" ")
+    classes
+        .iter()
+        .map(|class_name| class_name.as_ref())
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

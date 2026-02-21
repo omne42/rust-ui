@@ -74,6 +74,70 @@ fn selected_index_and_lookup_skip_disabled_options() {
 }
 
 #[test]
+fn default_selected_index_normalization_is_explicit() {
+    assert_eq!(normalize_default_selected_index(Some(2)), Some(Some(2)));
+    assert_eq!(normalize_default_selected_index(None), None);
+}
+
+#[test]
+fn control_value_falls_back_to_empty_string() {
+    assert_eq!(resolve_control_value(Some("manual")), "manual");
+    assert_eq!(resolve_control_value(None), "");
+}
+
+#[test]
+fn selected_index_correction_emits_only_when_value_changes() {
+    let options = resolve_options(
+        "x",
+        &normalize_options(vec![
+            NativeSelectOption::new("system", "System"),
+            NativeSelectOption::new("manual", "Manual").disabled(true),
+        ]),
+    );
+
+    assert_eq!(
+        resolve_selected_index_correction(Some(0), &options),
+        None,
+        "already valid index should not trigger correction"
+    );
+    assert_eq!(
+        resolve_selected_index_correction(Some(1), &options),
+        Some(None),
+        "disabled index should be corrected to None"
+    );
+}
+
+#[test]
+fn resolve_states_for_render_centralizes_primitive_and_component_derivation() {
+    let options = resolve_options(
+        "docs",
+        &normalize_options(vec![
+            NativeSelectOption::new("system", "System"),
+            NativeSelectOption::new("manual", "Manual").disabled(true),
+        ]),
+    );
+
+    let states = resolve_states_for_render(NativeSelectStateParams {
+        size: NativeSelectSize::Lg,
+        is_disabled: false,
+        is_invalid: true,
+        is_required: true,
+        has_placeholder: true,
+        selected_index: Some(0),
+        options: &options,
+        has_custom_aria_label: false,
+        has_custom_class_name: true,
+    });
+
+    assert_eq!(states.component.selected_index, Some(0));
+    assert_eq!(states.primitive.selected_index, Some(0));
+    assert_eq!(
+        states.component.data_state_attr,
+        states.primitive.data_state_attr
+    );
+}
+
+#[test]
 fn resolve_state_tracks_disabled_invalid_selection_and_counts() {
     let options = resolve_options(
         "docs",

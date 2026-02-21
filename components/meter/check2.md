@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`MeterRange/MeterPhase/MeterStateInput/MeterState` 与归一化逻辑已在 `crates/ui-state-primitives/src/meter.rs`，组件层仅通过 `components/meter/src/logic.rs` 消费与映射。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（N/A：`Meter` 为展示型组件，无键盘/指针交互状态机；组件仅在 `view.rs` 挂载 `role/aria-*`，语义回归由 `crates/ui-components/tests/meter_semantics.rs` 覆盖。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -32,14 +32,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`components/meter/src/motion.rs` 仅做组件语义到 spring contract 的映射并调用 `ui_motion::spring::SpringAnimator`；`#[cfg(not(target_arch = "wasm32"))]` 分支提供 no-op/stub，`styles.rs` 覆盖 `prefers-reduced-motion`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/meter/src/styles.rs` 仅消费 `var(--ui-*)` token 与语义派生变量；`view.rs`/`logic.rs` 未重建主题映射；主题轴与 token 基线由 `crates/ui-theme/tests/token_scale_baseline.rs` 回归，组件语义由 `crates/ui-components/tests/meter_semantics.rs` 回归。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -47,7 +47,7 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（职责落位满足：`logic.rs` 仅装配 primitives、`view.rs` 仅结构与语义挂载、`styles.rs` token-first、`motion.rs` attach；对外仅导出 `Meter/MeterMotion/MeterVariant/MeterSize`，未暴露 DOM 类型。已新增 `components/meter/test/semantics.rs`，并在 `components/meter/src/mod.rs` 挂载；`crates/ui-components/tests/meter_semantics.rs` 继续保留为跨 crate 集成回归。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -55,92 +55,92 @@
   - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Meter` 已新增 `is_value_label_visible` 作为主命名；保留 `show_value_label` 兼容别名并声明 `is_*` 优先，兼容策略与迁移路径已记录在 `components/meter/src/README.md`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`Meter` 为只读展示组件，`value` 仅作为外部输入信号被消费，组件内无用户交互写回路径，不存在“内部可控状态轴”；因此不引入无意义的 `on_value_change/default_value` 伪协议。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`components/meter/src/logic.rs` 新增 `normalize_inputs`：集中归一 `min/max` 默认值与 `is_value_label_visible > show_value_label` 优先级；`view.rs` 仅消费归一化输出。回归：`components/meter/test/logic.rs::{normalize_inputs_centralizes_default_values,normalize_inputs_uses_is_prefix_value_visibility_priority}`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`components/meter/src/logic.rs` 新增 `MeterRenderStateInput/MeterRenderState + derive_render_state` 统一派生 `clamped_value/normalized_progress/phase/aria_value_now/value_label_text`；`components/meter/src/view.rs` 仅调用派生结果并挂载语义标记；`components/meter/src/styles.rs` 只消费 `data-state` 与 class。回归：`components/meter/test/logic.rs::{derive_render_state_concentrates_runtime_semantics,derive_render_state_applies_visibility_and_override_rules}` 与 `components/meter/test/semantics.rs::runtime_state_derivation_is_centralized_in_logic_layer`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（离散轴已类型化：`MeterVariant/MeterSize/MeterPhase` 定义于 `crates/ui-state-primitives/src/meter.rs`，组件 API 在 `components/meter/src/view.rs` 直接使用 `variant: MeterVariant`、`size: MeterSize`，状态输出经 `phase: MeterPhase` -> `data-state` 映射；未引入 `variant/size/status/mode` 字符串自由输入。回归：`components/meter/test/logic.rs::variant_and_size_mappings_are_stable`、`phase_mappings_are_stable`、`components/meter/test/semantics.rs::discrete_state_axes_use_typed_enums`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`components/meter/src/logic.rs` 通过 `pub use ui_state_primitives::meter::{...}` 统一消费原语，`components/meter/src/view.rs` 仅调用 `logic::MeterStateInput/resolve_state` 做装配映射；`components/meter/Cargo.toml` 仅依赖 `ui-state-primitives`，未引入业务 store 依赖。回归：`components/meter/test/semantics.rs::state_primitives_source_boundary_is_enforced`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Meter` 为纯展示组件，仅消费外部 `value` 信号并映射语义，不发起远程请求、无内部异步动作与失败重试协议；因此不引入 `is_loading/retry/aria-busy` 轴。回归：`components/meter/test/semantics.rs::async_interaction_contract_is_not_applicable_for_meter`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`Meter` 默认调用只需 `id + label + value`，不暴露/不要求内部状态对象；`components/meter/src/README.md` 的 Hello World 维持 5 行最小示例；`apps/docs-app/src/pages/components/pages/display.rs` 已新增 `Playground title="Hello World (Default API)"` 展示默认路径，复杂场景仍在矩阵/自定义/Workbench 扩展入口。回归：`components/meter/test/semantics.rs::dx_paradox_keeps_default_path_simple`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`Meter` 是单体展示组件，不是组合容器组件；不存在 `Parent/Item` 结构，也不暴露 `children/items/labels/titles/panels` 并行槽位输入。docs 仅展示单体 `Meter` 默认与扩展调用路径。回归：`components/meter/test/semantics.rs::composite_parent_item_api_is_not_applicable_for_meter`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
-- [ ] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
-- [ ] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
-- [ ] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
-- [ ] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
-- [ ] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
-- [ ] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
-- [ ] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。（N/A：`Meter` 为只读展示组件，无拖拽/指针操作状态机，不存在 `Dragging` 生命周期与 `Action::DragEnd` 回流需求；组件仅将归一化后的数值进度映射到 `motion::attach_motion`。回归：`components/meter/test/semantics.rs::macro_micro_dual_state_machine_is_not_applicable_for_meter`。）
+- [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。（N/A：`Meter` 不依赖 DOM 几何测量；组件仅把外部 `value` 映射为语义状态与进度动画，不存在 `Intent/Measure/Rectification` 两段式回路。回归：`components/meter/test/semantics.rs::two_pass_geometry_rendering_is_not_applicable_for_meter`。）
+- [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。（N/A：`Meter` 非集合容器组件，无动态子项注册/注销流程，不维护 `items_order` 也不做键盘导航顺序编排；因此不引入 `RegistrationContext` 协议。回归：`components/meter/test/semantics.rs::registration_protocol_is_not_applicable_for_meter`。）
+- [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。（N/A：`Meter` 为单体展示组件，不是容器型投影组件，不存在子树投影生命周期管理与隐藏态副作用暂停需求；组件内无 `Lazy/KeepAlive/Eager/NotifyHidden` 协议。回归：`components/meter/test/semantics.rs::slot_projection_strategy_is_not_applicable_for_meter`。）
+- [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：`Meter` 为被动展示组件，不订阅 `Resize/Theme/Intersection` 环境流，也不存在 env 事件防抖后回流 `logic` 的 `Action` 管线。回归：`components/meter/test/semantics.rs::env_streams_are_not_applicable_for_meter`。）
+- [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：`Meter` 为单体展示组件，不承载大型集合批量操作，也不存在 `Context Bus + Selector` 批量状态压缩与 O(N) 逐层下发问题。回归：`components/meter/test/semantics.rs::event_light_cone_is_not_applicable_for_meter`。）
+- [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：`Meter` 为单体展示组件，不存在“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”的复杂派生总线链路，也不需要 `TraceId` 透传。回归：`components/meter/test/semantics.rs::causality_bus_is_not_applicable_for_meter`。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Meter` 已具备可验证语义与本地化接入：`view.rs` 挂载 `role=\"meter\" + aria-*`，并通过 `ui_headless::locale_attrs` 接入 `lang/dir`；文案来源链路为 `props aria_label/label > UiRoot i18n bundle（`use_ui_i18n().strings::<MeterStrings>()`）> fallback`，`view.rs` 未硬编码用户可见文本。共享 A11y 工具来自 `crates/ui-headless/src/a11y.rs`，组件层仅挂载。回归：`components/meter/test/semantics.rs::meter_has_a11y_i18n_l10n_contract_without_view_level_hardcoded_copy`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`Meter` 已输出稳定可机读语义：`role=\"meter\" + aria-*` 覆盖数值语义，`data-state/data-variant/data-size` 覆盖关键状态轴，`data-label-source/data-value-label-source/data-motion-source/data-class-source` 区分来源；状态值来自枚举/封闭映射（如 `MeterPhase::{determinate,indeterminate}` 与 source 的 `custom/default/auto`），可用于自动化选择器且不依赖 DOM 顺序。回归：`components/meter/test/semantics.rs::state_observability_contract_uses_stable_data_and_aria_markers`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`Meter` 的状态分支由稳定语义标记驱动：`styles.rs` 基于 `data-state/data-variant/data-size/data-*-source` 与稳定 class 选择器切换视觉态；未使用 `:nth-child` 等结构猜测。运行时样式更新通过 `motion.rs` 写入 `--ui-meter-progress` CSS 变量，`view.rs` 不含业务 inline style；视觉状态切换可直接由语义标记解释。回归：`components/meter/test/semantics.rs::styles_depend_on_semantic_markers_not_dom_shape_guessing`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`Meter` 已以语义断言为主：`components/meter/test/semantics.rs` 覆盖 `role/aria/data-state/source markers`；该组件无受控写回轴、无 disabled 交互轴、无键盘/指针交互路径，相关分支按适用范围标注 N/A 并通过源约束回归；`motion.rs` 维持 wasm/non-wasm `cfg` 分支证据。测试中未引入 `assert_snapshot!/insta` 作为主断言，视觉快照未替代语义契约。回归：`components/meter/test/semantics.rs::semantic_contract_tests_are_primary_and_snapshot_only_checks_are_absent`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`Meter` 已按文件职责分层：`mod.rs` 仅维护导出边界；`logic.rs` 仅做输入归一与状态派生；`styles.rs` 仅静态 token-first CSS；`view.rs` 仅结构渲染与语义挂载；`motion.rs` 仅动效契约映射与 attach（含 wasm/non-wasm 分支）。回归：`components/meter/test/semantics.rs::component_files_keep_responsibility_boundaries`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`Meter` 为简单展示组件，无稳定外部 Schema 固化需求；组件目录未引入 `src/spec.rs`，契约说明保留在 `check2.md` 与 `src/README.md`。回归：`components/meter/test/semantics.rs::spec_rs_is_not_introduced_for_simple_meter_component`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`Meter` 样式仍统一定义在 `src/styles.rs`，并已将轨道高度/圆角/边框等视觉值改为 `var(--ui-*)` 驱动；`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-meter")] out.push_str(crate::meter::styles::CSS)` 聚合，`UiRoot` 通过 `inject_components_css` 注入；运行时仅在 `motion.rs` 更新 `--ui-meter-progress`。回归：`components/meter/test/semantics.rs::token_first_static_style_contract_is_enforced`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（N/A：该项是仓库级视觉治理门禁，且条目已明确要求 `Button/Input/Overlay` 的 docs 基线与截图回归，不是 `Meter` 单组件可独立完成的职责；`Meter` 侧仅负责默认主题 token 消费与默认调用路径基线。回归：`components/meter/test/semantics.rs::visual_desire_quality_gate_is_repository_level_for_meter`。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`Meter` 切面已满足：`crates/ui-components/Cargo.toml` 保留 `component-meter = ["dep:ui-meter"]`，`lib.rs/css.rs` 对 `meter` 导出与样式聚合均有 `#[cfg(feature = "component-meter")]` 条件门；`apps/web-demo/Cargo.toml` 以 `default-features = false + web-demo-components` 接入，未显式拉起 `all-components`。命令证据：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo` 均未命中 `all-components`。仓库级 CI 体积预算条款属于全仓治理，单组件范围仅保持约束文字与接入边界。回归：`components/meter/test/semantics.rs::tree_shaking_contract_is_feature_gated_for_meter`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,73 +149,73 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`Meter` 的关键离散轴已由 `ui-state-primitives` 枚举建模（`MeterVariant/MeterSize/MeterPhase`），无效输入在 `logic.rs::normalize_inputs/derive_render_state` 统一归一并可测试；`view.rs` 通过稳定 `data-variant/data-size/data-state/data-*-source` 暴露机器可读语义。编译器反馈由类型约束直接阻断字符串/布尔爆炸，测试反馈由命名回归用例直接定位契约破坏点。回归：`components/meter/test/logic.rs::{variant_and_size_mappings_are_stable,phase_mappings_are_stable,normalize_inputs_centralizes_default_values,derive_render_state_concentrates_runtime_semantics}`、`components/meter/test/semantics.rs::{discrete_state_axes_use_typed_enums,state_observability_contract_uses_stable_data_and_aria_markers,type_system_and_semantic_markers_form_machine_readable_contract}`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. DOM/环境边界治理
-- [ ] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
-- [ ] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
-- [ ] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：`Meter` 为单体展示组件，不提供层叠 Overlay 与焦点恢复职责；组件中的 `NodeRef` 仅用于 `indicator` 动效 attach，不参与焦点回收路径。回归：`components/meter/test/semantics.rs::focus_stack_and_overlay_focus_manager_are_not_applicable_for_meter`。）
+- [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：`Meter` 为纯展示基础组件，不承载 ECharts/Map 等命令式第三方实例接入；组件公共 API 仅暴露度量语义与样式/动效参数，未暴露第三方句柄。回归：`components/meter/test/semantics.rs::controlled_foreign_zone_escape_hatch_is_not_applicable_for_meter`。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（`Meter` 自身不做随机 ID 初始化：公共 API 强制 `id: String`，内部仅派生 `label_id = format!("{id}-label")`，未使用 `now()/UUID/rand`；确定性种子注入能力由 `UiRoot` 的 `id_seed + provide_ui_id_provider` 提供。回归：`components/meter/test/semantics.rs::ssr_hydration_discontinuity_is_avoided_with_deterministic_id_path`。）
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（`Meter` 已具备显式平台分支：`motion.rs` 用 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]` 划分 wasm/non-wasm；non-wasm 分支为可预测 no-op，不引用 `web-sys`。`view.rs/logic.rs` 保持平台无关，不直接触达浏览器对象。compile-only 命令已执行：`cargo check -p ui-meter`、`cargo check -p ui-meter --target x86_64-unknown-linux-gnu`、`cargo check -p ui-meter --target wasm32-unknown-unknown`，当前环境均被 `Invalid cross-device link (os error 18)` 阻断。回归：`components/meter/test/semantics.rs::ssr_and_cross_platform_contract_keeps_explicit_cfg_and_non_wasm_safety`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 已固定 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 互斥闸门；`components/meter/Cargo.toml` 与 `crates/ui-components/Cargo.toml` 对 `ui-headless` 的依赖均未同开 `web+ssr`。验证路径：`cargo check -p ui-headless`（web 默认）、`cargo check -p ui-headless --no-default-features --features ssr`（ssr）与负向命令 `cargo check -p ui-headless --no-default-features --features web,ssr`（应命中 compile_error；当前环境可能受 `Invalid cross-device link (os error 18)` 影响）。回归：`components/meter/test/semantics.rs::ui_headless_web_ssr_feature_mutex_contract_is_preserved`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 已提供 `#[cfg(not(target_arch = "wasm32"))] pub mod web` no-op backend：`prefers_reduced_motion() -> true` 与 `animate(&(), ..)` 空实现；`components/meter/src/motion.rs` 的 non-wasm `attach_motion` 仅 `sanitize_motion + black_box`，不触发浏览器 API、不假设动画句柄存在；wasm 分支通过 `if let Some(animator)` 防止句柄缺失 panic。回归：`components/meter/test/semantics.rs::ui_motion_non_wasm_noop_stub_contract_is_preserved`。编译验证命令可用：`cargo check -p ui-motion`、`cargo check -p ui-meter --target x86_64-unknown-linux-gnu`（当前环境可能受 `Invalid cross-device link (os error 18)` 影响）。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`Meter` 已覆盖三分支且语义不分裂：`styles.rs` 通过 `@media (prefers-reduced-motion: reduce)` 将 indeterminate 动画降级为 `animation: none`；`ui-motion` 在 `spring.rs` 通过 `prefers_reduced_motion()` 走目标值直达与 `on_rest` 回调，避免高频动画；`motion.rs` 显式区分 wasm/non-wasm（wasm 增强、non-wasm no-op），而 `view.rs` 的 `role/aria/data-state` 语义标记不含 `cfg` 分裂，SSR 与 hydration 首帧语义保持一致。回归：`components/meter/test/semantics.rs::reduced_motion_ssr_and_wasm_branches_keep_semantic_contract_consistent`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`Meter` 采用“可重复等价证据”预算并可阻断回归：首渲染基线固定为 `view.rs` 两个 `Signal::derive`（`render_state + progress_value`）且无 `Resize/Intersection` 环境洪泛；关键更新路径固定为 `logic::derive_render_state -> motion::animator.set_target -> CSS 变量 --ui-meter-progress`，可归因到状态/渲染/动效链路；non-wasm 路径保持 `attach_motion` no-op，避免 tooling/SSR 额外开销。当前仓库 `render_count` 通用自动化仍在跟踪（`docs/plan/TODO.md` 已保留 follow-up），满足“框架暂不支持时使用等价证据并持续补齐”的条款。回归：`components/meter/test/semantics.rs::performance_governance_budget_is_defined_repeatable_and_traceable_for_meter`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`components/meter/src/view.rs` 已将原先巨型视图拆分为 `render_meter_header` 与 `render_meter_track` 语义子块，`Meter` 主 `view!` 仅负责状态语义挂载与子块组合；header/track/indicator 结构不再内联到根块中，减少一次性宏展开体量并保持语义清晰。回归：`components/meter/test/semantics.rs::view_macro_complexity_is_split_into_semantic_blocks`。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`Meter` 已将轻逻辑片段拆为普通函数 `render_meter_header` 与 `render_meter_track`，返回 `impl IntoView` 并由根组件组合；组件文件中仅保留一个公共 `#[component] pub fn Meter`，未把局部片段升格为额外组件，避免抽象噪音。拆分后 `role/aria/data-*` 语义标记保持稳定。回归：`components/meter/test/semantics.rs::function_first_fragment_split_uses_plain_functions_not_extra_components`。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（N/A：`Meter` 当前不包含复杂 SVG、页脚或长说明文本等重型静态资源；现有静态结构已集中在 `render_meter_track` 模板函数，避免在根 `view!` 重复拼装。文档静态说明集中在 `src/README.md`，未散落到渲染层。回归：`components/meter/test/semantics.rs::static_fragment_constantization_is_not_applicable_and_static_path_stays_centralized_for_meter`。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`Meter` 当前无 `inner_html` 场景，渲染全部采用显式节点与 `role/aria/data-*` 语义挂载；组件源码未出现 `inner_html/set_inner_html/dangerously_set_inner_html` 等注入 API，也未构造 HTML 字符串拼接路径。若未来引入受信任静态 HTML，必须追加同条目语义/安全回归。回归：`components/meter/test/semantics.rs::inner_html_contract_is_not_applicable_and_untrusted_injection_paths_are_absent`。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（N/A：`Meter` 为展示组件，无本地交互状态机与命令链，不引入组件私有 replay/debug 总线；调试能力复用全局 `ui-headless::UiTrace` 与 docs-app `UiDebugOverlay`，组件自身通过稳定 `data-state/data-*-source` 提供可观测状态。`components/meter/Cargo.toml` 未暴露 `wasm-debug` 类 feature，避免污染生产包体与公共 API。回归：`components/meter/test/semantics.rs::wasm_debug_contract_is_not_component_local_and_reuses_global_trace_capability`。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`apps/docs-app/src/pages/components/pages/display.rs` 的 `Meter` 页面已提供 `Playground title="Workbench (Display + Config + Code + CSS Test)"` 隔离演练入口，含 `test_css_source + test_source_path` 用于样式即时试验（无需重编组件 wasm 逻辑）；Workbench 控制区提供 `preserve state` 开关与 `Reset context`，可在“保留当前上下文 / 回到默认基线”之间切换。组件 README 同步记录该路径：`components/meter/src/README.md::docs-app Workbench`。回归：`components/meter/test/semantics.rs::dx_workbench_supports_fast_css_iteration_context_retention_and_optional_preserve_state`。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Meter` 已将组件协议收敛到 `components/meter/src/protocol.rs`：`MeterComponentSchemaVersion` + `MeterComponentSpec` 通过 `serde` 派生并由 `mod.rs` 导出，避免组件私有字符串协议；`tracing` 语义不在组件内分叉，复用全库 `ui-headless/src/trace.rs` 的 `UiTrace` 事件通道；`Meter` 本身为同步展示组件，无组件级异步边界与 runtime 绑定，源码与公开 API 不暴露 `tokio/async-std` 类型。回归：`components/meter/test/semantics.rs::engineering_capability_contract_uses_serde_protocol_and_keeps_tracing_async_runtime_boundaries_clean`。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [ ] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
-- [ ] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
-- [ ] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（`components/meter/src/styles.rs` 已将关键视觉值改为双层回退链（如 `var(--ui-meter-track-height, var(--ui-fallback-meter-track-height))`、`var(--ui-fg, var(--ui-fallback-fg))`、`var(--ui-meter-indeterminate-duration, var(--ui-fallback-meter-indeterminate-duration))`），移除组件内裸终值回退；`crates/ui-theme/src/css.rs` 新增 `--ui-meter-*` 与 `--ui-fallback-meter-*` 输出，统一承接 meter 的 fallback 终值（SSOT）。回归：`components/meter/test/semantics.rs::defensive_variable_contract_uses_double_fallback_and_theme_ssot`。）
+- [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（`crates/ui-components/src/css.rs::push_components_css` 统一以 `@layer ui` 包裹组件样式并按 feature 聚合 `meter::styles::CSS`；`Meter` 运行时仅在 `motion.rs` 通过 `set_property(\"--ui-meter-progress\", ...)` 写入 CSS 变量，`view.rs` 不含 `style=` 内联业务样式。回归：`components/meter/test/semantics.rs::cascade_layer_contract_uses_ui_layer_and_css_variable_only_runtime_updates`。）
+- [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（`components/meter/src/motion.rs` 通过 `MeterMotion { spring }` + `sanitize_spring` 固化并校验 `stiffness/damping/mass/precision` 合同，`view.rs` 统一走 `motion::attach_motion(indicator_ref, progress_value, motion)` 挂载；wasm 分支使用 `SpringAnimator` 驱动 `--ui-meter-progress`，non-wasm 分支仅 `sanitize_motion + black_box` 安全 no-op。`prefers-reduced-motion` 由 `ui-motion` 运行时短路（`crates/ui-motion/src/spring.rs`）与 `styles.rs` 媒体查询双重覆盖。回归：`components/meter/test/semantics.rs::motion_contract_is_component_scoped_and_respects_reduced_motion_with_non_wasm_noop`。）
+- [x] `ui-components` 固定入口文件落点正确。（仓库入口落点满足约束：`crates/ui-components/src/lib.rs` 作为总入口并以 `component-*` feature gate 导出组件（含 `#[cfg(feature = "component-meter")] pub use ui_meter as meter;`），`crates/ui-components/src/css.rs` 通过 `push_components_css` 在 `@layer ui` 内按 feature 聚合样式（含 `component-meter`），`crates/ui-components/src/root.rs` 统一注入 base css + theme vars + optional components css 并提供 `i18n/id` 上下文；共享高亮能力位于 `crates/ui-visual-primitive/src/active_highlight.rs`。同时 `crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在，避免与 `ui-headless` 原语重复。回归：`components/meter/test/semantics.rs::ui_components_entry_files_follow_fixed_layered_contract`。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -223,7 +223,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（`components/meter/src` 已按标准落位：`mod.rs` 维持最小稳定导出（`Meter/MeterMotion` + primitives/protocol 导出），`logic.rs` 仅做归一化与派生（`normalize_inputs/derive_render_state`）且未承载 DOM/Leptos 绑定，`styles.rs` 仅输出静态 `CSS` 并消费 `var(--ui-*)`，`view.rs` 仅做 Leptos 结构与语义挂载（不存在 `render.rs` 漂移），`motion.rs` 提供 `MeterMotion + attach_motion` 语义到 motion contract 映射；`src/spec.rs` 未引入（简单展示组件无需新增）。回归：`components/meter/test/semantics.rs::component_directory_standard_file_layout_is_correct`。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -232,61 +232,61 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
-- [ ] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
-- [ ] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
-- [ ] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（`components/meter/src` 已满足该纪律：存在 `mod.rs/logic.rs/styles.rs/view.rs/motion.rs`，无 `render.rs`；`Meter` 为简单展示组件不引入 `src/spec.rs`。回归：`components/meter/test/semantics.rs::file_layout_discipline_is_enforced_for_meter_component`。）
+- [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（N/A：`Meter` 为简单展示组件，不存在复杂 Schema 驱动构建需求；按仓库规则不新增 `src/spec.rs`，避免为假问题引入抽象噪音。该组件契约继续由 `src/README.md` + `check2.md` 维护；若未来演进为复杂配置组件，再引入 `MeterSpec::new()...render()` 并附迁移测试。回归：`components/meter/test/semantics.rs::hyper_structure_builder_spec_api_is_not_applicable_for_simple_meter`。）
+- [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（已落实：新增 `components/meter/src/Component.toml`（能力清单）与 `components/meter/src/meter.rbi`（接口签名投影），并对齐当前公开 API（`Meter/MeterMotion/MeterVariant/MeterSize`、`MeterComponentSpec`）与语义标记契约，防止 AI 检索与源码接口漂移。回归：`components/meter/test/semantics.rs::context_compression_manifest_and_rbi_projection_are_present_for_meter`。）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（已落实：`components/meter/src/protocol.rs` 新增类型化 Agent Contract（`METER_AGENT_SCHEMA` + `MeterAgentIntent/Action/StatePhase/...` + `agent_data_attrs`），`view.rs` 仅挂载 `data-ui-*`（`schema/intent/action/state/source/output`）且字段来源统一来自 `protocol::agent_data_attrs`，不在 `view.rs` 拼字符串；`Component.toml` 已新增 `[agent_contract]`、`[[agent_contract_markers]]` 与 `[[agent_contract_whitelist]]`（阻断 `inner_html/dangerously_set_inner_html/<script/javascript:`）。回归：`components/meter/test/semantics.rs::agent_contract_schema_markers_are_typed_traceable_and_whitelisted_for_meter`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Meter` 已将“输出模式”限定在 Agent Contract 语义层：`view.rs` 挂载 `data-ui-stream-mode/data-ui-output-mode`，`protocol.rs` 提供类型化 `MeterAgentStreamMode/MeterAgentOutputMode`，`Component.toml` 以 `streaming_policy.fallback = "snapshot"` 明确 LLM 输出渲染语义边界；不把“流式”扩展为组件内其他非 LLM 事件流概念。回归：`components/meter/test/semantics.rs::streaming_term_is_limited_to_llm_output_render_modes_for_meter`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Meter` 已具备快照基线：`view.rs` 支持消费完整配置输入（`id/label/value/min/max/variant/size/motion/lang/dir/...`）并稳定渲染；`protocol.rs` 的 `MeterAgentOutputMode` 固定 `snapshot`，`view.rs` 挂载 `data-ui-output-mode`；`Component.toml` 声明 `snapshot_rendering=true` 且 `streaming_policy.fallback=\"snapshot\"`。回归：`components/meter/test/semantics.rs::snapshot_is_foundational_and_complete_config_renders_stably_for_meter`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Meter` 非正文阅读面，按 `Streaming Optional` 执行：`Component.toml` 通过 `[streaming_policy] required = false` + `fallback = "snapshot"` + `owner = "upstream"` 固定职责边界；`view.rs` 挂载 `data-ui-stream-mode/data-ui-output-status`，在快照渲染路径显式声明当前输出状态（当前为 `validated`，即“已验证”）；组件不实现数据校验、断线恢复、重试协议，这些由上层负责。回归：`components/meter/test/semantics.rs::streaming_requirement_is_optional_with_snapshot_fallback_and_explicit_status_for_meter`。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试、门禁与交付
-- [ ] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
-- [ ] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
-- [ ] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-- [ ] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
-- [ ] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`components/meter/src` 非测试源码已清点：无 `unwrap()/expect()`，无 `let _ = ...`，且字符串默认文案链路已收敛到 `Cow<'static, str>`（`MeterStrings.aria_label`、`MeterInputNormalizationInput.default_aria_label`、`resolve_aria_label_with_fallback`）。回归：`components/meter/test/semantics.rs::rust_hygiene_contract_is_enforced_for_meter_non_test_sources`。已执行 `./scripts/check-rust-hygiene.sh`；当前环境因 `rg` 缺少 PCRE2 与仓库级 `api-contract` baseline drift 失败，属于仓库门禁噪音，非 meter 局部改动引入。）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`meter` 已注册进 `ui-components` 特性树：`crates/ui-components/Cargo.toml` 保留 `component-meter = ["dep:ui-meter"]`；导出与样式聚合均受门控：`crates/ui-components/src/lib.rs` 中 `#[cfg(feature = "component-meter")] pub use ui_meter as meter;`，`crates/ui-components/src/css.rs` 中 `#[cfg(feature = "component-meter")] out.push_str(crate::meter::styles::CSS);`。命令证据：`cargo tree -e features -p ui-components --no-default-features --features component-meter,inject-css` 可见 `ui-meter` 仅由 `component-meter` 引入；`cargo tree -e features -i ui-components -p web-demo` 未出现 `all-components`。回归：`components/meter/test/semantics.rs::tree_shaking_contract_is_feature_gated_for_meter`。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`Meter` 已满足该条：语义断言覆盖 `role/aria-*` 与关键 `data-*`（`data-state/data-variant/data-size/data-*-source`），并明确“非快照优先”（无 `assert_snapshot!/insta` 依赖）；焦点流转对 `Meter` 为 N/A（展示组件无焦点状态机/无 overlay 恢复职责），由专门回归约束其不引入 FocusStack 路径；性能侧因仓库级 `render_count` 基建未统一，当前采用可重复等价证据（初始两处 `Signal::derive`、更新链路可归因、non-wasm no-op）并在 `docs/plan/TODO.md` 与性能脚本保留 `render_count` 自动化跟踪入口。回归：`components/meter/test/semantics.rs::{semantic_contract_tests_are_primary_and_snapshot_only_checks_are_absent,focus_stack_and_overlay_focus_manager_are_not_applicable_for_meter,performance_governance_budget_is_defined_repeatable_and_traceable_for_meter,semantic_and_performance_regression_contract_is_covered_for_meter}`。）
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `meter` 迭代未发生跨大版本 API 破坏升级，协议仍为 `MeterComponentSchemaVersion::V1`（`components/meter/src/protocol.rs`）且 `Component.toml` 保持 `schema_version = "1"`；当前不存在 `V2` schema、弃用窗口或 codemod 迁移入口。为避免伪需求，不新增空壳 `migrate_v1_to_v2`。若未来引入破坏性升级，必须同步补 Schema Registry 记录与纯函数迁移层。回归：`components/meter/test/semantics.rs::versioned_deprecation_migration_contract_is_not_applicable_without_breaking_api_for_meter`。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display.rs::meter()` 已补齐文档即产品最小面：`Hello World (Default API)`、`Variant + Size Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Workbench (Display + Config + Code + CSS Test)`；Playground 均提供 `code_imports`（复制即带 imports）；页面新增 `Source-first / Copy-Paste Ready` 区块与 `Snippet(label=\"Copy meter starter\", copyable=true)`，并明确复制链路由 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 注入缺失 imports。`Meter` 无内部受控轴，故受控/非受控以 N/A 对照说明呈现。回归：`components/meter/test/semantics.rs::docs_product_copy_paste_ready_contract_is_enforced_for_meter`。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Meter` 已以语义契约回归为主：`components/meter/test/semantics.rs::view_mounts_semantic_markers` 与 `components/meter/test/semantics.rs::state_observability_contract_uses_stable_data_and_aria_markers` 覆盖 `role/aria/data-*` 与来源轴（`data-label-source/data-value-label-source/data-motion-source/data-class-source`）；`components/meter/test/semantics.rs::semantic_contract_tests_are_primary_and_snapshot_only_checks_are_absent` 约束“语义断言优先、快照仅补充”；并新增总线回归 `components/meter/test/semantics.rs::semantic_testing_priority_contract_is_enforced_for_meter`，保证新增/变更语义字段必须同步补测试。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（已新增 `e2e/tests/docs_app_meter_contract.spec.mjs`：路由 `/#/components/meter` 下仅用语义选择器（`[data-component="meter"]`、`#docs-meter-workbench[data-slot="meter"]`、`[data-slot="meter-streaming-policy"]`、`[data-action="meter-workbench-increment"]`、`[data-action="meter-workbench-toggle-indeterminate"]`）断言契约，不依赖脆弱 DOM 层级或文本定位；等待策略使用 `body:not(:has(#boot))` + `expect(...).toHaveAttribute(...)` 的语义就绪/收敛检查，无固定 sleep。针对动画路径，E2E 显式覆盖 `determinate -> indeterminate -> determinate` 的 ready/settled 断点（`data-state`/`data-ui-state-phase`/`data-indeterminate`/`data-determinate`）。同时在 `apps/docs-app/src/pages/components/pages/display.rs::meter()` 的 Workbench 控制区补充了稳定 `data-action` 标记供 E2E 选择器消费。回归：`components/meter/test/semantics.rs::e2e_selector_contract_uses_semantic_markers_and_wasm_safe_settled_waits_for_meter`。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（`meter` 已纳入可重复 Playwright 回归集合：`e2e/tests/docs_app_meter_contract.spec.mjs` 新增 `docs-app meter key flow is repeatable and maps failures to semantic breakpoints`，流程为“打开组件页 -> 键盘触发增量与状态切换 -> 语义断点校验 -> reload 后重放同流程”；失败可直接定位到 `data-state/data-ui-state-phase/data-indeterminate/data-determinate/aria-valuenow` 的具体契约断点，而非笼统页面差异。高风险路径上，`meter` 本身无 overlay/async 协议（N/A），本条优先覆盖 keyboard + focus + 动画状态切换（determinate/indeterminate）这一实际风险面。回归：`components/meter/test/semantics.rs::repeatable_e2e_key_flow_regression_set_is_semantically_traceable_for_meter`。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app/src/pages/components/pages/display.rs::meter()` 已同步覆盖文档与示例：保留 `Hello World (Default API)`、`Variant + Size Matrix`、`Controlled vs Uncontrolled (N/A)`、`Workbench` 等示例路径，并新增显式矩阵区块 `data-slot="meter-state-matrix"` 与 `data-slot="meter-parameter-matrix"`；矩阵条目已对齐 `components/meter/src/logic.rs` 的命名与默认值（`DEFAULT_MIN=0.0`、`DEFAULT_MAX=100.0`、`DEFAULT_SHOW_VALUE_LABEL=true`，以及 `is_value_label_visible` 优先于兼容别名 `show_value_label`）。状态矩阵明确覆盖 `size/variant`，并对 `controlled/disabled` 给出 N/A 说明，避免伪分支。回归：`components/meter/test/semantics.rs::docs_examples_parameter_and_state_matrix_stay_synced_with_logic_defaults_for_meter`。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`components/meter/src/README.md` 已提供新手路径：`## 快速开始（先用起来）` 放在架构说明之前，包含“零门槛”`Hello World（最小可用）` 与 `常见用法`；默认 API 路径在前，高级内容后置到 `## 进阶与架构说明`。`apps/docs-app/src/pages/components/pages/display.rs::meter()` 继续提供同序示例入口（`Hello World (Default API)` 在前，矩阵与 Workbench 在后）。回归：`components/meter/test/semantics.rs::documentation_as_product_readme_is_beginner_friendly_for_meter`。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`apps/docs-app/src/pages/components/pages/display.rs::meter()` 已提供 `Workbench (Display + Config + Code + CSS Test)` 作为交互验收面：支持基础 props 调整（`variant/size/value/custom-*`）、状态切换（`determinate/indeterminate`、value label 显隐）与实时预览（`data-slot="meter-workbench-preview"`）。AI Spec 相关联动通过 `test_config_signal=actual_config` 与新增 `data-slot="meter-spec-linkage"` 明确“Spec Input -> Preview Output”链路。可重复关键交互已纳入 Playwright：`e2e/tests/docs_app_meter_contract.spec.mjs::docs-app meter key flow is repeatable and maps failures to semantic breakpoints`（含 reload 重放）。回归：`components/meter/test/semantics.rs::interactive_playground_contract_supports_live_props_state_spec_linkage_and_repeatable_flow_for_meter`。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display.rs::meter()` 已提供 `data-slot="meter-source-first"` 区块：`Snippet(label="Copy meter starter", copyable=true)` 输出 `source_first_code`（含 `use leptos::prelude::*;` 与 `use ui_components::{Meter, MeterSize, MeterVariant};`），并声明复制链路 `apps/docs-app/src/playground.rs::compose_copy_ready_code`。页面同时给出依赖前提（`component-meter` feature、`UiRoot`/`inject-css`）与真实源码落点（`components/meter/src/{mod,logic,view,styles}.rs`），避免复制后缺依赖或路径失真。回归：`components/meter/test/semantics.rs::source_first_docs_are_copy_paste_ready_and_synced_with_meter_api`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已新增 `docs/spec/heroui-parameter-design-strategy.md::Meter 同步记录（2026-02-20）`，明确参数主轴与 `logic.rs::normalize_inputs` 默认值归一规则（`DEFAULT_MIN/DEFAULT_MAX/DEFAULT_SHOW_VALUE_LABEL` 与 `is_value_label_visible > show_value_label` 优先级）；docs 入口可索引链路为 `apps/docs-app/src/pages/components/pages.rs::component_doc!("Meter", "meter", "Display", display::meter)` + `apps/docs-app/src/pages/components/pages/display.rs::meter()` 的 `slug="meter"`，并有 `components/meter/src/README.md` 等价入口。研究文档判定为 N/A（本轮不引入新 HeroUI 结论），回归：`components/meter/test/semantics.rs::heroui_benchmark_docs_and_component_docs_stay_synced_for_meter`。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

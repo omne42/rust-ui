@@ -12,6 +12,116 @@ use ui_components::{
     SkeletonVariant, Switch, Text, TextAlign, TextElement, TextTone, TextWeight,
 };
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ChartWorkbenchState {
+    kind_index: usize,
+    dataset_index: usize,
+    is_disabled: bool,
+    is_show_grid: bool,
+    custom_class: bool,
+    lang: bool,
+}
+
+impl Default for ChartWorkbenchState {
+    fn default() -> Self {
+        Self {
+            kind_index: 0,
+            dataset_index: 0,
+            is_disabled: false,
+            is_show_grid: true,
+            custom_class: false,
+            lang: false,
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl ChartWorkbenchState {
+    fn parse(raw: &str) -> Option<Self> {
+        let parts = raw.split(',').map(str::trim).collect::<Vec<_>>();
+        if parts.len() != 6 {
+            return None;
+        }
+
+        let parse_index = |at: usize, max: usize| {
+            parts
+                .get(at)?
+                .parse::<usize>()
+                .ok()
+                .map(|value| value.min(max))
+        };
+        let parse_bool = |at: usize| match *parts.get(at)? {
+            "1" => Some(true),
+            "0" => Some(false),
+            _ => None,
+        };
+
+        Some(Self {
+            kind_index: parse_index(0, 1)?,
+            dataset_index: parse_index(1, 2)?,
+            is_disabled: parse_bool(2)?,
+            is_show_grid: parse_bool(3)?,
+            custom_class: parse_bool(4)?,
+            lang: parse_bool(5)?,
+        })
+    }
+
+    fn encode(self) -> String {
+        let bool_digit = |value: bool| if value { '1' } else { '0' };
+        format!(
+            "{},{},{},{},{},{}",
+            self.kind_index,
+            self.dataset_index,
+            bool_digit(self.is_disabled),
+            bool_digit(self.is_show_grid),
+            bool_digit(self.custom_class),
+            bool_digit(self.lang),
+        )
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+const CHART_WORKBENCH_STORAGE_KEY: &str = "docs:chart:workbench:state";
+
+#[cfg(target_arch = "wasm32")]
+fn load_chart_workbench_state() -> Option<ChartWorkbenchState> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(CHART_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    ChartWorkbenchState::parse(&raw)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_chart_workbench_state() -> Option<ChartWorkbenchState> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_chart_workbench_state(state: ChartWorkbenchState) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.set_item(CHART_WORKBENCH_STORAGE_KEY, &state.encode()));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_chart_workbench_state(_state: ChartWorkbenchState) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_chart_workbench_state() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        drop(storage.remove_item(CHART_WORKBENCH_STORAGE_KEY));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_chart_workbench_state() {}
+
 pub(super) fn labeled_value() -> AnyView {
     let orientation_options = vec!["Stacked".to_string(), "Inline".to_string()];
     let tone_options = vec![
@@ -19,11 +129,18 @@ pub(super) fn labeled_value() -> AnyView {
         "Subtle".to_string(),
         "Strong".to_string(),
     ];
+    let labeled_value_imports =
+        "use leptos::prelude::*;\nuse ui_components::{LabeledValue, LabeledValueOrientation, LabeledValueTone};"
+            .to_string();
     let (orientation_index, set_orientation_index) = signal(Some(0_usize));
     let (tone_index, set_tone_index) = signal(Some(0_usize));
     let (show_description, set_show_description) = signal(true);
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
+
+    let hello_world_code = Signal::derive(move || {
+        r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />"#.to_string()
+    });
 
     let orientation_code = Signal::derive(move || {
         r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />
@@ -36,6 +153,24 @@ pub(super) fn labeled_value() -> AnyView {
         .to_string()
     });
 
+    let state_matrix_code = Signal::derive(move || {
+        r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />
+<LabeledValue
+  label="Status".to_string()
+  value="Healthy".to_string()
+  orientation=LabeledValueOrientation::Inline
+  tone=LabeledValueTone::Subtle
+/>
+<LabeledValue
+  label="SLA".to_string()
+  value="99.95%".to_string()
+  orientation=LabeledValueOrientation::Stacked
+  tone=LabeledValueTone::Strong
+  description="SLA snapshot".to_string()
+/>"#
+        .to_string()
+    });
+
     let custom_code = Signal::derive(move || {
         r#"<LabeledValue
   label="Build".to_string()
@@ -44,6 +179,36 @@ pub(super) fn labeled_value() -> AnyView {
   aria_label="Build status".to_string()
   class_name="docs-labeled-value-custom".to_string()
   tone=LabeledValueTone::Strong
+/>"#
+        .to_string()
+    });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"<LabeledValue label="Default path".to_string() value="No controlled axis".to_string() />
+<LabeledValue
+  label="App state mapped".to_string()
+  value="Map upstream state to orientation/tone/class_name".to_string()
+  orientation=LabeledValueOrientation::Inline
+  tone=LabeledValueTone::Subtle
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<LabeledValue
+  label="Output mode".to_string()
+  value="Snapshot".to_string()
+  description="Inspect data-output-mode=snapshot and data-output-status=validated".to_string()
+/>"#
+        .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<LabeledValue
+  label="Build".to_string()
+  value="passing".to_string()
+  orientation=LabeledValueOrientation::Inline
+  tone=LabeledValueTone::Subtle
 />"#
         .to_string()
     });
@@ -110,6 +275,37 @@ pub(super) fn labeled_value() -> AnyView {
             group="Display"
             description="Label-value pair primitive with centralized orientation/tone/source state contracts and baseline-style data markers."
         >
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_world_code
+                code_imports=labeled_value_imports.clone()
+            >
+                <LabeledValue label="Project".to_string() value="Omne".to_string() />
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=state_matrix_code
+                code_imports=labeled_value_imports.clone()
+            >
+                <div class="docs-stack">
+                    <LabeledValue label="Project".to_string() value="Omne".to_string() />
+                    <LabeledValue
+                        label="Status".to_string()
+                        value="Healthy".to_string()
+                        orientation=LabeledValueOrientation::Inline
+                        tone=LabeledValueTone::Subtle
+                    />
+                    <LabeledValue
+                        label="SLA".to_string()
+                        value="99.95%".to_string()
+                        orientation=LabeledValueOrientation::Stacked
+                        tone=LabeledValueTone::Strong
+                        description="SLA snapshot".to_string()
+                    />
+                </div>
+            </Playground>
+
             <Playground title="Orientation + Tone" code_signal=orientation_code>
                 <div class="docs-stack">
                     <LabeledValue label="Project".to_string() value="Omne".to_string() />
@@ -142,9 +338,59 @@ pub(super) fn labeled_value() -> AnyView {
             </Playground>
 
             <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="LabeledValue has no controlled/uncontrolled runtime axis; compare default usage vs app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=labeled_value_imports.clone()
+            >
+                <div class="docs-stack">
+                    <LabeledValue
+                        label="Default path".to_string()
+                        value="No controlled axis".to_string()
+                    />
+                    <LabeledValue
+                        label="App state mapped".to_string()
+                        value="Map upstream state to orientation/tone/class_name".to_string()
+                        orientation=LabeledValueOrientation::Inline
+                        tone=LabeledValueTone::Subtle
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="LabeledValue is a display leaf: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports=labeled_value_imports.clone()
+            >
+                <div class="docs-stack">
+                    <LabeledValue
+                        label="Output mode".to_string()
+                        value="Snapshot".to_string()
+                        description="Inspect data-output-mode=snapshot and data-output-status=validated".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=labeled_value_imports.clone()
+            >
+                <LabeledValue
+                    label="Build".to_string()
+                    value="passing".to_string()
+                    orientation=LabeledValueOrientation::Inline
+                    tone=LabeledValueTone::Subtle
+                />
+            </Playground>
+
+            <Playground
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
+                code_imports=labeled_value_imports
                 test_source_path="components/labeled-value/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
@@ -235,12 +481,32 @@ pub(super) fn labeled_value() -> AnyView {
                     }
                 }}
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="labeled-value-streaming-modes">
+                <h3>"Streaming / Snapshot"</h3>
+                <ul data-slot="labeled-value-streaming-rows">
+                    <li><code>"data-output-mode"</code>" = snapshot"</li>
+                    <li><code>"data-output-status"</code>" = validated"</li>
+                    <li><code>"streaming support"</code>" = optional (fallback=snapshot)"</li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="labeled-value-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Playground copy action injects missing imports through "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn keyboard() -> AnyView {
+    let keyboard_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Keyboard, KeyboardTone};".to_string();
     let tone_options = vec!["default".to_string(), "muted".to_string()];
     let key_options = vec![
         "⌘K".to_string(),
@@ -323,7 +589,9 @@ pub(super) fn keyboard() -> AnyView {
         )
     });
 
-    let matrix_code = Signal::derive(move || {
+    let hello_world_code = Signal::derive(move || r#"<Keyboard>"⌘K"</Keyboard>"#.to_string());
+
+    let state_matrix_code = Signal::derive(move || {
         r#"<Keyboard>"⌘K"</Keyboard>
 <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
 <Keyboard is_compact=true>"Ctrl+K"</Keyboard>
@@ -338,6 +606,32 @@ pub(super) fn keyboard() -> AnyView {
             .to_string()
     });
 
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"<Keyboard>"⌘K"</Keyboard>
+<Keyboard
+  tone=KeyboardTone::Muted
+  is_compact=true
+  class_name="docs-keyboard-custom".to_string()
+>
+  "Mapped from upstream app state"
+</Keyboard>"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Keyboard
+  tone=KeyboardTone::Muted
+  aria_label="Snapshot contract marker".to_string()
+>
+  "⌘K"
+</Keyboard>"#
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>"#.to_string()
+    });
+
     view! {
         <ComponentPage
             title="Keyboard"
@@ -346,8 +640,90 @@ pub(super) fn keyboard() -> AnyView {
             description="Keyboard command primitive (`<kbd>`) with centralized tone/compact/source state contracts."
         >
             <Playground
+                title="Hello World (Default Path)"
+                code_signal=hello_world_code
+                code_imports=keyboard_imports.clone()
+            >
+                <Keyboard>"⌘K"</Keyboard>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Compact / Source Markers)"
+                code_signal=state_matrix_code
+                code_imports=keyboard_imports.clone()
+            >
+                <div class="docs-row">
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Default"</span>
+                        <Keyboard>"⌘K"</Keyboard>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Muted"</span>
+                        <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Compact"</span>
+                        <Keyboard is_compact=true>"Ctrl+K"</Keyboard>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Muted + Compact + Custom"</span>
+                        <Keyboard
+                            tone=KeyboardTone::Muted
+                            is_compact=true
+                            aria_label="Open command palette".to_string()
+                            class_name="docs-keyboard-custom".to_string()
+                        >
+                            "Ctrl+Shift+P"
+                        </Keyboard>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled Contrast (N/A for Keyboard)"
+                description="Keyboard has no controllable state axis; compare default rendering with upstream state mapped into plain props."
+                code_signal=controlled_contrast_code
+                code_imports=keyboard_imports.clone()
+            >
+                <div class="docs-row">
+                    <Keyboard>"⌘K"</Keyboard>
+                    <Keyboard
+                        tone=KeyboardTone::Muted
+                        is_compact=true
+                        class_name="docs-keyboard-custom".to_string()
+                    >
+                        "Mapped from upstream app state"
+                    </Keyboard>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Keyboard is a display leaf: streaming is optional and falls back to snapshot (`data-ui-streaming=optional`, `data-ui-streaming-fallback=snapshot`)."
+                code_signal=stream_snapshot_code
+                code_imports=keyboard_imports.clone()
+            >
+                <Keyboard
+                    tone=KeyboardTone::Muted
+                    aria_label="Snapshot contract marker".to_string()
+                >
+                    "⌘K"
+                </Keyboard>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=keyboard_imports.clone()
+            >
+                <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
+                code_imports=keyboard_imports.clone()
                 test_css_source=keyboard_test_css_source
                 test_source_path="components/keyboard/src/styles.rs".to_string()
                 test_config_signal=workbench_config
@@ -424,36 +800,15 @@ pub(super) fn keyboard() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground
-                title="Comparison Matrix (Tone / Compact / Source Markers)"
-                code_signal=matrix_code
-            >
-                <div class="docs-row">
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Default"</span>
-                        <Keyboard>"⌘K"</Keyboard>
-                    </div>
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Muted"</span>
-                        <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
-                    </div>
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Compact"</span>
-                        <Keyboard is_compact=true>"Ctrl+K"</Keyboard>
-                    </div>
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Muted + Compact + Custom"</span>
-                        <Keyboard
-                            tone=KeyboardTone::Muted
-                            is_compact=true
-                            aria_label="Open command palette".to_string()
-                            class_name="docs-keyboard-custom".to_string()
-                        >
-                            "Ctrl+Shift+P"
-                        </Keyboard>
-                    </div>
-                </div>
-            </Playground>
+            <section class="docs-card docs-prose" data-slot="keyboard-parameter-matrix">
+                <h3>"Parameter Matrix (API + Defaults)"</h3>
+                <ul data-slot="keyboard-parameter-rows">
+                    <li><code>"tone"</code>" = KeyboardTone::Default (default)"</li>
+                    <li><code>"is_compact"</code>" = false (default)"</li>
+                    <li><code>"aria_label"</code>" = \"Keyboard\" fallback after trim/normalize"</li>
+                    <li><code>"class_name"</code>" = optional custom class (default none)"</li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -521,11 +876,15 @@ pub(super) fn text() -> AnyView {
 }
 
 pub(super) fn icon() -> AnyView {
+    let hello_code = Signal::derive(move || r#"<Icon>"✓"</Icon>"#.to_string());
+    let icon_code_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Icon, IconSize, IconTone};".to_string();
+
     let matrix_code = Signal::derive(move || {
-        r#"<Icon size=IconSize::Sm tone=IconTone::Default decorative=true>"✓"</Icon>
-<Icon size=IconSize::Md tone=IconTone::Muted decorative=true>"⚙"</Icon>
-<Icon size=IconSize::Lg tone=IconTone::Accent decorative=true>"★"</Icon>
-<Icon size=IconSize::Lg tone=IconTone::Danger decorative=true>"⚠"</Icon>"#
+        r#"<Icon size=IconSize::Sm tone=IconTone::Default is_decorative=true>"✓"</Icon>
+<Icon size=IconSize::Md tone=IconTone::Muted is_decorative=true>"⚙"</Icon>
+<Icon size=IconSize::Lg tone=IconTone::Accent is_decorative=true>"★"</Icon>
+<Icon size=IconSize::Lg tone=IconTone::Danger is_decorative=true>"⚠"</Icon>"#
             .to_string()
     });
 
@@ -533,7 +892,7 @@ pub(super) fn icon() -> AnyView {
         r#"<Icon
   size=IconSize::Md
   tone=IconTone::Accent
-  decorative=false
+  is_decorative=false
   aria_label="Sync successful".to_string()
 >
   "✓"
@@ -541,11 +900,43 @@ pub(super) fn icon() -> AnyView {
 <Icon
   size=IconSize::Lg
   tone=IconTone::Muted
-  disabled=true
+  is_disabled=true
   class_name="docs-icon-custom".to_string()
-  decorative=true
+  is_decorative=true
 >
   "⚙"
+</Icon>"#
+            .to_string()
+    });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"<Icon is_decorative=true>"✓"</Icon>
+<Icon
+  size=IconSize::Lg
+  tone=IconTone::Accent
+  is_decorative=false
+  aria_label="Mapped from upstream app state".to_string()
+>
+  "★"
+</Icon>"#
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Icon
+  size=IconSize::Md
+  tone=IconTone::Muted
+  is_decorative=false
+  aria_label="Snapshot mode icon".to_string()
+>
+  "⏺"
+</Icon>"#
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<Icon size=IconSize::Sm tone=IconTone::Accent is_decorative=true>
+  "✓"
 </Icon>"#
             .to_string()
     });
@@ -576,7 +967,7 @@ pub(super) fn icon() -> AnyView {
             format!("  aria_label=\"{}\".into()\n", workbench_label.get().trim())
         };
         format!(
-            "<Icon\n  size=IconSize::{}\n  tone=IconTone::{}\n  disabled={disabled}\n  decorative={decorative}\n{aria_line}{class_line}>\n  \"{glyph}\"\n</Icon>",
+            "<Icon\n  size=IconSize::{}\n  tone=IconTone::{}\n  is_disabled={disabled}\n  is_decorative={decorative}\n{aria_line}{class_line}>\n  \"{glyph}\"\n</Icon>",
             match size.as_str() {
                 "sm" => "Sm",
                 "lg" => "Lg",
@@ -655,18 +1046,22 @@ pub(super) fn icon() -> AnyView {
             group="Display"
             description="baseline-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers."
         >
+            <Playground title="Hello World (Default Path)" code_signal=hello_code>
+                <Icon>"✓"</Icon>
+            </Playground>
+
             <Playground title="Size + Tone Matrix" code_signal=matrix_code>
                 <div class="docs-row">
-                    <Icon size=IconSize::Sm tone=IconTone::Default decorative=true>
+                    <Icon size=IconSize::Sm tone=IconTone::Default is_decorative=true>
                         "✓"
                     </Icon>
-                    <Icon size=IconSize::Md tone=IconTone::Muted decorative=true>
+                    <Icon size=IconSize::Md tone=IconTone::Muted is_decorative=true>
                         "⚙"
                     </Icon>
-                    <Icon size=IconSize::Lg tone=IconTone::Accent decorative=true>
+                    <Icon size=IconSize::Lg tone=IconTone::Accent is_decorative=true>
                         "★"
                     </Icon>
-                    <Icon size=IconSize::Lg tone=IconTone::Danger decorative=true>
+                    <Icon size=IconSize::Lg tone=IconTone::Danger is_decorative=true>
                         "⚠"
                     </Icon>
                 </div>
@@ -677,7 +1072,7 @@ pub(super) fn icon() -> AnyView {
                     <Icon
                         size=IconSize::Md
                         tone=IconTone::Accent
-                        decorative=false
+                        is_decorative=false
                         aria_label="Sync successful".to_string()
                     >
                         "✓"
@@ -685,9 +1080,9 @@ pub(super) fn icon() -> AnyView {
                     <Icon
                         size=IconSize::Lg
                         tone=IconTone::Muted
-                        disabled=true
+                        is_disabled=true
                         class_name="docs-icon-custom".to_string()
-                        decorative=true
+                        is_decorative=true
                     >
                         "⚙"
                     </Icon>
@@ -695,11 +1090,57 @@ pub(super) fn icon() -> AnyView {
             </Playground>
 
             <Playground
+                title="Controlled vs Uncontrolled Contrast (N/A for Icon)"
+                description="Icon has no controllable state axis; compare default rendering with upstream state mapped into plain props."
+                code_signal=controlled_contrast_code
+                code_imports=icon_code_imports.clone()
+            >
+                <div class="docs-row">
+                    <Icon is_decorative=true>"✓"</Icon>
+                    <Icon
+                        size=IconSize::Lg
+                        tone=IconTone::Accent
+                        is_decorative=false
+                        aria_label="Mapped from upstream app state".to_string()
+                    >
+                        "★"
+                    </Icon>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Icon is a display leaf: streaming is optional and falls back to snapshot (`data-ui-streaming=optional`, `data-ui-streaming-fallback=snapshot`)."
+                code_signal=stream_snapshot_code
+                code_imports=icon_code_imports.clone()
+            >
+                <Icon
+                    size=IconSize::Md
+                    tone=IconTone::Muted
+                    is_decorative=false
+                    aria_label="Snapshot mode icon".to_string()
+                >
+                    "⏺"
+                </Icon>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run; requires `ui_components` dependency in Cargo.toml."
+                code_signal=source_first_code
+                code_imports=icon_code_imports.clone()
+            >
+                <Icon size=IconSize::Sm tone=IconTone::Accent is_decorative=true>
+                    "✓"
+                </Icon>
+            </Playground>
+
+            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels and live icon state controls."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/styles.rs".to_string()
+                test_source_path="components/icon/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="icon-workbench-controls">
@@ -780,7 +1221,7 @@ pub(super) fn icon() -> AnyView {
                     <div class="docs-row">
                         <div class="docs-card">
                             <div class="ui-muted">"Baseline"</div>
-                            <Icon size=IconSize::Md tone=IconTone::Default decorative=true>
+                            <Icon size=IconSize::Md tone=IconTone::Default is_decorative=true>
                                 "✓"
                             </Icon>
                         </div>
@@ -813,8 +1254,8 @@ pub(super) fn icon() -> AnyView {
                                     <Icon
                                         size=size
                                         tone=tone
-                                        disabled=workbench_disabled.get()
-                                        decorative=decorative
+                                        is_disabled=workbench_disabled.get()
+                                        is_decorative=decorative
                                         aria_label=aria_label
                                         class_name=class_name
                                     >
@@ -825,7 +1266,7 @@ pub(super) fn icon() -> AnyView {
                         </div>
                         <div class="docs-card">
                             <div class="ui-muted">"Disabled contrast"</div>
-                            <Icon size=IconSize::Lg tone=IconTone::Danger disabled=true decorative=true>
+                            <Icon size=IconSize::Lg tone=IconTone::Danger is_disabled=true is_decorative=true>
                                 "⚠"
                             </Icon>
                         </div>
@@ -838,6 +1279,29 @@ pub(super) fn icon() -> AnyView {
 }
 
 pub(super) fn empty_state() -> AnyView {
+    let empty_state_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant, EmptyState, EmptyStateAlign, EmptyStateTone};"
+            .to_string();
+    let hello_code = Signal::derive(move || r#"<EmptyState />"#.to_string());
+
+    let state_matrix_code = Signal::derive(move || {
+        r#"<EmptyState />
+<EmptyState
+  title="Nothing matched".to_string()
+  description="Try a different query or clear filters.".to_string()
+  tone=EmptyStateTone::Muted
+  align=EmptyStateAlign::Center
+/>
+<EmptyState
+  title="Deployments paused".to_string()
+  description="Approvals are required before resuming this environment.".to_string()
+  tone=EmptyStateTone::Accent
+  is_compact=true
+  is_bordered=true
+/>"#
+        .to_string()
+    });
+
     let tone_code = Signal::derive(move || {
         r#"<EmptyState
   title="No projects yet".to_string()
@@ -862,8 +1326,8 @@ pub(super) fn empty_state() -> AnyView {
   title="Deployments paused".to_string()
   description="Approvals are required before resuming this environment.".to_string()
   tone=EmptyStateTone::Accent
-  compact=true
-  bordered=true
+  is_compact=true
+  is_bordered=true
   class_name="docs-empty-state-custom".to_string()
   icon=move || view! { <span>"⏸"</span> }
   actions=move || view! {
@@ -875,6 +1339,133 @@ pub(super) fn empty_state() -> AnyView {
         .to_string()
     });
 
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"<EmptyState />
+<EmptyState
+  title="Mapped from parent state".to_string()
+  description="EmptyState has no controlled/uncontrolled axis; parent can still map app state into props.".to_string()
+  tone=EmptyStateTone::Muted
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<EmptyState
+  title="Snapshot baseline".to_string()
+  description="Component default path renders complete config in one pass.".to_string()
+/>
+<EmptyState
+  title="Streaming optional fallback".to_string()
+  description="Not an LLM body reader surface: optional streaming contracts fallback to snapshot.".to_string()
+  tone=EmptyStateTone::Muted
+/>"#
+        .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<EmptyState
+  title="No incidents".to_string()
+  description="Everything is healthy. If this changes, add actions below.".to_string()
+  tone=EmptyStateTone::Default
+/>"#
+        .to_string()
+    });
+
+    let tone_options = vec![
+        "Default".to_string(),
+        "Muted".to_string(),
+        "Accent".to_string(),
+    ];
+    let align_options = vec!["Start".to_string(), "Center".to_string()];
+    let (workbench_tone_index, set_workbench_tone_index) = signal(Some(0_usize));
+    let (workbench_align_index, set_workbench_align_index) = signal(Some(0_usize));
+    let (workbench_title, set_workbench_title) = signal("No incidents".to_string());
+    let (workbench_description, set_workbench_description) =
+        signal("Everything is healthy. If this changes, add actions below.".to_string());
+    let (workbench_is_compact, set_workbench_is_compact) = signal(false);
+    let (workbench_is_bordered, set_workbench_is_bordered) = signal(false);
+    let (workbench_with_icon, set_workbench_with_icon) = signal(false);
+    let (workbench_with_actions, set_workbench_with_actions) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_code = Signal::derive(move || {
+        let tone_index = workbench_tone_index.get().unwrap_or(0);
+        let tone_variant = match tone_index {
+            1 => "EmptyStateTone::Muted",
+            2 => "EmptyStateTone::Accent",
+            _ => "EmptyStateTone::Default",
+        };
+        let align_index = workbench_align_index.get().unwrap_or(0);
+        let align_variant = match align_index {
+            1 => "EmptyStateAlign::Center",
+            _ => "EmptyStateAlign::Start",
+        };
+        let title = workbench_title
+            .get()
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"");
+        let description = workbench_description
+            .get()
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"");
+
+        let mut lines = vec![
+            "<EmptyState".to_string(),
+            format!("  title=\"{title}\".to_string()"),
+            format!("  description=\"{description}\".to_string()"),
+            format!("  tone={tone_variant}"),
+            format!("  align={align_variant}"),
+        ];
+
+        if workbench_is_compact.get() {
+            lines.push("  is_compact=true".to_string());
+        }
+        if workbench_is_bordered.get() {
+            lines.push("  is_bordered=true".to_string());
+        }
+        if workbench_custom_class.get() {
+            lines.push("  class_name=\"docs-empty-state-workbench\".to_string()".to_string());
+        }
+        if workbench_with_icon.get() {
+            lines.push("  icon=move || view! { <span>\"🧭\"</span> }".to_string());
+        }
+        if workbench_with_actions.get() {
+            lines.push("  actions=move || view! {".to_string());
+            lines.push(
+                "    <ui_components::Button variant=ui_components::ButtonVariant::Secondary>"
+                    .to_string(),
+            );
+            lines.push("      \"Retry\"".to_string());
+            lines.push("    </ui_components::Button>".to_string());
+            lines.push("  }".to_string());
+        }
+
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let tone_variant = match workbench_tone_index.get().unwrap_or(0) {
+            1 => "Muted",
+            2 => "Accent",
+            _ => "Default",
+        };
+        let align_variant = match workbench_align_index.get().unwrap_or(0) {
+            1 => "Center",
+            _ => "Start",
+        };
+        format!(
+            "EmptyStateActualConfig {{\n  tone: {tone_variant},\n  align: {align_variant},\n  is_compact: {},\n  is_bordered: {},\n  with_icon: {},\n  with_actions: {},\n  custom_class: {},\n  title: \"{}\",\n  description: \"{}\",\n  marker_expectations: [\"data-tone\", \"data-align\", \"data-state\", \"data-icon\", \"data-actions\", \"data-title-source\", \"data-description-source\"],\n}}",
+            workbench_is_compact.get(),
+            workbench_is_bordered.get(),
+            workbench_with_icon.get(),
+            workbench_with_actions.get(),
+            workbench_custom_class.get(),
+            workbench_title.get(),
+            workbench_description.get(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="EmptyState"
@@ -882,7 +1473,42 @@ pub(super) fn empty_state() -> AnyView {
             group="Display"
             description="baseline-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers."
         >
-            <Playground title="Tone + Alignment + Actions" code_signal=tone_code>
+            <Playground
+                title="Hello World (Default Path)"
+                code_signal=hello_code
+                code_imports=empty_state_imports.clone()
+            >
+                <EmptyState />
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=state_matrix_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState />
+                    <EmptyState
+                        title="Nothing matched".to_string()
+                        description="Try a different query or clear filters.".to_string()
+                        tone=EmptyStateTone::Muted
+                        align=EmptyStateAlign::Center
+                    />
+                    <EmptyState
+                        title="Deployments paused".to_string()
+                        description="Approvals are required before resuming this environment.".to_string()
+                        tone=EmptyStateTone::Accent
+                        is_compact=true
+                        is_bordered=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Tone + Alignment + Actions"
+                code_signal=tone_code
+                code_imports=empty_state_imports.clone()
+            >
                 <div class="docs-stack">
                     <EmptyState
                         title="No projects yet".to_string()
@@ -906,13 +1532,17 @@ pub(super) fn empty_state() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Compact + Bordered + Custom Class" code_signal=state_code>
+            <Playground
+                title="Compact + Bordered + Custom Class"
+                code_signal=state_code
+                code_imports=empty_state_imports.clone()
+            >
                 <EmptyState
                     title="Deployments paused".to_string()
                     description="Approvals are required before resuming this environment.".to_string()
                     tone=EmptyStateTone::Accent
-                    compact=true
-                    bordered=true
+                    is_compact=true
+                    is_bordered=true
                     class_name="docs-empty-state-custom".to_string()
                     icon=move || view! { <span>"⏸"</span> }
                     actions=move || {
@@ -924,12 +1554,299 @@ pub(super) fn empty_state() -> AnyView {
                     }
                 />
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="EmptyState has no controlled/uncontrolled runtime axis; compare default usage vs app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState />
+                    <EmptyState
+                        title="Mapped from parent state".to_string()
+                        description="EmptyState has no controlled/uncontrolled axis; parent can still map app state into props.".to_string()
+                        tone=EmptyStateTone::Muted
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="EmptyState is not an LLM reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState
+                        title="Snapshot baseline".to_string()
+                        description="Component default path renders complete config in one pass.".to_string()
+                    />
+                    <EmptyState
+                        title="Streaming optional fallback".to_string()
+                        description="Not an LLM body reader surface: optional streaming contracts fallback to snapshot.".to_string()
+                        tone=EmptyStateTone::Muted
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground"
+                description="Interactive acceptance canvas: tune props/state and verify semantic markers in real time."
+                code_signal=workbench_code
+                code_imports=empty_state_imports.clone()
+                test_source_path="components/empty-state/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="empty-state-workbench-controls">
+                            <label class="docs-search__label" data-slot="empty-state-workbench-title">
+                                "Title"
+                                <input
+                                    type="text"
+                                    prop:value=move || workbench_title.get()
+                                    on:input=move |ev| set_workbench_title.set(event_target_value(&ev))
+                                />
+                            </label>
+                            <label class="docs-search__label" data-slot="empty-state-workbench-description">
+                                "Description"
+                                <input
+                                    type="text"
+                                    prop:value=move || workbench_description.get()
+                                    on:input=move |ev| set_workbench_description.set(event_target_value(&ev))
+                                />
+                            </label>
+
+                            <div data-slot="empty-state-workbench-tone">
+                                <div class="docs-search__label">"Tone"</div>
+                                <SegmentedControl
+                                    id_base="docs-empty-state-workbench-tone".to_string()
+                                    options=tone_options.clone()
+                                    selected_index=workbench_tone_index
+                                    set_selected_index=set_workbench_tone_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="EmptyState tone".to_string()
+                                />
+                            </div>
+
+                            <div data-slot="empty-state-workbench-align">
+                                <div class="docs-search__label">"Align"</div>
+                                <SegmentedControl
+                                    id_base="docs-empty-state-workbench-align".to_string()
+                                    options=align_options.clone()
+                                    selected_index=workbench_align_index
+                                    set_selected_index=set_workbench_align_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="EmptyState align".to_string()
+                                />
+                            </div>
+
+                            <div data-slot="empty-state-workbench-toggle-compact">
+                                <Switch checked=workbench_is_compact set_checked=set_workbench_is_compact>
+                                    "Compact"
+                                </Switch>
+                            </div>
+                            <div data-slot="empty-state-workbench-toggle-bordered">
+                                <Switch checked=workbench_is_bordered set_checked=set_workbench_is_bordered>
+                                    "Bordered"
+                                </Switch>
+                            </div>
+                            <div data-slot="empty-state-workbench-toggle-icon">
+                                <Switch checked=workbench_with_icon set_checked=set_workbench_with_icon>
+                                    "Icon"
+                                </Switch>
+                            </div>
+                            <div data-slot="empty-state-workbench-toggle-actions">
+                                <Switch checked=workbench_with_actions set_checked=set_workbench_with_actions>
+                                    "Actions"
+                                </Switch>
+                            </div>
+                            <div data-slot="empty-state-workbench-toggle-class">
+                                <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                    "Custom class"
+                                </Switch>
+                            </div>
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="empty-state-workbench">
+                    {move || {
+                        let tone = match workbench_tone_index.get().unwrap_or(0) {
+                            1 => EmptyStateTone::Muted,
+                            2 => EmptyStateTone::Accent,
+                            _ => EmptyStateTone::Default,
+                        };
+                        let align = match workbench_align_index.get().unwrap_or(0) {
+                            1 => EmptyStateAlign::Center,
+                            _ => EmptyStateAlign::Start,
+                        };
+                        let class_name = if workbench_custom_class.get() {
+                            "docs-empty-state-workbench".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let title = workbench_title.get();
+                        let description = workbench_description.get();
+                        let is_compact = workbench_is_compact.get();
+                        let is_bordered = workbench_is_bordered.get();
+
+                        if workbench_with_icon.get() && workbench_with_actions.get() {
+                            view! {
+                                <EmptyState
+                                    title=title
+                                    description=description
+                                    tone=tone
+                                    align=align
+                                    is_compact=is_compact
+                                    is_bordered=is_bordered
+                                    class_name=class_name
+                                    icon=move || view! { <span>"🧭"</span> }
+                                    actions=move || {
+                                        view! {
+                                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                                                "Retry"
+                                            </ui_components::Button>
+                                        }
+                                    }
+                                />
+                            }
+                                .into_any()
+                        } else if workbench_with_icon.get() {
+                            view! {
+                                <EmptyState
+                                    title=title
+                                    description=description
+                                    tone=tone
+                                    align=align
+                                    is_compact=is_compact
+                                    is_bordered=is_bordered
+                                    class_name=class_name
+                                    icon=move || view! { <span>"🧭"</span> }
+                                />
+                            }
+                                .into_any()
+                        } else if workbench_with_actions.get() {
+                            view! {
+                                <EmptyState
+                                    title=title
+                                    description=description
+                                    tone=tone
+                                    align=align
+                                    is_compact=is_compact
+                                    is_bordered=is_bordered
+                                    class_name=class_name
+                                    actions=move || {
+                                        view! {
+                                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                                                "Retry"
+                                            </ui_components::Button>
+                                        }
+                                    }
+                                />
+                            }
+                                .into_any()
+                        } else {
+                            view! {
+                                <EmptyState
+                                    title=title
+                                    description=description
+                                    tone=tone
+                                    align=align
+                                    is_compact=is_compact
+                                    is_bordered=is_bordered
+                                    class_name=class_name
+                                />
+                            }
+                                .into_any()
+                        }
+                    }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=empty_state_imports
+            >
+                <EmptyState
+                    title="No incidents".to_string()
+                    description="Everything is healthy. If this changes, add actions below.".to_string()
+                    tone=EmptyStateTone::Default
+                />
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="empty-state-source-first-contract">
+                <h3>"Source-first / Copy-Paste Ready Contract"</h3>
+                <p>
+                    "Open "
+                    <code>"Show code"</code>
+                    " in any playground, then use the code block copy action. Copied snippets are auto-normalized by "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    " so required imports are included."
+                </p>
+                <p>"Real component sources:"</p>
+                <ul data-slot="empty-state-source-first-paths">
+                    <li><code>"components/empty-state/src/mod.rs"</code></li>
+                    <li><code>"components/empty-state/src/logic.rs"</code></li>
+                    <li><code>"components/empty-state/src/view.rs"</code></li>
+                    <li><code>"components/empty-state/src/styles.rs"</code></li>
+                    <li><code>"components/empty-state/src/motion.rs"</code></li>
+                </ul>
+                <p>"Dependency baseline (Cargo.toml):"</p>
+                <pre data-slot="empty-state-source-first-deps">
+                    <code>
+                        "[dependencies]\nui-components = { default-features = false, features = [\"component-empty_state\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
+                    </code>
+                </pre>
+            </section>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn error_view() -> AnyView {
+    let error_view_imports =
+        "use leptos::prelude::*;\nuse ui_components::{ErrorView, ErrorViewMotion, ErrorViewTone, Icon, IconSize, IconTone};"
+            .to_string();
+    let workbench_tone_options = vec!["Negative".to_string(), "Neutral".to_string()];
+    let workbench_message_options = vec!["Email".to_string(), "Retry".to_string()];
+    let (workbench_tone_index, set_workbench_tone_index) = signal(Some(0_usize));
+    let (workbench_message_index, set_workbench_message_index) = signal(Some(0_usize));
+    let (workbench_is_invalid, set_workbench_is_invalid) = signal(true);
+    let (workbench_is_compact, set_workbench_is_compact) = signal(false);
+    let (workbench_is_bordered, set_workbench_is_bordered) = signal(false);
+
+    let hello_code = Signal::derive(move || {
+        r#"<ErrorView
+  is_invalid=true
+  message="Please enter a valid email address".to_string()
+/>"#
+        .to_string()
+    });
+
+    let state_matrix_code = Signal::derive(move || {
+        r#"<ErrorView
+  is_invalid=true
+  message="Please enter a valid email address".to_string()
+/>
+<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  is_compact=true
+  message="Compact neutral tone contract".to_string()
+/>
+<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  is_compact=true
+  is_bordered=true
+  message="Compact + bordered source markers".to_string()
+/>"#
+        .to_string()
+    });
+
     let basic_code = Signal::derive(move || {
         r#"<ErrorView
   is_invalid=true
@@ -956,7 +1873,7 @@ pub(super) fn error_view() -> AnyView {
     ..ErrorViewMotion::default()
   }
   icon=move || view! {
-    <Icon size=IconSize::Sm tone=IconTone::Danger decorative=true>"⚠"</Icon>
+    <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>"⚠"</Icon>
   }
   actions=move || view! {
     <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
@@ -969,6 +1886,85 @@ pub(super) fn error_view() -> AnyView {
             .to_string()
     });
 
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"<ErrorView
+  is_invalid=true
+  message="Default path".to_string()
+/>
+<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  message="ErrorView has no controllable state axis; parent state maps into props.".to_string()
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<ErrorView
+  is_invalid=true
+  message="Snapshot baseline: complete config renders in one pass.".to_string()
+/>
+<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  message="Streaming is optional and falls back to snapshot for ErrorView.".to_string()
+/>"#
+        .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  message="Copy-ready starter".to_string()
+/>"#
+        .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let tone_variant = match workbench_tone_index.get().unwrap_or(0) {
+            1 => "ErrorViewTone::Neutral",
+            _ => "ErrorViewTone::Negative",
+        };
+        let message = match workbench_message_index.get().unwrap_or(0) {
+            1 => "Retry request failed. Try again.",
+            _ => "Please enter a valid email address",
+        };
+        let compact_line = if workbench_is_compact.get() {
+            "  is_compact=true\n"
+        } else {
+            ""
+        };
+        let bordered_line = if workbench_is_bordered.get() {
+            "  is_bordered=true\n"
+        } else {
+            ""
+        };
+
+        format!(
+            "<ErrorView\n  is_invalid={}\n  tone={tone_variant}\n{compact_line}{bordered_line}  message=\"{message}\".to_string()\n/>",
+            workbench_is_invalid.get(),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let tone = match workbench_tone_index.get().unwrap_or(0) {
+            1 => "neutral",
+            _ => "negative",
+        };
+        let message = match workbench_message_index.get().unwrap_or(0) {
+            1 => "retry",
+            _ => "email",
+        };
+
+        format!(
+            "ErrorViewWorkbenchConfig {{\n  is_invalid: {},\n  tone: \"{tone}\",\n  is_compact: {},\n  is_bordered: {},\n  message_preset: \"{message}\",\n}}",
+            workbench_is_invalid.get(),
+            workbench_is_compact.get(),
+            workbench_is_bordered.get(),
+        )
+    });
+
     view! {
         <ComponentPage
             title="ErrorView"
@@ -976,7 +1972,145 @@ pub(super) fn error_view() -> AnyView {
             group="Display"
             description="baseline-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers."
         >
-            <Playground title="Invalid Visibility" code_signal=basic_code>
+            <Playground
+                title="Hello World"
+                description="Default API sync: tone defaults to negative, is_compact/is_bordered default to false; message shown here is an explicit override."
+                code_signal=hello_code
+                code_imports=error_view_imports.clone()
+            >
+                <ErrorView
+                    is_invalid=true
+                    message="Please enter a valid email address".to_string()
+                />
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Compact / Source Markers)"
+                code_signal=state_matrix_code
+                code_imports=error_view_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ErrorView
+                        is_invalid=true
+                        message="Please enter a valid email address".to_string()
+                    />
+                    <ErrorView
+                        is_invalid=true
+                        tone=ErrorViewTone::Neutral
+                        is_compact=true
+                        message="Compact neutral tone contract".to_string()
+                    />
+                    <ErrorView
+                        is_invalid=true
+                        tone=ErrorViewTone::Neutral
+                        is_compact=true
+                        is_bordered=true
+                        message="Compact + bordered source markers".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground"
+                description="在线切换 tone / invalid / compact / bordered / message，并实时预览语义状态与反馈。"
+                code_signal=workbench_code
+                code_imports=error_view_imports.clone()
+                test_config_signal=workbench_actual_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="error-view-workbench-controls">
+                            <div data-slot="error-view-workbench-tone">
+                                <div class="docs-search__label">"Tone"</div>
+                                <SegmentedControl
+                                    id_base="docs-error-view-workbench-tone".to_string()
+                                    options=workbench_tone_options.clone()
+                                    selected_index=workbench_tone_index
+                                    set_selected_index=set_workbench_tone_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ErrorView workbench tone".to_string()
+                                />
+                            </div>
+
+                            <div data-slot="error-view-workbench-message">
+                                <div class="docs-search__label">"Message preset"</div>
+                                <SegmentedControl
+                                    id_base="docs-error-view-workbench-message".to_string()
+                                    options=workbench_message_options.clone()
+                                    selected_index=workbench_message_index
+                                    set_selected_index=set_workbench_message_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ErrorView workbench message".to_string()
+                                />
+                            </div>
+
+                            <div data-slot="error-view-workbench-toggle-invalid">
+                                <Switch checked=workbench_is_invalid set_checked=set_workbench_is_invalid>
+                                    "Invalid"
+                                </Switch>
+                            </div>
+                            <div data-slot="error-view-workbench-toggle-compact">
+                                <Switch checked=workbench_is_compact set_checked=set_workbench_is_compact>
+                                    "Compact"
+                                </Switch>
+                            </div>
+                            <div data-slot="error-view-workbench-toggle-bordered">
+                                <Switch checked=workbench_is_bordered set_checked=set_workbench_is_bordered>
+                                    "Bordered"
+                                </Switch>
+                            </div>
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="error-view-workbench">
+                    {move || {
+                        let tone = match workbench_tone_index.get().unwrap_or(0) {
+                            1 => ErrorViewTone::Neutral,
+                            _ => ErrorViewTone::Negative,
+                        };
+                        let message = match workbench_message_index.get().unwrap_or(0) {
+                            1 => "Retry request failed. Try again.".to_string(),
+                            _ => "Please enter a valid email address".to_string(),
+                        };
+
+                        view! {
+                            <ErrorView
+                                is_invalid=workbench_is_invalid.get()
+                                tone=tone
+                                is_compact=workbench_is_compact.get()
+                                is_bordered=workbench_is_bordered.get()
+                                message=message
+                            />
+                        }
+                        .into_any()
+                    }}
+
+                    <div class="ui-muted" data-slot="error-view-workbench-feedback">
+                        {move || {
+                            let tone = match workbench_tone_index.get().unwrap_or(0) {
+                                1 => "neutral",
+                                _ => "negative",
+                            };
+                            let message = match workbench_message_index.get().unwrap_or(0) {
+                                1 => "retry",
+                                _ => "email",
+                            };
+                            format!(
+                                "feedback: invalid={}, tone={tone}, compact={}, bordered={}, message={message}",
+                                workbench_is_invalid.get(),
+                                workbench_is_compact.get(),
+                                workbench_is_bordered.get(),
+                            )
+                        }}
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Invalid Visibility"
+                code_signal=basic_code
+                code_imports=error_view_imports.clone()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <ErrorView
                         is_invalid=true
@@ -989,7 +2123,11 @@ pub(super) fn error_view() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Content + Motion + Actions" code_signal=state_code>
+            <Playground
+                title="Custom Content + Motion + Actions"
+                code_signal=state_code
+                code_imports=error_view_imports.clone()
+            >
                 <ErrorView
                     is_invalid=true
                     tone=ErrorViewTone::Neutral
@@ -1004,7 +2142,7 @@ pub(super) fn error_view() -> AnyView {
                     }
                     icon=move || {
                         view! {
-                            <Icon size=IconSize::Sm tone=IconTone::Danger decorative=true>
+                            <Icon size=IconSize::Sm tone=IconTone::Danger is_decorative=true>
                                 "⚠"
                             </Icon>
                         }
@@ -1022,6 +2160,82 @@ pub(super) fn error_view() -> AnyView {
                     </span>
                 </ErrorView>
             </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled Contrast (N/A for ErrorView)"
+                description="ErrorView has no controlled/uncontrolled state axis; compare default usage and app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=error_view_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ErrorView
+                        is_invalid=true
+                        message="Default path".to_string()
+                    />
+                    <ErrorView
+                        is_invalid=true
+                        tone=ErrorViewTone::Neutral
+                        message="ErrorView has no controllable state axis; parent state maps into props.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="ErrorView is not an LLM body reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports=error_view_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ErrorView
+                        is_invalid=true
+                        message="Snapshot baseline: complete config renders in one pass.".to_string()
+                    />
+                    <ErrorView
+                        is_invalid=true
+                        tone=ErrorViewTone::Neutral
+                        message="Streaming is optional and falls back to snapshot for ErrorView.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=error_view_imports
+            >
+                <ErrorView
+                    is_invalid=true
+                    tone=ErrorViewTone::Neutral
+                    message="Copy-ready starter".to_string()
+                />
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="error-view-source-first-contract">
+                <h3>"Source-first / Copy-Paste Ready Contract"</h3>
+                <p>
+                    "Open "
+                    <code>"Show code"</code>
+                    " in any playground, then use the code block copy action. Copied snippets are auto-normalized by "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    " so required imports are included."
+                </p>
+                <p>"Real component sources:"</p>
+                <ul data-slot="error-view-source-paths">
+                    <li><code>"components/error-view/src/mod.rs"</code></li>
+                    <li><code>"components/error-view/src/logic.rs"</code></li>
+                    <li><code>"components/error-view/src/view.rs"</code></li>
+                    <li><code>"components/error-view/src/styles.rs"</code></li>
+                    <li><code>"components/error-view/src/motion.rs"</code></li>
+                </ul>
+                <p>"Dependency baseline (Cargo.toml):"</p>
+                <pre data-slot="error-view-source-first-deps">
+                    <code>
+                        "[dependencies]\nui-components = { default-features = false, features = [\"component-error_view\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
+                    </code>
+                </pre>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -1132,6 +2346,8 @@ pub(super) fn pressable_feedback() -> AnyView {
 }
 
 pub(super) fn color_swatch() -> AnyView {
+    let color_swatch_imports = "use leptos::prelude::*;\nuse ui_components::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};".to_string();
+
     let size_options = vec![
         "xs".to_string(),
         "sm".to_string(),
@@ -1291,6 +2507,9 @@ pub(super) fn color_swatch() -> AnyView {
         )
     });
 
+    let hello_code =
+        Signal::derive(move || r##"<ColorSwatch color="#2663eb".to_string() />"##.to_string());
+
     let matrix_code = Signal::derive(move || {
         r##"<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Xs />
 <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Sm />
@@ -1298,6 +2517,37 @@ pub(super) fn color_swatch() -> AnyView {
 <ColorSwatch color="rgba(255, 0, 0, 0)".to_string() color_name="No fill".to_string() is_bordered=true />
 <ColorSwatch color="".to_string() is_bordered=true />"##.to_string()
     });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r##"<ColorSwatch color="#2663eb".to_string() />
+<ColorSwatch
+  color="#2663eb".to_string()
+  color_name="Mapped from upstream app state".to_string()
+  size=ColorSwatchSize::Lg
+  shape=ColorSwatchShape::Wide
+  is_bordered=true
+/>"##
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r##"<ColorSwatch
+  color="#2663eb".to_string()
+  aria_label="Snapshot contract marker".to_string()
+/>"##
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r##"<ColorSwatch
+  color="#ffcc00".to_string()
+  color_name="Accent yellow".to_string()
+  size=ColorSwatchSize::Lg
+  rounding=ColorSwatchRounding::Full
+/>"##
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="ColorSwatch"
@@ -1306,71 +2556,100 @@ pub(super) fn color_swatch() -> AnyView {
             description="baseline-compatible color preview primitive with centralized size/rounding/shape/transparency/source contracts and stable slot/data markers."
         >
             <Playground
+                title="Hello World (Default Path)"
+                code_signal=hello_code
+                code_imports=color_swatch_imports.clone()
+            >
+                <div class="docs-row">
+                    <ColorSwatch color="#2663eb".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
+                code_imports=color_swatch_imports.clone()
                 test_css_source=workbench_test_css
                 test_source_path="crates/ui-components/src/color/swatch/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="切换尺寸/形状/圆角/透明度/边框/装饰模式，并实时查看 config + code + scoped css test。"
                 controls=move || {
                     view! {
-                        <div class="docs-stack docs-stack--tight">
-                            <div class="docs-search__label">"Size"</div>
-                            <SegmentedControl
-                                id_base="docs-color-swatch-workbench-size".to_string()
-                                options=size_options.clone()
-                                selected_index=size_index
-                                set_selected_index=set_size_index
-                                size=SegmentedControlSize::Sm
-                                aria_label="ColorSwatch size".to_string()
-                            />
+                        <div class="docs-stack docs-stack--tight" data-slot="color-swatch-workbench-controls">
+                            <div data-slot="color-swatch-workbench-size-control">
+                                <div class="docs-search__label">"Size"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-workbench-size".to_string()
+                                    options=size_options.clone()
+                                    selected_index=size_index
+                                    set_selected_index=set_size_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatch size".to_string()
+                                />
+                            </div>
 
-                            <div class="docs-search__label">"Shape"</div>
-                            <SegmentedControl
-                                id_base="docs-color-swatch-workbench-shape".to_string()
-                                options=shape_options.clone()
-                                selected_index=shape_index
-                                set_selected_index=set_shape_index
-                                size=SegmentedControlSize::Sm
-                                aria_label="ColorSwatch shape".to_string()
-                            />
+                            <div data-slot="color-swatch-workbench-shape-control">
+                                <div class="docs-search__label">"Shape"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-workbench-shape".to_string()
+                                    options=shape_options.clone()
+                                    selected_index=shape_index
+                                    set_selected_index=set_shape_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatch shape".to_string()
+                                />
+                            </div>
 
-                            <div class="docs-search__label">"Rounding"</div>
-                            <SegmentedControl
-                                id_base="docs-color-swatch-workbench-rounding".to_string()
-                                options=rounding_options.clone()
-                                selected_index=rounding_index
-                                set_selected_index=set_rounding_index
-                                size=SegmentedControlSize::Sm
-                                aria_label="ColorSwatch rounding".to_string()
-                            />
+                            <div data-slot="color-swatch-workbench-rounding-control">
+                                <div class="docs-search__label">"Rounding"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-workbench-rounding".to_string()
+                                    options=rounding_options.clone()
+                                    selected_index=rounding_index
+                                    set_selected_index=set_rounding_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatch rounding".to_string()
+                                />
+                            </div>
 
-                            <div class="docs-search__label">"Alpha"</div>
-                            <SegmentedControl
-                                id_base="docs-color-swatch-workbench-alpha".to_string()
-                                options=alpha_options.clone()
-                                selected_index=alpha_index
-                                set_selected_index=set_alpha_index
-                                size=SegmentedControlSize::Sm
-                                aria_label="ColorSwatch alpha".to_string()
-                            />
+                            <div data-slot="color-swatch-workbench-alpha-control">
+                                <div class="docs-search__label">"Alpha"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-workbench-alpha".to_string()
+                                    options=alpha_options.clone()
+                                    selected_index=alpha_index
+                                    set_selected_index=set_alpha_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatch alpha".to_string()
+                                />
+                            </div>
 
-                            <Switch checked=is_bordered set_checked=set_is_bordered>"Bordered"</Switch>
-                            <Switch checked=is_decorative set_checked=set_is_decorative>
-                                "Decorative"
-                            </Switch>
-                            <Switch checked=custom_aria set_checked=set_custom_aria>
-                                "Custom aria_label"
-                            </Switch>
-                            <Switch checked=custom_class set_checked=set_custom_class>
-                                "Custom class"
-                            </Switch>
-                            <Switch checked=custom_lang set_checked=set_custom_lang>"Lang=zh-CN"</Switch>
+                            <div data-slot="color-swatch-workbench-bordered-switch">
+                                <Switch checked=is_bordered set_checked=set_is_bordered>"Bordered"</Switch>
+                            </div>
+                            <div data-slot="color-swatch-workbench-decorative-switch">
+                                <Switch checked=is_decorative set_checked=set_is_decorative>
+                                    "Decorative"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-workbench-custom-aria-switch">
+                                <Switch checked=custom_aria set_checked=set_custom_aria>
+                                    "Custom aria_label"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-workbench-custom-class-switch">
+                                <Switch checked=custom_class set_checked=set_custom_class>
+                                    "Custom class"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-workbench-lang-switch">
+                                <Switch checked=custom_lang set_checked=set_custom_lang>"Lang=zh-CN"</Switch>
+                            </div>
                         </div>
                     }
                 }
             >
-                <div class="docs-stack docs-stack--tight">
+                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-workbench-canvas">
                     {move || {
                         let color = color.get();
                         let color_name = color_name.get().unwrap_or_default();
@@ -1413,7 +2692,7 @@ pub(super) fn color_swatch() -> AnyView {
                     }}
                     <span class="ui-muted">
                         {move || format!(
-                            "alpha={}, bordered={}, decorative={}",
+                            "alpha={}, bordered={}, is_decorative={}",
                             match alpha_index.get().unwrap_or(0) {
                                 1 => "translucent",
                                 2 => "transparent",
@@ -1427,7 +2706,11 @@ pub(super) fn color_swatch() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Comparison Matrix (Size / Alpha / Shape / Empty)" code_signal=matrix_code>
+            <Playground
+                title="Comparison Matrix (Size / Alpha / Shape / Empty)"
+                code_signal=matrix_code
+                code_imports=color_swatch_imports.clone()
+            >
                 <div class="docs-row">
                     <div class="docs-card" style="display: grid; gap: 6px;">
                         <span class="ui-muted">"XS / Opaque"</span>
@@ -1460,6 +2743,75 @@ pub(super) fn color_swatch() -> AnyView {
                 </div>
             </Playground>
 
+            <Playground
+                title="Controlled vs Uncontrolled Contrast (N/A for ColorSwatch)"
+                description="ColorSwatch has no controllable state axis; compare default rendering with upstream state mapped into plain props."
+                code_signal=controlled_contrast_code
+                code_imports=color_swatch_imports.clone()
+            >
+                <div class="docs-row">
+                    <ColorSwatch color="#2663eb".to_string() />
+                    <ColorSwatch
+                        color="#2663eb".to_string()
+                        color_name="Mapped from upstream app state".to_string()
+                        size=ColorSwatchSize::Lg
+                        shape=ColorSwatchShape::Wide
+                        is_bordered=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="ColorSwatch is a display leaf: streaming is optional and falls back to snapshot (`data-ui-stream-support=optional`, `data-ui-stream-fallback=snapshot`)."
+                code_signal=stream_snapshot_code
+                code_imports=color_swatch_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatch
+                        color="#2663eb".to_string()
+                        aria_label="Snapshot contract marker".to_string()
+                    />
+                    <span class="ui-muted">
+                        "effective component markers: data-ui-stream-support=optional data-ui-stream-fallback=snapshot data-ui-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run. Source: components/color-swatch/src/{mod,logic,view,styles,motion}.rs. Dependency baseline: ui-components = { default-features = false, features = [\"component-color_swatch\", \"inject-css\"] } + mount under UiRoot."
+                code_signal=source_first_code
+                code_imports=color_swatch_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-source-first-contract">
+                    <h3>"Source-first / Copy-Paste Ready Contract"</h3>
+                    <span class="ui-muted">
+                        <code>"Show code"</code>
+                        " + copy should output runnable snippet with imports."
+                    </span>
+                    <span class="ui-muted">
+                        "Dependency baseline (Cargo.toml): "
+                        <code>
+                            "ui-components = { default-features = false, features = [\"component-color_swatch\", \"inject-css\"] }"
+                        </code>
+                    </span>
+                    <ul class="ui-muted" data-slot="color-swatch-source-paths">
+                        <li><code>"components/color-swatch/src/mod.rs"</code></li>
+                        <li><code>"components/color-swatch/src/logic.rs"</code></li>
+                        <li><code>"components/color-swatch/src/view.rs"</code></li>
+                        <li><code>"components/color-swatch/src/styles.rs"</code></li>
+                        <li><code>"components/color-swatch/src/motion.rs"</code></li>
+                    </ul>
+                    <ColorSwatch
+                        color="#ffcc00".to_string()
+                        color_name="Accent yellow".to_string()
+                        size=ColorSwatchSize::Lg
+                        rounding=ColorSwatchRounding::Full
+                    />
+                </div>
+            </Playground>
+
             <Playground title="Rounded Large + Custom Label/Class" code_signal=Signal::derive(move || {
                 r##"<ColorSwatch
   color="#ffcc00".to_string()
@@ -1469,7 +2821,7 @@ pub(super) fn color_swatch() -> AnyView {
   aria_label="Accent token".to_string()
   class_name="docs-color-swatch-custom".to_string()
 />"##.to_string()
-            })>
+            }) code_imports=color_swatch_imports>
                 <div class="docs-row">
                     <ColorSwatch
                         color="#ffcc00".to_string()
@@ -1487,12 +2839,18 @@ pub(super) fn color_swatch() -> AnyView {
 }
 
 pub(super) fn color_swatch_picker() -> AnyView {
+    let color_swatch_picker_imports = "use leptos::prelude::*;\nuse ui_components::{ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape};".to_string();
     let swatches = vec![
         ColorSwatchPickerItem::named("#A00", "Red"),
         ColorSwatchPickerItem::named("#f80", "Orange"),
         ColorSwatchPickerItem::named("#080", "Green"),
         ColorSwatchPickerItem::named("#08f", "Blue"),
     ];
+    let swatches_for_basic = swatches.clone();
+    let swatches_for_matrix = swatches.clone();
+    let swatches_for_controlled = swatches.clone();
+    let swatches_for_stream = swatches.clone();
+    let swatches_for_source = swatches.clone();
 
     let disabled_swatches = vec![
         ColorSwatchPickerItem::named("#A00", "Red"),
@@ -1500,6 +2858,17 @@ pub(super) fn color_swatch_picker() -> AnyView {
         ColorSwatchPickerItem::named("rgba(255, 0, 0, 0)", "Transparent"),
         ColorSwatchPickerItem::new("#08f"),
     ];
+    let disabled_swatches_for_state = disabled_swatches.clone();
+    let disabled_swatches_for_matrix = disabled_swatches.clone();
+    let (controlled_selected_color, set_controlled_selected_color) =
+        signal(Some("#A00".to_string()));
+
+    let hello_code = Signal::derive(move || {
+        r##"<ColorSwatchPicker
+  swatches=signal(vec![ColorSwatchPickerItem::named("#f80", "Orange")]).0
+/>"##
+            .to_string()
+    });
 
     let basic_code = Signal::derive(move || {
         r##"<ColorSwatchPicker
@@ -1530,6 +2899,226 @@ pub(super) fn color_swatch_picker() -> AnyView {
             .to_string()
     });
 
+    let matrix_code = Signal::derive(move || {
+        r##"<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("#f80", "Orange"),
+    ColorSwatchPickerItem::named("#080", "Green"),
+    ColorSwatchPickerItem::named("#08f", "Blue"),
+  ]).0
+  default_selected_color="#f80".to_string()
+/>
+
+<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("rgba(14, 116, 144, 0.4)", "Cyan 40%").disabled(true),
+    ColorSwatchPickerItem::named("rgba(255, 0, 0, 0)", "Transparent"),
+    ColorSwatchPickerItem::new("#08f"),
+  ]).0
+  shape=ColorSwatchShape::Wide
+  rounding=ColorSwatchRounding::Default
+/>"##
+            .to_string()
+    });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r##"<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("#f80", "Orange"),
+    ColorSwatchPickerItem::named("#080", "Green"),
+    ColorSwatchPickerItem::named("#08f", "Blue"),
+  ]).0
+  default_selected_color="#f80".to_string()
+/>
+
+<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("#f80", "Orange"),
+    ColorSwatchPickerItem::named("#080", "Green"),
+    ColorSwatchPickerItem::named("#08f", "Blue"),
+  ]).0
+  selected_color=selected_signal
+  on_selected_change=on_selected_change
+/>"##
+            .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r##"<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("#f80", "Orange"),
+  ]).0
+  aria_label="Fill color".to_string()
+/>"##
+            .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r##"<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("#f80", "Orange"),
+    ColorSwatchPickerItem::named("#080", "Green"),
+    ColorSwatchPickerItem::named("#08f", "Blue"),
+  ]).0
+  default_selected_color="#f80".to_string()
+  class_name="docs-color-swatch-picker-custom".to_string()
+/>"##
+            .to_string()
+    });
+
+    let workbench_shape_options = vec!["Default".to_string(), "Wide".to_string()];
+    let workbench_rounding_options = vec!["Default".to_string(), "Full".to_string()];
+    let workbench_selected_options = vec![
+        "None".to_string(),
+        "Red".to_string(),
+        "Orange".to_string(),
+        "Green".to_string(),
+        "Blue".to_string(),
+    ];
+    let (workbench_shape_index, set_workbench_shape_index) = signal(Some(0_usize));
+    let (workbench_rounding_index, set_workbench_rounding_index) = signal(Some(0_usize));
+    let (workbench_selected_index, set_workbench_selected_index) = signal(Some(2_usize));
+    let (workbench_use_controlled, set_workbench_use_controlled) = signal(false);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_is_bordered, set_workbench_is_bordered) = signal(true);
+    let (workbench_use_disabled_palette, set_workbench_use_disabled_palette) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(true);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_last_selected, set_workbench_last_selected) = signal(Some("#f80".to_string()));
+
+    let workbench_swatches_base = swatches.clone();
+    let workbench_swatches_disabled = disabled_swatches.clone();
+    let (workbench_swatches, set_workbench_swatches) =
+        signal(if workbench_use_disabled_palette.get_untracked() {
+            workbench_swatches_disabled.clone()
+        } else {
+            workbench_swatches_base.clone()
+        });
+    Effect::new(move |_| {
+        let next = if workbench_use_disabled_palette.get() {
+            workbench_swatches_disabled.clone()
+        } else {
+            workbench_swatches_base.clone()
+        };
+        set_workbench_swatches.set(next);
+    });
+
+    let workbench_selected_color =
+        Signal::derive(move || match workbench_selected_index.get().unwrap_or(2) {
+            1 => Some("#A00".to_string()),
+            2 => Some("#f80".to_string()),
+            3 => Some("#080".to_string()),
+            4 => Some("#08f".to_string()),
+            _ => None,
+        });
+
+    let workbench_code = Signal::derive(move || {
+        let shape_variant = match workbench_shape_index.get().unwrap_or(0) {
+            1 => "ColorSwatchShape::Wide",
+            _ => "ColorSwatchShape::Default",
+        };
+        let rounding_variant = match workbench_rounding_index.get().unwrap_or(0) {
+            1 => "ColorSwatchRounding::Full",
+            _ => "ColorSwatchRounding::Default",
+        };
+        let swatch_vector = if workbench_use_disabled_palette.get() {
+            r##"signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("rgba(14, 116, 144, 0.4)", "Cyan 40%").disabled(true),
+    ColorSwatchPickerItem::named("rgba(255, 0, 0, 0)", "Transparent"),
+    ColorSwatchPickerItem::new("#08f"),
+  ]).0"##
+        } else {
+            r##"signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("#f80", "Orange"),
+    ColorSwatchPickerItem::named("#080", "Green"),
+    ColorSwatchPickerItem::named("#08f", "Blue"),
+  ]).0"##
+        };
+        let selected_color = match workbench_selected_index.get().unwrap_or(2) {
+            1 => Some("#A00"),
+            2 => Some("#f80"),
+            3 => Some("#080"),
+            4 => Some("#08f"),
+            _ => None,
+        };
+        let selection_lines = if workbench_use_controlled.get() {
+            "  selected_color=selected_signal\n  on_selected_change=on_selected_change\n"
+                .to_string()
+        } else {
+            selected_color
+                .map(|color| format!("  default_selected_color=\"{color}\".to_string()\n"))
+                .unwrap_or_default()
+        };
+        let class_line = if workbench_custom_class.get() {
+            "  class_name=\"docs-color-swatch-picker-custom\".to_string()\n"
+        } else {
+            ""
+        };
+        let aria_line = if workbench_custom_aria.get() {
+            "  aria_label=\"Workbench fill color\".to_string()\n"
+        } else {
+            ""
+        };
+        let lang_line = if workbench_lang_zh.get() {
+            "  lang=\"zh-CN\".to_string()\n"
+        } else {
+            ""
+        };
+        format!(
+            "<ColorSwatchPicker\n  swatches={swatch_vector}\n  shape={shape_variant}\n  rounding={rounding_variant}\n  is_disabled={}\n  is_bordered={}\n{selection_lines}{class_line}{aria_line}{lang_line}/>",
+            workbench_is_disabled.get(),
+            workbench_is_bordered.get(),
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let selected = workbench_selected_color
+            .get()
+            .unwrap_or_else(|| "none".to_string());
+        format!(
+            "mode={}\nshape={}\nrounding={}\npalette={}\nselected={}\nis_disabled={}\nis_bordered={}\ncustom_class={}\ncustom_aria={}\nlang={}",
+            if workbench_use_controlled.get() {
+                "controlled"
+            } else {
+                "uncontrolled"
+            },
+            if workbench_shape_index.get().unwrap_or(0) == 1 {
+                "wide"
+            } else {
+                "default"
+            },
+            if workbench_rounding_index.get().unwrap_or(0) == 1 {
+                "full"
+            } else {
+                "default"
+            },
+            if workbench_use_disabled_palette.get() {
+                "disabled+transparent"
+            } else {
+                "base"
+            },
+            selected,
+            workbench_is_disabled.get(),
+            workbench_is_bordered.get(),
+            workbench_custom_class.get(),
+            workbench_custom_aria.get(),
+            if workbench_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "inherit"
+            },
+        )
+    });
+
     view! {
         <ComponentPage
             title="ColorSwatchPicker"
@@ -1537,21 +3126,337 @@ pub(super) fn color_swatch_picker() -> AnyView {
             group="Display"
             description="baseline-compatible selectable swatch group with centralized color normalization, single-selection state, keyboard roving, and stable slot/data state markers."
         >
-            <Playground title="Basic Selection" code_signal=basic_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
                 <ColorSwatchPicker
-                    swatches=signal(swatches).0
+                    swatches=signal(vec![ColorSwatchPickerItem::named("#f80", "Orange")]).0
+                />
+            </Playground>
+
+            <Playground
+                title="Basic Selection"
+                code_signal=basic_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <ColorSwatchPicker
+                    swatches=signal(swatches_for_basic).0
                     default_selected_color="#f80".to_string()
                 />
             </Playground>
 
-            <Playground title="Transparency + Disabled + Custom Class" code_signal=state_code>
+            <Playground
+                title="Transparency + Disabled + Custom Class"
+                code_signal=state_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
                 <ColorSwatchPicker
-                    swatches=signal(disabled_swatches).0
+                    swatches=signal(disabled_swatches_for_state).0
                     shape=ColorSwatchShape::Wide
                     rounding=ColorSwatchRounding::Default
                     class_name="docs-color-swatch-picker-custom".to_string()
                     aria_label="Fill color".to_string()
                 />
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=matrix_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_matrix).0
+                        default_selected_color="#f80".to_string()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(disabled_swatches_for_matrix).0
+                        shape=ColorSwatchShape::Wide
+                        rounding=ColorSwatchRounding::Default
+                        class_name="docs-color-swatch-picker-custom".to_string()
+                        aria_label="Fill color".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled Contrast"
+                code_signal=controlled_contrast_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_controlled.clone()).0
+                        default_selected_color="#f80".to_string()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_controlled.clone()).0
+                        selected_color=controlled_selected_color
+                        on_selected_change=Callback::new(move |next| {
+                            set_controlled_selected_color.set(next);
+                        })
+                        aria_label="Controlled swatch picker".to_string()
+                    />
+                    <span class="ui-muted">
+                        {move || {
+                            format!(
+                                "controlled selected_color={}",
+                                controlled_selected_color
+                                    .get()
+                                    .unwrap_or_else(|| "none".to_string())
+                            )
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="ColorSwatchPicker is streaming-optional. Marker contract remains `data-ui-stream-support=unsupported` + `data-ui-stream-fallback=snapshot`."
+                code_signal=stream_snapshot_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_stream).0
+                        default_selected_color="#f80".to_string()
+                        aria_label="Fill color".to_string()
+                    />
+                    <span class="ui-muted">
+                        "effective markers: data-ui-stream-support=unsupported data-ui-stream-fallback=snapshot data-ui-output-status=verified"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground"
+                description="Interactive acceptance canvas: adjust props/state, observe selection feedback, and replay keyboard flow."
+                code_signal=workbench_code
+                code_imports=color_swatch_picker_imports.clone()
+                test_source_path="components/color-swatch-picker/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-workbench-controls">
+                            <div data-slot="color-swatch-picker-workbench-shape-control">
+                                <div class="docs-search__label">"Shape"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-picker-workbench-shape".to_string()
+                                    options=workbench_shape_options.clone()
+                                    selected_index=workbench_shape_index
+                                    set_selected_index=set_workbench_shape_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatchPicker shape".to_string()
+                                />
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-rounding-control">
+                                <div class="docs-search__label">"Rounding"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-picker-workbench-rounding".to_string()
+                                    options=workbench_rounding_options.clone()
+                                    selected_index=workbench_rounding_index
+                                    set_selected_index=set_workbench_rounding_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatchPicker rounding".to_string()
+                                />
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-selection-control">
+                                <div class="docs-search__label">"Selected color"</div>
+                                <SegmentedControl
+                                    id_base="docs-color-swatch-picker-workbench-selection".to_string()
+                                    options=workbench_selected_options.clone()
+                                    selected_index=workbench_selected_index
+                                    set_selected_index=set_workbench_selected_index
+                                    size=SegmentedControlSize::Sm
+                                    aria_label="ColorSwatchPicker selected color".to_string()
+                                />
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-mode-switch">
+                                <Switch checked=workbench_use_controlled set_checked=set_workbench_use_controlled>
+                                    "Controlled mode"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-disabled-switch">
+                                <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                                    "Disabled"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-bordered-switch">
+                                <Switch checked=workbench_is_bordered set_checked=set_workbench_is_bordered>
+                                    "Bordered"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-palette-switch">
+                                <Switch
+                                    checked=workbench_use_disabled_palette
+                                    set_checked=set_workbench_use_disabled_palette
+                                >
+                                    "Use disabled/transparent palette"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-custom-class-switch">
+                                <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                    "Custom class"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-custom-aria-switch">
+                                <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                                    "Custom aria_label"
+                                </Switch>
+                            </div>
+                            <div data-slot="color-swatch-picker-workbench-lang-switch">
+                                <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                                    "Lang=zh-CN"
+                                </Switch>
+                            </div>
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-workbench-canvas">
+                    {move || {
+                        let shape = match workbench_shape_index.get().unwrap_or(0) {
+                            1 => ColorSwatchShape::Wide,
+                            _ => ColorSwatchShape::Square,
+                        };
+                        let rounding = match workbench_rounding_index.get().unwrap_or(0) {
+                            1 => ColorSwatchRounding::Full,
+                            _ => ColorSwatchRounding::Default,
+                        };
+                        let default_selected_color = match workbench_selected_index.get().unwrap_or(2)
+                        {
+                            1 => "#A00".to_string(),
+                            2 => "#f80".to_string(),
+                            3 => "#080".to_string(),
+                            4 => "#08f".to_string(),
+                            _ => String::new(),
+                        };
+                        let class_name = if workbench_custom_class.get() {
+                            "docs-color-swatch-picker-custom".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let aria_label = if workbench_custom_aria.get() {
+                            "Workbench fill color".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let lang = if workbench_lang_zh.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            String::new()
+                        };
+
+                        if workbench_use_controlled.get() {
+                            view! {
+                                <ColorSwatchPicker
+                                    swatches=workbench_swatches
+                                    selected_color=workbench_selected_color
+                                    on_selected_change=Callback::new(move |next: Option<String>| {
+                                        set_workbench_last_selected.set(next.clone());
+                                        let next_index = match next.as_deref() {
+                                            Some("#A00") => 1,
+                                            Some("#f80") => 2,
+                                            Some("#080") => 3,
+                                            Some("#08f") => 4,
+                                            _ => 0,
+                                        };
+                                        set_workbench_selected_index.set(Some(next_index));
+                                    })
+                                    is_disabled=workbench_is_disabled.get()
+                                    is_bordered=workbench_is_bordered.get()
+                                    shape=shape
+                                    rounding=rounding
+                                    class_name=class_name
+                                    aria_label=aria_label
+                                    lang=lang
+                                />
+                            }
+                            .into_any()
+                        } else {
+                            view! {
+                                <ColorSwatchPicker
+                                    swatches=workbench_swatches
+                                    default_selected_color=default_selected_color
+                                    on_selected_change=Callback::new(move |next| {
+                                        set_workbench_last_selected.set(next);
+                                    })
+                                    is_disabled=workbench_is_disabled.get()
+                                    is_bordered=workbench_is_bordered.get()
+                                    shape=shape
+                                    rounding=rounding
+                                    class_name=class_name
+                                    aria_label=aria_label
+                                    lang=lang
+                                />
+                            }
+                            .into_any()
+                        }
+                    }}
+                    <span class="ui-muted" data-slot="color-swatch-picker-workbench-feedback">
+                        {move || {
+                            format!(
+                                "mode={}, palette={}, last_selected={}, disabled={}, bordered={}",
+                                if workbench_use_controlled.get() {
+                                    "controlled"
+                                } else {
+                                    "uncontrolled"
+                                },
+                                if workbench_use_disabled_palette.get() {
+                                    "disabled+transparent"
+                                } else {
+                                    "base"
+                                },
+                                workbench_last_selected
+                                    .get()
+                                    .unwrap_or_else(|| "none".to_string()),
+                                workbench_is_disabled.get(),
+                                workbench_is_bordered.get(),
+                            )
+                        }}
+                    </span>
+                    <ol class="ui-muted" data-slot="color-swatch-picker-workbench-replay">
+                        <li>"Replay path: focus Orange swatch, press ArrowRight, observe selected marker change."</li>
+                        <li>"Toggle Controlled mode and repeat ArrowRight to verify controlled callback sync."</li>
+                        <li>"Enable disabled palette and Disabled switch to verify blocked interaction branch."</li>
+                    </ol>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Show code + copy returns runnable snippet with imports injected by apps/docs-app/src/playground.rs::compose_copy_ready_code."
+                code_signal=source_first_code
+                code_imports=color_swatch_picker_imports
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-copy-ready">
+                    <h3>"Source-first / Copy-Paste Ready"</h3>
+                    <span class="ui-muted">
+                        "Playground copy action injects missing imports through "
+                        <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                        "."
+                    </span>
+                    <span class="ui-muted" data-slot="color-swatch-picker-source-prerequisites">
+                        "Dependency baseline (Cargo.toml): "
+                        <code>
+                            "ui-components = { default-features = false, features = [\"component-color_swatch_picker\", \"inject-css\"] }"
+                        </code>
+                    </span>
+                    <ul class="ui-muted" data-slot="color-swatch-picker-source-paths">
+                        <li><code>"components/color-swatch-picker/src/mod.rs"</code></li>
+                        <li><code>"components/color-swatch-picker/src/logic.rs"</code></li>
+                        <li><code>"components/color-swatch-picker/src/view.rs"</code></li>
+                        <li><code>"components/color-swatch-picker/src/styles.rs"</code></li>
+                        <li><code>"components/color-swatch-picker/src/motion.rs"</code></li>
+                    </ul>
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_source).0
+                        default_selected_color="#f80".to_string()
+                        class_name="docs-color-swatch-picker-custom".to_string()
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -1694,12 +3599,16 @@ pub(super) fn flip_card() -> AnyView {
         "gentle".to_string(),
         "dramatic".to_string(),
     ];
+    let flip_card_imports =
+        "use leptos::prelude::*;\nuse ui_components::{FlipCard, FlipCardMotion};".to_string();
     let (workbench_motion_index, set_workbench_motion_index) = signal(Some(0_usize));
-    let (workbench_default_flipped, set_workbench_default_flipped) = signal(false);
-    let (workbench_disabled, set_workbench_disabled) = signal(false);
-    let (workbench_flip_on_hover, set_workbench_flip_on_hover) = signal(true);
+    let (workbench_default_is_flipped, set_workbench_default_is_flipped) = signal(false);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_is_flip_on_hover, set_workbench_is_flip_on_hover) = signal(true);
     let (workbench_custom_id, set_workbench_custom_id) = signal(true);
     let (workbench_custom_class, set_workbench_custom_class) = signal(true);
+    let (controlled_is_flipped, set_controlled_is_flipped) = signal(false);
+    let (controlled_toggle_count, set_controlled_toggle_count) = signal(0_u32);
 
     let workbench_motion =
         Signal::derive(move || match workbench_motion_index.get().unwrap_or(0) {
@@ -1717,9 +3626,9 @@ pub(super) fn flip_card() -> AnyView {
         });
 
     let workbench_code = Signal::derive(move || {
-        let default_flipped = workbench_default_flipped.get();
-        let disabled = workbench_disabled.get();
-        let flip_on_hover = workbench_flip_on_hover.get();
+        let default_is_flipped = workbench_default_is_flipped.get();
+        let is_disabled = workbench_is_disabled.get();
+        let is_flip_on_hover = workbench_is_flip_on_hover.get();
         let custom_id = workbench_custom_id.get();
         let custom_class = workbench_custom_class.get();
         let motion_index = workbench_motion_index.get().unwrap_or(0);
@@ -1731,14 +3640,14 @@ pub(super) fn flip_card() -> AnyView {
         let motion = workbench_motion.get();
 
         let mut lines = vec!["<FlipCard".to_string()];
-        if default_flipped {
-            lines.push("  default_flipped=true".to_string());
+        if default_is_flipped {
+            lines.push("  default_is_flipped=true".to_string());
         }
-        if disabled {
-            lines.push("  disabled=true".to_string());
+        if is_disabled {
+            lines.push("  is_disabled=true".to_string());
         }
-        if flip_on_hover {
-            lines.push("  flip_on_hover=true".to_string());
+        if is_flip_on_hover {
+            lines.push("  is_flip_on_hover=true".to_string());
         }
         if custom_id {
             lines.push("  id=\"docs-flip-card-workbench\".into()".to_string());
@@ -1762,26 +3671,26 @@ pub(super) fn flip_card() -> AnyView {
     });
 
     let workbench_config = Signal::derive(move || {
-        let default_flipped = workbench_default_flipped.get();
-        let disabled = workbench_disabled.get();
-        let flip_on_hover = workbench_flip_on_hover.get();
+        let default_is_flipped = workbench_default_is_flipped.get();
+        let is_disabled = workbench_is_disabled.get();
+        let is_flip_on_hover = workbench_is_flip_on_hover.get();
         let custom_id = workbench_custom_id.get();
         let custom_class = workbench_custom_class.get();
         let motion = workbench_motion.get();
 
         let mut classes = vec![
             "ui-flip-card".to_string(),
-            if disabled {
+            if is_disabled {
                 "ui-flip-card--disabled".to_string()
             } else {
                 "ui-flip-card--enabled".to_string()
             },
-            if default_flipped {
+            if default_is_flipped {
                 "ui-flip-card--flipped".to_string()
             } else {
                 "ui-flip-card--default".to_string()
             },
-            if flip_on_hover {
+            if is_flip_on_hover {
                 "ui-flip-card--hover".to_string()
             } else {
                 "ui-flip-card--toggle".to_string()
@@ -1799,7 +3708,7 @@ pub(super) fn flip_card() -> AnyView {
         }
 
         format!(
-            "FlipCardActualConfig {{\n  default_flipped: {default_flipped},\n  disabled: {disabled},\n  flip_on_hover: {flip_on_hover},\n  custom_id: {custom_id},\n  custom_class: {custom_class},\n  motion: {{ hover_scale: {:.2}, hover_tilt_deg: {:.1} }},\n  class: \"{}\",\n  markers: [\"data-state\", \"data-visible\", \"data-flip-mode\", \"data-motion-source\", \"data-id-source\"],\n}}",
+            "FlipCardActualConfig {{\n  default_is_flipped: {default_is_flipped},\n  is_disabled: {is_disabled},\n  is_flip_on_hover: {is_flip_on_hover},\n  custom_id: {custom_id},\n  custom_class: {custom_class},\n  motion: {{ hover_scale: {:.2}, hover_tilt_deg: {:.1} }},\n  class: \"{}\",\n  markers: [\"data-state\", \"data-visible\", \"data-flip-mode\", \"data-motion-source\", \"data-id-source\"],\n}}",
             motion.hover_scale,
             motion.hover_tilt_deg,
             classes.join(" ")
@@ -1813,15 +3722,24 @@ pub(super) fn flip_card() -> AnyView {
         )
     });
 
-    let compare_code = Signal::derive(move || {
+    let state_matrix_code = Signal::derive(move || {
         r#"<FlipCard front=... back=... />
-<FlipCard flip_on_hover=true front=... back=... />
-<FlipCard disabled=true front=... back=... />
+<FlipCard is_flip_on_hover=true front=... back=... />
+<FlipCard is_disabled=true front=... back=... />
 <FlipCard motion=FlipCardMotion { hover_scale: 1.06, hover_tilt_deg: 7.5, ..FlipCardMotion::default() } front=... back=... />"#.to_string()
+    });
+
+    let hello_code = Signal::derive(move || {
+        r#"<FlipCard
+  front=move || view! { <div>"Front"</div> }
+  back=move || view! { <div>"Back"</div> }
+/>"#
+        .to_string()
     });
 
     let basic_code = Signal::derive(move || {
         r#"<FlipCard
+  id="docs-flip-card-toggle".to_string()
   front=move || view! {
     <div class="ui-flip-card__title">"Front"</div>
     <div class="ui-flip-card__description">"Click or press Enter/Space to flip."</div>
@@ -1838,7 +3756,7 @@ pub(super) fn flip_card() -> AnyView {
         r#"<FlipCard
   id="docs-flip-card"
   class_name="docs-flip-card-state".to_string()
-  flip_on_hover=true
+  is_flip_on_hover=true
   motion=FlipCardMotion {
     hover_scale: 1.03,
     hover_tilt_deg: 4.0,
@@ -1852,9 +3770,48 @@ pub(super) fn flip_card() -> AnyView {
 
     let disabled_code = Signal::derive(move || {
         r#"<FlipCard
-  disabled=true
+  id="docs-flip-card-disabled".to_string()
+  is_disabled=true
   front=move || view! { <div>"Disabled front"</div> }
   back=move || view! { <div>"Disabled back"</div> }
+/>"#
+        .to_string()
+    });
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"<FlipCard
+  front=move || view! { <div>"Uncontrolled front"</div> }
+  back=move || view! { <div>"Uncontrolled back"</div> }
+/>
+
+let (is_flipped, set_is_flipped) = signal(false);
+<FlipCard
+  is_flipped=Signal::derive(move || is_flipped.get())
+  on_is_flipped_change=Callback::new(move |next| set_is_flipped.set(next))
+  front=move || view! { <div>"Controlled front"</div> }
+  back=move || view! { <div>"Controlled back"</div> }
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<FlipCard
+  front=move || view! { <div>"Snapshot baseline"</div> }
+  back=move || view! { <div>"Complete config renders in one pass."</div> }
+/>
+<FlipCard
+  is_flip_on_hover=true
+  front=move || view! { <div>"Streaming optional"</div> }
+  back=move || view! { <div>"Fallback stays snapshot for FlipCard."</div> }
+/>"#
+        .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<FlipCard
+  is_flip_on_hover=true
+  front=move || view! { <div>"Copy-ready front"</div> }
+  back=move || view! { <div>"Copy-ready back"</div> }
 />"#
         .to_string()
     });
@@ -1866,9 +3823,27 @@ pub(super) fn flip_card() -> AnyView {
             group="Display"
             description="3D front/back card with baseline-style state/source markers and baseline-level spring motion for flip/hover interactions."
         >
-            <Playground title="Click + Keyboard Flip" code_signal=basic_code>
+            <Playground
+                title="Hello World (Default Path)"
+                code_signal=hello_code
+                code_imports=flip_card_imports.clone()
+            >
                 <div class="docs-row">
                     <FlipCard
+                        front=move || view! { <div class="ui-flip-card__title">"Front"</div> }
+                        back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Click + Keyboard Flip"
+                code_signal=basic_code
+                code_imports=flip_card_imports.clone()
+            >
+                <div class="docs-row">
+                    <FlipCard
+                        id="docs-flip-card-toggle".to_string()
                         front=move || {
                             view! {
                                 <>
@@ -1896,6 +3871,7 @@ pub(super) fn flip_card() -> AnyView {
             <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
+                code_imports=flip_card_imports.clone()
                 test_css_source=flip_card_test_css_source
                 test_source_path="components/flip-card/src/styles.rs".to_string()
                 test_config_signal=workbench_config
@@ -1912,15 +3888,17 @@ pub(super) fn flip_card() -> AnyView {
                                 size=SegmentedControlSize::Sm
                                 aria_label="FlipCard motion preset".to_string()
                             />
-                            <Switch checked=workbench_default_flipped set_checked=set_workbench_default_flipped>
+                            <Switch checked=workbench_default_is_flipped set_checked=set_workbench_default_is_flipped>
                                 "Default Flipped"
                             </Switch>
-                            <Switch checked=workbench_flip_on_hover set_checked=set_workbench_flip_on_hover>
+                            <Switch checked=workbench_is_flip_on_hover set_checked=set_workbench_is_flip_on_hover>
                                 "Flip On Hover"
                             </Switch>
-                            <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
-                                "Disabled"
-                            </Switch>
+                            <div data-slot="chart-workbench-toggle-disabled">
+                                <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                                    "Disabled"
+                                </Switch>
+                            </div>
                             <Switch checked=workbench_custom_id set_checked=set_workbench_custom_id>
                                 "Custom ID"
                             </Switch>
@@ -1933,9 +3911,9 @@ pub(super) fn flip_card() -> AnyView {
             >
                 <div class="docs-stack docs-stack--tight">
                     {move || {
-                        let default_flipped = workbench_default_flipped.get();
-                        let disabled = workbench_disabled.get();
-                        let flip_on_hover = workbench_flip_on_hover.get();
+                        let default_is_flipped = workbench_default_is_flipped.get();
+                        let is_disabled = workbench_is_disabled.get();
+                        let is_flip_on_hover = workbench_is_flip_on_hover.get();
                         let with_custom_class = workbench_custom_class.get();
                         let with_custom_id = workbench_custom_id.get();
                         let motion = workbench_motion.get();
@@ -1943,9 +3921,9 @@ pub(super) fn flip_card() -> AnyView {
                         match (with_custom_class, with_custom_id) {
                             (true, true) => view! {
                                 <FlipCard
-                                    default_flipped=default_flipped
-                                    disabled=disabled
-                                    flip_on_hover=flip_on_hover
+                                    default_is_flipped=default_is_flipped
+                                    is_disabled=is_disabled
+                                    is_flip_on_hover=is_flip_on_hover
                                     class_name="docs-flip-card-state".to_string()
                                     id="docs-flip-card-workbench".to_string()
                                     motion=motion
@@ -1974,9 +3952,9 @@ pub(super) fn flip_card() -> AnyView {
                             .into_any(),
                             (true, false) => view! {
                                 <FlipCard
-                                    default_flipped=default_flipped
-                                    disabled=disabled
-                                    flip_on_hover=flip_on_hover
+                                    default_is_flipped=default_is_flipped
+                                    is_disabled=is_disabled
+                                    is_flip_on_hover=is_flip_on_hover
                                     class_name="docs-flip-card-state".to_string()
                                     motion=motion
                                     front=move || {
@@ -2004,9 +3982,9 @@ pub(super) fn flip_card() -> AnyView {
                             .into_any(),
                             (false, true) => view! {
                                 <FlipCard
-                                    default_flipped=default_flipped
-                                    disabled=disabled
-                                    flip_on_hover=flip_on_hover
+                                    default_is_flipped=default_is_flipped
+                                    is_disabled=is_disabled
+                                    is_flip_on_hover=is_flip_on_hover
                                     id="docs-flip-card-workbench".to_string()
                                     motion=motion
                                     front=move || {
@@ -2034,9 +4012,9 @@ pub(super) fn flip_card() -> AnyView {
                             .into_any(),
                             (false, false) => view! {
                                 <FlipCard
-                                    default_flipped=default_flipped
-                                    disabled=disabled
-                                    flip_on_hover=flip_on_hover
+                                    default_is_flipped=default_is_flipped
+                                    is_disabled=is_disabled
+                                    is_flip_on_hover=is_flip_on_hover
                                     motion=motion
                                     front=move || {
                                         view! {
@@ -2073,12 +4051,13 @@ pub(super) fn flip_card() -> AnyView {
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-flip-mode`, `data-class-source`, `data-motion-source`, `data-id-source`, and face-level visibility markers (`data-visible`/`data-hidden`)."
                 code_signal=markers_code
+                code_imports=flip_card_imports.clone()
             >
                 <div class="docs-row">
                     <FlipCard
                         id="docs-flip-card".to_string()
                         class_name="docs-flip-card-state".to_string()
-                        flip_on_hover=true
+                        is_flip_on_hover=true
                         motion=FlipCardMotion {
                             hover_scale: 1.03,
                             hover_tilt_deg: 4.0,
@@ -2108,7 +4087,11 @@ pub(super) fn flip_card() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Comparison Matrix (Default / Hover / Disabled / Dramatic Motion)" code_signal=compare_code>
+            <Playground
+                title="State Matrix (Default / Hover / Disabled / Dramatic Motion)"
+                code_signal=state_matrix_code
+                code_imports=flip_card_imports.clone()
+            >
                 <div class="docs-stack">
                     <div class="docs-row">
                         <FlipCard
@@ -2116,14 +4099,14 @@ pub(super) fn flip_card() -> AnyView {
                             back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
                         />
                         <FlipCard
-                            flip_on_hover=true
+                            is_flip_on_hover=true
                             front=move || view! { <div class="ui-flip-card__title">"Hover flip"</div> }
                             back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
                         />
                     </div>
                     <div class="docs-row">
                         <FlipCard
-                            disabled=true
+                            is_disabled=true
                             front=move || view! { <div class="ui-flip-card__title">"Disabled"</div> }
                             back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
                         />
@@ -2133,7 +4116,7 @@ pub(super) fn flip_card() -> AnyView {
                                 hover_tilt_deg: 7.5,
                                 ..FlipCardMotion::default()
                             }
-                            flip_on_hover=true
+                            is_flip_on_hover=true
                             front=move || view! { <div class="ui-flip-card__title">"Dramatic motion"</div> }
                             back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
                         />
@@ -2141,10 +4124,157 @@ pub(super) fn flip_card() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled" code_signal=disabled_code>
+            <Playground
+                title="Controlled vs Uncontrolled Contrast"
+                description="Compare default uncontrolled usage against externally managed `is_flipped + on_is_flipped_change`."
+                code_signal=controlled_contrast_code
+                code_imports=flip_card_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <FlipCard
+                            front=move || view! { <div class="ui-flip-card__title">"Uncontrolled front"</div> }
+                            back=move || view! { <div class="ui-flip-card__title">"Uncontrolled back"</div> }
+                        />
+                        <FlipCard
+                            is_flipped=Signal::derive(move || controlled_is_flipped.get())
+                            on_is_flipped_change=Callback::new(move |next| {
+                                set_controlled_is_flipped.set(next);
+                                set_controlled_toggle_count.update(|count| *count += 1);
+                            })
+                            front=move || view! { <div class="ui-flip-card__title">"Controlled front"</div> }
+                            back=move || view! { <div class="ui-flip-card__title">"Controlled back"</div> }
+                        />
+                    </div>
+                    <div class="ui-muted">
+                        {move || {
+                            format!(
+                                "Controlled state: is_flipped={}, on_is_flipped_change calls={}",
+                                controlled_is_flipped.get(),
+                                controlled_toggle_count.get(),
+                            )
+                        }}
+                    </div>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="flip-card-parameter-matrix">
+                <h3>"Parameter Matrix (API + Defaults)"</h3>
+                <ul data-slot="flip-card-parameter-rows">
+                    <li>
+                        <code>"is_flipped"</code>
+                        " = controlled axis (default: uncontrolled when omitted)"
+                    </li>
+                    <li>
+                        <code>"default_is_flipped"</code>
+                        " / "
+                        <code>"default_flipped"</code>
+                        " = default priority "
+                        <code>"default_is_flipped > default_flipped > DEFAULT_FLIPPED(false)"</code>
+                    </li>
+                    <li>
+                        <code>"on_is_flipped_change"</code>
+                        " = optional callback (default: none)"
+                    </li>
+                    <li>
+                        <code>"is_disabled"</code>
+                        " / "
+                        <code>"disabled"</code>
+                        " = default priority "
+                        <code>"is_disabled > disabled > DEFAULT_DISABLED(false)"</code>
+                    </li>
+                    <li>
+                        <code>"flip_mode"</code>
+                        " / "
+                        <code>"is_flip_on_hover"</code>
+                        " / "
+                        <code>"flip_on_hover"</code>
+                        " = default priority "
+                        <code>"flip_mode > is_flip_on_hover > flip_on_hover > DEFAULT_HOVER_FLIP(false)"</code>
+                    </li>
+                    <li>
+                        <code>"id"</code>
+                        " = custom id or "
+                        <code>"IdProvider::next_prefixed_id(DEFAULT_ID_PREFIX)"</code>
+                    </li>
+                    <li>
+                        <code>"class_name"</code>
+                        " = optional custom class (default: none)"
+                    </li>
+                    <li>
+                        <code>"motion"</code>
+                        " = "
+                        <code>"FlipCardMotion::default()"</code>
+                    </li>
+                </ul>
+            </section>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="FlipCard is not an LLM body reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports=flip_card_imports.clone()
+            >
                 <div class="docs-row">
                     <FlipCard
-                        disabled=true
+                        front=move || view! { <div class="ui-flip-card__title">"Snapshot baseline"</div> }
+                        back=move || view! { <div class="ui-flip-card__description">"Complete config renders in one pass."</div> }
+                    />
+                    <FlipCard
+                        is_flip_on_hover=true
+                        front=move || view! { <div class="ui-flip-card__title">"Streaming optional"</div> }
+                        back=move || view! { <div class="ui-flip-card__description">"Fallback stays snapshot for FlipCard."</div> }
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=flip_card_imports.clone()
+            >
+                <FlipCard
+                    is_flip_on_hover=true
+                    front=move || view! { <div class="ui-flip-card__title">"Copy-ready front"</div> }
+                    back=move || view! { <div class="ui-flip-card__title">"Copy-ready back"</div> }
+                />
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="flip-card-source-first-contract">
+                <h3>"Source-first / Copy-Paste Ready Contract"</h3>
+                <p>
+                    "Open "
+                    <code>"Show code"</code>
+                    " in any playground, then use the code block copy action. Copied snippets are auto-normalized by "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    " so required imports are included."
+                </p>
+                <p>"Real component sources:"</p>
+                <ul data-slot="flip-card-source-paths">
+                    <li><code>"components/flip-card/src/mod.rs"</code></li>
+                    <li><code>"components/flip-card/src/logic.rs"</code></li>
+                    <li><code>"components/flip-card/src/view.rs"</code></li>
+                    <li><code>"components/flip-card/src/styles.rs"</code></li>
+                    <li><code>"components/flip-card/src/motion.rs"</code></li>
+                </ul>
+                <p>"Dependency baseline (Cargo.toml):"</p>
+                <pre data-slot="flip-card-source-first-deps">
+                    <code>
+                        "[dependencies]\nui-components = { default-features = false, features = [\"component-flip_card\", \"inject-css\"] }\n# Mount under UiRoot to inject base/theme/components CSS."
+                    </code>
+                </pre>
+            </section>
+
+            <Playground
+                title="Disabled"
+                code_signal=disabled_code
+                code_imports=flip_card_imports
+            >
+                <div class="docs-row">
+                    <FlipCard
+                        id="docs-flip-card-disabled".to_string()
+                        is_disabled=true
                         front=move || {
                             view! {
                                 <>
@@ -2201,6 +4331,10 @@ pub(super) fn chart() -> AnyView {
     let flat_points_for_matrix = flat_points.clone();
     let revenue_points_for_bar = revenue_points.clone();
     let line_points_for_controlled = line_points.clone();
+    let revenue_points_for_contrast = revenue_points_for_matrix.clone();
+    let line_points_for_contrast = line_points_for_controlled.clone();
+    let line_points_for_line = line_points_for_controlled.clone();
+    let line_points_for_stream = line_points_for_controlled.clone();
 
     let (last_action, set_last_action) = signal("none".to_string());
     let on_action = Callback::new(move |id: String| set_last_action.set(id));
@@ -2216,14 +4350,39 @@ pub(super) fn chart() -> AnyView {
         "growth".to_string(),
         "flat".to_string(),
     ];
-    let (workbench_kind_index, set_workbench_kind_index) = signal(Some(0_usize));
-    let (workbench_dataset_index, set_workbench_dataset_index) = signal(Some(0_usize));
-    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
-    let (workbench_show_grid, set_workbench_show_grid) = signal(true);
-    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
-    let (workbench_lang, set_workbench_lang) = signal(false);
+    let persisted_workbench_state = load_chart_workbench_state();
+    let has_persisted_workbench_state = persisted_workbench_state.is_some();
+    let initial_workbench_state = persisted_workbench_state.unwrap_or_default();
+    let (workbench_kind_index, set_workbench_kind_index) =
+        signal(Some(initial_workbench_state.kind_index));
+    let (workbench_dataset_index, set_workbench_dataset_index) =
+        signal(Some(initial_workbench_state.dataset_index));
+    let (workbench_is_disabled, set_workbench_is_disabled) =
+        signal(initial_workbench_state.is_disabled);
+    let (workbench_is_show_grid, set_workbench_is_show_grid) =
+        signal(initial_workbench_state.is_show_grid);
+    let (workbench_custom_class, set_workbench_custom_class) =
+        signal(initial_workbench_state.custom_class);
+    let (workbench_lang, set_workbench_lang) = signal(initial_workbench_state.lang);
     let (workbench_last_action, set_workbench_last_action) = signal("none".to_string());
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(has_persisted_workbench_state);
     let workbench_on_action = Callback::new(move |id: String| set_workbench_last_action.set(id));
+
+    Effect::new(move |_| {
+        if workbench_persist_state.get() {
+            save_chart_workbench_state(ChartWorkbenchState {
+                kind_index: workbench_kind_index.get().unwrap_or(0),
+                dataset_index: workbench_dataset_index.get().unwrap_or(0),
+                is_disabled: workbench_is_disabled.get(),
+                is_show_grid: workbench_is_show_grid.get(),
+                custom_class: workbench_custom_class.get(),
+                lang: workbench_lang.get(),
+            });
+        } else {
+            clear_chart_workbench_state();
+        }
+    });
 
     let workbench_kind = Signal::derive(move || match workbench_kind_index.get().unwrap_or(0) {
         1 => ChartKind::Line,
@@ -2243,21 +4402,15 @@ pub(super) fn chart() -> AnyView {
         });
 
     let hello_code = Signal::derive(move || {
-        r#"<Chart
-  points=vec![
-    ChartPoint::new("jan", "Jan", 12.0),
-    ChartPoint::new("feb", "Feb", 18.5),
-    ChartPoint::new("mar", "Mar", 17.2),
-  ]
-/>"#
-        .to_string()
+        r#"<Chart points=vec![ChartPoint::new("jan", "Jan", 12.0), ChartPoint::new("feb", "Feb", 18.5), ChartPoint::new("mar", "Mar", 17.2)] />"#
+            .to_string()
     });
 
     let workbench_code = Signal::derive(move || {
         let kind = workbench_kind.get();
         let dataset = workbench_dataset_name.get();
         let is_disabled = workbench_is_disabled.get();
-        let show_grid = workbench_show_grid.get();
+        let is_show_grid = workbench_is_show_grid.get();
         let custom_class = workbench_custom_class.get();
         let lang = workbench_lang.get();
 
@@ -2270,10 +4423,10 @@ pub(super) fn chart() -> AnyView {
         ];
 
         if is_disabled {
-            out.push("  is_disabled=Some(true)".to_string());
+            out.push("  is_disabled=true".to_string());
         }
-        if !show_grid {
-            out.push("  show_grid=false".to_string());
+        if !is_show_grid {
+            out.push("  is_show_grid=false".to_string());
         }
         if custom_class {
             out.push("  class_name=\"docs-chart-custom\".into()".to_string());
@@ -2291,7 +4444,7 @@ pub(super) fn chart() -> AnyView {
         let kind = workbench_kind.get();
         let dataset = workbench_dataset_name.get();
         let is_disabled = workbench_is_disabled.get();
-        let show_grid = workbench_show_grid.get();
+        let is_show_grid = workbench_is_show_grid.get();
         let custom_class = workbench_custom_class.get();
         let lang = workbench_lang.get();
 
@@ -2307,7 +4460,7 @@ pub(super) fn chart() -> AnyView {
                 "ui-chart--uncontrolled".to_string()
             },
         ];
-        if show_grid {
+        if is_show_grid {
             class_tokens.push("ui-chart--grid".to_string());
         }
         if custom_class {
@@ -2316,7 +4469,7 @@ pub(super) fn chart() -> AnyView {
         }
 
         format!(
-            "ChartActualConfig {{\n  dataset: \"{dataset}\",\n  kind: {kind:?},\n  is_disabled: {is_disabled},\n  show_grid: {show_grid},\n  custom_class: {custom_class},\n  lang: {},\n  class: \"{}\",\n  marker_expectations: [\"data-kind\", \"data-state\", \"data-active-index\", \"data-motion-source\"],\n}}",
+            "ChartActualConfig {{\n  dataset: \"{dataset}\",\n  kind: {kind:?},\n  is_disabled: {is_disabled},\n  is_show_grid: {is_show_grid},\n  custom_class: {custom_class},\n  lang: {},\n  class: \"{}\",\n  marker_expectations: [\"data-kind\", \"data-state\", \"data-active-index\", \"data-motion-source\"],\n}}",
             if lang { "\"en-US\"" } else { "None" },
             class_tokens.join(" ")
         )
@@ -2370,8 +4523,70 @@ pub(super) fn chart() -> AnyView {
     let matrix_code = Signal::derive(move || {
         r#"<Chart id_base="docs-chart-matrix-bar".to_string() kind=ChartKind::Bar points=vec![...] />
 <Chart id_base="docs-chart-matrix-line".to_string() kind=ChartKind::Line points=vec![...] />
-<Chart id_base="docs-chart-matrix-disabled".to_string() kind=ChartKind::Bar is_disabled=Some(true) points=vec![...] />
+<Chart id_base="docs-chart-matrix-disabled".to_string() kind=ChartKind::Bar is_disabled=true points=vec![...] />
 <Chart id_base="docs-chart-matrix-empty".to_string() kind=ChartKind::Line points=vec![] />"#.to_string()
+    });
+
+    let chart_imports =
+        "use leptos::prelude::*;\nuse ui_components::{Chart, ChartKind, ChartPoint};".to_string();
+
+    let controlled_contrast_code = Signal::derive(move || {
+        r#"let (active_raw, set_active_raw) = signal(1_usize);
+
+<Chart
+  id_base="docs-chart-uncontrolled-contrast".to_string()
+  points=vec![
+    ChartPoint::new("jan", "Jan", 12.0),
+    ChartPoint::new("feb", "Feb", 18.5),
+    ChartPoint::new("mar", "Mar", 17.2),
+  ]
+  kind=ChartKind::Bar
+/>
+
+<Chart
+  id_base="docs-chart-controlled-contrast".to_string()
+  points=vec![
+    ChartPoint::new("q1", "Q1", 42.0),
+    ChartPoint::new("q2", "Q2", 56.0),
+    ChartPoint::new("q3", "Q3", 51.0),
+    ChartPoint::new("q4", "Q4", 63.0),
+  ]
+  kind=ChartKind::Line
+  active_index=Signal::derive(move || active_raw.get())
+  on_active_index_change=Callback::new(move |next| set_active_raw.set(next))
+/>"#
+        .to_string()
+    });
+
+    let stream_snapshot_code = Signal::derive(move || {
+        r#"<Chart
+  id_base="docs-chart-streaming-snapshot".to_string()
+  points=vec![
+    ChartPoint::new("q1", "Q1", 42.0),
+    ChartPoint::new("q2", "Q2", 56.0),
+    ChartPoint::new("q3", "Q3", 51.0),
+    ChartPoint::new("q4", "Q4", 63.0),
+  ]
+  kind=ChartKind::Line
+  aria_label="Snapshot contract marker".to_string()
+/>"#
+        .to_string()
+    });
+
+    let source_first_code = Signal::derive(move || {
+        r#"<Chart
+  id_base="docs-chart-source-first".to_string()
+  points=vec![
+    ChartPoint::new("apr", "Apr", 24.7),
+    ChartPoint::new("may", "May", 28.1),
+    ChartPoint::new("jun", "Jun", 31.6),
+  ]
+  kind=ChartKind::Bar
+  on_action=Callback::new(move |id: String| {
+    logging::log!("clicked point: {id}");
+  })
+/>"#
+        .to_string()
     });
 
     view! {
@@ -2381,26 +4596,24 @@ pub(super) fn chart() -> AnyView {
             group="Display"
             description="baseline-compatible chart primitive with bar/line modes, controlled active-index state, baseline-style data contracts, and baseline-level spring highlight motion for legends."
         >
-            <Playground title="Hello World" code_signal=hello_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_code
+                code_imports=chart_imports.clone()
+            >
                 <div class="docs-row">
-                    <Chart
-                        id_base="docs-chart-hello".to_string()
-                        points=vec![
-                            ChartPoint::new("jan", "Jan", 12.0),
-                            ChartPoint::new("feb", "Feb", 18.5),
-                            ChartPoint::new("mar", "Mar", 17.2),
-                        ]
-                    />
+                    <Chart id_base="docs-chart-hello".to_string() points=vec![ChartPoint::new("jan", "Jan", 12.0), ChartPoint::new("feb", "Feb", 18.5), ChartPoint::new("mar", "Mar", 17.2)] />
                 </div>
             </Playground>
 
             <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
+                code_imports=chart_imports.clone()
                 test_css_source=chart_test_css_source
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/chart/src/styles.rs".to_string()
                 test_config_signal=workbench_config
-                description="可调 kind/dataset/disabled/grid/class/lang，并在同一面板查看 code + config + scoped css test。"
+                description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
                 controls=move || {
                     view! {
                         <div class="docs-stack docs-stack--tight">
@@ -2427,41 +4640,53 @@ pub(super) fn chart() -> AnyView {
                             <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
                                 "Disabled"
                             </Switch>
-                            <Switch checked=workbench_show_grid set_checked=set_workbench_show_grid>
+                            <Switch checked=workbench_is_show_grid set_checked=set_workbench_is_show_grid>
                                 "Show Grid"
                             </Switch>
                             <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
                                 "Custom Class"
                             </Switch>
-                            <Switch checked=workbench_lang set_checked=set_workbench_lang>
-                                "Lang=en-US"
+                            <div data-slot="chart-workbench-toggle-lang">
+                                <Switch checked=workbench_lang set_checked=set_workbench_lang>
+                                    "Lang=en-US"
+                                </Switch>
+                            </div>
+                            <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                                "Persist workbench state"
                             </Switch>
                         </div>
                     }
                 }
             >
-                <div class="docs-stack docs-stack--tight">
+                <div class="docs-stack docs-stack--tight" data-slot="chart-workbench">
                     {move || {
                         let points = workbench_points.get();
                         let kind = workbench_kind.get();
                         let disabled = workbench_is_disabled.get();
-                        let show_grid = workbench_show_grid.get();
+                        let is_show_grid = workbench_is_show_grid.get();
                         let class_name = workbench_custom_class
                             .get()
                             .then_some("docs-chart-custom".to_string());
                         let lang = workbench_lang.get().then_some("en-US".to_string());
+                        let persist = workbench_persist_state.get();
 
                         view! {
-                            <Chart
-                                id_base="docs-chart-workbench".to_string()
-                                points=points
-                                kind=kind
-                                is_disabled=disabled
-                                show_grid=show_grid
-                                class_name=class_name.unwrap_or_default()
-                                lang=lang.unwrap_or_default()
-                                on_action=workbench_on_action
-                            />
+                            <div class="docs-stack docs-stack--tight" data-slot="chart-workbench-canvas">
+                                <span class="ui-muted">
+                                    "persist: "
+                                    {if persist { "on" } else { "off" }}
+                                </span>
+                                <Chart
+                                    id_base="docs-chart-workbench".to_string()
+                                    points=points
+                                    kind=kind
+                                    is_disabled=disabled
+                                    is_show_grid=is_show_grid
+                                    class_name=class_name.unwrap_or_default()
+                                    lang=lang.unwrap_or_default()
+                                    on_action=workbench_on_action
+                                />
+                            </div>
                         }
                     }}
                     <span class="ui-muted">
@@ -2471,7 +4696,11 @@ pub(super) fn chart() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Comparison Matrix (Bar / Line / Disabled / Empty)" code_signal=matrix_code>
+            <Playground
+                title="Comparison Matrix (Bar / Line / Disabled / Empty)"
+                code_signal=matrix_code
+                code_imports=chart_imports.clone()
+            >
                 <div class="docs-row">
                     <div class="docs-card" style="flex: 1 1 260px;">
                         <span class="ui-muted">"Bar / Revenue"</span>
@@ -2491,12 +4720,14 @@ pub(super) fn chart() -> AnyView {
                     </div>
                     <div class="docs-card" style="flex: 1 1 260px;">
                         <span class="ui-muted">"Disabled"</span>
-                        <Chart
-                            id_base="docs-chart-matrix-disabled".to_string()
-                            points=flat_points_for_matrix.clone()
-                            kind=ChartKind::Bar
-                            is_disabled=true
-                        />
+                        <div data-slot="chart-e2e-state-disabled">
+                            <Chart
+                                id_base="docs-chart-matrix-disabled".to_string()
+                                points=flat_points_for_matrix.clone()
+                                kind=ChartKind::Bar
+                                is_disabled=true
+                            />
+                        </div>
                     </div>
                     <div class="docs-card" style="flex: 1 1 260px;">
                         <span class="ui-muted">"Empty"</span>
@@ -2509,7 +4740,43 @@ pub(super) fn chart() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Bar + Hover/Keyboard + Action" code_signal=bar_code>
+            <Playground
+                title="Controlled vs Uncontrolled Contrast"
+                description="Compare default uncontrolled behavior with external active-index control."
+                code_signal=controlled_contrast_code
+                code_imports=chart_imports.clone()
+            >
+                <div class="docs-row">
+                    <div class="docs-card" style="flex: 1 1 260px;">
+                        <span class="ui-muted">"Uncontrolled / internal state"</span>
+                        <Chart
+                            id_base="docs-chart-uncontrolled-contrast".to_string()
+                            points=revenue_points_for_contrast
+                            kind=ChartKind::Bar
+                        />
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 260px;">
+                        <span class="ui-muted">"Controlled / external signal"</span>
+                        <Chart
+                            id_base="docs-chart-controlled-contrast".to_string()
+                            points=line_points_for_contrast
+                            kind=ChartKind::Line
+                            active_index=controlled_active
+                            on_active_index_change=on_controlled_active_change
+                        />
+                        <span class="ui-muted">
+                            "active index: "
+                            {move || controlled_active_raw.get()}
+                        </span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Bar + Hover/Keyboard + Action"
+                code_signal=bar_code
+                code_imports=chart_imports.clone()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <Chart
                         id_base="docs-chart-bar".to_string()
@@ -2524,21 +4791,95 @@ pub(super) fn chart() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Controlled Line + Active Index" code_signal=line_code>
+            <Playground
+                title="Controlled Line + Active Index"
+                code_signal=line_code
+                code_imports=chart_imports.clone()
+            >
                 <div class="docs-stack docs-stack--tight">
-                    <Chart
-                        id_base="docs-chart-line".to_string()
-                        points=line_points_for_controlled.clone()
-                        kind=ChartKind::Line
-                        active_index=controlled_active
-                        on_active_index_change=on_controlled_active_change
-                        aria_label="Quarterly growth line chart".to_string()
-                        class_name="docs-chart-custom".to_string()
-                    />
+                    <div data-slot="chart-e2e-controlled-line">
+                        <Chart
+                            id_base="docs-chart-line".to_string()
+                            points=line_points_for_line
+                            kind=ChartKind::Line
+                            active_index=controlled_active
+                            on_active_index_change=on_controlled_active_change
+                            aria_label="Quarterly growth line chart".to_string()
+                            class_name="docs-chart-custom".to_string()
+                        />
+                    </div>
                     <span class="ui-muted">
                         "controlled active index: "
                         {move || controlled_active_raw.get()}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Chart is `Streaming Optional`; component rendering remains snapshot-based with `fallback=snapshot`."
+                code_signal=stream_snapshot_code
+                code_imports=chart_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="chart-streaming-policy">
+                    <Chart
+                        id_base="docs-chart-streaming-snapshot".to_string()
+                        points=line_points_for_stream
+                        kind=ChartKind::Line
+                        aria_label="Snapshot contract marker".to_string()
+                    />
+                    <span class="ui-muted" data-slot="chart-streaming-policy-note">
+                        "Streaming Optional; fallback=snapshot."
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects imports for direct run. Source: components/chart/src/{mod,logic,view,styles,motion}.rs. Dependency baseline: ui-components = { default-features = false, features = [\"component-chart\", \"inject-css\"] } + mount under UiRoot."
+                code_signal=source_first_code
+                code_imports=chart_imports
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="chart-source-first">
+                    <h3>"Source-first / Copy-Paste Ready"</h3>
+                    <span class="ui-muted" data-slot="chart-copy-ready-hint">
+                        "Playground copy action injects missing imports through "
+                        <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                        "."
+                    </span>
+                    <span class="ui-muted">
+                        "Dependency baseline (Cargo.toml): "
+                        <code>
+                            "ui-components = { default-features = false, features = [\"component-chart\", \"inject-css\"] }"
+                        </code>
+                    </span>
+                    <ul class="ui-muted" data-slot="chart-source-paths">
+                        <li><code>"components/chart/src/mod.rs"</code></li>
+                        <li><code>"components/chart/src/logic.rs"</code></li>
+                        <li><code>"components/chart/src/view.rs"</code></li>
+                        <li><code>"components/chart/src/styles.rs"</code></li>
+                        <li><code>"components/chart/src/motion.rs"</code></li>
+                    </ul>
+                    <div class="docs-stack docs-stack--tight" data-slot="chart-parameter-matrix">
+                        <h4>"Parameter Matrix (API Names + Defaults)"</h4>
+                        <ul class="ui-muted">
+                            <li><code>"kind"</code>" -> default "<code>"ChartKind::Bar"</code></li>
+                            <li><code>"default_active_index"</code>" -> default "<code>"0 (clamped)"</code></li>
+                            <li><code>"is_disabled"</code>" -> default "<code>"false"</code></li>
+                            <li><code>"is_show_grid"</code>" -> default "<code>"true"</code></li>
+                            <li><code>"id_base"</code>" -> default "<code>"\"ui-chart\""</code></li>
+                            <li><code>"aria_label"</code>" -> default "<code>"\"Chart\""</code></li>
+                        </ul>
+                    </div>
+                    <div class="docs-stack docs-stack--tight" data-slot="chart-state-matrix-summary">
+                        <h4>"State Matrix Coverage"</h4>
+                        <ul class="ui-muted">
+                            <li>"Controlled vs uncontrolled: explicit side-by-side playground."</li>
+                            <li>"Disabled/empty/kind branches: covered by Comparison Matrix."</li>
+                            <li>"Size/variant: N/A for Chart (not part of current public API axis)."</li>
+                        </ul>
+                    </div>
+                    <span class="ui-muted">"Mount under UiRoot to ensure theme vars and css injection."</span>
                 </div>
             </Playground>
         </ComponentPage>

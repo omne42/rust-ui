@@ -1,11 +1,14 @@
-use crate::{AccordionMotion, AccordionSelectionMode, AccordionVariant, logic, motion};
+use crate::{
+    AccordionMotion, AccordionPanelLifecycleEvent, AccordionSelectionMode, AccordionSlotProjection,
+    AccordionVariant, logic, motion,
+};
 use leptos::{children::Children, ev, html, prelude::*};
-use std::{cell::Cell, collections::BTreeSet, sync::Arc};
+use std::{collections::BTreeSet, sync::Arc};
 use ui_ai_runtime::use_ai_space_state;
 use ui_headless::a11y::{A11yDirection, disclosure_trigger_attrs};
 use ui_headless::{
     FocusRingOptions, HoverOptions, PressOptions, RovingOrientation, RovingTabIndexOptions,
-    use_focus_ring, use_hover, use_press, use_roving_tabindex,
+    use_focus_ring, use_hover, use_press, use_roving_tabindex, use_ui_id_provider,
 };
 
 #[cfg(all(
@@ -80,28 +83,31 @@ mod wasm_debug {
 const ACCORDION_BASE_CLASS: &str = "ui-accordion";
 const ACCORDION_INDICATOR_GLYPH: &str = "›";
 
-fn next_id() -> u64 {
-    thread_local! {
-        static NEXT: Cell<u64> = const { Cell::new(1) };
-    }
-    NEXT.with(|cell| {
-        let id = cell.get();
-        cell.set(id + 1);
-        id
-    })
-}
-
 mod item_collection {
-    use super::{Arc, Children, logic};
+    use super::{AccordionPanelLifecycleEvent, Arc, Children, logic};
     use leptos::prelude::*;
+    use std::collections::{BTreeMap, BTreeSet};
 
     pub(super) struct AccordionItemConfig {
+        pub(super) registration_id: usize,
         pub(super) label: String,
         pub(super) key: Option<usize>,
         pub(super) is_disabled: bool,
         pub(super) open: Option<Signal<bool>>,
         pub(super) default_open: bool,
         pub(super) on_open_change: Option<Callback<bool>>,
+        pub(super) on_panel_lifecycle: Option<Callback<AccordionPanelLifecycleEvent>>,
+        pub(super) panel: AnyView,
+    }
+
+    pub(super) struct TryCollectInput {
+        pub(super) label: String,
+        pub(super) key: Option<usize>,
+        pub(super) is_disabled: bool,
+        pub(super) open: Option<Signal<bool>>,
+        pub(super) default_open: bool,
+        pub(super) on_open_change: Option<Callback<bool>>,
+        pub(super) on_panel_lifecycle: Option<Callback<AccordionPanelLifecycleEvent>>,
         pub(super) panel: AnyView,
     }
 
@@ -112,47 +118,108 @@ mod item_collection {
         pub(super) open: Option<Signal<bool>>,
         pub(super) default_open: bool,
         pub(super) on_open_change: Option<Callback<bool>>,
+        pub(super) on_panel_lifecycle: Option<Callback<AccordionPanelLifecycleEvent>>,
         pub(super) panel: AnyView,
     }
 
+    pub(super) struct CollectedAccordionItems {
+        pub(super) item_configs: Vec<ResolvedAccordionItemConfig>,
+        pub(super) items_order: Vec<usize>,
+    }
+
     #[derive(Clone, Copy)]
-    struct AccordionItemCollector {
+    struct RegistrationContext {
         items: StoredValue<Vec<AccordionItemConfig>, LocalStorage>,
         is_collecting: StoredValue<bool, LocalStorage>,
+        next_registration_id: StoredValue<usize, LocalStorage>,
+        registered_ids: StoredValue<BTreeSet<usize>, LocalStorage>,
+        registration_actions: StoredValue<Vec<logic::AccordionRegistrationAction>, LocalStorage>,
     }
 
-    pub(super) fn collect(children: Children) -> Vec<ResolvedAccordionItemConfig> {
+    impl RegistrationContext {
+        fn register(self) -> usize {
+            let registration_id = self.next_registration_id.get_value();
+            self.next_registration_id
+                .set_value(registration_id.saturating_add(1));
+            self.registered_ids.update_value(|registered| {
+                registered.insert(registration_id);
+            });
+            self.registration_actions.update_value(|actions| {
+                actions.push(logic::AccordionRegistrationAction::Register { registration_id });
+            });
+            registration_id
+        }
+
+        fn unregister(self, registration_id: usize) {
+            self.registration_actions.update_value(|actions| {
+                actions.push(logic::AccordionRegistrationAction::Unregister { registration_id });
+            });
+        }
+    }
+
+    pub(super) fn collect(children: Children) -> CollectedAccordionItems {
         let items = StoredValue::new_local(Vec::new());
         let is_collecting = StoredValue::new_local(true);
-        provide_context(AccordionItemCollector {
+        let next_registration_id = StoredValue::new_local(0_usize);
+        let registered_ids = StoredValue::new_local(BTreeSet::<usize>::new());
+        let registration_actions = StoredValue::new_local(Vec::new());
+        let registration = RegistrationContext {
             items,
             is_collecting,
-        });
+            next_registration_id,
+            registered_ids,
+            registration_actions,
+        };
+        provide_context(registration);
         drop(children());
         is_collecting.set_value(false);
-        resolve(items.into_inner().unwrap_or_default())
+        let active_registration_ids = items.with_value(|configs| {
+            configs
+                .iter()
+                .map(|item| item.registration_id)
+                .collect::<BTreeSet<_>>()
+        });
+        let stale_registration_ids = registration.registered_ids.with_value(|registered| {
+            registered
+                .iter()
+                .copied()
+                .filter(|registration_id| !active_registration_ids.contains(registration_id))
+                .collect::<Vec<_>>()
+        });
+        for registration_id in stale_registration_ids {
+            registration.unregister(registration_id);
+        }
+        resolve(
+            items.into_inner().unwrap_or_default(),
+            registration_actions.into_inner().unwrap_or_default(),
+        )
     }
 
-    pub(super) fn try_collect(
-        label: String,
-        key: Option<usize>,
-        is_disabled: bool,
-        open: Option<Signal<bool>>,
-        default_open: bool,
-        on_open_change: Option<Callback<bool>>,
-        panel: AnyView,
-    ) -> Result<(), AnyView> {
-        if let Some(collector) = use_context::<AccordionItemCollector>()
-            && collector.is_collecting.get_value()
+    pub(super) fn try_collect(input: TryCollectInput) -> Result<(), AnyView> {
+        let TryCollectInput {
+            label,
+            key,
+            is_disabled,
+            open,
+            default_open,
+            on_open_change,
+            on_panel_lifecycle,
+            panel,
+        } = input;
+        if let Some(registration) = use_context::<RegistrationContext>()
+            && registration.is_collecting.get_value()
         {
-            collector.items.update_value(|items| {
+            let registration_id = registration.register();
+            registration.items.update_value(|items| {
                 items.push(AccordionItemConfig {
+                    registration_id,
                     label,
                     key,
                     is_disabled,
                     open,
                     default_open,
                     on_open_change,
+                    on_panel_lifecycle,
                     panel,
                 });
             });
@@ -192,10 +259,26 @@ mod item_collection {
         Arc::new(item_configs.iter().map(|item| item.is_disabled).collect())
     }
 
-    fn resolve(item_configs: Vec<AccordionItemConfig>) -> Vec<ResolvedAccordionItemConfig> {
+    fn resolve(
+        item_configs: Vec<AccordionItemConfig>,
+        registration_actions: Vec<logic::AccordionRegistrationAction>,
+    ) -> CollectedAccordionItems {
         let configured_keys = item_configs.iter().map(|item| item.key).collect::<Vec<_>>();
         let resolved_keys = logic::assign_item_keys(&configured_keys);
-        item_configs
+        let registration_key_pairs = item_configs
+            .iter()
+            .zip(resolved_keys.iter())
+            .map(|(item, key)| (item.registration_id, *key))
+            .collect::<Vec<_>>();
+        let items_order =
+            logic::resolve_registered_item_keys(&registration_actions, &registration_key_pairs);
+        let order_by_key = items_order
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(index, key)| (key, index))
+            .collect::<BTreeMap<_, _>>();
+        let mut resolved = item_configs
             .into_iter()
             .zip(resolved_keys)
             .map(|(item, key)| ResolvedAccordionItemConfig {
@@ -205,9 +288,15 @@ mod item_collection {
                 open: item.open,
                 default_open: item.default_open,
                 on_open_change: item.on_open_change,
+                on_panel_lifecycle: item.on_panel_lifecycle,
                 panel: item.panel,
             })
-            .collect()
+            .collect::<Vec<_>>();
+        resolved.sort_by_key(|item| order_by_key.get(&item.key).copied().unwrap_or(usize::MAX));
+        CollectedAccordionItems {
+            item_configs: resolved,
+            items_order,
+        }
     }
 }
 
@@ -241,7 +330,7 @@ mod state_bindings {
 
 use item_collection::ResolvedAccordionItemConfig;
 
-fn collect_accordion_items(children: Children) -> Vec<ResolvedAccordionItemConfig> {
+fn collect_accordion_items(children: Children) -> item_collection::CollectedAccordionItems {
     item_collection::collect(children)
 }
 
@@ -253,18 +342,20 @@ pub fn AccordionItem(
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: bool,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] on_panel_lifecycle: Option<Callback<AccordionPanelLifecycleEvent>>,
     children: Children,
 ) -> impl IntoView {
     let panel = children().into_any();
-    match item_collection::try_collect(
+    match item_collection::try_collect(item_collection::TryCollectInput {
         label,
         key,
         is_disabled,
         open,
         default_open,
         on_open_change,
+        on_panel_lifecycle,
         panel,
-    ) {
+    }) {
         Ok(()) => ().into_any(),
         Err(panel) => panel,
     }
@@ -303,8 +394,11 @@ struct AccordionPanelRenderInput<V: IntoView + 'static> {
     panel_ref: NodeRef<html::Div>,
     trigger_id: String,
     panel_hidden: RwSignal<bool>,
+    panel_lifecycle: RwSignal<AccordionPanelLifecycleEvent>,
     open: Signal<bool>,
     index: usize,
+    slot_projection: AccordionSlotProjection,
+    render_surface: Signal<bool>,
     panel_surface_ref: NodeRef<html::Div>,
     panel: V,
 }
@@ -315,11 +409,15 @@ fn render_item_panel<V: IntoView + 'static>(input: AccordionPanelRenderInput<V>)
         panel_ref,
         trigger_id,
         panel_hidden,
+        panel_lifecycle,
         open,
         index,
+        slot_projection,
+        render_surface: _render_surface,
         panel_surface_ref,
         panel,
     } = input;
+    let panel = panel.into_view().into_any();
 
     view! {
         <div
@@ -331,6 +429,8 @@ fn render_item_panel<V: IntoView + 'static>(input: AccordionPanelRenderInput<V>)
             hidden=move || panel_hidden.get()
             data-open=move || if open.get() { Some("true") } else { None }
             data-index=index
+            data-slot-projection=slot_projection.as_str()
+            data-panel-lifecycle=move || panel_lifecycle.get().as_str()
             data-slot="accordion-panel"
             data-ui-fragment-kind="accordion-panel"
         >
@@ -430,7 +530,7 @@ fn render_debug_panel(
 /// Accordion component with roving focus, disclosure semantics, and optional spring motion.
 ///
 /// Public props:
-/// - `id_base`: optional stable prefix used for `id`/`aria-*` wiring; auto-generated if omitted.
+/// - `id_base`: optional stable prefix used for `id`/`aria-*` wiring; defaults to `UiRoot` `IdProvider` sequence when omitted.
 /// - `selection_mode`: single or multiple panel selection behavior.
 /// - `variant`: visual variant (`light` / `shadow` / `bordered` / `splitted`).
 /// - `disallow_empty_selection`: when `true`, keeps at least one item open.
@@ -438,6 +538,7 @@ fn render_debug_panel(
 /// - `lang`: optional locale tag forwarded to disclosure trigger semantics.
 /// - `dir`: optional text direction (`ltr`/`rtl`) for disclosure trigger semantics.
 /// - `motion`: per-instance motion contract overrides.
+/// - `slot_projection`: panel content projection strategy (`lazy` / `keep-alive` / `eager`).
 /// - `class_name`: optional extra class names merged onto root element.
 /// - `children`: explicit item composition: `<AccordionItem label=... key=...>...</AccordionItem>`.
 #[component]
@@ -450,24 +551,28 @@ pub fn Accordion(
     #[prop(optional, into)] lang: Option<String>,
     #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] motion: AccordionMotion,
+    #[prop(optional)] slot_projection: AccordionSlotProjection,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let item_configs = collect_accordion_items(children);
+    let item_collection::CollectedAccordionItems {
+        item_configs,
+        items_order,
+    } = collect_accordion_items(children);
     let logic::AccordionRuntimeInit {
         has_controlled_open,
         has_default_open,
-        item_keys,
+        item_keys: _,
         requested_open,
         has_per_item_disabled,
     } = item_collection::runtime_init(&item_configs);
-    let id_base = logic::resolve_id_base(
-        id_base,
-        format!("{}-{}", logic::DEFAULT_ID_BASE_PREFIX, next_id()),
-    );
+    let generated_id_base = use_ui_id_provider()
+        .map(|id_provider| id_provider.next_prefixed_id(logic::DEFAULT_ID_BASE_PREFIX))
+        .unwrap_or_else(|| logic::DEFAULT_ID_BASE_PREFIX.to_string());
+    let id_base = logic::resolve_id_base(id_base, generated_id_base);
     let item_count = item_configs.len();
     let (item_count_signal, _set_item_count) = signal(item_count);
-    let item_keys = Arc::new(item_keys);
+    let item_keys = Arc::new(items_order);
     let initial_open = logic::normalize_default_open_for_items(
         selection_mode,
         Some(&requested_open),
@@ -614,6 +719,7 @@ pub fn Accordion(
                     key,
                     label,
                     is_disabled: is_item_disabled_by_item,
+                    on_panel_lifecycle,
                     panel,
                     ..
                 } = item;
@@ -641,7 +747,39 @@ pub fn Accordion(
                 let panel_ref: NodeRef<html::Div> = NodeRef::new();
                 let panel_surface_ref: NodeRef<html::Div> = NodeRef::new();
                 let panel_hidden = RwSignal::new(!open.get_untracked());
-                motion::attach_panel_motion(panel_ref, panel_surface_ref, open, panel_hidden, motion);
+                let panel_lifecycle = RwSignal::new(if open.get_untracked() {
+                    AccordionPanelLifecycleEvent::NotifyShown
+                } else {
+                    AccordionPanelLifecycleEvent::NotifyHidden
+                });
+                let notify_panel_lifecycle = Callback::new(move |event: AccordionPanelLifecycleEvent| {
+                    panel_lifecycle.set(event);
+                    if let Some(callback) = on_panel_lifecycle {
+                        callback.run(event);
+                    }
+                });
+                motion::attach_panel_motion(
+                    panel_ref,
+                    panel_surface_ref,
+                    open,
+                    panel_hidden,
+                    motion,
+                    slot_projection,
+                    notify_panel_lifecycle,
+                );
+                let panel_has_opened_once = RwSignal::new(open.get_untracked());
+                Effect::new(move |_| {
+                    if open.get() {
+                        panel_has_opened_once.set(true);
+                    }
+                });
+                let render_surface = Signal::derive(move || {
+                    logic::should_render_panel_surface(
+                        slot_projection,
+                        open.get(),
+                        panel_has_opened_once.get(),
+                    )
+                });
 
                 let item_keys_for_press = item_keys.clone();
                 let on_press = Callback::new(move |_| {
@@ -701,8 +839,11 @@ pub fn Accordion(
                     panel_ref,
                     trigger_id: trigger_id.clone(),
                     panel_hidden,
+                    panel_lifecycle,
                     open,
                     index,
+                    slot_projection,
+                    render_surface,
                     panel_surface_ref,
                     panel,
                 });
@@ -803,6 +944,7 @@ pub fn Accordion(
                 AccordionSelectionMode::Single => "single",
                 AccordionSelectionMode::Multiple => "multiple",
             }
+            data-slot-projection=slot_projection.as_str()
             data-disallow-empty-selection=disallow_empty_selection.then_some("true")
             data-variant=variant.as_str()
             data-ui-schema=move || agent_contract.get().schema_name

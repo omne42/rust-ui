@@ -1,0 +1,172 @@
+schema_version = "1"
+
+[component]
+name = "ColorSwatch"
+crate = "ui-color-swatch"
+
+[[inputs]]
+name = "color"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "color_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "size"
+ty = "ColorSwatchSize"
+default = "ColorSwatchSize::default()"
+controlled = false
+
+[[inputs]]
+name = "rounding"
+ty = "ColorSwatchRounding"
+default = "ColorSwatchRounding::default()"
+controlled = false
+
+[[inputs]]
+name = "shape"
+ty = "ColorSwatchShape"
+default = "ColorSwatchShape::default()"
+controlled = false
+
+[[inputs]]
+name = "is_bordered"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_decorative"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ColorSwatchMotion"
+default = "ColorSwatchMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-state + data-size + data-rounding + data-shape + data-alpha + data-has-color + data-bordered + data-bordered-source + data-decorative + data-decorative-source + data-aria-source + data-class-source + data-motion-source + role + aria-* + lang + dir"
+
+[[capabilities]]
+name = "context_compression_manifest"
+enabled = true
+
+[[capabilities]]
+name = "rbi_signature_projection"
+enabled = true
+
+[[capabilities]]
+name = "token_first_styles"
+enabled = true
+
+[[capabilities]]
+name = "headless_a11y_contract"
+enabled = true
+
+[[capabilities]]
+name = "component_motion_contract"
+enabled = true
+
+[[capabilities]]
+name = "agent-contract-markers"
+enabled = true
+
+[[capabilities]]
+name = "agent_contract_schema_markers"
+enabled = true
+
+[[agent_contract]]
+schema = "ui.color-swatch.agent-contract.v1"
+schema_version = "1"
+intent = "color-preview"
+action = "render"
+state_attr = "data-ui-state"
+source_attr = "data-ui-source"
+
+[[agent_contract_markers]]
+attr = "data-ui-schema"
+source = "logic::resolve_agent_contract().schema_attr"
+
+[[agent_contract_markers]]
+attr = "data-ui-schema-version"
+source = "logic::resolve_agent_contract().schema_version_attr"
+
+[[agent_contract_markers]]
+attr = "data-ui-intent"
+source = "logic::resolve_agent_contract().intent_attr"
+
+[[agent_contract_markers]]
+attr = "data-ui-action"
+source = "logic::resolve_agent_contract().action_attr"
+
+[[agent_contract_markers]]
+attr = "data-ui-state"
+source = "state.data_state_attr"
+
+[[agent_contract_markers]]
+attr = "data-ui-source"
+source = "state.aria_source_attr"
+
+[[agent_contract_whitelist]]
+name = "render_path"
+allowed = [
+  "logic::resolve_render_state(...)",
+  "logic::resolve_agent_contract()",
+  "use_color_swatch_a11y(...)",
+  "motion::sanitize_motion(...)",
+  "motion::attach_motion(...)",
+]
+blocked = ["inner_html", "<script", "javascript:", "eval("]
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "motion-driver"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "token-source"

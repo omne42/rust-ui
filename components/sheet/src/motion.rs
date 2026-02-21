@@ -107,52 +107,94 @@ pub fn attach_motion(
         let backdrop_initial = 0.0;
         let panel_opacity_initial = 0.0;
 
-        drop(style.set_property(
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
             "--ui-sheet-backdrop-opacity",
             &format!("{backdrop_initial}"),
-        ));
-        drop(style.set_property(
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
             "--ui-sheet-panel-opacity",
             &format!("{panel_opacity_initial}"),
-        ));
-        drop(style.set_property("--ui-sheet-panel-x", &format!("{x_initial}px")));
-        drop(style.set_property("--ui-sheet-panel-y", &format!("{y_initial}px")));
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-sheet-panel-x",
+            &format!("{x_initial}px")
+        );
+        ui_observability::set_css_property_observed_auto!(
+            &(style),
+            "--ui-sheet-panel-y",
+            &format!("{y_initial}px")
+        );
         if prefers_reduced_motion {
             let (target_backdrop, target_opacity, target_x, target_y) = if open_now {
                 (1.0, 1.0, 0.0, 0.0)
             } else {
                 (0.0, 0.0, x_initial, y_initial)
             };
-            drop(style.set_property("--ui-sheet-backdrop-opacity", &format!("{target_backdrop}")));
-            drop(style.set_property("--ui-sheet-panel-opacity", &format!("{target_opacity}")));
-            drop(style.set_property("--ui-sheet-panel-x", &format!("{target_x}px")));
-            drop(style.set_property("--ui-sheet-panel-y", &format!("{target_y}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-backdrop-opacity",
+                &format!("{target_backdrop}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-panel-opacity",
+                &format!("{target_opacity}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-panel-x",
+                &format!("{target_x}px")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-panel-y",
+                &format!("{target_y}px")
+            );
             return;
         }
 
         let style_for_backdrop = style.clone();
         let backdrop = ui_motion::spring::SpringAnimator::new(backdrop_initial, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            drop(style_for_backdrop.set_property("--ui-sheet-backdrop-opacity", &format!("{v}")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_backdrop),
+                "--ui-sheet-backdrop-opacity",
+                &format!("{v}")
+            );
         });
 
         let style_for_opacity = style.clone();
         let panel_opacity =
             ui_motion::spring::SpringAnimator::new(panel_opacity_initial, config, move |v| {
                 let v = v.clamp(0.0, 1.0);
-                drop(style_for_opacity.set_property("--ui-sheet-panel-opacity", &format!("{v}")));
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_opacity),
+                    "--ui-sheet-panel-opacity",
+                    &format!("{v}")
+                );
             });
 
         let style_for_x = style.clone();
         let panel_x = ui_motion::spring::SpringAnimator::new(x_initial, config, move |v| {
             let v = v.clamp(-5000.0, 5000.0);
-            drop(style_for_x.set_property("--ui-sheet-panel-x", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_x),
+                "--ui-sheet-panel-x",
+                &format!("{v}px")
+            );
         });
 
         let style_for_y = style.clone();
         let panel_y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
             let v = v.clamp(-5000.0, 5000.0);
-            drop(style_for_y.set_property("--ui-sheet-panel-y", &format!("{v}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style_for_y),
+                "--ui-sheet-panel-y",
+                &format!("{v}px")
+            );
         });
 
         let springs_for_cleanup = springs;
@@ -207,10 +249,26 @@ pub fn attach_motion(
                 (0.0, 0.0, x_initial, y_initial)
             };
 
-            drop(style.set_property("--ui-sheet-backdrop-opacity", &format!("{target_backdrop}")));
-            drop(style.set_property("--ui-sheet-panel-opacity", &format!("{target_opacity}")));
-            drop(style.set_property("--ui-sheet-panel-x", &format!("{target_x}px")));
-            drop(style.set_property("--ui-sheet-panel-y", &format!("{target_y}px")));
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-backdrop-opacity",
+                &format!("{target_backdrop}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-panel-opacity",
+                &format!("{target_opacity}")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-panel-x",
+                &format!("{target_x}px")
+            );
+            ui_observability::set_css_property_observed_auto!(
+                &(style),
+                "--ui-sheet-panel-y",
+                &format!("{target_y}px")
+            );
             if !open {
                 finish_exit.run(());
             }

@@ -89,9 +89,13 @@ fn action_button_group_emits_toolbar_semantics_and_state_attributes() {
         "data-enabled=state.is_enabled.then_some(\"true\")",
         "data-has-explicit-label=state.has_explicit_label.then_some(\"true\")",
         "data-has-fallback-label=state.has_fallback_label.then_some(\"true\")",
-        "role=\"toolbar\"",
-        "aria-orientation=state.orientation.aria_orientation()",
-        "aria-disabled=state.is_disabled.then_some(\"true\")",
+        "let toolbar_a11y = labeled_toolbar_attrs(",
+        "role=toolbar_a11y.role",
+        "aria-label=toolbar_a11y.aria_label.clone()",
+        "aria-orientation=toolbar_a11y.aria_orientation",
+        "aria-disabled=toolbar_a11y.aria_disabled",
+        "lang=toolbar_a11y.lang.clone()",
+        "dir=toolbar_a11y.dir",
     ] {
         assert!(
             source.contains(needle),

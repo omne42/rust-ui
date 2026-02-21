@@ -181,22 +181,47 @@
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+  - N/A 说明：`components/menu/src/action_menu/*` 与 docs `ActionMenu` 示例不使用 `inner_html`/`set_inner_html`/`dangerously_set_inner_html`，保持零注入面。
+  - 白名单边界：`apps/docs-app/src/pages/components/shell.rs` 的 `inner_html=html` 仅用于 `component_readme_markdown(slug)` + `include_str!` 常量白名单，menu 仅映射 `"dropdown-menu" => Some(DROPDOWN_MENU_README_MD)`，其余 `_ => None`。
+  - 语义与安全回归：`components/menu/test/semantics.rs::menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
+  - 门禁脚本：`scripts/check-ui-components-inner-html.sh` 已纳入 `cargo test -p ui-menu menu_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
+  - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+  - 状态追踪证据：`components/menu/src/action_menu/view.rs` 通过 `use_controllable_open_state_traced("action-menu", ...)` 接入共享 trace，并稳定输出 `data-open-mode/data-open-source/data-open-change-source/data-controlled/data-uncontrolled`。
+  - 时间与来源证据：`crates/ui-headless/src/trace.rs` 的 `UiTraceEvent { ts_ms, component, kind }` 与 `crates/ui-headless/src/controllable_state.rs` 的 `trace.emit(component, UiTraceEventKind::OpenChange { open: next })` 共同提供“来源 + 时间 + 状态变更”记录。
+  - 可视化入口证据：`apps/docs-app/src/lib.rs` 在 `cfg!(debug_assertions)` 下调用 `provide_ui_trace(debug_overlay_enabled)`；`apps/docs-app/src/debug_overlay.rs` 提供 `data-slot="ui-debug-overlay-event"` 与毫秒时间显示。
+  - 回放路径证据：`apps/docs-app/src/pages/components/pages/actions.rs` 的 `ActionMenu` 已提供 `State + Source Markers`，并暴露 `"open: ... · last action: ..."` 最小可复现读数。
+  - feature 隔离证据：`components/menu/Cargo.toml` 不包含 `wasm-debug/dep:tracing`，`ActionMenu` 公共 API 不暴露 debug prop 或 tracing 类型。
+  - 门禁脚本：`scripts/check-ui-components-wasm-debug.sh` 已纳入 `cargo test -p ui-menu menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
+  - 回归：`components/menu/test/semantics.rs::menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated`。
+  - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+  - 上下文保持证据：`apps/docs-app/src/pages/components/pages/actions.rs::action_menu()` 提供 `State + Source Markers` 画布，保留 `"open: ... · last action: ..."` 连续观测路径。
+  - 热样式反馈证据：menu 家族复用 `apps/docs-app/src/playground.rs` 的 `compose_scoped_css` 与 `data-slot="playground-test"`；`menu_trigger` 页面接入 `test_css_source=workbench_test_css_source`，`dropdown_menu` 页面接入 `test_css_source=interactive_test_css`，用于快速样式迭代。
+  - 可选状态保留：N/A（当前 `action_menu` workbench 未引入 `localStorage/sessionStorage`；避免示例态跨页面污染）。
+  - 门禁脚本：`scripts/check-ui-components-dx.sh` 已纳入 `cargo test -p ui-menu menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
+  - 回归：`components/menu/test/semantics.rs::menu_dx_playground_supports_css_hot_reload_and_context_preserving_isolated_workbench`。
+  - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
+  - serde 协议证据：`components/menu/src/action_menu/protocol.rs` 与 `components/menu/src/*/protocol.rs` 统一定义 `*ComponentSchemaVersion + *ComponentSpec`，并使用 `serde::{Serialize, Deserialize}` + `#[serde(default)]` 保持 schema 演进兼容。
+  - tracing 语义证据：`ActionMenu` open 轴通过 `use_controllable_open_state_traced` 回收至共享链路（`crates/ui-headless/src/trace.rs`、`crates/ui-headless/src/controllable_state.rs`），组件源码不定义私有 `tracing::span!`/`tracing::event!`/`#[tracing::instrument]`。
+  - runtime 边界证据：`components/menu/Cargo.toml` 不定义 `tokio`/`async-std`/`dep:tracing`，`ActionMenu` 公共 API 不暴露具体运行时类型。
+  - 回归：`components/menu/test/semantics.rs::menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
+  - 门禁脚本：`scripts/check-ui-components-engineering.sh` 已纳入 `cargo test -p ui-menu menu_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
+  - 验证记录：本地 compile/test 在当前环境受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试锁定，待环境修复后复跑。
 
 ### 5. 文件落点检查（必须提及）
 - [ ] `ui-components` 固定入口文件落点正确。

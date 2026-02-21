@@ -20,6 +20,21 @@ fn normalize_helpers_use_defaults_and_trim_custom_values() {
 
 #[test]
 fn sanitize_helpers_wrap_and_snap_values() {
+    assert_eq!(
+        normalize_state_inputs(Some(true), false, Some(false), true),
+        ColorWheelInputBoundary {
+            status: ColorWheelStatus::Disabled,
+            value_label_mode: ColorWheelValueLabelMode::Hidden,
+        }
+    );
+    assert_eq!(
+        normalize_state_inputs(None, true, None, false),
+        ColorWheelInputBoundary {
+            status: ColorWheelStatus::Disabled,
+            value_label_mode: ColorWheelValueLabelMode::Hidden,
+        }
+    );
+
     assert_eq!(sanitize_step(0.0), DEFAULT_STEP);
     assert_eq!(sanitize_step(120.0), 90.0);
 
@@ -29,6 +44,8 @@ fn sanitize_helpers_wrap_and_snap_values() {
     assert_eq!(sanitize_value(370.0, 1.0), 10.0);
     assert_eq!(sanitize_value(-15.0, 1.0), 345.0);
     assert_eq!(sanitize_value(14.0, 5.0), 15.0);
+    assert_eq!(resolve_default_value(None, 5.0), MIN_VALUE);
+    assert_eq!(resolve_default_value(Some(373.0), 5.0), 15.0);
 
     assert_eq!(parse_value(" 42.5 "), Some(42.5));
     assert_eq!(parse_value(""), None);
@@ -53,16 +70,26 @@ fn pointer_conversion_and_percent_are_stable() {
 }
 
 #[test]
+fn drag_end_action_resolves_once_at_macro_state_boundary() {
+    let resolved = resolve_action(Action::DragEnd {
+        value: 373.0,
+        step: 5.0,
+    });
+
+    assert_eq!(resolved, 15.0);
+}
+
+#[test]
 fn resolve_state_and_class_name_track_markers() {
     let state = resolve_state(ColorWheelStateInput {
-        disabled: false,
+        status: ColorWheelStatus::Active,
         value: 95.0,
         step: 1.0,
-        show_value_label: true,
-        has_custom_motion: true,
-        has_custom_label: true,
-        has_custom_aria_label: false,
-        has_custom_class_name: true,
+        value_label_mode: ColorWheelValueLabelMode::Visible,
+        motion_source: ColorWheelSource::Custom,
+        label_source: ColorWheelSource::Custom,
+        aria_source: ColorWheelSource::Default,
+        class_source: ColorWheelSource::Custom,
     });
 
     assert_eq!(state.data_state_attr, "active");

@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-disclosure {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-xs);
+  gap: var(--ui-space-xs, var(--ui-fallback-space-xs));
 }
 
 .ui-disclosure[data-motion-source="custom"],
@@ -14,20 +14,22 @@ pub const CSS: &str = r#"
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-sm);
+  gap: var(--ui-space-sm, var(--ui-fallback-space-sm));
   width: 100%;
 
-  border-radius: var(--ui-radius-md);
-  border: 1px solid var(--ui-border);
-  padding: var(--ui-space-sm) var(--ui-space-md);
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  padding: var(--ui-space-sm, var(--ui-fallback-space-sm))
+    var(--ui-space-md, var(--ui-fallback-space-md));
 
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-sm);
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 
-  font-size: var(--ui-font-size-200, 14px);
+  font-size: var(--ui-font-size-150, var(--ui-fallback-font-size-150));
   font-weight: var(--ui-font-weight-semibold, 600);
-  line-height: var(--ui-line-height-150, 20px);
+  line-height: var(--ui-line-height-150, var(--ui-fallback-line-height-150));
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -42,17 +44,18 @@ pub const CSS: &str = r#"
 }
 
 .ui-disclosure__trigger[data-hovered="true"]:not(:disabled) {
-  background: var(--ui-bg-muted);
+  background: var(--ui-bg-muted, var(--ui-fallback-bg-muted));
 }
 
 .ui-disclosure__trigger--focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-button-focus-outline-width, var(--ui-fallback-button-focus-outline-width))
+    solid var(--ui-focus-ring, var(--ui-fallback-focus-ring));
+  outline-offset: var(--ui-button-focus-outline-offset, var(--ui-fallback-button-focus-outline-offset));
 }
 
 .ui-disclosure__indicator {
-  width: 18px;
-  height: 18px;
+  width: var(--ui-icon-size-200, var(--ui-fallback-icon-size-200));
+  height: var(--ui-icon-size-200, var(--ui-fallback-icon-size-200));
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -69,14 +72,15 @@ pub const CSS: &str = r#"
   overflow: hidden;
   will-change: height, opacity, transform;
 
-  border-radius: var(--ui-radius-md);
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-  color: var(--ui-fg);
-  box-shadow: var(--ui-shadow-sm);
+  border-radius: var(--ui-radius-md, var(--ui-fallback-radius-md));
+  border: var(--ui-border-width, var(--ui-fallback-border-width)) solid
+    var(--ui-border, var(--ui-fallback-border));
+  background: var(--ui-bg, var(--ui-fallback-bg));
+  color: var(--ui-fg, var(--ui-fallback-fg));
+  box-shadow: var(--ui-shadow-sm, var(--ui-fallback-shadow-sm));
 }
 
 .ui-disclosure__panel-surface {
-  padding: var(--ui-space-md);
+  padding: var(--ui-space-md, var(--ui-fallback-space-md));
 }
 "#;

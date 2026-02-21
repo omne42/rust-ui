@@ -1,0 +1,55 @@
+schema_version = "1"
+
+[component]
+id = "ui-direction"
+name = "DirectionProvider"
+crate = "ui-direction"
+kind = "snapshot"
+manifest_version = 1
+
+[projection]
+rbi = "direction.rbi"
+
+[files]
+mod_rs = "mod.rs"
+logic_rs = "logic.rs"
+styles_rs = "styles.rs"
+view_rs = "view.rs"
+protocol_rs = "protocol.rs"
+
+[capabilities]
+context_compression_manifest = true
+rbi_signature_projection = true
+snapshot = true
+streaming = false
+spec_builder = false
+motion_runtime = false
+
+[a11y]
+supports_lang_dir = true
+
+[markers]
+required = [
+  "data-slot",
+  "data-direction",
+  "data-direction-source",
+  "data-ui-schema",
+  "data-ui-schema-version",
+  "data-ui-intent",
+  "data-ui-action",
+  "data-ui-state",
+  "data-ui-source",
+  "data-ui-stream-support",
+  "data-ui-stream-fallback",
+  "data-ui-output-status",
+  "lang",
+  "dir",
+]
+
+[agent_contract]
+schema = "ui.direction.agent-contract/v1"
+fields = ["intent", "action", "state", "source.direction", "output_status"]
+
+[output_state]
+default = "verified"
+allowed = ["draft", "verified", "submittable"]
