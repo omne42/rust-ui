@@ -14,7 +14,7 @@
 > 2) `mod.rs` 去除本地状态枚举定义，统一从 `logic`/`ui-state-primitives` 暴露 `ImageRadius/ImageShadow/ImageStatus`。  
 > 3) `view.rs` 接入 `lang/dir` locale attrs，并补齐 `data-state/data-radius/data-shadow/data-motion-source` 等稳定语义标记。  
 > 4) `styles.rs` 增补与语义标记对齐的状态选择器，并在 reduced-motion 下禁用缩放与 shimmer 动效。  
-> 5) 语义回归同步到 `crates/ui-components/tests/image_semantics.rs`；组件无受控状态轴、无异步请求、无 `inner_html`，对应条目按 N/A 通过。
+> 5) 语义回归同步到 `components/image/test/image_semantics.rs`；组件无受控状态轴、无异步请求、无 `inner_html`，对应条目按 N/A 通过。
 
 ### 1. 大骨架（架构边界与层职责）
 - [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
@@ -35,7 +35,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -49,7 +49,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -180,7 +180,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
@@ -313,4 +313,4 @@
 - [x] 暴露必要语义标记。
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
-- [x] 门禁完整通过（fmt/clippy/test/smoke 等）：`rustfmt --edition 2024 crates/ui-state-primitives/src/image.rs crates/ui-state-primitives/src/lib.rs crates/ui-components/src/image/logic.rs crates/ui-components/src/image/mod.rs crates/ui-components/src/image/view.rs crates/ui-components/tests/image_semantics.rs`、`CARGO_TARGET_DIR=target/image-check2 cargo test -p ui-state-primitives image`、`CARGO_TARGET_DIR=target/image-check2 cargo test -p ui-components --no-default-features --features component-image,inject-css --test image_semantics`、`CARGO_TARGET_DIR=target/image-check2 cargo clippy -p ui-components --no-default-features --features component-image,inject-css -- -D warnings`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-headless --no-default-features --features web`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-headless --no-default-features --features ssr`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-headless --no-default-features --features web,ssr`（按预期触发 `compile_error!`）、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-motion`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-motion --target wasm32-unknown-unknown`。
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）：`rustfmt --edition 2024 crates/ui-state-primitives/src/image.rs crates/ui-state-primitives/src/lib.rs crates/ui-components/src/image/logic.rs crates/ui-components/src/image/mod.rs crates/ui-components/src/image/view.rs components/image/test/image_semantics.rs`、`CARGO_TARGET_DIR=target/image-check2 cargo test -p ui-state-primitives image`、`CARGO_TARGET_DIR=target/image-check2 cargo test -p ui-components --no-default-features --features component-image,inject-css --test image_semantics`、`CARGO_TARGET_DIR=target/image-check2 cargo clippy -p ui-components --no-default-features --features component-image,inject-css -- -D warnings`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-image,inject-css`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-headless --no-default-features --features web`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-headless --no-default-features --features ssr`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-headless --no-default-features --features web,ssr`（按预期触发 `compile_error!`）、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-motion`、`CARGO_TARGET_DIR=target/image-check2 cargo check -p ui-motion --target wasm32-unknown-unknown`。

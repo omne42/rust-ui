@@ -26,7 +26,7 @@
 - [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   - `components/item` 当前无键盘/焦点/指针交互状态机，按单组件适用范围以 N/A 场景判定通过（无可下沉交互契约遗漏）。
   - A11y 共享工具已走 `ui-headless`：`components/item/src/logic.rs` 通过 `ui_headless::locale_attrs` 暴露 `lang/dir` 接入；`components/item/src/view.rs` 仅做语义挂载。
-  - 语义回归已具备：`crates/ui-components/tests/item_semantics.rs`（语义契约断言）与 `e2e/tests/docs_app_item_contract.spec.mjs`（关键流程与稳定语义选择器）。
+  - 语义回归已具备：`components/item/src/test/item_semantics.rs`（语义契约断言）与 `e2e/tests/docs_app_item_contract.spec.mjs`（关键流程与稳定语义选择器）。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -34,7 +34,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -54,7 +54,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -62,7 +62,7 @@
   - `components/item/src/mod.rs` 仅维护最小导出边界（`logic/styles/view` + 公共类型导出），未暴露 `web-sys`/DOM 平台细节类型。
   - `components/item/src/logic.rs` 负责归一与派生（`derive_item_render_state`/`derive_item_media_render_state`）；`components/item/src/view.rs` 仅做结构渲染与语义挂载；`components/item/src/styles.rs` 仅包含 token-first 静态样式。
   - `components/item` 当前无组件级动效语义，`motion.rs` 按 N/A 场景不设立；未重写 `status-primitives` 状态机或 `ui-headless` 交互契约。
-  - `components/item/src/test/semantics.rs` 已存在并覆盖边界回归（`file_responsibility_boundaries_are_explicit`、`component_directory_standard_layout_is_kept_for_item`、`public_api_surface_does_not_expose_platform_dom_types`）；`crates/ui-components/tests/item_semantics.rs` 保持聚合层语义回归。
+  - `components/item/src/test/semantics.rs` 已存在并覆盖边界回归（`file_responsibility_boundaries_are_explicit`、`component_directory_standard_layout_is_kept_for_item`、`public_api_surface_does_not_expose_platform_dom_types`）；`components/item/src/test/item_semantics.rs` 保持聚合层语义回归。
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
@@ -289,12 +289,12 @@
   - `components/item` 为静态组合原语（非高频交互组件），本项按单组件适用范围以 N/A 场景判定通过：关键预算目标为“无额外响应式状态/调度/动效驱动开销”。
   - `components/item/src/test/semantics.rs::performance_budget_surface_is_static_and_bounded_for_item` 已对预算边界给出可重复阈值约束：禁止 `create_signal/create_effect/create_memo`、`spawn_local/request_animation_frame/set_timeout/set_interval/tokio::spawn`，并禁止 `transition/animation/@keyframes` 运行时动画成本。
   - 预算可归因路径已固定到状态/渲染/样式层：上述测试分别扫描 `VIEW_SRC/LOGIC_SRC/STYLES_SRC`；配合 `motion_module_is_intentionally_absent_for_static_item_component` 与 `ui_motion_non_wasm_stub_contract_stays_available_without_item_motion_dependency`，可将回归定位到具体层。
-  - `Button/Input` 的 `render_count=1` 基线与 `crates/ui-components/tests/*` 的通用回归要求属于仓库级门禁；对 `item` 单组件按适用范围标记 N/A，不在本组件内重复建设跨组件计数基线。
+  - `Button/Input` 的 `render_count=1` 基线与 `components/*/test/**` 的通用回归要求属于仓库级门禁；对 `item` 单组件按适用范围标记 N/A，不在本组件内重复建设跨组件计数基线。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
   - `components/item` 当前无拖拽/高频交互语义，本项按单组件适用范围以 N/A 场景判定通过。
@@ -528,5 +528,5 @@
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
 - [x] 门禁完整通过（fmt/clippy/test/smoke 等）。
-  - 最终门禁证据（单组件范围）：语义/契约回归集中在 `components/item/src/test/semantics.rs` 与 `crates/ui-components/tests/item_semantics.rs`，E2E 覆盖在 `e2e/tests/docs_app_item_contract.spec.mjs`；文档/Playground 与对标策略已由对应语义测试锁定。
+  - 最终门禁证据（单组件范围）：语义/契约回归集中在 `components/item/src/test/semantics.rs` 与 `components/item/src/test/item_semantics.rs`，E2E 覆盖在 `e2e/tests/docs_app_item_contract.spec.mjs`；文档/Playground 与对标策略已由对应语义测试锁定。
   - 环境说明：当前沙箱执行 `cargo test -p ui-item` 在本机出现 `Invalid cross-device link (os error 18)`（与代码逻辑无关的文件系统限制）；因此门禁结论以已落库的语义回归、E2E 合同测试与文档契约校验为准，待基础设施恢复后再补跑完整编译门禁记录。

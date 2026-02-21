@@ -13,7 +13,7 @@
 - 已修复：状态原语下沉（新增 `crates/ui-state-primitives/src/label.rs`，`crates/ui-components/src/label/logic.rs` 仅保留对 primitives 的 re-export）。
 - 已修复：组件装配层纯化（`crates/ui-components/src/label/mod.rs` 改为导出 primitives 类型，不再内置状态原语定义）。
 - 已修复：A11y locale 接入（`crates/ui-components/src/label/view.rs` 新增 `lang/dir` props 并挂载 `ui_headless::locale_attrs`）。
-- 已补充：语义回归（`crates/ui-components/tests/label_semantics.rs` 增加 primitives 来源断言与 check2 完成态断言）。
+- 已补充：语义回归（`components/label/test/label_semantics.rs` 增加 primitives 来源断言与 check2 完成态断言）。
 - 已验证：`CARGO_TARGET_DIR=target-codex-label cargo check -p ui-components --no-default-features --features component-label,inject-css`。
 - 已验证：`CARGO_TARGET_DIR=target-codex-label cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-label,inject-css`。
 - 已验证：`CARGO_TARGET_DIR=target-codex-label cargo test -p ui-state-primitives label`。
@@ -38,7 +38,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -52,7 +52,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -172,7 +172,7 @@
   - `cargo tree -e features -i ui-components -p web-demo | rg all-components`
   - `Invalid cross-device link (os error 18)`
   - `components/label/test/semantics.rs::label_tree_shaking_contract_is_feature_gated_in_ui_components`
-  - `crates/ui-components/tests/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css`
+  - `components/label/test/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css`
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -207,7 +207,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
@@ -277,7 +277,7 @@
   - N/A：本次 `Label` 改动未引入跨大版本 API 破坏升级。
   - 版本锚点保持 `LabelComponentSchemaVersion::V1`、`schema_version = "1"` 与 `ui.label.agent-contract.v1`，当前无需注册 `deprecation_window` 或引入 `migrate_v1_to_v2` 迁移层。
   - `components/label/test/semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`
-  - `crates/ui-components/tests/label_semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`
+  - `components/label/test/label_semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui-components` 固定入口文件落点正确。
@@ -319,7 +319,7 @@
   - `components/label/src/Component.toml`
   - `components/label/src/label.rbi`
   - `label_context_compression_manifest_and_rbi_projection_are_present_and_current`
-  - `crates/ui-components/tests/label_semantics.rs::label_context_compression_manifest_and_rbi_projection_are_present_and_current`
+  - `components/label/test/label_semantics.rs::label_context_compression_manifest_and_rbi_projection_are_present_and_current`
 
 ### 7. 测试与文档（验证闭环）
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
@@ -329,12 +329,12 @@
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - `components/label/test/semantics.rs::label_a11y_i18n_l10n_contract_is_mounted_via_headless_and_props`
   - `components/label/test/semantics.rs::label_state_markers_are_observable_searchable_and_closed_set`
-  - `crates/ui-components/tests/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy`
-  - `crates/ui-components/tests/label_semantics.rs::label_state_markers_remain_observable_and_enumerated`
+  - `components/label/test/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy`
+  - `components/label/test/label_semantics.rs::label_state_markers_remain_observable_and_enumerated`
   - `components/label/test/semantics.rs::label_does_not_own_overlay_focus_stack_or_noderef_restore_logic`
-  - `crates/ui-components/tests/label_semantics.rs::label_remains_outside_overlay_focus_stack_responsibility`
+  - `components/label/test/label_semantics.rs::label_remains_outside_overlay_focus_stack_responsibility`
   - `components/label/test/semantics.rs::label_performance_budget_contract_stays_traceable_and_predictable`
-  - `crates/ui-components/tests/label_semantics.rs::label_performance_budget_contract_uses_source_level_budget_baseline`
+  - `components/label/test/label_semantics.rs::label_performance_budget_contract_uses_source_level_budget_baseline`
   - `Signal::derive` 单路径（预算=1）
   - `render_count` 精确计数在当前测试栈仍属仓库级能力
   - `Label` 非高频/重型组件按清单边界以等价证据通过
@@ -370,7 +370,7 @@
   - `data-slot="label-source-first"`
   - `compose_copy_ready_code`
   - `components/label/test/semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`
-  - `crates/ui-components/tests/label_semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`
+  - `components/label/test/label_semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports`
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
@@ -380,8 +380,8 @@
   - 字符串复制热点约束满足：上述非测试源码未出现 `.to_owned()` / `String::from(...)` / 热点 `.to_string()`；默认文案与状态来源由 `ui-state-primitives::label` 统一提供。
   - `components/label/test/semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`
   - `components/label/test/semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`
-  - `crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`
-  - `crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`
+  - `components/label/test/label_semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources`
+  - `components/label/test/label_semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`
   - 执行记录：`./scripts/check-rust-hygiene.sh` 已执行；当前环境 `rg` 缺少 PCRE2 且 `check-api-contracts` baseline drift 属仓库级噪声，组件级定向扫描结论不受影响。
 
 ### 8. 明确禁止的反模式

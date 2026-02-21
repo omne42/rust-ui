@@ -2435,7 +2435,6 @@ fn checkbox_wasm_debug_contract_is_explicitly_na_and_feature_isolated_locally() 
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(needle),
@@ -3084,10 +3083,10 @@ fn checkbox_check2_marks_interactive_playground_item_complete() {
         "components/checkbox/test/semantics.rs::checkbox_check2_documents_interactive_playground_rules",
         "components/checkbox/test/semantics.rs::checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/checkbox/test/semantics.rs::checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "crates/ui-components/tests/checkbox_semantics.rs::checkbox_check2_documents_interactive_playground_rules",
-        "crates/ui-components/tests/checkbox_semantics.rs::checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "crates/ui-components/tests/checkbox_semantics.rs::checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "crates/ui-components/tests/checkbox_semantics.rs::checkbox_dx_check_script_covers_interactive_playground_contract",
+        "components/checkbox/test/checkbox_semantics.rs::checkbox_check2_documents_interactive_playground_rules",
+        "components/checkbox/test/checkbox_semantics.rs::checkbox_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "components/checkbox/test/checkbox_semantics.rs::checkbox_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "components/checkbox/test/checkbox_semantics.rs::checkbox_dx_check_script_covers_interactive_playground_contract",
         "scripts/check-ui-components-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -3630,7 +3629,7 @@ fn checkbox_check2_marks_e2e_selector_stability_item_complete() {
         "components/checkbox/test/semantics.rs::checkbox_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/checkbox/test/semantics.rs::checkbox_e2e_contract_covers_ready_and_settled_conditions_for_checkbox_paths",
         "components/checkbox/test/semantics.rs::checkbox_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "crates/ui-components/tests/checkbox_semantics.rs::checkbox_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/checkbox/test/checkbox_semantics.rs::checkbox_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "scripts/check-ui-components-e2e-checkbox.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -3763,7 +3762,7 @@ fn checkbox_check2_marks_e2e_repeatable_key_flow_contract_complete() {
         "components/checkbox/test/semantics.rs::checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/checkbox/test/semantics.rs::checkbox_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
         "components/checkbox/test/semantics.rs::checkbox_e2e_check_script_covers_selector_and_key_flow_contracts",
-        "crates/ui-components/tests/checkbox_semantics.rs::checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "components/checkbox/test/checkbox_semantics.rs::checkbox_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "scripts/check-ui-components-e2e-checkbox.sh",
         "Invalid cross-device link (os error 18)",
     ] {

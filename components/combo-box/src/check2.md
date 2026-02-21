@@ -28,7 +28,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -42,7 +42,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -62,23 +62,23 @@
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`ComboBox` 的 open 轴由 `is_open + on_open_change + default_open` 组成，统一接入 `ui_headless::use_controllable_open_state_traced`；受控模式只发出变更请求不写内部状态，非受控模式由默认值初始化并由原语托管。回归：`crates/ui-headless/src/controllable_state.rs` 与 `crates/ui-components/tests/combo_box_semantics.rs` 中的 open-triplet 契约测试。）
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`ComboBox` 的 open 轴由 `is_open + on_open_change + default_open` 组成，统一接入 `ui_headless::use_controllable_open_state_traced`；受控模式只发出变更请求不写内部状态，非受控模式由默认值初始化并由原语托管。回归：`crates/ui-headless/src/controllable_state.rs` 与 `components/combo-box/test/combo_box_semantics.rs` 中的 open-triplet 契约测试。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ComboBox` 的 `normalize_accessibility_state` 与 `normalize_open_state` 将 `is_disabled` 默认 false、`is_required/is_invalid` 默认 false、open 轴归一全部集中在 `logic.rs`；`view.rs` 仅消费归一化结果并传给 headless。回归：`components/combo-box/src/logic.rs` 单测 + `crates/ui-components/tests/combo_box_semantics.rs` 的 no-inline-fallback 断言。）
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ComboBox` 的 `normalize_accessibility_state` 与 `normalize_open_state` 将 `is_disabled` 默认 false、`is_required/is_invalid` 默认 false、open 轴归一全部集中在 `logic.rs`；`view.rs` 仅消费归一化结果并传给 headless。回归：`components/combo-box/src/logic.rs` 单测 + `components/combo-box/test/combo_box_semantics.rs` 的 no-inline-fallback 断言。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`ComboBox` 新增 `RootStateInput/RootState + normalize_root_state`，把 id/label/placeholder/empty-message/toggle-aria/description/error/class/disabled-index + `resolve_state` 统一收敛到 `logic.rs`；`view.rs` 只消费 `root_state` 输出并挂载事件。回归：`components/combo-box/src/logic.rs` 的 `normalize_root_state_centralizes_normalization_and_state_derivation` + `crates/ui-components/tests/combo_box_semantics.rs` 的 no-inline-state-derivation 断言。）
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`ComboBox` 新增 `RootStateInput/RootState + normalize_root_state`，把 id/label/placeholder/empty-message/toggle-aria/description/error/class/disabled-index + `resolve_state` 统一收敛到 `logic.rs`；`view.rs` 只消费 `root_state` 输出并挂载事件。回归：`components/combo-box/src/logic.rs` 的 `normalize_root_state_centralizes_normalization_and_state_derivation` + `components/combo-box/test/combo_box_semantics.rs` 的 no-inline-state-derivation 断言。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ComboBox` 将根离散状态 `data-state` 从 `view.rs` 字符串分支下沉为 `logic.rs` 的 `RootDataState`（`Open/Disabled/Closed`）+ `resolve_root_data_state`，`view.rs` 仅消费 `.as_attr()` 输出，避免互斥状态用裸字符串拼装。回归：`components/combo-box/src/logic.rs` 的 enum 单测 + `crates/ui-components/tests/combo_box_semantics.rs` 的 enum 合同断言。）
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ComboBox` 将根离散状态 `data-state` 从 `view.rs` 字符串分支下沉为 `logic.rs` 的 `RootDataState`（`Open/Disabled/Closed`）+ `resolve_root_data_state`，`view.rs` 仅消费 `.as_attr()` 输出，避免互斥状态用裸字符串拼装。回归：`components/combo-box/src/logic.rs` 的 enum 单测 + `components/combo-box/test/combo_box_semantics.rs` 的 enum 合同断言。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`ComboBox` 继续通过 `logic.rs` 的 `pub use ui_state_primitives::combo_box::{...}` 消费原语，未在组件层重写 `normalize_disabled_indices/filter/map/resolve_state`；组件语义测试新增“禁止重写原语函数”和“禁止业务 store 类型直绑”断言，确保只存在适配边界。回归：`crates/ui-components/tests/combo_box_semantics.rs`。）
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`ComboBox` 继续通过 `logic.rs` 的 `pub use ui_state_primitives::combo_box::{...}` 消费原语，未在组件层重写 `normalize_disabled_indices/filter/map/resolve_state`；组件语义测试新增“禁止重写原语函数”和“禁止业务 store 类型直绑”断言，确保只存在适配边界。回归：`components/combo-box/test/combo_box_semantics.rs`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
@@ -173,7 +173,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
@@ -306,4 +306,4 @@
 - [x] 暴露必要语义标记。
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
-- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（组件作用域门禁已通过记录：`rustfmt crates/ui-components/tests/combo_box_semantics.rs`、`cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css`、`cargo clippy -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css -- -D warnings`；仓库默认特性全量编译当前被并行改动中的其他模块阻塞，已观测错误位于 `ui-headless/color_area` 与 `ui-components/color_slider/dropdown`，非本组件改动引入。）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（组件作用域门禁已通过记录：`rustfmt components/combo-box/test/combo_box_semantics.rs`、`cargo test -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css`、`cargo clippy -p ui-components --test combo_box_semantics --no-default-features --features component-combo_box,inject-css -- -D warnings`；仓库默认特性全量编译当前被并行改动中的其他模块阻塞，已观测错误位于 `ui-headless/color_area` 与 `ui-components/color_slider/dropdown`，非本组件改动引入。）

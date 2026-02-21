@@ -108,9 +108,9 @@ pub fn attach_motion(
     mode: leptos::prelude::Signal<ThemeMode>,
     motion: ThemeToggleMotion,
 ) {
-    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
+    use ui_observability::set_css_property_observed;
 
     let motion = StoredValue::new(sanitize_motion(motion));
     let driver = StoredValue::new_local(None::<Rc<RefCell<ThemeToggleMotionDriver>>>);

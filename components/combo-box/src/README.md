@@ -137,7 +137,7 @@ view! {
 
 ## Testing Contract
 
-- 语义契约测试：`crates/ui-components/tests/combo_box_semantics.rs`
+- 语义契约测试：`components/combo-box/test/combo_box_semantics.rs`
 - docs 页面示例：`apps/docs-app/src/pages/components/pages/collections.rs`
 - 组件页 E2E 覆盖：`e2e/tests/docs_app_components_coverage.spec.mjs`
 

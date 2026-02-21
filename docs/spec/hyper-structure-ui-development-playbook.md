@@ -145,7 +145,7 @@ Button 已完成第一轮落地，可作为模板：
 - Struct-First：`crates/ui-components/src/button/spec.rs`
 - 语义反射：`crates/ui-components/src/button/view.rs`（`data-ui-schema`）
 - 逻辑归一：`crates/ui-components/src/button/logic.rs`
-- 语义测试：`crates/ui-components/tests/button_semantics.rs`
+- 语义测试：`components/button/test/button_semantics.rs`
 
 下一优先级建议：
 

@@ -53,8 +53,8 @@ pub fn attach_motion(
     is_copied: Signal<bool>,
     motion: ButtonCopyMotion,
 ) {
-    use crate::observability::set_css_property_observed;
     use leptos::wasm_bindgen::JsCast;
+    use ui_observability::set_css_property_observed;
 
     let motion = StoredValue::new(sanitize_motion(motion));
     let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);

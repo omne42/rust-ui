@@ -109,7 +109,8 @@ resolve_semantics_test_file() {
   local slug="$1"
   local slug_us="${slug//-/_}"
   local candidates=(
-    "crates/ui-components/tests/${slug_us}_semantics.rs"
+    "components/${slug}/test/${slug_us}_semantics.rs"
+    "components/${slug}/src/test/${slug_us}_semantics.rs"
     "crates/ui-layout/tests/${slug_us}_semantics.rs"
     "components/${slug}/tests/${slug_us}_semantics.rs"
     "components/${slug}/test/${slug_us}.rs"

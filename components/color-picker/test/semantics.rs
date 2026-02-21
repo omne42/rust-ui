@@ -130,7 +130,7 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../docs/plan/TODO.md" => include_str!("../../../docs/plan/TODO.md"),
         "../../components/color-picker/check2.md" => include_str!("../check2.md"),
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/color_picker_semantics.rs")
+            include_str!("../../../components/color-picker/test/color_picker_semantics.rs")
         }
         _ => panic!("unsupported source path: {rel_path}"),
     }
@@ -3331,7 +3331,6 @@ fn color_picker_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(needle),

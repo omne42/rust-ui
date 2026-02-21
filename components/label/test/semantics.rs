@@ -720,7 +720,7 @@ fn label_context_compression_manifest_and_rbi_projection_are_present_and_current
         "components/label/src/Component.toml",
         "components/label/src/label.rbi",
         "label_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "crates/ui-components/tests/label_semantics.rs::label_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "components/label/test/label_semantics.rs::label_context_compression_manifest_and_rbi_projection_are_present_and_current",
     ] {
         assert!(
             CHECK2_SOURCE.contains(required),
@@ -819,7 +819,7 @@ fn label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted() {
         "components/label/src/view.rs",
         "components/label/src/Component.toml",
         "label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted",
-        "crates/ui-components/tests/label_semantics.rs::label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted",
+        "components/label/test/label_semantics.rs::label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted",
     ] {
         assert!(
             CHECK2_SOURCE.contains(required),
@@ -835,7 +835,7 @@ fn label_streaming_definition_is_llm_output_only_with_two_modes() {
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "label_streaming_definition_is_llm_output_only_with_two_modes",
-        "crates/ui-components/tests/label_semantics.rs::label_streaming_definition_is_llm_output_only_with_two_modes",
+        "components/label/test/label_semantics.rs::label_streaming_definition_is_llm_output_only_with_two_modes",
     ] {
         assert!(
             CHECK2_SOURCE.contains(required),
@@ -890,7 +890,7 @@ fn label_snapshot_is_baseline_capability_and_consumes_complete_result() {
         "components/label/src/Component.toml",
         "components/label/src/view.rs",
         "label_snapshot_is_baseline_capability_and_consumes_complete_result",
-        "crates/ui-components/tests/label_semantics.rs::label_snapshot_is_baseline_capability_and_consumes_complete_result",
+        "components/label/test/label_semantics.rs::label_snapshot_is_baseline_capability_and_consumes_complete_result",
     ] {
         assert!(
             CHECK2_SOURCE.contains(required),
@@ -954,7 +954,7 @@ fn label_streaming_requirement_is_optional_for_non_reader_component_with_snapsho
         "`Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。",
         "`Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。",
         "label_streaming_requirement_is_optional_for_non_reader_component_with_snapshot_fallback",
-        "crates/ui-components/tests/label_semantics.rs::label_streaming_requirement_is_optional_for_non_reader_component_with_snapshot_fallback",
+        "components/label/test/label_semantics.rs::label_streaming_requirement_is_optional_for_non_reader_component_with_snapshot_fallback",
     ] {
         assert!(
             CHECK2_SOURCE.contains(required),
@@ -1304,7 +1304,7 @@ fn label_tree_shaking_contract_is_feature_gated_in_ui_components() {
         "cargo tree -e features -i ui-components -p web-demo | rg all-components",
         "Invalid cross-device link (os error 18)",
         "components/label/test/semantics.rs::label_tree_shaking_contract_is_feature_gated_in_ui_components",
-        "crates/ui-components/tests/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css",
+        "components/label/test/label_semantics.rs::label_tree_shaking_is_feature_gated_across_cargo_lib_and_css",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -1662,12 +1662,12 @@ fn label_semantic_and_performance_regression_contract_is_scoped_and_traceable() 
         "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
         "components/label/test/semantics.rs::label_a11y_i18n_l10n_contract_is_mounted_via_headless_and_props",
         "components/label/test/semantics.rs::label_state_markers_are_observable_searchable_and_closed_set",
-        "crates/ui-components/tests/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy",
-        "crates/ui-components/tests/label_semantics.rs::label_state_markers_remain_observable_and_enumerated",
+        "components/label/test/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy",
+        "components/label/test/label_semantics.rs::label_state_markers_remain_observable_and_enumerated",
         "components/label/test/semantics.rs::label_does_not_own_overlay_focus_stack_or_noderef_restore_logic",
-        "crates/ui-components/tests/label_semantics.rs::label_remains_outside_overlay_focus_stack_responsibility",
+        "components/label/test/label_semantics.rs::label_remains_outside_overlay_focus_stack_responsibility",
         "components/label/test/semantics.rs::label_performance_budget_contract_stays_traceable_and_predictable",
-        "crates/ui-components/tests/label_semantics.rs::label_performance_budget_contract_uses_source_level_budget_baseline",
+        "components/label/test/label_semantics.rs::label_performance_budget_contract_uses_source_level_budget_baseline",
         "Signal::derive` 单路径（预算=1）",
         "render_count` 精确计数在当前测试栈仍属仓库级能力",
         "`Label` 非高频/重型组件按清单边界以等价证据通过",
@@ -1686,15 +1686,15 @@ fn label_semantic_test_priority_regression_contract_is_scoped_and_traceable() {
         "components/label/test/semantics.rs::label_a11y_i18n_l10n_contract_is_mounted_via_headless_and_props",
         "components/label/test/semantics.rs::label_state_markers_are_observable_searchable_and_closed_set",
         "components/label/test/semantics.rs::label_tests_prioritize_semantic_contract_over_visual_snapshot",
-        "crates/ui-components/tests/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy",
-        "crates/ui-components/tests/label_semantics.rs::label_state_markers_remain_observable_and_enumerated",
-        "crates/ui-components/tests/label_semantic_contract_tests_are_primary_not_visual_snapshot_only",
+        "components/label/test/label_semantics.rs::label_exposes_a11y_i18n_l10n_hooks_without_hardcoded_view_copy",
+        "components/label/test/label_semantics.rs::label_state_markers_remain_observable_and_enumerated",
+        "components/label/test/label_semantics.rs::label_semantic_contract_tests_are_primary_not_visual_snapshot_only",
         "label_api_is_leaf_projection_not_parent_item_container",
         "label_does_not_own_overlay_focus_stack_or_noderef_restore_logic",
         "label_machine_readable_state_contract_is_type_constrained_and_locatable",
         "label_agent_contract_schema_markers_are_typed_traceable_and_whitelisted",
         "components/label/test/semantics.rs::label_semantic_test_priority_regression_contract_is_scoped_and_traceable",
-        "crates/ui-components/tests/label_semantics.rs::label_semantic_test_priority_regression_contract_is_scoped_and_traceable",
+        "components/label/test/label_semantics.rs::label_semantic_test_priority_regression_contract_is_scoped_and_traceable",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -1714,7 +1714,7 @@ fn label_e2e_selector_stability_contract_uses_semantic_markers_and_wasm_ready_wa
         "body:not(:has(#boot))",
         "data-ui-output-status=\"verified\"",
         "components/label/test/semantics.rs::label_e2e_selector_stability_contract_uses_semantic_markers_and_wasm_ready_waits",
-        "crates/ui-components/tests/label_semantics.rs::label_e2e_selector_stability_contract_uses_semantic_markers_and_wasm_ready_waits",
+        "components/label/test/label_semantics.rs::label_e2e_selector_stability_contract_uses_semantic_markers_and_wasm_ready_waits",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -1757,7 +1757,7 @@ fn label_key_flow_regression_collection_is_repeatable_and_semantically_locatable
         "focus/keyboard",
         "overlay/async",
         "components/label/test/semantics.rs::label_key_flow_regression_collection_is_repeatable_and_semantically_locatable",
-        "crates/ui-components/tests/label_semantics.rs::label_key_flow_regression_collection_is_repeatable_and_semantically_locatable",
+        "components/label/test/label_semantics.rs::label_key_flow_regression_collection_is_repeatable_and_semantically_locatable",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -1798,7 +1798,7 @@ fn label_version_deprecation_migration_registry_is_explicitly_na_without_major_b
         "schema_version = \"1\"",
         "ui.label.agent-contract.v1",
         "components/label/test/semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
-        "crates/ui-components/tests/label_semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
+        "components/label/test/label_semantics.rs::label_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -2128,7 +2128,7 @@ fn label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_im
         "data-slot=\"label-source-first\"",
         "compose_copy_ready_code",
         "components/label/test/semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports",
-        "crates/ui-components/tests/label_semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports",
+        "components/label/test/label_semantics.rs::label_docs_product_contract_is_copy_paste_ready_with_playground_matrix_and_imports",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -2186,7 +2186,7 @@ fn label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_an
         "components/label/src/{mod,logic,view,styles,motion}.rs",
         "`component-label`/`inject-css`",
         "components/label/test/semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code",
-        "crates/ui-components/tests/label_semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code",
+        "components/label/test/label_semantics.rs::label_source_first_docs_are_copy_paste_ready_with_real_paths_prerequisites_and_synced_code",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -2247,7 +2247,7 @@ fn label_heroui_strategy_and_component_docs_sync_contract_is_documented_and_inde
         "components/label/src/README.md",
         "不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`",
         "components/label/test/semantics.rs::label_heroui_strategy_and_component_docs_sync_contract_is_documented_and_indexable",
-        "crates/ui-components/tests/label_semantics.rs::label_heroui_strategy_and_component_docs_sync_contract_is_documented_and_indexable",
+        "components/label/test/label_semantics.rs::label_heroui_strategy_and_component_docs_sync_contract_is_documented_and_indexable",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -2297,7 +2297,7 @@ fn label_docs_sync_contract_covers_examples_matrices_and_logic_api_names() {
         "Streaming Optional (fallback=snapshot)",
         "is_required/is_disabled/emphasis/for_id/required_indicator/class_name",
         "components/label/test/semantics.rs::label_docs_sync_contract_covers_examples_matrices_and_logic_api_names",
-        "crates/ui-components/tests/label_semantics.rs::label_docs_sync_contract_covers_examples_matrices_and_logic_api_names",
+        "components/label/test/label_semantics.rs::label_docs_sync_contract_covers_examples_matrices_and_logic_api_names",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -2372,7 +2372,7 @@ fn label_interactive_playground_contract_supports_live_controls_and_repeatable_a
         "docs-app label uses semantic selectors with wasm-stable readiness waits",
         "docs-app label key flow is repeatable with semantic focus breakpoints",
         "components/label/test/semantics.rs::label_interactive_playground_contract_supports_live_controls_and_repeatable_acceptance_flow",
-        "crates/ui-components/tests/label_semantics.rs::label_interactive_playground_contract_supports_live_controls_and_repeatable_acceptance_flow",
+        "components/label/test/label_semantics.rs::label_interactive_playground_contract_supports_live_controls_and_repeatable_acceptance_flow",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -2429,7 +2429,7 @@ fn label_documentation_as_product_contract_is_beginner_friendly_and_progressive(
         "进阶需求再按需开启 `emphasis`、`required_indicator`、`lang/dir`、`class_name`",
         "## Docs Playground（展示 / Config / Code / CSS Test）",
         "components/label/test/semantics.rs::label_documentation_as_product_contract_is_beginner_friendly_and_progressive",
-        "crates/ui-components/tests/label_semantics.rs::label_documentation_as_product_contract_is_beginner_friendly_and_progressive",
+        "components/label/test/label_semantics.rs::label_documentation_as_product_contract_is_beginner_friendly_and_progressive",
     ] {
         assert!(
             CHECK2_SOURCE.contains(needle),
@@ -2825,8 +2825,8 @@ fn label_check2_marks_rust_hygiene_contract_complete_with_scope_evidence() {
         "字符串复制热点约束满足：上述非测试源码未出现 `.to_owned()` / `String::from(...)` / 热点 `.to_string()`；默认文案与状态来源由 `ui-state-primitives::label` 统一提供。",
         "components/label/test/semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources",
         "components/label/test/semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "crates/ui-components/tests/label_semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "components/label/test/label_semantics.rs::label_rust_hygiene_contract_disallows_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "components/label/test/label_semantics.rs::label_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "执行记录：`./scripts/check-rust-hygiene.sh` 已执行；当前环境 `rg` 缺少 PCRE2 且 `check-api-contracts` baseline drift 属仓库级噪声，组件级定向扫描结论不受影响。",
     ] {
         assert!(

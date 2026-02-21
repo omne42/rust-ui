@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -140,7 +140,7 @@
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
-  - 语义契约断言已存在：`components/contextual-help/test/semantics.rs` 与 `crates/ui-components/tests/contextual_help_semantics.rs` 覆盖 `role/aria/data-*` 与 source markers（含 `role="dialog"`、`aria-*`、`data-state/data-open-mode/data-*-source`）。
+  - 语义契约断言已存在：`components/contextual-help/test/semantics.rs` 与 `components/contextual-help/test/contextual_help_semantics.rs` 覆盖 `role/aria/data-*` 与 source markers（含 `role="dialog"`、`aria-*`、`data-state/data-open-mode/data-*-source`）。
   - 关键分支覆盖（按适用范围）：受控/非受控与 disabled 由 `components/contextual-help/test/logic.rs` + 语义测试覆盖；键盘/指针交互路径由委托层测试覆盖（如 `components/popover/src/test/logic.rs` 的 Escape 关闭契约、`crates/ui-headless/src/test/*` 的 press/pointer 处理）。
   - SSR/wasm 差异覆盖（按适用范围）：`crates/ui-headless/src/popover_position.rs` 同时提供 wasm 与 non-wasm 分支（含 stub/no-op 路径），并有对应定位契约测试。
   - 当前无视觉快照作为唯一依据；断言主轴为语义契约与状态来源标记。
@@ -254,7 +254,7 @@
   - 预算与可重复基线：`apps/docs-app/src/pages/components/shell.rs` 通过 `UiPerfProbe + UiPerfBudget` 为组件页提供统一预算入口（`component_page_perf_budget`），并有 mount-only 基线兜底。
   - 阻断式回归检查：`scripts/check-ui-components-performance.sh` 已将 `Button`、`Input` 预算契约测试与 `render_count` 后续计划检查纳入 gate，失败可直接阻断。
   - 可归因性：`ContextualHelp` 在 `view.rs` 输出 `data-open-source` / `data-open-change-source` / `data-motion-source` 等来源标记，语义测试可直接定位回归来源。
-  - `render_count` 自动化现状：当前以“等价证据 + 明确追踪”执行，`crates/ui-components/tests/accordion_semantics.rs` 维护 `perf_render_count_follow_up_is_tracked_in_plan`；待测试框架支持精确计数后补齐自动化断言。
+  - `render_count` 自动化现状：当前以“等价证据 + 明确追踪”执行，`components/accordion/test/accordion_semantics.rs` 维护 `perf_render_count_follow_up_is_tracked_in_plan`；待测试框架支持精确计数后补齐自动化断言。
   - 组件回归证据：`components/contextual-help/test/semantics.rs::contextual_help_performance_governance_has_budgeted_equivalent_evidence`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 语义拆分已落地：`components/contextual-help/src/view.rs` 把 trigger icon 提取为 `render_trigger_icon(...)`，把触发器与面板渲染拆为 `trigger_view` / `panel_view`，主 `view!` 仅做装配。
@@ -405,8 +405,8 @@
   - 验证命令：`cargo tree -e features -p ui-components --no-default-features --features component-contextual_help,inject-css`（最小特性树仅拉起 contextual-help 依赖链）。
   - 验证命令：`cargo tree -e features -i ui-components -p web-demo`（反向依赖链确认由 `web-demo-components` 按特性集合引入，非无条件全量依赖）。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 证据（`aria-*`）：`crates/ui-components/tests/contextual_help_semantics.rs::contextual_help_panel_preserves_non_modal_dialog_semantics` 锁定 `role="dialog"`、`aria-modal`、`aria-label/labelledby/describedby` 语义挂载。
-  - 证据（`data-*`）：`components/contextual-help/test/semantics.rs::contextual_help_state_contract_is_type_bounded_and_machine_readable` 与 `crates/ui-components/tests/contextual_help_semantics.rs::contextual_help_emits_baseline_style_state_data_attributes` 锁定 `data-state/data-open-mode/data-*-source` 等稳定标记。
+  - 证据（`aria-*`）：`components/contextual-help/test/contextual_help_semantics.rs::contextual_help_panel_preserves_non_modal_dialog_semantics` 锁定 `role="dialog"`、`aria-modal`、`aria-label/labelledby/describedby` 语义挂载。
+  - 证据（`data-*`）：`components/contextual-help/test/semantics.rs::contextual_help_state_contract_is_type_bounded_and_machine_readable` 与 `components/contextual-help/test/contextual_help_semantics.rs::contextual_help_emits_baseline_style_state_data_attributes` 锁定 `data-state/data-open-mode/data-*-source` 等稳定标记。
   - 证据（焦点流转）：`components/contextual-help/test/semantics.rs::contextual_help_focus_restore_delegates_to_headless_focus_manager` 锁定焦点恢复委托链（`use_focus_trap` + `FOCUS_MANAGER_STACK` + `restore_focus_chain`），避免组件层手写焦点回落。
   - 证据（性能回归）：`components/contextual-help/test/semantics.rs::contextual_help_performance_governance_has_budgeted_equivalent_evidence` 锁定 docs-app 预算探针、阻断脚本与可归因标记，并校验 `perf_render_count_follow_up_is_tracked_in_plan` 的自动化追踪。
   - 适用性说明：`ContextualHelp` 非高频/重型渲染组件，当前走 mount-only 预算与等价证据路径；`render_count` 精确计数由仓库统一计划跟踪（非本组件局部缺失）。
@@ -419,11 +419,11 @@
   - 证据（受控/非受控对照）：`Info Variant + Controlled` 展示 `open + on_open_change`；Workbench 通过 `Controlled mode` 开关在 `open/on_open_change` 与 `default_open` 路径间切换并实时渲染。
   - 证据（流式/快照展现）：新增 `Streaming/Snapshot Display` Playground，明确展示 `Streaming Optional; fallback=snapshot` 与 `data-ui-output-mode=snapshot|streaming` 契约说明。
   - 证据（Source-first 一键复制 + imports）：新增 `Source-first / Copy-Paste Ready` 区块与 `Copy starter`；同时 Playground 代码复制统一走 `apps/docs-app/src/playground.rs::compose_copy_ready_code`，默认补全 `use leptos::prelude::*;` 与 `use ui_components::*;`。
-  - 回归锁定：`crates/ui-components/tests/contextual_help_semantics.rs::contextual_help_docs_page_covers_primary_playgrounds` 与 `crates/ui-components/tests/contextual_help_semantics.rs::contextual_help_docs_playgrounds_lock_state_matrix_contract_values`。
+  - 回归锁定：`components/contextual-help/test/contextual_help_semantics.rs::contextual_help_docs_page_covers_primary_playgrounds` 与 `components/contextual-help/test/contextual_help_semantics.rs::contextual_help_docs_playgrounds_lock_state_matrix_contract_values`。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 证据（组件级语义测试文件）：`components/contextual-help/test/semantics.rs` 已存在并作为组件目录主语义回归入口，覆盖 `data-*`、`aria-*`、`role`、状态来源与焦点恢复契约。
   - 证据（聚焦语义契约）：`contextual_help_state_contract_is_type_bounded_and_machine_readable`、`contextual_help_focus_restore_delegates_to_headless_focus_manager`、`contextual_help_streaming_requirement_is_optional_with_snapshot_fallback_and_status_marker` 均直接断言语义标记与状态来源链路，而非视觉快照。
-  - 证据（仓库级镜像回归）：`crates/ui-components/tests/contextual_help_semantics.rs` 的 `contextual_help_emits_baseline_style_state_data_attributes` 与 `contextual_help_panel_preserves_non_modal_dialog_semantics` 锁定 `data-*` 与 `role/aria-*` 契约。
+  - 证据（仓库级镜像回归）：`components/contextual-help/test/contextual_help_semantics.rs` 的 `contextual_help_emits_baseline_style_state_data_attributes` 与 `contextual_help_panel_preserves_non_modal_dialog_semantics` 锁定 `data-*` 与 `role/aria-*` 契约。
   - 证据（新增/变更语义字段同步测试）：`data-ui-output-mode`、`data-ui-output-status`、`data-ui-streaming-requirement`、`data-ui-streaming-fallback`、`data-ui-schema/*` 均已有对应语义断言，变更未出现“字段新增但无测试”。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
@@ -450,7 +450,7 @@
   - 证据（参数矩阵）：新增 `data-slot="contextual-help-api-matrix"` 区块，显式列出 `variant`、`placement`、`open/on_open_change/default_open`、`is_disabled` 与 `disabled` 兼容别名、`motion`、`id/lang/dir` 等参数及默认值来源。
   - 证据（状态矩阵）：新增 `data-slot="contextual-help-state-matrix"` 区块，显式列出 `data-open-mode`、`data-state`、`data-variant`、`data-placement` 与 source markers；`size` 轴标注 `N/A`（触发器固定 `ButtonSize::IconSm`）。
   - 证据（API 命名与默认值一致）：文档示例统一使用规范 `is_disabled`；同时在参数矩阵注明 `disabled` 为兼容别名，优先级与默认值由 `components/contextual-help/src/logic.rs::resolve_is_disabled`、`resolve_open_state_config` 对齐。
-  - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_docs_sync_keeps_examples_and_matrixes_aligned_with_logic` 与 `crates/ui-components/tests/contextual_help_semantics.rs::{contextual_help_docs_page_covers_primary_playgrounds, contextual_help_docs_playgrounds_lock_state_matrix_contract_values}`。
+  - 回归锁定：`components/contextual-help/test/semantics.rs::contextual_help_docs_sync_keeps_examples_and_matrixes_aligned_with_logic` 与 `components/contextual-help/test/contextual_help_semantics.rs::{contextual_help_docs_page_covers_primary_playgrounds, contextual_help_docs_playgrounds_lock_state_matrix_contract_values}`。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。

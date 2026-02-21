@@ -1628,7 +1628,7 @@ fn empty_state_semantic_and_performance_regression_contract_is_covered() {
     let check2_source = load_workspace_source("components/empty-state/check2.md");
     let view_source = load_component_source("view.rs");
     let ui_components_semantics =
-        load_workspace_source("crates/ui-components/tests/empty_state_semantics.rs");
+        load_workspace_source("components/empty-state/test/empty_state_semantics.rs");
 
     for required in [
         "role=live_region.role",
@@ -1676,7 +1676,7 @@ fn empty_state_semantic_tests_prioritize_contract_over_visual_snapshot() {
     let component_semantics_source =
         load_workspace_source("components/empty-state/test/semantics.rs");
     let ui_components_semantics_source =
-        load_workspace_source("crates/ui-components/tests/empty_state_semantics.rs");
+        load_workspace_source("components/empty-state/test/empty_state_semantics.rs");
 
     for required in [
         "role=live_region.role",

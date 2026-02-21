@@ -1558,15 +1558,11 @@ fn slider_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     let e2e_source = load_source("../../e2e/tests/docs_app_slider_contract.spec.mjs");
     let slider_check2_source = load_source("src/slider/check2.md");
 
-    for needle in [
-        "macro_rules! wasm_debug_proxy",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
-    ] {
-        assert!(
-            crate_root_source.contains(needle),
-            "ui-components should keep wasm debug capability isolated via `{needle}`."
-        );
-    }
+    let needle = "macro_rules! wasm_debug_proxy";
+    assert!(
+        crate_root_source.contains(needle),
+        "ui-components should keep wasm debug capability isolated via `{needle}`."
+    );
 
     for needle in [
         "accordion-wasm-debug = [\"component-accordion\", \"dep:tracing\"]",

@@ -100,5 +100,5 @@
 
 ## Tests and Docs
 
-- 语义契约测试：`crates/ui-components/tests/context_menu_semantics.rs`
+- 语义契约测试：`components/menu/test/context_menu_semantics.rs`
 - docs-app 页面：`apps/docs-app/src/pages/components/pages/collections_command.rs` 中 `context_menu()`

@@ -76,7 +76,7 @@
 
 ## Test Contract
 
-- Semantic tests: `crates/ui-components/tests/field_error_semantics.rs`.
+- Semantic tests: `components/field-error/test/field_error_semantics.rs`.
 - Coverage includes tone mapping, source markers, hidden/disabled behavior, and docs anchors.
 
 ## docs-app Entry

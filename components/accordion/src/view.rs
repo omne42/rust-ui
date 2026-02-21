@@ -454,7 +454,7 @@ fn focus_trigger(trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
         return;
     };
     if let Err(error) = el.focus() {
-        crate::observability::warn_js_error("accordion.view.focus_trigger", &error);
+        ui_observability::warn_js_error("accordion.view.focus_trigger", &error);
     }
 }
 

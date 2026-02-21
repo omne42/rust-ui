@@ -719,8 +719,7 @@ fn modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over
     let view_source = load_source("src/view.rs");
     let overlay_view_source = load_source("../../components/overlay/src/view.rs");
     let local_semantics_source = load_source("test/semantics.rs");
-    let workspace_semantics_source =
-        load_source("../../crates/ui-components/tests/modal_semantics.rs");
+    let workspace_semantics_source = load_source("../../components/modal/test/modal_semantics.rs");
     let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
 
     for marker in [
@@ -1925,7 +1924,6 @@ fn modal_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root_source.contains(needle),
@@ -4434,7 +4432,7 @@ fn modal_check2_marks_rust_hygiene_contract_complete() {
 #[test]
 fn modal_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement() {
     let local_semantics = load_source("test/semantics.rs");
-    let aggregated_semantics = load_source("../../crates/ui-components/tests/modal_semantics.rs");
+    let aggregated_semantics = load_source("../../components/modal/test/modal_semantics.rs");
     let modal_view_source = load_source("src/view.rs");
     let overlay_view_source = load_source("../../components/overlay/src/view.rs");
     let focus_trap_source = load_source("../../crates/ui-headless/src/focus_trap.rs");
@@ -4569,7 +4567,7 @@ fn modal_check2_marks_semantic_test_priority_item_complete() {
     for marker in [
         "components/modal/test/semantics.rs::modal_semantic_tests_cover_contract_matrix_and_do_not_rely_on_snapshots_only",
         "components/modal/test/semantics.rs::modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-        "crates/ui-components/tests/modal_semantics.rs::modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+        "components/modal/test/modal_semantics.rs::modal_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
         "scripts/check-ui-components-performance.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -4737,7 +4735,7 @@ fn modal_check2_marks_e2e_selector_stability_item_complete() {
         "components/modal/test/semantics.rs::modal_check2_documents_e2e_selector_and_stable_wait_rules",
         "components/modal/test/semantics.rs::modal_e2e_contract_uses_semantic_selectors_and_stable_waits",
         "components/modal/test/semantics.rs::modal_e2e_contract_covers_ready_and_settled_conditions_for_overlay_dismissal",
-        "crates/ui-components/tests/modal_semantics.rs::modal_e2e_contract_uses_semantic_selectors_and_stable_waits",
+        "components/modal/test/modal_semantics.rs::modal_e2e_contract_uses_semantic_selectors_and_stable_waits",
         "scripts/check-ui-components-e2e-modal.sh",
         "Invalid cross-device link (os error 18)",
     ] {

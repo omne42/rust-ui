@@ -10,7 +10,7 @@ fn load_source(path: &str) -> &'static str {
         "check2" => include_str!("../check2.md"),
         "check2_src" => include_str!("../src/check2.md"),
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/color_thumb_semantics.rs")
+            include_str!("../../../components/color-thumb/test/color_thumb_semantics.rs")
         }
         _ => panic!("unsupported source path: {path}"),
     }
@@ -1211,7 +1211,6 @@ fn color_thumb_wasm_debug_contract_reuses_shared_trace_and_stays_feature_isolate
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root_source.contains(needle),
@@ -4342,7 +4341,7 @@ fn color_thumb_checklist_marks_ui_components_definition_complete() {
             "color-thumb check2 should include explicit machine-readable semantic marker rationale.",
         );
         assert!(
-            source.contains("`components/color-thumb/test/logic.rs`、`components/color-thumb/test/semantics.rs` 与 `crates/ui-components/tests/color_thumb_semantics.rs`"),
+            source.contains("`components/color-thumb/test/logic.rs`、`components/color-thumb/test/semantics.rs` 与 `components/color-thumb/test/color_thumb_semantics.rs`"),
             "color-thumb check2 should include explicit contract-regression coverage rationale.",
         );
     }

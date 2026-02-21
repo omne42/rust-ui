@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -44,7 +44,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -54,7 +54,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
   - N/A 说明：`NativeSelect` 当前无组件级 `motion.rs`；该组件无 enter/exit/open/close 动效状态轴，仅保留样式层 token 驱动的轻量 transition。
   - 证据：已新增 `components/native-select/test/semantics.rs`，并在 `components/native-select/src/mod.rs` 通过 `#[path = \"../test/semantics.rs\"]` 挂载组件内语义回归。
 
@@ -64,7 +64,7 @@
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
   - 证据：`components/native-select/src/view.rs` 公共布尔 props 已统一为 `is_disabled` / `is_required` / `is_invalid`，`on_selected_index_change` 与 `default_selected_index` 保持前缀契约。
-  - 迁移路径：移除旧别名 `disabled` / `required` / `invalid`（避免同义并存）；调用侧改为 `is_disabled` / `is_required` / `is_invalid`（已同步 `apps/docs-app/src/pages/components/pages/forms_native.rs` 与 `crates/ui-components/tests/native_select_semantics.rs`）。
+  - 迁移路径：移除旧别名 `disabled` / `required` / `invalid`（避免同义并存）；调用侧改为 `is_disabled` / `is_required` / `is_invalid`（已同步 `apps/docs-app/src/pages/components/pages/forms_native.rs` 与 `components/native-select/test/native_select_semantics.rs`）。
 - [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
@@ -85,28 +85,28 @@
   - 样式层只消费状态标记，不承担状态判定职责。
   - 证据：`components/native-select/src/logic.rs` 新增 `NativeSelectStateParams`、`resolve_states_for_render`、`resolve_selected_index_correction`，状态输入类型化与派生统一在逻辑层完成。
   - 视图侧约束：`components/native-select/src/view.rs` 不再直接构造 `NativeSelectStateInput` 或调用 primitive `resolve_state`，仅消费 `logic.rs` 派生结果并挂载语义。
-  - 回归：`components/native-select/test/logic.rs` 与 `components/native-select/test/semantics.rs` 增加状态归一化集中约束；`crates/ui-components/tests/native_select_semantics.rs` 同步校验逻辑入口。
+  - 回归：`components/native-select/test/logic.rs` 与 `components/native-select/test/semantics.rs` 增加状态归一化集中约束；`components/native-select/test/native_select_semantics.rs` 同步校验逻辑入口。
 - [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
   - 证据：离散轴 `size` 由 `NativeSelectSize` 枚举建模（`components/native-select/src/logic.rs`，`components/native-select/src/view.rs` 公开 `size: NativeSelectSize`）。
   - 输入边界：`NativeSelect` 无 `variant/mode/status` 字符串输入；若未来新增字符串兼容入口，必须先映射为 enum 后进入 `logic.rs`（当前为 N/A）。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 已增加“禁止 stringly/Option<bool> 离散输入”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 已增加“禁止 stringly/Option<bool> 离散输入”断言。
 - [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
   - 证据：`components/native-select/src/logic.rs` 对 `normalize_options/resolve_options/sanitize_selected_index/resolve_state` 均委托 `ui_state_primitives::native_select::*`，组件层仅做装配映射。
   - 边界：`components/native-select/src/view.rs` 未直接绑定业务 store（无 `Store`/`use_store` 等依赖）；应用级状态接入当前为 N/A（无全局 store 直连路径）。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“状态原语来源 + 禁止业务 store 直绑”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“状态原语来源 + 禁止业务 store 直绑”断言。
 - [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
   - N/A 说明：`NativeSelect` 当前仅处理同步选项归一化与选择变更（`on:change` -> `selected_index`），无远程请求、无异步状态机、无重试流。
   - 证据：`components/native-select/src/view.rs` 与 `components/native-select/src/logic.rs` 未定义 `is_loading`/`aria-busy`/`retry`/`use_async_action` 等异步协议入口。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无异步协议暴露”断言，防止后续组件私有异步语义漂移。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无异步协议暴露”断言，防止后续组件私有异步语义漂移。
 - [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
@@ -116,44 +116,44 @@
   - 证据：`components/native-select/src/view.rs` 公共 API 仅强制 `id_base + options`，受控与扩展能力（`selected_index/on_selected_index_change/default_selected_index`、`is_*`、`size`、`aria_label` 等）全部为可选。
   - 证据：组件未暴露必填内部状态对象（无 `state=...` 必填入口），基础使用不需要直接接线 `ui-state-primitives` / `ui-headless`。
   - docs：`apps/docs-app/src/pages/components/pages/forms_native.rs` 新增 `Hello World (Uncontrolled)`，最小示例为 4 行 `<NativeSelect ... />` 调用（不计导入/外层模板）。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增 DX 约束断言（最小示例存在 + 无必填内部状态对象）。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增 DX 约束断言（最小示例存在 + 无必填内部状态对象）。
 - [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
   - N/A 说明：`NativeSelect` 不是 `<Parent><Item/>` 插槽型容器组件；其等价约束是“选项语义必须在单一 item 结构中绑定”。
   - 证据：公共输入为 `options: Vec<NativeSelectOption>`，单个 `NativeSelectOption` 同时承载 `value/label/disabled`，无 `labels + children` / `titles + panels` 并行数组入口。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无并行数组 API + item 语义同结构绑定”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无并行数组 API + item 语义同结构绑定”断言。
 
 ### 3. 高级交互与物理机制（Shell/Physics）
 - [x] 宏观/微观双状态机（Macro/Micro Duality）：拖拽等高频交互在 `Dragging` 期间由 `view/motion` 本地循环执行；禁止每帧穿越回 `logic.rs`，必须在结束时通过 `Action::DragEnd` 回流收敛。
   - N/A 说明：`NativeSelect` 无拖拽类高频物理交互（无 `Dragging` 生命周期），仅存在原生 `<select>` 的离散 `change` 事件。
   - 证据：`components/native-select/src/view.rs` 仅挂载 `on:change`，无 `pointermove/mousemove/touchmove/drag` 循环与 `Action::DragEnd` 回流路径；组件当前也无 `motion.rs`。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无 Dragging 双状态机路径”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无 Dragging 双状态机路径”断言。
 - [x] 几何两段式渲染（Two-Pass Rendering）：`Tooltip/Popover/Menu` 等依赖 DOM 测量的组件必须走 `Intent -> Measure(view) -> Rectification(logic)`，并具备幂等收敛保护防死循环。
   - N/A 说明：`NativeSelect` 不依赖 DOM 几何测量进行位置校正；组件不包含 overlay/浮层定位链路，交互由原生 `<select>` 离散 `change` 事件驱动。
   - 证据：`components/native-select/src/view.rs` / `logic.rs` 未出现 `getBoundingClientRect`、`ResizeObserver`、`IntersectionObserver`、`Rectification` 等测量-回流逻辑。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无 Two-Pass 几何测量路径”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无 Two-Pass 几何测量路径”断言。
 - [x] 集合注册协议（Registration Protocol）：`Accordion/Tabs/Menu` 动态子项必须通过 `RegistrationContext` 上报 `Register/Unregister`，逻辑层维护 `items_order`，禁止依赖 `HashSet` 迭代顺序做导航。
   - N/A 说明：`NativeSelect` 不是动态注册子项容器；选项集合由 `options: Vec<NativeSelectOption>` 一次性输入并按顺序渲染，不存在运行时 `Register/Unregister` 协议。
   - 证据：`components/native-select/src/view.rs` 通过 `<For each=move || resolved_options.get() ...>` 按 `Vec` 顺序渲染 `<option>`；`crates/ui-state-primitives/src/native_select.rs::resolve_options` 以 `iter().enumerate()` 生成稳定顺序，未使用 `HashSet`。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无 RegistrationContext 协议 + 顺序来源为 Vec/enumerate”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无 RegistrationContext 协议 + 顺序来源为 Vec/enumerate”断言。
 - [x] 插槽投影策略（Slot Projection）：容器组件明确 `Lazy/KeepAlive/Eager`；`KeepAlive` 隐藏时必须通过生命周期通知（如 `NotifyHidden`）暂停轮询/动画等高耗能副作用。
   - N/A 说明：`NativeSelect` 非容器投影组件，不管理子面板挂载策略；仅渲染原生 `<select>` 与 `<option>` 集合，不存在 `Lazy/KeepAlive/Eager` 策略位。
   - 证据：`components/native-select/src/view.rs` 无 `Lazy/KeepAlive/Eager/NotifyHidden` 生命周期分支与副作用暂停逻辑；组件也无轮询任务与组件级动效循环。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无 Slot Projection 生命周期协议”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无 Slot Projection 生命周期协议”断言。
 - [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。
   - N/A 说明：`NativeSelect` 无环境订阅驱动的响应式布局/可见性逻辑；组件行为由 props 与原生 `change` 事件决定，不采样 `Resize/Theme/Intersection` 流。
   - 证据：`components/native-select/src/view.rs` / `logic.rs` 未出现 `ResizeObserver`、`IntersectionObserver`、`BreakpointChanged`、`matchMedia`、`debounce/throttle` 等环境事件管线。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无 Env Streams 订阅管线”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无 Env Streams 订阅管线”断言。
 - [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。
   - N/A 说明：`NativeSelect` 非大集合批量操作组件；仅处理单一 `<select>` 值变更，不存在跨子树批量广播与选择状态压缩场景。
   - 证据：`components/native-select/src/view.rs` 仅通过 `on:change` 触发单轴 `selected_index` 变更；`logic.rs` 无 `Context Bus`/`Selector`/`SelectionState::All` 协议实现。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无 Event Light Cone 批量总线路径”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无 Event Light Cone 批量总线路径”断言。
 - [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。
   - N/A 说明：`NativeSelect` 不存在复杂派生总线操作；交互链路为原生 `on:change` 直接映射 `selected_index`，无命令总线广播与订阅者级联。
   - 证据：`components/native-select/src/view.rs` 仅在 `on:change` 中计算 `next_index` 并调用 `request_selected_index_change.run(next_index)`；`components/native-select/src/logic.rs` 无 `TraceId`/publish/subscribe/bus 派生协议实现。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“无 Causality Bus / TraceId 透传链路”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“无 Causality Bus / TraceId 透传链路”断言。
 - [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
@@ -162,7 +162,7 @@
   - 证据：`components/native-select/src/view.rs` 使用原生 `<select>` 键盘路径并挂载 headless 输出的 `aria-label/aria-invalid/disabled/required`；`lang/dir` 通过 props 透传到 `ui_headless::use_native_select(NativeSelectOptions { ... })`。
   - 文本来源：选项文本来自 `NativeSelectOption.label`，占位文本来自 `placeholder` prop，`aria_label` 支持外部传入；未提供时回退到 `crates/ui-state-primitives/src/native_select.rs::DEFAULT_ARIA_LABEL`，`view.rs` 不硬编码业务可见文案（装饰符号 `"▾"` 带 `aria-hidden="true"`）。
   - 共享工具：`crates/ui-headless/src/native_select.rs` 通过 `use crate::a11y::{A11yDirection, locale_attrs};` 复用 `crates/ui-headless/src/a11y.rs`，组件层仅消费契约。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“a11y+i18n 文本来源与 shared a11y 工具链路”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“a11y+i18n 文本来源与 shared a11y 工具链路”断言。
 - [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
@@ -171,19 +171,19 @@
   - 证据：`components/native-select/src/view.rs` 根节点已输出稳定状态轴标记（`data-state/data-size/data-disabled/data-invalid/data-required/data-selected-index/data-selected-value/data-has-selection`），并在 control 节点挂载 `aria-label/aria-invalid` 等语义属性。
   - 来源标记：新增 `data-selection-mode`（`controlled|uncontrolled`）、`data-selection-source`（`external|default|internal`）、`data-change-source`（`initial|user|external|internal|sync-effect`），覆盖受控模式、值来源与交互来源。
   - 选择器约束：标记均为稳定 `data-*`/`aria-*`，可直接被自动化选择器消费，无需依赖 DOM 顺序或临时 class。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“可观测/可检索/可验证 marker + 封闭值域”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“可观测/可检索/可验证 marker + 封闭值域”断言。
 - [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
   - 证据：`components/native-select/src/styles.rs` 状态分支全部基于稳定 class（如 `.ui-native-select--invalid/.ui-native-select--selected/.ui-native-select--empty/.ui-native-select--disabled`）与语义属性伪类（`:disabled`、`:focus-visible`），未使用 `:nth-child`/`:nth-of-type`。
   - 证据：`components/native-select/src/view.rs` 不注入业务 inline style（无 `style=`），运行时仅输出语义 marker（`data-*`/`aria-*`）与稳定 class，视觉切换由这些标记直接驱动。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“styles 依赖显式状态标记、禁止脆弱结构猜测与 inline style 业务逻辑”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“styles 依赖显式状态标记、禁止脆弱结构猜测与 inline style 业务逻辑”断言。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-  - 证据：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 已覆盖 `aria-*`、`data-state`、来源标记（`data-selection-*`/`data-change-source`）与 `on:change` 交互路径，并包含受控/非受控与 `is_disabled` 契约断言。
+  - 证据：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 已覆盖 `aria-*`、`data-state`、来源标记（`data-selection-*`/`data-change-source`）与 `on:change` 交互路径，并包含受控/非受控与 `is_disabled` 契约断言。
   - 适用范围：`NativeSelect` 无组件自定义 SSR/wasm 分支（`view.rs`/`logic.rs` 无 `#[cfg(...)]`、`web_sys`、`wasm_bindgen`），该项以“无分支漂移”语义断言覆盖。
   - 非快照约束：组件与 workspace 语义测试均断言不依赖 `insta::`/`assert_snapshot!` 等快照宏；视觉快照不作为本组件契约判定来源。
   - 回归：新增 `native_select_semantics_contract_tests_cover_key_matrix_without_snapshot_dependency`（组件内 + workspace）。
@@ -196,14 +196,14 @@
   - 证据：`components/native-select/src/mod.rs` 仅保留模块装配与公开导出；`NativeSelectState` 已回迁到 `components/native-select/src/logic.rs`，`mod.rs` 不再承载状态实现细节。
   - 证据：`logic.rs` 仅做归一/派生与来源标记映射（无 `view!`/`on:change`/`web_sys`）；`styles.rs` 仅包含 token-first 静态 CSS（`var(--ui-*)`）；`view.rs` 仅挂载结构与 headless 语义契约。
   - N/A 说明：`NativeSelect` 当前无组件级 `motion.rs`，且无 enter/exit/open/close 语义动效轴；组件源码未引入 `ui_motion::` 或 `mod motion` 路径。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“文件职责边界 + motion N/A”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“文件职责边界 + motion N/A”断言。
 - [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
   - N/A 说明：`NativeSelect` 为简单原生 `<select>` 包装组件，无独立外部 Schema 契约与版本迁移需求，不引入 `spec.rs`。
   - 证据：组件目录仅含 `mod.rs/logic.rs/styles.rs/view.rs`（无 `src/spec.rs`）；`mod.rs` 未挂载 `mod spec` 导出路径。
-  - 回归：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 新增“simple component 禁止引入 spec.rs”断言。
+  - 回归：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 新增“simple component 禁止引入 spec.rs”断言。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
@@ -212,7 +212,7 @@
   - 证据：`components/native-select/src/styles.rs` 作为组件样式唯一落点（`pub const CSS`），视觉值使用 `var(--ui-*)`（如 `--ui-border/--ui-radius-md/--ui-bg/--ui-fg`），组件源码未引入私有 token 命名空间。
   - 证据：`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 按组件特性聚合；`crates/ui-components/Cargo.toml` 声明 `inject-css` 与 `component-native_select` 特性链路。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未引入 Tailwind/utility class 协议与 CSS-in-Rust（如 `style!`/`css!`/`stylist`）默认路径；`view.rs` 也不注入业务 `style=`。
-  - 回归：`components/native-select/test/semantics.rs::native_select_token_first_static_style_contract_is_enforced` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_token_first_static_style_contract_is_enforced`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_token_first_static_style_contract_is_enforced` 与 `components/native-select/test/native_select_semantics.rs::native_select_token_first_static_style_contract_is_enforced`。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -221,7 +221,7 @@
   - 证据：`components/native-select/src/styles.rs` 以 token-first 样式提供清晰层级（`size` 轴使用 `font-size/line-height`）、自然对比（`--ui-bg/--ui-fg/--ui-border`）与交互反馈（`:hover/:active/:focus-visible`）。
   - 证据：`apps/docs-app/src/pages/components/pages/forms_native.rs` 提供默认主题基线展示（`Hello World (Uncontrolled)`、`Controlled + Placeholder`、`Required + Invalid + Disabled`），可直接用于视觉验收与回归对照。
   - N/A 说明：子条目“Button/Input/Overlay 截图基线”属于仓库级视觉治理任务，不在 `NativeSelect` 单组件边界内；本组件侧仅确保自身默认主题观感与交互反馈可验证。
-  - 回归：`components/native-select/test/semantics.rs::native_select_visual_desire_theme_baseline_is_enforced` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_visual_desire_theme_baseline_is_enforced`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_visual_desire_theme_baseline_is_enforced` 与 `components/native-select/test/native_select_semantics.rs::native_select_visual_desire_theme_baseline_is_enforced`。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
@@ -235,7 +235,7 @@
   - 证据：`crates/ui-components/src/lib.rs` 的全量注册表仅位于 `#[cfg(feature = "all-components")] mod all_components { ... }`；web-demo 聚合位于 `#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))]`，不存在无条件全量可达入口。
   - 验证记录：执行 `cargo tree -e features -p ui-components --no-default-features --features component-native_select,inject-css`，输出仅出现 `ui-native-select`（`ui-accordion`/`all-components` 未出现）；执行 `cargo tree -e features -i ui-components -p web-demo`，出现 `web-demo-components` 与 `inject-css`，未出现 `all-components`。
   - N/A 说明：`CI 最小特性 wasm 编译` 与 `体积预算阈值阻断` 属于仓库级流水线治理，不在 `NativeSelect` 单组件清单中单独落地；组件侧以特性门控与依赖闭包证据保证不破坏该治理前提。
-  - 回归：`components/native-select/test/semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped` 与 `components/native-select/test/native_select_semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -245,22 +245,22 @@
   - 证据：无效索引在 `logic.rs` 通过 `sanitize_selected_index` 与 `resolve_selected_index_correction` 统一归一化；核心状态收敛由 `resolve_states_for_render` -> `ui_state_primitives::native_select::resolve_state` 生成，可在纯 Rust 语义测试中验证。
   - 证据：`components/native-select/src/view.rs` 公开稳定机器可读标记：`data-state/data-size/data-selected-index/data-selected-value/data-selection-mode/data-selection-source/data-change-source` 与 `aria-*`，可直接供 Agent 与自动化消费。
   - 证据：契约破坏可直接定位到对应测试：离散输入类型约束、归一化入口、语义标记封闭值域均有独立测试函数命名与断言信息。
-  - 回归：`components/native-select/test/semantics.rs::native_select_type_system_and_semantic_markers_form_machine_readable_contract` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_type_system_and_semantic_markers_form_machine_readable_contract`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_type_system_and_semantic_markers_form_machine_readable_contract` 与 `components/native-select/test/native_select_semantics.rs::native_select_type_system_and_semantic_markers_form_machine_readable_contract`。
 
 ### 4. DOM/环境边界治理
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。
   - N/A 说明：`NativeSelect` 非层叠 `Overlay` 组件，不创建焦点陷阱栈，也不存在 overlay 关闭后的焦点恢复目标管理语义。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 无 `NodeRef` 私有恢复目标、无 `use_focus_trap/RestorePolicy/FallbackTo/Selector` 路径、无 `provide_overlay_stack/use_overlay_stack_registration` 与 `document.body` 操作。
-  - 回归：`components/native-select/test/semantics.rs::native_select_has_no_overlay_focus_stack_gc_path` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_has_no_overlay_focus_stack_gc_path`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_has_no_overlay_focus_stack_gc_path` 与 `components/native-select/test/native_select_semantics.rs::native_select_has_no_overlay_focus_stack_gc_path`。
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。
   - N/A 说明：`NativeSelect` 是原生 `<select>` 装配组件，当前无 ECharts/Map 等命令式第三方实例接入，不存在 `Foreign Zone` 生命周期托管需求。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未出现 `YieldControl/CleanupForeign`、未暴露第三方实例句柄、无 `js_sys`/`wasm_bindgen::JsValue`/`HtmlCanvasElement` 命令式桥接路径。
-  - 回归：`components/native-select/test/semantics.rs::native_select_has_no_foreign_zone_escape_hatch_path` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_has_no_foreign_zone_escape_hatch_path`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_has_no_foreign_zone_escape_hatch_path` 与 `components/native-select/test/native_select_semantics.rs::native_select_has_no_foreign_zone_escape_hatch_path`。
 - [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。
   - 适用说明：`NativeSelect` 通过外部 `id_base` 注入确定性种子，作为组件级 `IdProvider` 等价入口；组件内所有稳定 ID 均从该 seed 派生。
   - 证据：`components/native-select/src/view.rs` 使用 `id_base` 生成 `{id_base}-root` / `{id_base}-control`；`crates/ui-state-primitives/src/native_select.rs` 的 `resolve_options` 生成 `{id_base}-option-{index}`，SSR 与 Hydration 读取同一输入可得到同一 ID。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 与 `crates/ui-state-primitives/src/native_select.rs` 未使用 `now()` / `uuid` / `rand` 等非确定性源。
-  - 回归：`components/native-select/test/semantics.rs::native_select_hydration_ids_are_deterministic_without_time_or_random_sources` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_hydration_ids_are_deterministic_without_time_or_random_sources`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_hydration_ids_are_deterministic_without_time_or_random_sources` 与 `components/native-select/test/native_select_semantics.rs::native_select_hydration_ids_are_deterministic_without_time_or_random_sources`。
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
@@ -269,7 +269,7 @@
   - 环境阻塞说明（非组件契约回归）：三条命令均在依赖编译阶段失败并报 `Invalid cross-device link (os error 18)`；失败点位于 `.rmeta` 写入（`/tmp/rust-ui-target/...`），非 `NativeSelect` 平台分支逻辑错误。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 无 `#[cfg(...)]` 平台分支、无 `web_sys`/`wasm_bindgen`/`js_sys` 浏览器对象直连；组件平台差异不依赖运行时偶然行为。
   - 证据：平台特性边界由 `ui-headless` 显式管理：`crates/ui-headless/Cargo.toml` 定义 `default = ["web"]`、`web = ["leptos/csr"]`、`ssr = ["leptos/ssr"]`，并由 `crates/ui-headless/src/lib.rs` 的 `compile_error!` 约束 `web`/`ssr` 互斥。
-  - 回归：`components/native-select/test/semantics.rs::native_select_ssr_and_cross_platform_compile_contract_is_preserved` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_ssr_and_cross_platform_compile_contract_is_preserved`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_ssr_and_cross_platform_compile_contract_is_preserved` 与 `components/native-select/test/native_select_semantics.rs::native_select_ssr_and_cross_platform_compile_contract_is_preserved`。
 - [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
@@ -278,7 +278,7 @@
   - 证据：`crates/ui-headless/Cargo.toml` 明确定义 `default = ["web"]`、`web = ["leptos/csr"]`、`ssr = ["leptos/ssr"]`；`components/native-select/Cargo.toml` 仅依赖 `ui-headless`，未在组件层重定义冲突特性分支。
   - compile-only 证据（2026-02-20 执行记录）：`CARGO_TARGET_DIR=/tmp/rust-ui-target cargo check -p ui-headless --no-default-features --features web`、`CARGO_TARGET_DIR=/tmp/rust-ui-target cargo check -p ui-headless --no-default-features --features ssr`、`CARGO_TARGET_DIR=/tmp/rust-ui-target cargo check -p ui-headless --no-default-features --features web,ssr`（预期命中 `compile_error!`）。
   - 环境阻塞说明（非契约回归）：当前三条命令均被 `Invalid cross-device link (os error 18)` 阻断于依赖 `.rmeta` 写入阶段，未形成组件逻辑回归证据。
-  - 回归：`components/native-select/test/semantics.rs::native_select_respects_ui_headless_web_ssr_compile_error_mutex` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_respects_ui_headless_web_ssr_compile_error_mutex`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_respects_ui_headless_web_ssr_compile_error_mutex` 与 `components/native-select/test/native_select_semantics.rs::native_select_respects_ui_headless_web_ssr_compile_error_mutex`。
 - [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
@@ -286,7 +286,7 @@
   - N/A 说明：`NativeSelect` 当前无组件级 `motion.rs`，组件层不存在 `attach_motion` 调用路径，也不存在对动画句柄必然存在的假设。
   - 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web` no-op/stub：`prefers_reduced_motion() -> true` 与 `animate(...) {}`，并有 `non_wasm_web_backend_is_predictable_noop` 回归。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未引入 `ui_motion`、`mod motion` 或 `attach_motion`；non-wasm/SSR/tooling 不会因组件动效路径触发 panic。
-  - 回归：`components/native-select/test/semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract` 与 `components/native-select/test/native_select_semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`。
 - [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
@@ -295,19 +295,19 @@
   - 证据：`crates/ui-motion/src/lib.rs` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `prefers_reduced_motion() -> true` 与 `animate(...) {}`，并包含 `non_wasm_web_backend_is_predictable_noop` 测试，保证 non-wasm/SSR/tooling 可预测降级。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 不含 `#[cfg(...)]` / `web_sys` / `wasm_bindgen` 分支；SSR 与 wasm 走同一语义渲染路径，不发生平台语义分裂。
   - 证据：SSR/Hydration ID 稳定性由 `id_base` 派生链路保证（`{id_base}-root` / `{id_base}-control` / `{id_base}-option-{index}`），避免首帧语义错位。
-  - 回归：`components/native-select/test/semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved` 与 `components/native-select/test/native_select_semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
   - 组件级预算（NativeSelect）：空闲预算为“初始化后无外部变更时不触发高频循环”；关键更新预算为“单次 `on:change` 仅提交一次 `request_selected_index_change.run(next_index)`”。
   - 可检测证据：`components/native-select/src/view.rs` 仅使用离散 `on:change`，并通过 `Signal::derive`/`Effect` 承载有限状态收敛；未引入 `on:input/on:pointermove/on:mousemove`、`requestAnimationFrame/setInterval`、`ResizeObserver/IntersectionObserver/matchMedia` 洪泛路径。
   - 可归因证据：状态成本集中在 `components/native-select/src/logic.rs`（归一化/派生）；渲染路径集中在 `components/native-select/src/view.rs`；样式成本集中在 `components/native-select/src/styles.rs`（静态 token CSS）；动效路径 N/A（无组件 `motion.rs`）。
   - N/A 说明（仓库级 render_count 门禁）：`Button/Input` 全局 `render_count=1` 与跨组件自动化预算阻断属于仓库级治理；当前仓库测试框架未接入稳定 render_count 探针，且本地编译受 `Invalid cross-device link (os error 18)` 环境阻塞，故本组件先以源码语义契约测试提供等价可重复证据。
-  - 回归：`components/native-select/test/semantics.rs::native_select_performance_budget_contract_is_guarded_without_render_count_harness` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_performance_budget_contract_is_guarded_without_render_count_harness`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_performance_budget_contract_is_guarded_without_render_count_harness` 与 `components/native-select/test/native_select_semantics.rs::native_select_performance_budget_contract_is_guarded_without_render_count_harness`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
@@ -315,7 +315,7 @@
   - 证据：`components/native-select/src/view.rs` 将 `placeholder` 与 `option` 片段下沉为普通函数 `render_placeholder_option` / `render_native_select_option`，主 `view!` 仅保留结构装配与语义挂载。
   - 证据：`<For ... children=render_native_select_option />` 替代内联 `children=move |option| { view! { ... } }`，避免单个宏块承载重复项渲染细节。
   - 证据：组件仍保持单一交互入口 `on:change` 与稳定语义标记输出，不引入额外 `#[component]` 拆分噪音。
-  - 回归：`components/native-select/test/semantics.rs::native_select_view_macro_complexity_is_controlled_by_semantic_splitting` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_view_macro_complexity_is_controlled_by_semantic_splitting`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_view_macro_complexity_is_controlled_by_semantic_splitting` 与 `components/native-select/test/native_select_semantics.rs::native_select_view_macro_complexity_is_controlled_by_semantic_splitting`。
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
@@ -323,7 +323,7 @@
   - 证据：`components/native-select/src/view.rs` 新增普通函数 `render_placeholder_option(...) -> impl IntoView` 与 `render_native_select_option(...) -> impl IntoView`，用于渲染轻逻辑片段；未新增任何局部 `#[component]`。
   - 证据：`NativeSelect` 主体仅保留状态装配与语义挂载，片段渲染通过函数调用复用（`render_placeholder` + `children=render_native_select_option`），降低抽象噪音。
   - 证据：函数拆分后 `data-*`/`aria-*` 标记与交互入口不变（仍为 `on:change`），语义定位稳定。
-  - 回归：`components/native-select/test/semantics.rs::native_select_functional_fragment_split_prefers_plain_functions` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_functional_fragment_split_prefers_plain_functions`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_functional_fragment_split_prefers_plain_functions` 与 `components/native-select/test/native_select_semantics.rs::native_select_functional_fragment_split_prefers_plain_functions`。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
@@ -331,7 +331,7 @@
   - 证据：`components/native-select/src/view.rs` 将静态下拉指示器集中为 `const NATIVE_SELECT_INDICATOR_SYMBOL` 与模板函数 `render_static_indicator()`，避免静态文案散落在主 `view!`。
   - 证据：主渲染树仅通过 `{render_static_indicator()}` 挂载该静态片段；语义属性 `aria-hidden="true"` 与 `data-slot="native-select-indicator"` 保持不变。
   - 适用说明：`NativeSelect` 无复杂 SVG/长文本静态块；本次将唯一纯静态片段收敛为常量化入口，满足“静态资源路径清晰、避免重复构造”要求。
-  - 回归：`components/native-select/test/semantics.rs::native_select_static_fragment_is_constantized_with_stable_a11y_contract` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_static_fragment_is_constantized_with_stable_a11y_contract`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_static_fragment_is_constantized_with_stable_a11y_contract` 与 `components/native-select/test/native_select_semantics.rs::native_select_static_fragment_is_constantized_with_stable_a11y_contract`。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
@@ -339,7 +339,7 @@
   - N/A 说明：`NativeSelect` 当前不使用 `inner_html`；用户可见内容通过 `<option>{...}</option>` 文本节点与静态符号常量渲染，不存在 HTML 注入面。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未出现 `inner_html=` / `set_inner_html` / `dangerously_set_inner_html` / `insert_adjacent_html`。
   - 证据：动态文本路径为 `{placeholder_label}`、`{option.label}`，静态文本路径为 `{NATIVE_SELECT_INDICATOR_SYMBOL}`；均走模板文本节点渲染，未拼接 HTML 字符串。
-  - 回归：`components/native-select/test/semantics.rs::native_select_inner_html_contract_disallows_injection_surface` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_inner_html_contract_disallows_injection_surface`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_inner_html_contract_disallows_injection_surface` 与 `components/native-select/test/native_select_semantics.rs::native_select_inner_html_contract_disallows_injection_surface`。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
@@ -348,7 +348,7 @@
   - 证据：关键交互链路为确定性单路径：`on:change -> event_target_value -> resolve_native_select_change_index -> request_selected_index_change.run(next_index)`，可由事件顺序与语义标记最小回放。
   - 证据：开发可视化入口为 `apps/docs-app/src/pages/components/pages/forms_native.rs` 的 `Interactive Playground`，可直接观察状态来源与变更路径。
   - 证据：`components/native-select/Cargo.toml` 仅 `default = []` 且未导出 debug 专用公共 props/feature；调试信息复用现有语义标记，不引入生产 API 污染。
-  - 回归：`components/native-select/test/semantics.rs::native_select_wasm_debug_contract_tracks_state_and_keeps_api_clean` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_wasm_debug_contract_tracks_state_and_keeps_api_clean`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_wasm_debug_contract_tracks_state_and_keeps_api_clean` 与 `components/native-select/test/native_select_semantics.rs::native_select_wasm_debug_contract_tracks_state_and_keeps_api_clean`。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
@@ -357,7 +357,7 @@
   - 证据：`apps/docs-app/src/playground.rs` 通过 `<style>{compose_scoped_css(..., test_css)}</style>` 与 `test_css` signal 直接渲染 scoped CSS，常见样式调优无需重走组件 wasm 交互链路。
   - 证据：`forms_native.rs` 新增 `Persist workbench state` 开关与 `load_native_select_workbench_state/save_native_select_workbench_state/clear_native_select_workbench_state`（含 `#[cfg(target_arch = "wasm32")]` / non-wasm stub），可选保留 Workbench 状态并在关闭开关时清理持久化状态。
   - 证据：Workbench 展示区明确 `data-slot="native-select-workbench-canvas"`，配置区明确 `data-slot="native-select-workbench-controls"`，形成隔离演练画布；交互上下文由同一组 `Signal` 维持。
-  - 回归：`components/native-select/test/semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence` 与 `components/native-select/test/native_select_semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
@@ -366,25 +366,25 @@
   - 证据：`components/native-select/src/protocol.rs` 使用 `Serialize/Deserialize` 与版本字段 `schema_version`，为后续协议版本迁移保留统一入口；组件层未散落自定义字符串协议解析。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 与 `components/native-select/Cargo.toml` 未引入 `tokio` / `async-std` / `tracing`，无 runtime 句柄类型泄露到公共 API。
   - 证据：组件交互保持同步离散路径（`on:change` + `Callback`），未暴露 `Future`/runtime 绑定边界。
-  - 回归：`components/native-select/test/semantics.rs::native_select_engineering_contract_uses_structured_protocol_and_avoids_runtime_leakage` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_engineering_contract_uses_structured_protocol_and_avoids_runtime_leakage`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_engineering_contract_uses_structured_protocol_and_avoids_runtime_leakage` 与 `components/native-select/test/native_select_semantics.rs::native_select_engineering_contract_uses_structured_protocol_and_avoids_runtime_leakage`。
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
   - 证据：`components/native-select/src/styles.rs` 已统一改为双层回退链（如 `var(--ui-border-width, var(--ui-fallback-border-width))`、`var(--ui-bg, var(--ui-fallback-bg))`、`var(--ui-text-field-motion-duration, var(--ui-fallback-text-field-motion-duration))`），不再保留 `120ms` / `13px` / `1px solid var(--ui-border)` 这类组件内裸终值回退。
   - 证据：尺寸与间距改为 token/变量表达（`--ui-space-*`、`--ui-component-height-100` 的计算表达式），组件样式不再依赖固定像素终值。
   - 证据：Fallback SSOT 来自 `crates/ui-theme/src/css.rs`，覆盖 `--ui-fallback-border-width/border/radius-md/bg/fg/shadow-sm/focus-ring/accent/danger/fg-muted/bg-muted/space-*/component-height-100/text-field-motion-*`。
-  - 回归：`components/native-select/test/semantics.rs::native_select_styles_use_defensive_variable_fallback_chain` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_styles_use_defensive_variable_fallback_chain`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_styles_use_defensive_variable_fallback_chain` 与 `components/native-select/test/native_select_semantics.rs::native_select_styles_use_defensive_variable_fallback_chain`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
   - 证据：`crates/ui-components/src/css.rs` 的 `push_components_css` 默认以 `out.push_str("\n@layer ui {\n"); ... out.push_str("}\n");` 包裹组件样式；`component-native_select` 分支注入 `crate::native_select::styles::CSS`，满足“默认聚合进 `@layer ui`”。
   - 证据：`components/native-select/src/view.rs` 未使用普通 `style=` 内联样式；组件当前无运行时数值样式调整路径，因此不存在 `style="top:10px"` 这类脆弱写法。
   - 适用说明：`NativeSelect` 当前不需要运行时 CSS 变量写入；若后续引入运行时数值调整，应仅采用 `style:--*` custom properties 通道。
-  - 回归：`components/native-select/test/semantics.rs::native_select_css_cascade_layer_contract_is_enforced` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_css_cascade_layer_contract_is_enforced`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_css_cascade_layer_contract_is_enforced` 与 `components/native-select/test/native_select_semantics.rs::native_select_css_cascade_layer_contract_is_enforced`。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 适用说明：`NativeSelect` 基于原生 `<select>` 渲染，不存在组件级 enter/exit/drag 动效语义轴；对当前组件而言，`motion.rs + attach_motion` 为 N/A。
   - N/A 说明：组件目录维持 `mod.rs|logic.rs|view.rs|styles.rs`，未引入 `motion.rs`，避免为不存在的动效语义硬塞 `stiffness/damping` 合同。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs` 未出现 `mod motion;`、`ui_motion::`、`attach_motion(`、`stiffness`、`damping`。
   - 证据：`crates/ui-motion/src/lib.rs` 提供 non-wasm no-op/stub（`prefers_reduced_motion() -> true`、`animate(...) {}`），组件在 non-wasm/SSR 路径可安全降级。
-  - 回归：`components/native-select/test/semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`、`components/native-select/test/semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`、`crates/ui-components/tests/native_select_semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`、`crates/ui-components/tests/native_select_semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`、`components/native-select/test/semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`、`components/native-select/test/native_select_semantics.rs::native_select_respects_ui_motion_non_wasm_noop_contract`、`components/native-select/test/native_select_semantics.rs::native_select_reduced_motion_ssr_wasm_contract_is_preserved`。
 - [x] `ui-components` 固定入口文件落点正确。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
@@ -398,7 +398,7 @@
   - 证据：`crates/ui-components/src/root.rs` 在 `UiRoot` 中集中注入 `BASE_CSS + theme vars + (optional) components css`，并统一提供 `provide_ui_i18n(i18n)` 与 `provide_ui_id_provider(id_seed)`。
   - 证据：`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载通用高亮动效能力（`ActiveHighlightMotion` + `attach_active_highlight_motion` + shared CSS），不含组件业务语义。
   - 证据：`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 均不存在；对应原语落点保持在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。
-  - 回归：`components/native-select/test/semantics.rs::native_select_ui_components_fixed_entry_files_are_in_correct_locations` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_ui_components_fixed_entry_files_are_in_correct_locations`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_ui_components_fixed_entry_files_are_in_correct_locations` 与 `components/native-select/test/native_select_semantics.rs::native_select_ui_components_fixed_entry_files_are_in_correct_locations`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -411,7 +411,7 @@
   - N/A 说明（`motion.rs`）：`NativeSelect` 为原生 `<select>` 装配组件，当前无 enter/exit/open/close 等组件级语义动效轴，因此不引入组件级 `motion.rs`；动效降级契约由 `ui-motion` 层统一提供。
   - N/A 说明（`spec.rs`）：组件无独立复杂 schema/config 演进需求，保持 source-first 简单 API，不引入 `spec.rs`。
   - 证据：`components/native-select/src/render.rs`、`components/native-select/src/motion.rs`、`components/native-select/src/spec.rs` 均不存在，避免 render 漂移与无效抽象膨胀。
-  - 回归：`components/native-select/test/semantics.rs::native_select_component_directory_standard_file_placement_is_correct`、`components/native-select/test/semantics.rs::native_select_component_file_responsibilities_are_scoped_and_motion_is_na`、`components/native-select/test/semantics.rs::native_select_does_not_introduce_spec_rs_for_simple_component`、`crates/ui-components/tests/native_select_semantics.rs::native_select_component_directory_standard_file_placement_is_correct`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_component_directory_standard_file_placement_is_correct`、`components/native-select/test/semantics.rs::native_select_component_file_responsibilities_are_scoped_and_motion_is_na`、`components/native-select/test/semantics.rs::native_select_does_not_introduce_spec_rs_for_simple_component`、`components/native-select/test/native_select_semantics.rs::native_select_component_directory_standard_file_placement_is_correct`。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
 - [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
@@ -420,17 +420,17 @@
   - N/A 说明（`spec.rs`）：组件无复杂 schema 演进需求，不引入 `spec.rs`。
   - 证据：`components/native-select/src/mod.rs` 保持最小导出面；`logic.rs` 仅做归一化/派生；`styles.rs` 为 token-first CSS；`view.rs` 仅做结构渲染 + headless 挂载。
   - 证据：`components/native-select/src/render.rs`、`components/native-select/src/motion.rs`、`components/native-select/src/spec.rs` 均不存在。
-  - 回归：`components/native-select/test/semantics.rs::native_select_component_directory_standard_file_placement_is_correct` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_component_directory_standard_file_placement_is_correct`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_component_directory_standard_file_placement_is_correct` 与 `components/native-select/test/native_select_semantics.rs::native_select_component_directory_standard_file_placement_is_correct`。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - 适用说明：该要求仅适用于“复杂组件”；`NativeSelect` 当前属于 simple component（原生 `<select>` 装配 + 状态归一化），不引入组件级 `spec.rs` Builder 入口。
   - N/A 说明：组件无复杂 schema 固化/多形态渲染编排/AI 结构投影需求，暂不提供 `*Spec::new()...render()`，避免为假问题引入抽象噪音。
   - 证据：`components/native-select/src/spec.rs` 不存在；`components/native-select/src/mod.rs` 无 `mod spec;` / `pub use spec::...`；`components/native-select/src/protocol.rs` 仅保留 serde 协议结构（`NativeSelectComponentSchemaVersion`、`NativeSelectComponentSpec`），不承载运行时 Builder API。
-  - 回归：`components/native-select/test/semantics.rs::native_select_does_not_introduce_spec_rs_for_simple_component` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_does_not_introduce_spec_rs_for_simple_component`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_does_not_introduce_spec_rs_for_simple_component` 与 `components/native-select/test/native_select_semantics.rs::native_select_does_not_introduce_spec_rs_for_simple_component`。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 证据：已新增 `components/native-select/src/Component.toml`，声明组件基础信息、输入输出、依赖及能力开关；其中 `context_compression_manifest` 与 `rbi_signature_projection` 均显式启用。
   - 证据：已新增 `components/native-select/src/native_select.rbi`，投影 `NativeSelect` 公开 API（`NativeSelect` 组件签名、`NativeSelectSize`、`NativeSelectState`、`NativeSelectOption*` 与 `DEFAULT_ARIA_LABEL`）。
   - 适用说明：`NativeSelect` 本次为大改组件，需同步维护 Manifest + RBI 以保证 AI 检索与接口理解不漂移；该要求不属于 N/A。
-  - 回归：`components/native-select/test/semantics.rs::native_select_context_compression_manifest_and_rbi_are_present_and_synced` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_context_compression_manifest_and_rbi_are_present_and_synced`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_context_compression_manifest_and_rbi_are_present_and_synced` 与 `components/native-select/test/native_select_semantics.rs::native_select_context_compression_manifest_and_rbi_are_present_and_synced`。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
@@ -439,68 +439,68 @@
   - 证据：`components/native-select/src/logic.rs` 新增类型化 Agent Contract 内核：`NativeSelectAgentContract`、`NativeSelectAgentContractInput`、`resolve_agent_contract`，并用 `NativeSelectAgentIntent/Action/State/Source/ConfigPolicy` 枚举统一生成契约字段，避免 `view.rs` 散落字符串拼接。
   - 证据：`components/native-select/src/view.rs` 已挂载稳定 schema 化标记：`data-ui-schema/data-ui-schema-version/data-ui-intent/data-ui-action/data-ui-state/data-ui-source/data-ui-config-policy`，且全部来自 `logic::resolve_agent_contract` 输出。
   - 证据：`components/native-select/src/Component.toml` 已声明 `agent_contract_schema_markers` 能力、`[[agent_contract]]`、`[[agent_contract_markers]]`，并通过 `[[agent_contract_whitelist]]` 约束渲染白名单，显式阻断 `inner_html`/`dangerously_set_inner_html`/`<script`/`javascript:`。
-  - 回归：`components/native-select/test/semantics.rs::native_select_agent_contract_schema_markers_are_typed_and_whitelisted` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_agent_contract_schema_markers_are_typed_and_whitelisted`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_agent_contract_schema_markers_are_typed_and_whitelisted` 与 `components/native-select/test/native_select_semantics.rs::native_select_agent_contract_schema_markers_are_typed_and_whitelisted`。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
   - 适用说明：`NativeSelect` 是原生 `<select>` 交互组件，不承担 LLM 正文生成渲染；本条用于明确“流式/快照”术语边界，避免把普通表单交互误判为 LLM 流式输出链路。
   - 证据：`components/native-select/src/view.rs` 仅保留离散 `on:change` 选择交互与 `options: Vec<NativeSelectOption>` 渲染路径；无 token/chunk 增量正文渲染、无 `EventSource/WebSocket/ReadableStream` 等流式传输接入。
   - 证据：`components/native-select/src/logic.rs` 与 `components/native-select/src/Component.toml` 未引入 LLM 输出协议字段（如增量正文/流式消息拼装）；组件语义仍以选择状态机为核心。
-  - 回归：`components/native-select/test/semantics.rs::native_select_streaming_term_is_scoped_to_llm_output_rendering_only` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_streaming_term_is_scoped_to_llm_output_rendering_only`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_streaming_term_is_scoped_to_llm_output_rendering_only` 与 `components/native-select/test/native_select_semantics.rs::native_select_streaming_term_is_scoped_to_llm_output_rendering_only`。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
   - 证据：`NativeSelect` 接收完整 props 配置（`id_base + options + selected/default/on_change + state flags + locale`）后即可同步渲染，不依赖流式分片输入；核心入口保持 `options: Vec<NativeSelectOption>`。
   - 证据：`components/native-select/src/view.rs` 通过 `resolved_options` 与 `<For each=move || resolved_options.get() children=render_native_select_option />` 一次性消费完整选项集合，并结合 `prop:value=move || selected_value.get()` 稳定呈现当前选择结果。
   - 证据：`components/native-select/src/Component.toml` 已声明 `snapshot_rendering` 能力，明确该组件默认支持完整结果快照渲染。
-  - 回归：`components/native-select/test/semantics.rs::native_select_snapshot_baseline_renders_complete_config_stably` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_snapshot_baseline_renders_complete_config_stably`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_snapshot_baseline_renders_complete_config_stably` 与 `components/native-select/test/native_select_semantics.rs::native_select_snapshot_baseline_renders_complete_config_stably`。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - 判定：`NativeSelect` 不是正文阅读面，归类 `Streaming Optional`，组件默认只消费 `Snapshot`。
   - 契约：组件不实现流式正文拼接，显式 `fallback=snapshot`；数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
   - 证据：`components/native-select/src/view.rs` 根节点已挂载 `data-streaming-mode="optional"` 与 `data-streaming-fallback="snapshot"`，明确 Optional + fallback。
   - 证据：`components/native-select/src/logic.rs` 新增类型化 `NativeSelectOutputStatus`（`draft/verified/submittable`），并由 `view.rs` 通过 `data-output-status` 暴露“草稿/已验证/可提交”输出状态，保持 `role`/`aria-*`/`data-*` 连续可读。
   - 证据：`components/native-select/src/Component.toml` 已声明 `streaming_optional_fallback_snapshot` 能力，并将 `data-streaming-mode + data-streaming-fallback + data-output-status` 纳入语义输出契约。
-  - 回归：`components/native-select/test/semantics.rs::native_select_streaming_policy_is_optional_with_snapshot_fallback_and_readable_status_markers` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_streaming_policy_is_optional_with_snapshot_fallback_and_readable_status_markers`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_streaming_policy_is_optional_with_snapshot_fallback_and_readable_status_markers` 与 `components/native-select/test/native_select_semantics.rs::native_select_streaming_policy_is_optional_with_snapshot_fallback_and_readable_status_markers`。
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
   - 执行记录（2026-02-20）：已执行 `./scripts/check-rust-hygiene.sh`；当前环境 `rg` 缺少 PCRE2，命令输出 `PCRE2 is not available in this build of ripgrep`，并触发仓库级跨组件门禁差异，非 `native-select` 单组件回归。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|styles.rs|protocol.rs` 非测试代码未出现 `.unwrap(` / `.expect(` / `let _ =`。
   - 证据：`components/native-select/src/logic.rs` 的 `compose_class_name` 已收敛到 `use std::borrow::Cow;` + `Vec<Cow<'static, str>>`，静态 class 使用 `Cow::Borrowed`，仅用户传入 `class_name` 走 `Cow::Owned`。
-  - 回归：`components/native-select/test/semantics.rs::native_select_rust_hygiene_disallows_unwrap_expect_let_underscore_and_string_clone_churn` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_rust_hygiene_disallows_unwrap_expect_let_underscore_and_string_clone_churn`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_rust_hygiene_disallows_unwrap_expect_let_underscore_and_string_clone_churn` 与 `components/native-select/test/native_select_semantics.rs::native_select_rust_hygiene_disallows_unwrap_expect_let_underscore_and_string_clone_churn`。
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
   - 证据：`crates/ui-components/Cargo.toml` 已注册 `component-native_select = ["dep:ui-native-select"]`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-native_select")] pub use ui_native_select as native_select;` 做组件级导出门控。
   - 证据：`crates/ui-components/src/css.rs` 的 native-select 样式聚合受 `#[cfg(feature = "component-native_select")] out.push_str(crate::native_select::styles::CSS);` 门控，不存在无条件全量聚合。
   - 证据：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(feature = "all-components")]` 聚合全量映射，且 web-demo 路径为 `#[cfg(all(feature = "web-demo-components", not(feature = "all-components")))]`，无无条件中央注册表。
   - 验证记录（2026-02-20）：执行 `cargo tree -e features -p ui-components --no-default-features --features component-native_select,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo`；前者最小特性链路包含 `ui-native-select`，后者显示 `web-demo-components + inject-css` 路径，均未出现 `all-components` 被隐式拉起。
-  - 回归：`components/native-select/test/semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped` 与 `components/native-select/test/native_select_semantics.rs::native_select_tree_shaking_feature_gates_are_component_scoped`。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 证据（语义契约）：`components/native-select/test/semantics.rs` 与 `crates/ui-components/tests/native_select_semantics.rs` 已覆盖 `aria-*`（`aria-label/aria-invalid`）、关键 `data-*` 状态轴（`data-state/data-selection-mode/data-selection-source/data-change-source`）以及焦点路径（`:focus-visible`）断言。
+  - 证据（语义契约）：`components/native-select/test/semantics.rs` 与 `components/native-select/test/native_select_semantics.rs` 已覆盖 `aria-*`（`aria-label/aria-invalid`）、关键 `data-*` 状态轴（`data-state/data-selection-mode/data-selection-source/data-change-source`）以及焦点路径（`:focus-visible`）断言。
   - 证据（交互与来源）：语义测试覆盖受控/非受控、disabled 与 `on:change` 路径，断言来源标记闭合集合（`initial|user|external|internal|sync-effect`），不是仅视觉快照。
   - 证据（性能回归）：组件已有 `native_select_performance_budget_contract_is_guarded_without_render_count_harness`，约束关键更新链路与 effect 数量，提供可重复的性能等价证据。
   - N/A 说明（render_count 探针）：仓库当前未接入稳定 `render_count` 自动探针，且本地环境持续受 `Invalid cross-device link (os error 18)` 阻塞；因此本组件以可重复语义/性能契约测试作为当前阶段替代证据。
-  - 回归：`components/native-select/test/semantics.rs::native_select_mounts_headless_a11y_contract_with_locale_hooks`、`components/native-select/test/semantics.rs::native_select_exposes_observable_retrievable_verifiable_state_markers`、`components/native-select/test/semantics.rs::native_select_styles_depend_on_explicit_state_markers_not_dom_guessing`、`components/native-select/test/semantics.rs::native_select_performance_budget_contract_is_guarded_without_render_count_harness` 以及对应 `crates/ui-components/tests/native_select_semantics.rs` 镜像用例。
+  - 回归：`components/native-select/test/semantics.rs::native_select_mounts_headless_a11y_contract_with_locale_hooks`、`components/native-select/test/semantics.rs::native_select_exposes_observable_retrievable_verifiable_state_markers`、`components/native-select/test/semantics.rs::native_select_styles_depend_on_explicit_state_markers_not_dom_guessing`、`components/native-select/test/semantics.rs::native_select_performance_budget_contract_is_guarded_without_render_count_harness` 以及对应 `components/native-select/test/native_select_semantics.rs` 镜像用例。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A 说明：本次 `native-select` 清单变更未引入跨大版本 API 破坏升级，未发生 `v1 -> v2` 语义断裂，因此不触发 Schema Registry 弃用窗口与 codemod 迁移函数要求。
   - 证据：`components/native-select/src/mod.rs|logic.rs|view.rs|protocol.rs` 未出现 `migrate_v1_to_v2` / `migrate_v2_to_v3` / `SchemaRegistry` / `deprecation_window` 等迁移面；协议仍保持 `schema_version`（当前 `V1`）单版本入口。
   - 证据：`components/native-select/src/protocol.rs` 已保留版本字段与 `serde` 默认反序列化入口（`schema_version` + `#[serde(default)]`），为未来需要真实破坏升级时提供可演进挂载点。
   - 处置规则：若后续引入真实跨大版本破坏（字段重命名/移除、公共 API 语义断裂），该条必须从 N/A 升级为“必做”，并补齐 Schema Registry 记录与纯函数迁移层 `migrate_v1_to_v2`。
-  - 回归：`components/native-select/test/semantics.rs::native_select_version_deprecation_registry_is_na_without_breaking_upgrade` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_version_deprecation_registry_is_na_without_breaking_upgrade`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_version_deprecation_registry_is_na_without_breaking_upgrade` 与 `components/native-select/test/native_select_semantics.rs::native_select_version_deprecation_registry_is_na_without_breaking_upgrade`。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - 证据（Playground 覆盖）：`apps/docs-app/src/pages/components/pages/forms_native.rs` 已包含 `Hello World (Uncontrolled)`、`Controlled vs Uncontrolled`、`State Matrix (Controlled / Uncontrolled / Disabled)` 与 `Streaming Optional (fallback=snapshot)`，并通过 `data-slot="native-select-controlled-uncontrolled|native-select-state-matrix|native-select-streaming-snapshot"` 固定展示契约。
   - 证据（Streaming/Snapshot 展现）：`Streaming Optional (fallback=snapshot)` 面板显式提示检查 `data-streaming-mode/data-streaming-fallback/data-output-status`，与组件语义标记契约保持一致。
   - 证据（Source-first + import 补全）：NativeSelect docs Playground 统一声明 `NATIVE_SELECT_DOC_IMPORTS` 并通过 `code_imports=...` 注入；`apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` 自动补齐缺失 imports；`components/code-block/src/view.rs` 的 `ui-code-block__copy-button` 提供一键复制入口。
   - 证据（源码落点提示）：NativeSelect docs 页新增 `data-slot="native-select-source-first"` 与 `data-slot="native-select-source-paths"`，明确 source-first 路径与 `component-native_select + inject-css` 依赖前提。
-  - 回归：`components/native-select/test/semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract` 与 `components/native-select/test/native_select_semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-  - 证据（双层语义回归）：组件侧 `components/native-select/test/semantics.rs` 与聚合侧 `crates/ui-components/tests/native_select_semantics.rs` 均存在 `native_select_semantics_contract_tests_cover_key_matrix_without_snapshot_dependency`，用于锁定语义契约矩阵而非视觉快照。
+  - 证据（双层语义回归）：组件侧 `components/native-select/test/semantics.rs` 与聚合侧 `components/native-select/test/native_select_semantics.rs` 均存在 `native_select_semantics_contract_tests_cover_key_matrix_without_snapshot_dependency`，用于锁定语义契约矩阵而非视觉快照。
   - 证据（语义字段覆盖）：`components/native-select/src/view.rs` 的关键语义标记在测试中被显式断言，包括 `aria-label/aria-invalid`、`data-state`、`data-selection-mode`、`data-selection-source`、`data-change-source` 与 `on:change` 交互路径。
   - 证据（来源契约）：来源闭合集合通过稳定 marker 约束（`initial|user|external|internal|sync-effect`），测试以状态来源断言而非 DOM 猜测。
   - 证据（反快照约束）：两侧语义测试明确禁止 `insta::` / `assert_snapshot!` / `to_match_snapshot` 作为契约主断言。
-  - 回归：`components/native-select/test/semantics.rs::native_select_semantics_contract_tests_cover_key_matrix_without_snapshot_dependency` 与 `crates/ui-components/tests/native_select_semantics.rs::native_select_semantics_contract_tests_cover_key_matrix_without_snapshot_dependency`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_semantics_contract_tests_cover_key_matrix_without_snapshot_dependency` 与 `components/native-select/test/native_select_semantics.rs::native_select_semantics_contract_tests_cover_key_matrix_without_snapshot_dependency`。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - 证据（语义选择器）：新增 `e2e/tests/docs_app_native_select_contract.spec.mjs`，通过 `#docs-native-select-controlled-control` / `#docs-native-select-uncontrolled-control` 与 `ancestor::*[@data-slot="native-select"][1]` 定位，不依赖脆弱 DOM 层级或文本定位。
   - 证据（WASM 稳定等待）：用例统一在进入页面后执行 `await page.locator("body:not(:has(#boot))").waitFor();`，并显式禁止固定 sleep（无 `waitForTimeout` / `setTimeout`）。
@@ -517,30 +517,30 @@
   - 证据（文档与示例同步）：`apps/docs-app/src/pages/components/pages/forms_native.rs` 已同步维护 NativeSelect 页面描述与示例集合（`Hello World (Uncontrolled)`、`Controlled + Placeholder`、`Required + Invalid + Disabled`、`Controlled vs Uncontrolled`、`State Matrix (Controlled / Uncontrolled / Disabled)`），组件行为变更有对应 docs 入口。
   - 证据（状态矩阵覆盖）：docs 通过 `data-slot="native-select-controlled-uncontrolled"` 与 `data-slot="native-select-state-matrix"` 固定受控/非受控、disabled 分支，并在 `State Matrix` 中显式给出 `default_selected_index=0`、`selected_index=Signal::derive(|| Some(2usize))`、`is_disabled=true`。
   - 证据（API 命名与默认值同步）：docs 示例持续使用当前 API 命名 `selected_index/on_selected_index_change/default_selected_index/is_disabled/is_required/is_invalid/size`；默认值与 `logic.rs` 对齐（`NativeSelectSize` 默认 `Md`，docs 默认示例不传 `size`，workbench 映射保留 `_ => NativeSelectSize::Md`；`default_selected_index` 语义由 `logic::normalize_default_selected_index` 统一归一）。
-  - 回归：`components/native-select/test/semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`crates/ui-components/tests/native_select_semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults`。
 - [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
   - 证据（文档入口存在）：`components/native-select/src/README.md` 已存在且聚焦组件使用；等价入口 `apps/docs-app/src/pages/components/pages/forms_native.rs::native_select()` 同步提供可运行页面。
   - 证据（零门槛 + 常见用法）：README 新增“`## 新手路径：先用起来，再进阶`”，并在 `### Hello World（零门槛）` 给出最小示例（只需 `id_base + options`），后续紧接 `### 常见用法（在 docs-app 直接对照）` 覆盖 `Controlled + Placeholder`、`Required + Invalid + Disabled`、`Controlled vs Uncontrolled`、`State Matrix`。
   - 证据（先默认后进阶）：README 结构已显式保证 `Hello World` 在前、`## API（进阶参考）` 在后；避免先暴露复杂参数再给最小可用路径。
   - 结论：不存在“只有源码没有文档”或“只写给架构师/机器”的情况；README 与 docs-app 双入口均面向新手可读。
-  - 回归：`components/native-select/test/semantics.rs::native_select_readme_is_beginner_friendly_documentation_product`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`crates/ui-components/tests/native_select_semantics.rs::native_select_readme_is_beginner_friendly_documentation_product`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_readme_is_beginner_friendly_documentation_product`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_readme_is_beginner_friendly_documentation_product`。
 - [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
   - 证据（实时配置 + 预览）：`apps/docs-app/src/pages/components/pages/forms_native.rs` 已提供 `title="Interactive Playground"`，并通过 `controls=...` + `data-slot="native-select-workbench-controls"`（配置区）与 `data-slot="native-select-workbench-canvas"`（展示区）形成可交互验收面。
   - 证据（基础 props 调整 + 状态切换）：workbench 控件覆盖 `size`、`selected` 模式、`Required/Invalid/Disabled/Placeholder/Custom class/Show compare matrix/Persist workbench state`，可在线观察 `Primary` 与 `对比矩阵` 实时反馈。
   - N/A 说明（AI Spec 联动）：`NativeSelect` 为 simple component，`spec.rs` 明确不适用（无 AI Spec 输入模型），因此不要求 Spec 输入与预览联动示例；该组件以受控/非受控与状态矩阵交互作为主要验收路径。
   - 证据（可重复关键路径）：workbench 状态支持 `load/save/clear_native_select_workbench_state`（wasm 下 localStorage），并可通过 `Persist workbench state` 开关复现“配置 -> 预览 -> 刷新后恢复”的验收链路。
-  - 回归：`components/native-select/test/semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`crates/ui-components/tests/native_select_semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_dx_workbench_supports_live_css_and_optional_state_persistence`。
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - 证据（复制按钮 + 可运行片段）：`apps/docs-app/src/pages/components/pages/forms_native.rs` 各 Playground 均设置 `code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()`；`apps/docs-app/src/playground.rs` 通过 `compose_copy_ready_code + DEFAULT_PLAYGROUND_IMPORTS` 自动补齐 imports；`components/code-block/src/view.rs` 提供 `ui-code-block__copy-button` 一键复制入口。
   - 证据（Source-first 落点与依赖前提）：docs 页面显式输出 `data-slot="native-select-source-first"` 与 `data-slot="native-select-source-paths"`，明确源码路径 `crates/ui-components/src/native_select` 与前置特性 `component-native_select + inject-css`，避免复制后缺依赖报错。
   - 证据（防示例漂移）：`NATIVE_SELECT_DOC_IMPORTS` 作为统一 import 基线注入所有 NativeSelect playground code panel，避免示例片段与当前实现脱节。
-  - 回归：`components/native-select/test/semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`crates/ui-components/tests/native_select_semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_docs_are_copy_paste_ready_with_matrix_and_streaming_snapshot_contract`。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 证据（对标策略文档同步）：`docs/spec/heroui-parameter-design-strategy.md` 已新增 `### NativeSelect 同步记录（2026-02-20）`，明确参数主轴 `selected_index/on_selected_index_change/default_selected_index` 与 `is_disabled/is_required/is_invalid/size`，并声明参数变更必须先同步策略文档再推进实现。
   - 证据（组件文档入口可索引）：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("NativeSelect", "native-select", "Forms", forms_native::native_select)` 暴露目录入口；`apps/docs-app/src/pages/components/pages/forms_native.rs` 维持 `title="NativeSelect" + slug="native-select"`。
   - 证据（等价组件文档入口）：`components/native-select/src/README.md` 持续提供 `Hello World`、`Controlled + Placeholder`、`State Matrix` 与 API 表，保证 docs-app 与 README 双入口一致。
   - N/A 说明（research 补充）：本轮仅为参数语义与文档入口同步，不引入新的 Spectrum/HeroUI 风格结论，因此无需补充 `docs/research/spectrum-heroui-style-interface-study.md`。
-  - 回归：`components/native-select/test/semantics.rs::native_select_heroui_strategy_doc_and_component_docs_are_synced`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`crates/ui-components/tests/native_select_semantics.rs::native_select_heroui_strategy_doc_and_component_docs_are_synced`。
+  - 回归：`components/native-select/test/semantics.rs::native_select_heroui_strategy_doc_and_component_docs_are_synced`、`components/native-select/test/semantics.rs::native_select_checklist_tracks_ui_components_contract`、`components/native-select/test/native_select_semantics.rs::native_select_heroui_strategy_doc_and_component_docs_are_synced`。
 
 ### 8. 合并前门禁死命令（最终执行）
 在发起 PR 或完成任务前，必须保证本地/CI 以下命令全部通过：

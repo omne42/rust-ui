@@ -3459,7 +3459,6 @@ fn menu_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     for required in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(required),

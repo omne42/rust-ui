@@ -88,7 +88,7 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../apps/docs-app/src/pages/components/pages.rs")
         }
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/color_wheel_semantics.rs")
+            include_str!("../../../components/color-wheel/test/color_wheel_semantics.rs")
         }
         "protocol_test" => include_str!("protocol.rs"),
         _ => panic!("unsupported source path: {rel_path}"),

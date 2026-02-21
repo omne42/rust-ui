@@ -346,6 +346,8 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
                             } else {
                                 "Default destructive branch with minimal surface."
                             };
+                            let title: String = title.into();
+                            let description: String = description.into();
                             let secondary_label = if state_matrix_is_warning.get() {
                                 "Save draft".to_string()
                             } else {
@@ -358,12 +360,12 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
                             };
 
                             view! {
-                                <AlertDialog
-                                    open=matrix_open
-                                    id_base="docs-alert-matrix".to_string()
-                                    title=title.to_string()
-                                    description=description.to_string()
-                                    on_close=close_matrix_alert
+                                    <AlertDialog
+                                        open=matrix_open
+                                        id_base="docs-alert-matrix".to_string()
+                                        title=title
+                                        description=description
+                                        on_close=close_matrix_alert
                                     confirm_label=confirm_label
                                     on_confirm=on_matrix_confirm
                                     secondary_label=secondary_label

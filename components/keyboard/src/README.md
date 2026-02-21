@@ -120,7 +120,7 @@ Interactive Playground 已接入 scoped CSS 测试面板：
 
 ## 测试与文档落点
 
-- 语义测试：`crates/ui-components/tests/keyboard_semantics.rs`
+- 语义测试：`components/keyboard/test/keyboard_semantics.rs`
 - docs 页面：`apps/docs-app/src/pages/components/pages/display_extra.rs` 中 `keyboard()`
 
 ## Source-first Copy-Paste Ready

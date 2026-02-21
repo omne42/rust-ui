@@ -8,7 +8,7 @@ fn load_source(path: &str) -> &'static str {
         "primitive" => include_str!("../../../crates/ui-state-primitives/src/error_message.rs"),
         "headless" => include_str!("../../../crates/ui-headless/src/error_message.rs"),
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/error_message_semantics.rs")
+            include_str!("../../../components/error-message/test/error_message_semantics.rs")
         }
         "manifest" => include_str!("../src/Component.toml"),
         "rbi" => include_str!("../src/error_message.rbi"),

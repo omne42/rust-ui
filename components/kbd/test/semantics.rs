@@ -38,7 +38,7 @@ fn load_source(path: &str) -> &'static str {
         }
         "primitive_kbd" => include_str!("../../../crates/ui-state-primitives/src/kbd.rs"),
         "check2" => include_str!("../check2.md"),
-        "legacy_semantics" => include_str!("../../../crates/ui-components/tests/kbd_semantics.rs"),
+        "legacy_semantics" => include_str!("../../../components/kbd/test/kbd_semantics.rs"),
         _ => panic!("unsupported source path: {path}"),
     }
 }

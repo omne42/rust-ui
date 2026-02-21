@@ -15,8 +15,6 @@ pub(crate) use wasm_debug_proxy;
 
 pub mod logic;
 mod motion;
-#[cfg(target_arch = "wasm32")]
-mod observability;
 mod protocol;
 mod streaming;
 pub mod styles;

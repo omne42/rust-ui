@@ -36,7 +36,7 @@ fn load_source(path: &str) -> &'static str {
         "ui_motion_lib" => include_str!("../../../crates/ui-motion/src/lib.rs"),
         "code_block_view" => include_str!("../../../components/code-block/src/view.rs"),
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/color_loupe_semantics.rs")
+            include_str!("../../../components/color-loupe/test/color_loupe_semantics.rs")
         }
         _ => panic!("unsupported source path: {path}"),
     }

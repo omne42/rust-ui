@@ -33,9 +33,9 @@ pub fn attach_motion(
     from: FlipDirection,
     motion: FlipButtonMotion,
 ) {
-    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
+    use ui_observability::set_css_property_observed;
 
     let motion = StoredValue::new(sanitize_motion(motion));
     let last_active = StoredValue::new(None::<bool>);

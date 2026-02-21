@@ -109,7 +109,7 @@ fn load_source(rel_path: &str) -> &'static str {
         }
         "Cargo.toml" => include_str!("../../../crates/ui-components/Cargo.toml"),
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/color_editor_semantics.rs")
+            include_str!("../../../components/color-editor/test/color_editor_semantics.rs")
         }
         _ => panic!("unsupported source path: {rel_path}"),
     }
@@ -3183,7 +3183,6 @@ fn color_editor_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(needle),

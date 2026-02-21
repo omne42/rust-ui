@@ -359,7 +359,7 @@ fn list_component_directory_has_standard_file_layout() {
     for required in [
         "- [x] 组件目录标准文件落点正确。",
         "components/list/test/semantics.rs::list_component_directory_has_standard_file_layout",
-        "crates/ui-components/tests/list_module_semantics.rs::list_component_directory_has_standard_file_layout",
+        "components/list/test/list_module_semantics.rs::list_component_directory_has_standard_file_layout",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1275,7 +1275,7 @@ fn list_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks() {
     let view = load_source("view");
     let local_semantics = include_str!("semantics.rs");
     let aggregated_semantics =
-        include_str!("../../../crates/ui-components/tests/list_module_semantics.rs");
+        include_str!("../../../components/list/test/list_module_semantics.rs");
 
     for marker in [
         "role=aria.attrs.role",
@@ -1329,10 +1329,10 @@ fn list_check2_marks_semantics_first_testing_contract_complete() {
         "components/list/test/semantics.rs::list_semantics_suite_is_contract_first_not_snapshot_only",
         "components/list/test/semantics.rs::list_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
         "components/list/test/semantics.rs::list_semantics_first_testing_script_covers_contract",
-        "crates/ui-components/tests/list_module_semantics.rs::list_check2_documents_semantics_first_testing_rules",
-        "crates/ui-components/tests/list_module_semantics.rs::list_semantics_suite_is_contract_first_not_snapshot_only",
-        "crates/ui-components/tests/list_module_semantics.rs::list_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
-        "crates/ui-components/tests/list_module_semantics.rs::list_semantics_first_testing_script_covers_contract",
+        "components/list/test/list_module_semantics.rs::list_check2_documents_semantics_first_testing_rules",
+        "components/list/test/list_module_semantics.rs::list_semantics_suite_is_contract_first_not_snapshot_only",
+        "components/list/test/list_module_semantics.rs::list_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "components/list/test/list_module_semantics.rs::list_semantics_first_testing_script_covers_contract",
         "scripts/check-ui-components-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1353,7 +1353,7 @@ fn list_check2_documents_streaming_definition_is_llm_output_only_with_two_modes(
         "`Streaming`：LLM 还在生成，界面边生成边显示。",
         "`Snapshot`：LLM 全部生成完成后，一次性显示。",
         "components/list/test/semantics.rs::list_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "crates/ui-components/tests/list_module_semantics.rs::list_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "components/list/test/list_module_semantics.rs::list_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1379,7 +1379,7 @@ fn list_check2_documents_snapshot_as_default_baseline_capability() {
         "所有组件都应能消费“完整生成结果”并稳定渲染。",
         "即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。",
         "components/list/test/semantics.rs::list_check2_documents_snapshot_as_default_baseline_capability",
-        "crates/ui-components/tests/list_module_semantics.rs::list_check2_documents_snapshot_as_default_baseline_capability",
+        "components/list/test/list_module_semantics.rs::list_check2_documents_snapshot_as_default_baseline_capability",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1454,7 +1454,7 @@ fn list_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
     for required in [
         "components/list/test/semantics.rs::list_snapshot_baseline_consumes_complete_result_and_renders_stably",
-        "crates/ui-components/tests/list_module_semantics.rs::list_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "components/list/test/list_module_semantics.rs::list_snapshot_baseline_consumes_complete_result_and_renders_stably",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1480,7 +1480,7 @@ fn list_check2_marks_streaming_scope_as_optional_with_snapshot_fallback() {
         "`data-ui-output-status`",
         "数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。",
         "components/list/test/semantics.rs::list_check2_marks_streaming_scope_as_optional_with_snapshot_fallback",
-        "crates/ui-components/tests/list_module_semantics.rs::list_check2_marks_streaming_scope_as_optional_with_snapshot_fallback",
+        "components/list/test/list_module_semantics.rs::list_check2_marks_streaming_scope_as_optional_with_snapshot_fallback",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1646,7 +1646,7 @@ fn list_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for required in [
         "- [x] `ui-components` 固定入口文件落点正确。",
         "components/list/test/semantics.rs::list_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "crates/ui-components/tests/list_module_semantics.rs::list_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "components/list/test/list_module_semantics.rs::list_ui_components_fixed_entry_files_follow_layered_boundaries",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1790,10 +1790,10 @@ fn list_check2_marks_e2e_selector_stability_item_complete() {
         "components/list/test/semantics.rs::list_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/list/test/semantics.rs::list_e2e_contract_covers_ready_and_settled_conditions_for_list_paths",
         "components/list/test/semantics.rs::list_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "crates/ui-components/tests/list_module_semantics.rs::list_check2_documents_e2e_selector_and_stable_wait_rules",
-        "crates/ui-components/tests/list_module_semantics.rs::list_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "crates/ui-components/tests/list_module_semantics.rs::list_e2e_contract_covers_ready_and_settled_conditions_for_list_paths",
-        "crates/ui-components/tests/list_module_semantics.rs::list_e2e_check_script_covers_selector_and_settled_wait_contract",
+        "components/list/test/list_module_semantics.rs::list_check2_documents_e2e_selector_and_stable_wait_rules",
+        "components/list/test/list_module_semantics.rs::list_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/list/test/list_module_semantics.rs::list_e2e_contract_covers_ready_and_settled_conditions_for_list_paths",
+        "components/list/test/list_module_semantics.rs::list_e2e_check_script_covers_selector_and_settled_wait_contract",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1889,7 +1889,7 @@ fn list_context_compression_manifest_and_rbi_projection_are_present_and_current(
         "components/list/src/Component.toml",
         "components/list/src/list.rbi",
         "components/list/test/semantics.rs::list_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "crates/ui-components/tests/list_module_semantics.rs::list_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "components/list/test/list_module_semantics.rs::list_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2057,9 +2057,9 @@ fn list_agent_contract_render_path_is_whitelist_safe_and_script_injection_free()
         "components/list/test/semantics.rs::list_check2_documents_agent_contract_schema_governance_rules",
         "components/list/test/semantics.rs::list_agent_contract_is_schema_typed_and_machine_readable",
         "components/list/test/semantics.rs::list_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
-        "crates/ui-components/tests/list_module_semantics.rs::list_check2_documents_agent_contract_schema_governance_rules",
-        "crates/ui-components/tests/list_module_semantics.rs::list_agent_contract_is_schema_typed_and_machine_readable",
-        "crates/ui-components/tests/list_module_semantics.rs::list_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "components/list/test/list_module_semantics.rs::list_check2_documents_agent_contract_schema_governance_rules",
+        "components/list/test/list_module_semantics.rs::list_agent_contract_is_schema_typed_and_machine_readable",
+        "components/list/test/list_module_semantics.rs::list_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2885,7 +2885,7 @@ fn list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_g
         "`scripts/check-ui-components-performance.sh` 已纳入 `list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates` 阻断命令",
         "`apps/docs-app/src/pages/components/shell.rs` 在 `component_page_perf_budget` 为 `\"list\"` 提供 `UiPerfBudget`（mount/update/heap）并由 `UiPerfProbe` 输出 `data-perf-*`",
         "`docs/plan/TODO.md` 保留 `render_count` 自动化补齐项（当前以可重复 perf probe 基线替代精确计数）",
-        "回归锁定：`components/list/test/semantics.rs::list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates` 与 `crates/ui-components/tests/list_module_semantics.rs::list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates`。",
+        "回归锁定：`components/list/test/semantics.rs::list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates` 与 `components/list/test/list_module_semantics.rs::list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_global_gates`。",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2899,7 +2899,7 @@ fn list_performance_governance_contract_is_budgeted_traceable_and_blocking_via_g
 fn list_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement() {
     let local_semantics = include_str!("semantics.rs");
     let aggregated_semantics =
-        include_str!("../../../crates/ui-components/tests/list_module_semantics.rs");
+        include_str!("../../../components/list/test/list_module_semantics.rs");
     let view = load_source("view");
     let todo_plan = load_source("todo_plan");
 
@@ -3177,7 +3177,7 @@ fn list_inner_html_usage_is_explicitly_na_and_guarded_locally() {
         "- [x] `inner_html` 使用约束：",
         "零注入面",
         "components/list/test/semantics.rs::list_inner_html_usage_is_explicitly_na_and_guarded_locally",
-        "crates/ui-components/tests/list_module_semantics.rs::list_inner_html_usage_is_explicitly_na_and_guarded",
+        "components/list/test/list_module_semantics.rs::list_inner_html_usage_is_explicitly_na_and_guarded",
     ] {
         assert!(
             check2.contains(required),
@@ -3249,7 +3249,6 @@ fn list_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     for required in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(required),
@@ -3340,7 +3339,7 @@ fn list_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
         "- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。",
         "本组件判定：N/A（组件级不自建 wasm 调试/回放管线）",
         "components/list/test/semantics.rs::list_wasm_debug_contract_is_explicitly_na_and_feature_isolated",
-        "crates/ui-components/tests/list_module_semantics.rs::list_wasm_debug_contract_is_explicitly_na_and_feature_isolated",
+        "components/list/test/list_module_semantics.rs::list_wasm_debug_contract_is_explicitly_na_and_feature_isolated",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3423,7 +3422,7 @@ fn list_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_
         "本组件已提供 Workbench 隔离画布（含 settings/code/css-test）",
         "可选状态保留在 List scope 判定为 N/A（不引入本地持久化存储）",
         "components/list/test/semantics.rs::list_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
-        "crates/ui-components/tests/list_module_semantics.rs::list_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
+        "components/list/test/list_module_semantics.rs::list_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3497,7 +3496,7 @@ fn list_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_sn
     for required in [
         "- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。",
         "components/list/test/semantics.rs::list_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
-        "crates/ui-components/tests/list_module_semantics.rs::list_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
+        "components/list/test/list_module_semantics.rs::list_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3934,9 +3933,9 @@ fn list_check2_marks_rust_hygiene_contract_complete() {
         "components/list/test/semantics.rs::list_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
         "components/list/test/semantics.rs::list_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
         "components/list/test/semantics.rs::list_rust_hygiene_script_enforces_repo_level_hygiene_guards",
-        "crates/ui-components/tests/list_module_semantics.rs::list_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
-        "crates/ui-components/tests/list_module_semantics.rs::list_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
-        "crates/ui-components/tests/list_module_semantics.rs::list_rust_hygiene_script_enforces_repo_level_hygiene_guards",
+        "components/list/test/list_module_semantics.rs::list_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources",
+        "components/list/test/list_module_semantics.rs::list_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent",
+        "components/list/test/list_module_semantics.rs::list_rust_hygiene_script_enforces_repo_level_hygiene_guards",
         "scripts/check-ui-components-engineering.sh",
     ] {
         assert!(

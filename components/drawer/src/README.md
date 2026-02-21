@@ -116,7 +116,7 @@ let open = Signal::derive(move || open_raw.get());
 
 ## Test Contract
 
-- 语义契约测试：`crates/ui-components/tests/drawer_semantics.rs`
+- 语义契约测试：`components/drawer/test/drawer_semantics.rs`
 - 覆盖范围包含：
   - 模块导出与 crate re-export
   - `logic` 状态/source 派生函数

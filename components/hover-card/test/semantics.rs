@@ -163,9 +163,9 @@ fn hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete_locall
         "hover_card_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
         "hover_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget_locally",
         "hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_tree_shaking_contract_stays_feature_gated_in_package_and_demo_modes",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-hover_card,inject-css",
         "cargo tree -e features -i ui-components -p web-demo",
         "scripts/check-ui-components-tree-shaking.sh",
@@ -492,9 +492,9 @@ fn hover_card_check2_marks_component_file_responsibility_complete_locally() {
         "components/hover-card/test/semantics.rs::hover_card_component_file_responsibilities_remain_scoped_locally",
         "components/hover-card/test/semantics.rs::hover_card_component_files_check_script_covers_scoped_responsibility_contract_locally",
         "components/hover-card/test/semantics.rs::hover_card_check2_marks_component_file_responsibility_complete_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_component_file_responsibilities_remain_scoped",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_component_files_check_script_covers_scoped_responsibility_contract",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_component_file_responsibility_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_component_file_responsibilities_remain_scoped",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_check_script_covers_scoped_responsibility_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_component_file_responsibility_complete",
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_component_file_responsibilities_remain_scoped",
         "Invalid cross-device link (os error 18)",
@@ -572,9 +572,9 @@ fn hover_card_check2_marks_file_placement_discipline_complete_locally() {
         "components/hover-card/test/semantics.rs::hover_card_file_placement_discipline_is_strict_for_component_scope_locally",
         "components/hover-card/test/semantics.rs::hover_card_component_files_script_covers_file_placement_discipline_locally",
         "components/hover-card/test/semantics.rs::hover_card_check2_marks_file_placement_discipline_complete_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_file_placement_discipline_is_strict_for_component_scope",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_component_files_script_covers_file_placement_discipline",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_file_placement_discipline_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_file_placement_discipline_is_strict_for_component_scope",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_script_covers_file_placement_discipline",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_file_placement_discipline_complete",
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_file_placement_discipline_is_strict_for_component_scope",
         "Invalid cross-device link (os error 18)",
@@ -647,9 +647,9 @@ fn hover_card_check2_marks_hyper_structure_builder_contract_complete_locally() {
         "components/hover-card/test/semantics.rs::hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component_locally",
         "components/hover-card/test/semantics.rs::hover_card_component_files_script_covers_hyper_structure_builder_na_contract_locally",
         "components/hover-card/test/semantics.rs::hover_card_check2_marks_hyper_structure_builder_contract_complete_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_component_files_script_covers_hyper_structure_builder_na_contract",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_hyper_structure_builder_contract_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_script_covers_hyper_structure_builder_na_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_hyper_structure_builder_contract_complete",
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "Invalid cross-device link (os error 18)",
@@ -784,9 +784,9 @@ fn hover_card_check2_marks_context_compression_manifest_and_rbi_contract_complet
         "components/hover-card/test/semantics.rs::hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current_locally",
         "components/hover-card/test/semantics.rs::hover_card_component_files_check_script_covers_context_compression_manifest_contract_locally",
         "components/hover-card/test/semantics.rs::hover_card_check2_marks_context_compression_manifest_and_rbi_contract_complete_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_component_files_check_script_covers_context_compression_manifest_contract",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_context_compression_manifest_and_rbi_contract_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_component_files_check_script_covers_context_compression_manifest_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_context_compression_manifest_and_rbi_contract_complete",
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "Invalid cross-device link (os error 18)",
@@ -1018,10 +1018,10 @@ fn hover_card_check2_marks_agent_contract_schema_governance_complete_locally() {
         "hover_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing_locally",
         "hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free_locally",
         "hover_card_contract_hygiene_script_covers_agent_contract_schema_guards_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_documents_agent_contract_schema_governance_rules",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_agent_contract_is_schema_typed_and_machine_readable",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_documents_agent_contract_schema_governance_rules",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_agent_contract_is_schema_typed_and_machine_readable",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_agent_contract_render_path_is_whitelist_safe_and_script_injection_free",
         "scripts/check-ui-components-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1102,9 +1102,9 @@ fn hover_card_check2_marks_streaming_two_mode_definition_complete_locally() {
         "hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes_locally",
         "hover_card_streaming_script_covers_two_mode_definition_contract_locally",
         "hover_card_check2_marks_streaming_two_mode_definition_complete_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_streaming_script_covers_two_mode_definition_contract",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_streaming_two_mode_definition_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_script_covers_two_mode_definition_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_streaming_two_mode_definition_complete",
         "scripts/check-ui-components-streaming.sh",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_streaming_definition_is_llm_output_only_with_two_modes",
         "Invalid cross-device link (os error 18)",
@@ -1221,10 +1221,10 @@ fn hover_card_check2_marks_snapshot_baseline_capability_complete_locally() {
         "hover_card_check2_documents_snapshot_as_default_baseline_capability_locally",
         "hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably_locally",
         "hover_card_streaming_script_covers_snapshot_baseline_contract_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_documents_snapshot_as_default_baseline_capability",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_streaming_script_covers_snapshot_baseline_contract",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_snapshot_baseline_capability_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_documents_snapshot_as_default_baseline_capability",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_script_covers_snapshot_baseline_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_snapshot_baseline_capability_complete",
         "scripts/check-ui-components-streaming.sh",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_check2_documents_snapshot_as_default_baseline_capability",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_snapshot_baseline_consumes_complete_result_and_renders_stably",
@@ -1356,11 +1356,11 @@ fn hover_card_check2_marks_streaming_required_optional_classification_complete_l
         "hover_card_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous_locally",
         "hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer_locally",
         "hover_card_streaming_script_covers_required_optional_classification_contract_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_documents_streaming_required_optional_classification_rules",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_streaming_script_covers_required_optional_classification_contract",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_streaming_required_optional_classification_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_documents_streaming_required_optional_classification_rules",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_streaming_script_covers_required_optional_classification_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_streaming_required_optional_classification_complete",
         "scripts/check-ui-components-streaming.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2431,7 +2431,7 @@ fn hover_card_check2_documents_semantics_first_testing_rules_locally() {
 fn hover_card_semantics_suite_is_contract_first_not_snapshot_only_locally() {
     let view_source = load_source("src/view.rs");
     let semantics_source = load_source("test/semantics.rs");
-    let aggregated_source = load_source("../../crates/ui-components/tests/hover_card_semantics.rs");
+    let aggregated_source = load_source("../../components/hover-card/test/hover_card_semantics.rs");
 
     for needle in [
         "role=\"tooltip\"",
@@ -2533,10 +2533,10 @@ fn hover_card_check2_marks_semantics_first_testing_complete_locally() {
         "components/hover-card/test/semantics.rs::hover_card_semantics_suite_is_contract_first_not_snapshot_only_locally",
         "components/hover-card/test/semantics.rs::hover_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks_locally",
         "components/hover-card/test/semantics.rs::hover_card_contract_hygiene_script_covers_semantics_first_contract_guards_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_documents_semantics_first_testing_rules",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_semantics_suite_is_contract_first_not_snapshot_only",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_contract_hygiene_script_covers_semantics_first_contract_guards",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_documents_semantics_first_testing_rules",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_semantics_suite_is_contract_first_not_snapshot_only",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_contract_hygiene_script_covers_semantics_first_contract_guards",
         "scripts/check-ui-components-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -3219,7 +3219,7 @@ fn hover_card_check2_marks_motion_contractualization_complete_locally() {
         "components/hover-card/src/view.rs",
         "crates/ui-motion/src/lib.rs",
         "components/hover-card/test/semantics.rs::motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_motion_contract_is_component_scoped_reduced_motion_aware_and_non_wasm_safe",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3409,9 +3409,9 @@ fn hover_card_check2_marks_ui_components_fixed_entry_files_complete_locally() {
         "components/hover-card/test/semantics.rs::hover_card_ui_components_fixed_entry_files_follow_layered_boundaries_locally",
         "components/hover-card/test/semantics.rs::hover_card_entrypoints_check_script_covers_fixed_entrypoint_contract_locally",
         "components/hover-card/test/semantics.rs::hover_card_check2_marks_ui_components_fixed_entry_files_complete_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_entrypoints_check_script_covers_fixed_entrypoint_contract",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_check2_marks_ui_components_fixed_entry_files_complete",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_entrypoints_check_script_covers_fixed_entrypoint_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_check2_marks_ui_components_fixed_entry_files_complete",
         "scripts/check-ui-components-entrypoints.sh",
         "cargo test -p ui-components --test hover_card_semantics --no-default-features --features component-hover_card,inject-css hover_card_ui_components_fixed_entry_files_follow_layered_boundaries",
         "Invalid cross-device link (os error 18)",
@@ -3571,7 +3571,7 @@ fn hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_ren
  {
     let local_semantics = load_source("test/semantics.rs");
     let aggregated_semantics =
-        load_source("../../crates/ui-components/tests/hover_card_semantics.rs");
+        load_source("../../components/hover-card/test/hover_card_semantics.rs");
     let view_source = load_source("src/view.rs");
     let headless_hover_source = load_source("../../crates/ui-headless/src/hover_card.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
@@ -3671,7 +3671,7 @@ fn hover_card_check2_marks_semantics_and_performance_regression_contract_complet
     for marker in [
         "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
         "hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         "`render_count` 自动化回归仍在仓库统一 follow-up",
         "scripts/check-ui-components-performance.sh",
         "Invalid cross-device link (os error 18)",
@@ -3712,7 +3712,7 @@ fn hover_card_view_macro_complexity_is_split_into_semantic_subrenders_locally() 
     for needle in [
         "- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。",
         "components/hover-card/test/semantics.rs::hover_card_view_macro_complexity_is_split_into_semantic_subrenders_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_view_macro_complexity_is_split_into_semantic_subrenders",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_view_macro_complexity_is_split_into_semantic_subrenders",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3768,7 +3768,7 @@ fn hover_card_view_functional_split_prefers_plain_functions_over_local_component
     for needle in [
         "- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。",
         "components/hover-card/test/semantics.rs::hover_card_view_functional_split_prefers_plain_functions_over_local_components",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_view_functional_split_prefers_plain_functions_over_local_components",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_view_functional_split_prefers_plain_functions_over_local_components",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3810,7 +3810,7 @@ fn hover_card_static_fragments_are_constantized_or_absent_for_simple_layout_loca
     for needle in [
         "- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。",
         "components/hover-card/test/semantics.rs::hover_card_static_fragments_are_constantized_or_absent_for_simple_layout_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_static_fragments_are_constantized_or_absent_for_simple_layout",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_static_fragments_are_constantized_or_absent_for_simple_layout",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3872,7 +3872,7 @@ fn hover_card_inner_html_usage_is_explicitly_na_and_guarded_locally() {
         "- [x] `inner_html` 使用约束：",
         "零注入面",
         "components/hover-card/test/semantics.rs::hover_card_inner_html_usage_is_explicitly_na_and_guarded_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_inner_html_usage_is_explicitly_na_and_guarded",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_inner_html_usage_is_explicitly_na_and_guarded",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -3922,7 +3922,6 @@ fn hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root_source.contains(needle),
@@ -4007,7 +4006,7 @@ fn hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated
     for needle in [
         "- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。",
         "components/hover-card/test/semantics.rs::hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated",
     ] {
         assert!(
             check2_source.contains(needle),
@@ -4206,7 +4205,7 @@ fn hover_card_check2_marks_docs_product_copy_paste_ready_contract_complete_local
         "HOVER_CARD_DOC_IMPORTS",
         "compose_copy_ready_code",
         "hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_docs_are_copy_paste_ready_with_imports_and_streaming_snapshot_contract",
         "hover_card_dx_check_script_covers_docs_product_copy_paste_ready_contract_locally",
         "scripts/check-ui-components-dx.sh",
         "Invalid cross-device link (os error 18)",
@@ -4654,8 +4653,8 @@ fn hover_card_check2_marks_rust_hygiene_gate_complete_locally() {
         "crates/ui-state-primitives/src/hover_card.rs",
         "components/hover-card/test/semantics.rs::hover_card_rust_hygiene_non_test_source_forbids_unwrap_expect_and_ignored_bindings_locally",
         "components/hover-card/test/semantics.rs::hover_card_rust_hygiene_id_fallback_path_converges_to_cow_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_rust_hygiene_non_test_source_forbids_unwrap_expect_and_ignored_bindings",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_rust_hygiene_id_fallback_path_converges_to_cow",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_rust_hygiene_non_test_source_forbids_unwrap_expect_and_ignored_bindings",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_rust_hygiene_id_fallback_path_converges_to_cow",
         "./scripts/check-rust-hygiene.sh",
         "PCRE2 is not available in this build of ripgrep",
     ] {
@@ -4794,7 +4793,7 @@ fn hover_card_check2_marks_e2e_selector_stability_item_complete_locally() {
         "components/hover-card/test/semantics.rs::hover_card_e2e_selector_contract_uses_semantic_markers_and_settled_waits_locally",
         "components/hover-card/test/semantics.rs::hover_card_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths_locally",
         "components/hover-card/test/semantics.rs::hover_card_e2e_check_script_covers_selector_and_settled_wait_contract_locally",
-        "crates/ui-components/tests/hover_card_semantics.rs::hover_card_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/hover-card/test/hover_card_semantics.rs::hover_card_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "scripts/check-ui-components-e2e-hover-card.sh",
         "Invalid cross-device link (os error 18)",
     ] {

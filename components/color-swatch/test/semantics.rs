@@ -139,7 +139,7 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../crates/ui-visual-primitive/src/active_highlight.rs")
         }
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/color_swatch_semantics.rs")
+            include_str!("../../../components/color-swatch/test/color_swatch_semantics.rs")
         }
         _ => panic!("unsupported source path: {rel_path}"),
     }
@@ -2537,7 +2537,7 @@ fn color_swatch_tests_prioritize_semantic_contracts_over_visual_snapshots() {
 fn color_swatch_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only() {
     let local_semantics = include_str!("../../../components/color-swatch/test/semantics.rs");
     let legacy_semantics =
-        include_str!("../../../crates/ui-components/tests/color_swatch_semantics.rs");
+        include_str!("../../../components/color-swatch/test/color_swatch_semantics.rs");
     let view_source = load_source("../../components/color-swatch/src/view.rs");
     let script_source = load_source("../../scripts/check-ui-components-contract-hygiene.sh");
     let check2_source = load_source("../../components/color-swatch/check2.md");
@@ -3095,7 +3095,6 @@ fn color_swatch_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root_source.contains(needle),

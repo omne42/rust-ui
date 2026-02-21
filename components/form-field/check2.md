@@ -23,7 +23,7 @@
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
   - 已满足（原语来源）：`components/form-field/src/logic.rs` 通过 `ui_state_primitives::radio::{RadioCheckedAxisInput, resolve_checked_axis}` 归一受控/非受控选择轴，默认值锚定 `ui_state_primitives::radio::DEFAULT_CHECKED`；组件未自造并行状态机。
   - 已满足（组件侧仅消费）：`components/form-field/src/view.rs` 仅消费 `logic::normalize_selected_axis` 输出并装配 `use_controllable_state`，无组件内重复实现 `checked` 归一化规则。
-  - 回归：`components/form-field/test/semantics.rs::form_field_selected_axis_keeps_controlled_uncontrolled_triplet_contract`、`components/form-field/test/semantics.rs::form_field_consumes_state_primitives_for_selection_axis`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_component_governance_complete`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_selected_axis_keeps_controlled_uncontrolled_triplet_contract`、`components/form-field/test/semantics.rs::form_field_consumes_state_primitives_for_selection_axis`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_component_governance_complete`。
 - [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
@@ -32,7 +32,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -47,7 +47,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -57,7 +57,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
   - 本组件判定：`FormField` 已保持 `logic/view/styles` 职责分离并通过 `mod.rs` 最小导出公共 API；组件层未暴露 `web-sys`/DOM 类型，且 `switch` 交互语义由 `ui_headless::use_switch` 契约挂载。`motion.rs` 在该条按 N/A（无独立动效状态轴）。
   - 回归：`components/form-field/test/semantics.rs::form_field_component_keeps_ui_components_layering_boundaries`、`components/form-field/test/semantics.rs::form_field_component_uses_headless_contract_without_reimplementation`、`components/form-field/test/semantics.rs::form_field_component_has_local_semantics_tests_and_checklist_evidence`。
 
@@ -67,7 +67,7 @@
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
   - 本组件判定：`FormField` 公共布尔 props 已统一为 `is_selected/is_disabled/is_invalid`，并提供 `default_selected` + `on_selected_change`；文档示例已同步为 `is_selected/default_selected/on_selected_change` 调用路径，未引入同义别名漂移。
-  - 回归：`components/form-field/test/semantics.rs::form_field_public_api_follows_is_on_default_naming_contract`、`crates/ui-components/tests/form_field_semantics.rs::form_field_docs_playgrounds_lock_state_matrix_contract_values`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_public_api_follows_is_on_default_naming_contract`、`components/form-field/test/form_field_semantics.rs::form_field_docs_playgrounds_lock_state_matrix_contract_values`。
 - [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
@@ -150,7 +150,7 @@
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
   - 本组件判定：`FormField` 根节点已挂载 `role`/`aria-*`，`Switch` 交互语义由 `ui_headless::use_switch` 提供，`lang/dir` 通过 `locale_attrs` 接入；`view.rs` 不再硬编码 `"toggle"`，指示器文案复用归一化 `label` 来源。
   - 文案来源链路：`label`（props）→ `normalize_label` 回退 `DEFAULT_LABEL`；`aria_label`（props）→ `normalize_aria_label` 回退 `label/default`；错误文案走 `error_message`（props）→ `DEFAULT_ERROR_MESSAGE`。
-  - 回归：`components/form-field/test/semantics.rs::form_field_a11y_i18n_contract_is_mounted_without_hardcoded_view_text`、`crates/ui-components/tests/form_field_semantics.rs::form_field_view_mounts_locale_and_headless_a11y_contracts`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_a11y_i18n_contract_is_mounted_without_hardcoded_view_text`、`components/form-field/test/form_field_semantics.rs::form_field_view_mounts_locale_and_headless_a11y_contracts`。
 - [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
@@ -160,7 +160,7 @@
   - 状态来源可区分：选择轴公开 `data-selected-control-mode`（受控/非受控）、`data-default-selected-source`（默认值来源）、`data-selected-change-source`（交互回调来源）；文本来源公开 `data-label-source/data-aria-source/data-error-source/data-class-source`。
   - 关键状态轴适配：`selected/disabled/invalid/focus-visible` 已覆盖；`open/expanded/loading` 对本组件为 N/A（无 overlay 展开轴、无异步加载轴）。
   - 封闭集合：`logic.rs` 将 `state_attr/message_kind_attr/*_source_attr` 收敛为有限枚举字符串（如 `selected|unselected|disabled|invalid|selected-disabled|selected-invalid|invalid-disabled`），避免自由文本漂移。
-  - 回归：`components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable`、`crates/ui-components/tests/form_field_semantics.rs::form_field_emits_baseline_style_state_data_attributes`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable`、`components/form-field/test/form_field_semantics.rs::form_field_emits_baseline_style_state_data_attributes`。
 - [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
@@ -168,7 +168,7 @@
   - 本组件判定：状态样式分支由 `.ui-form-field--*` 与 `data-*`（`data-tone/data-indicator-placement/data-invalid/data-disabled/data-custom-class`）驱动；未使用 `:nth-child`/`:nth-of-type` 等结构猜测选择器。
   - 运行时样式边界：`view.rs`/`mod.rs` 未注入业务 inline style（无 `style=` 或 `style:*` 状态分支），仅通过语义标记与稳定 class 触发 `styles.rs` 规则。
   - 可解释性：无“依赖节点恰好存在才生效”的样式协议，状态切换可直接由 `data-*`/class 读出并回溯。
-  - 回归：`components/form-field/test/semantics.rs::form_field_styles_depend_on_explicit_state_markers_not_dom_guessing`、`crates/ui-components/tests/form_field_semantics.rs::form_field_styles_include_state_marker_contracts`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_styles_depend_on_explicit_state_markers_not_dom_guessing`、`components/form-field/test/form_field_semantics.rs::form_field_styles_include_state_marker_contracts`。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
@@ -177,7 +177,7 @@
   - 分支矩阵覆盖：受控/非受控（`form_field_selected_axis_keeps_controlled_uncontrolled_triplet_contract`）、disabled（`form_field_state_markers_are_observable_queryable_and_enumerable` + e2e `docs-form-field-read-only`）、键盘路径（e2e `page.keyboard.press(\"Enter\")` + `on:keydown/on:keyup`）、指针路径（e2e `click()` + `on:pointerdown/up/cancel/click`）。
   - SSR/wasm 差异（按适用范围）：`FormField` 组件层无 `web_sys`/`wasm_bindgen`/`#[cfg(target_arch = \"wasm32\")]` 分支，属于平台无差异语义组件；平台分支由 `ui-headless`/上层门禁处理，本项按 N/A（无组件内差异分支）验收。
   - 快照边界：当前回归以语义断言为主，不依赖 `toMatchSnapshot` / `assert_snapshot!` 作为主判据。
-  - 回归：`components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency`、`crates/ui-components/tests/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits`、`crates/ui-components/tests/form_field_semantics.rs::form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency`、`components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits`、`components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source`。
 - [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
@@ -202,7 +202,7 @@
   - 本组件判定：`FormField` 样式仅定义在 `styles.rs::CSS`，运行时 `view.rs` 未下发业务 inline style；`ui-components/src/css.rs` 通过 `#[cfg(feature = "component-form_field")] out.push_str(crate::field_form::form_field::styles::CSS);` 聚合，`UiRoot` 在 `inject_components_css` 分支统一注入。
   - token-first：间距/颜色/边框等视觉值经 `var(--ui-*)` 消费（如 `--ui-space-*`、`--ui-fg*`、`--ui-danger`、`--ui-accent`、`--ui-border-width-100`），未引入组件私有 `--form-field-*` token 体系。
   - 范式边界：组件源码未引入 Utility-First class 协议或 CSS-in-Rust 运行时样式编排。
-  - 回归：`components/form-field/test/semantics.rs::form_field_token_first_static_style_contract_is_enforced`、`crates/ui-components/tests/form_field_semantics.rs::form_field_tree_shaking_boundaries_stay_feature_gated`、`crates/ui-components/tests/form_field_semantics.rs::form_field_styles_include_state_marker_contracts`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_token_first_static_style_contract_is_enforced`、`components/form-field/test/form_field_semantics.rs::form_field_tree_shaking_boundaries_stay_feature_gated`、`components/form-field/test/form_field_semantics.rs::form_field_styles_include_state_marker_contracts`。
 - [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
@@ -212,7 +212,7 @@
   - 交互反馈：`Switch` 适配层暴露 `data-hovered/data-pressed/data-focused/data-focus-visible`，默认主题下可直接挂接反馈样式；`FormField` 根状态通过 `data-state/data-tone/data-invalid/data-disabled` 维持可解释性。
   - 单组件范围 N/A：本条中的“关键组件（Button/Input/Overlay）视觉回归与截图基线”属于仓库级主题治理，不在 `FormField` 单组件验收范围内；本组件仅验收其默认主题落地质量与 docs 基线入口。
   - 反退化约束：组件样式未采用 Bootstrap 风格命名/结构（如 `.btn/.form-control/.panel`），避免回落到“可用但粗糙”的旧式视觉语言。
-  - 回归：`components/form-field/test/semantics.rs::form_field_visual_desire_baseline_is_documented_and_non_bootstrap_like`、`crates/ui-components/tests/form_field_semantics.rs::form_field_docs_page_covers_primary_playgrounds`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_visual_desire_baseline_is_documented_and_non_bootstrap_like`、`components/form-field/test/form_field_semantics.rs::form_field_docs_page_covers_primary_playgrounds`。
 - [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
@@ -225,7 +225,7 @@
   - 本组件判定：`ui-components/Cargo.toml` 已定义 `component-form_field = ["component-switch", "component-checkbox"]`，`field_form.rs` 通过 `#[cfg(feature = "component-form_field")]` 挂载组件源码，`css.rs` 通过同名 feature gate 聚合 `form_field::styles::CSS`，未出现无条件 CSS 拉起。
   - 导出边界：`lib.rs` 仅在 `field_form` 相关 feature 组合下暴露 `pub mod field_form;`，并通过 feature 受控 re-export 暴露 `FormField`，保持 source/package 双路径可裁剪。
   - 单组件范围 N/A：本条中的“反向依赖树检查、CI 最小特性任务与体积预算阈值”属于仓库级门禁，本组件在 `check2` 中仅固化本地可验证的 feature gate 与聚合边界证据。
-  - 回归：`components/form-field/test/semantics.rs::form_field_tree_shaking_contract_is_feature_gated_without_global_reachability_leak`、`crates/ui-components/tests/form_field_semantics.rs::form_field_feature_dependency_chain_supports_minimal_component_builds`、`crates/ui-components/tests/form_field_semantics.rs::form_field_tree_shaking_boundaries_stay_feature_gated`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_tree_shaking_contract_is_feature_gated_without_global_reachability_leak`、`components/form-field/test/form_field_semantics.rs::form_field_feature_dependency_chain_supports_minimal_component_builds`、`components/form-field/test/form_field_semantics.rs::form_field_tree_shaking_boundaries_stay_feature_gated`。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -302,7 +302,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
   - 本组件判定：`docs-app` 已为 `form-field` 配置显式预算（`apps/docs-app/src/pages/components/shell.rs`：`max_mount_ms: 26.0`、`max_update_ms: Some(8.0)`、`max_heap_kb: Some(384.0)`）；`UiPerfProbe` 在组件页统一输出 `data-perf-*` 阈值与违规标记，`docs_app_components_coverage.spec.mjs` 对 `data-perf-mount-ms/data-perf-budget-ms/data-perf-observability/data-perf-violation` 进行可重复断言。
   - 可归因证据：`FormField` 根节点稳定输出 `data-state`、`data-selected-control-mode`、`data-default-selected-source`、`data-selected-change-source`、`data-class-source` 等来源标记，可把回归归因到状态/渲染/样式路径；动效路径由 `ui-motion` reduced-motion/no-op 契约覆盖。
@@ -312,7 +312,7 @@
     - `cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages`
     - `cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非本条性能契约实现回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`、`crates/ui-components/tests/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`、`components/form-field/test/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
@@ -324,7 +324,7 @@
     - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-form_field,inject-css`
     - `cargo test -p ui-form-field form_field_view_macro_complexity_is_bounded_via_semantic_subview_split -- --exact`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 `view!` 拆分契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_view_macro_complexity_is_bounded_via_semantic_subview_split`、`crates/ui-components/tests/form_field_semantics.rs::form_field_view_macro_complexity_is_controlled_by_semantic_subview_split`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_view_macro_complexity_is_bounded_via_semantic_subview_split`、`components/form-field/test/form_field_semantics.rs::form_field_view_macro_complexity_is_controlled_by_semantic_subview_split`。
 - [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
@@ -336,7 +336,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_view_functional_split_prefers_plain_functions_over_extra_local_components`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_view_macro_complexity_is_controlled_by_semantic_subview_split`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非函数式拆分契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_view_functional_split_prefers_plain_helpers_without_component_noise`、`crates/ui-components/tests/form_field_semantics.rs::form_field_view_functional_split_prefers_plain_functions_over_extra_local_components`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_view_functional_split_prefers_plain_helpers_without_component_noise`、`components/form-field/test/form_field_semantics.rs::form_field_view_functional_split_prefers_plain_functions_over_extra_local_components`。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
@@ -349,7 +349,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_static_fragments_are_constantized_or_absent_for_simple_layout`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_view_functional_split_prefers_plain_functions_over_extra_local_components`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非静态片段治理契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_static_fragments_are_constantized_or_absent_for_simple_layout`、`crates/ui-components/tests/form_field_semantics.rs::form_field_static_fragments_are_constantized_or_absent_for_simple_layout`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_static_fragments_are_constantized_or_absent_for_simple_layout`、`components/form-field/test/form_field_semantics.rs::form_field_static_fragments_are_constantized_or_absent_for_simple_layout`。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
@@ -361,7 +361,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples`
     - `bash scripts/check-ui-components-inner-html.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 `inner_html` 安全契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples`、`crates/ui-components/tests/form_field_semantics.rs::form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples`、`components/form-field/test/form_field_semantics.rs::form_field_inner_html_usage_is_forbidden_in_component_and_docs_examples`。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
@@ -374,7 +374,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_wasm_debug_contract_is_na_and_feature_isolated`
     - `bash scripts/check-ui-components-wasm-debug.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 wasm 调试契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_wasm_debug_contract_is_na_and_feature_isolated`、`crates/ui-components/tests/form_field_semantics.rs::form_field_wasm_debug_contract_is_na_and_feature_isolated`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_wasm_debug_contract_is_na_and_feature_isolated`、`components/form-field/test/form_field_semantics.rs::form_field_wasm_debug_contract_is_na_and_feature_isolated`。
 - [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
@@ -387,7 +387,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`
     - `bash scripts/check-ui-components-dx.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 DX 契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`、`crates/ui-components/tests/form_field_semantics.rs::form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`、`components/form-field/test/form_field_semantics.rs::form_field_dx_playground_supports_css_hot_reload_and_isolated_canvas_with_optional_persist_na`。
 - [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
@@ -401,7 +401,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`
     - `bash scripts/check-ui-components-engineering.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非工程能力契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`、`crates/ui-components/tests/form_field_semantics.rs::form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`、`components/form-field/test/form_field_semantics.rs::form_field_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_boundaries`。
 
 ### 5. 样式与动效（Theme & Motion）
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
@@ -412,7 +412,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`
     - `bash scripts/check-ui-components-contract-hygiene.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 Defensive Variables 契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`、`crates/ui-components/tests/form_field_semantics.rs::form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`、`components/form-field/test/form_field_semantics.rs::form_field_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals`。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
   - 聚合层契约：`crates/ui-components/src/css.rs` 继续通过 `@layer ui` 包裹组件 CSS，`component-form_field` 分支仅注入 `crate::field_form::form_field::styles::CSS`，未引入绕过层级的组件私有注入路径。
   - 运行时样式契约：`FormField` 当前无运行时 style 注入需求；`mod.rs/logic.rs/view.rs` 保持“零普通内联样式”路径，不出现 `style=\"top/left/right/bottom/width/height\"` 或 `style:top/left/right/bottom/width/height`。
@@ -422,7 +422,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_cascade_layer_and_runtime_style_contract_is_enforced`
     - `bash scripts/check-ui-components-contract-hygiene.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 cascade-layer 契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_cascade_layer_and_runtime_style_contract_is_enforced`、`crates/ui-components/tests/form_field_semantics.rs::form_field_cascade_layer_and_runtime_style_contract_is_enforced`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_cascade_layer_and_runtime_style_contract_is_enforced`、`components/form-field/test/form_field_semantics.rs::form_field_cascade_layer_and_runtime_style_contract_is_enforced`。
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。
   - 本组件判定：N/A（`FormField` 无独立组件级动效状态轴，不定义 `src/motion.rs` 与 `attach_motion`）；动效降级契约由 `ui-motion` 统一承接（non-wasm no-op + wasm `prefers-reduced-motion` 早退）。
   - 边界约束：`mod.rs/logic.rs/view.rs/styles.rs` 禁止出现 `attach_motion`、组件私有 `stiffness/damping`、以及 `mod motion` 导出；避免把无必要的 motion 状态机引入简单表单语义组件。
@@ -432,7 +432,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards`
     - `bash scripts/check-ui-components-platforms.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 motion 合同化契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards`、`crates/ui-components/tests/form_field_semantics.rs::form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards`、`components/form-field/test/form_field_semantics.rs::form_field_motion_contract_is_explicitly_na_for_runtime_attach_and_keeps_reduced_motion_noop_guards`。
 - [x] `ui-components` 固定入口文件落点正确。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
@@ -450,7 +450,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_ui_components_fixed_entry_files_follow_layered_boundaries`
     - `bash scripts/check-ui-components-entrypoints.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 entrypoints 契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries`、`crates/ui-components/tests/form_field_semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries`、`components/form-field/test/form_field_semantics.rs::form_field_ui_components_fixed_entry_files_follow_layered_boundaries`。
 - [x] 组件目录标准文件落点正确。
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
@@ -469,7 +469,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_component_directory_standard_files_follow_contract_and_na_paths`
     - `bash scripts/check-ui-components-component-files.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非组件目录落点契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_component_directory_standard_files_follow_contract_and_na_paths`、`crates/ui-components/tests/form_field_semantics.rs::form_field_component_directory_standard_files_follow_contract_and_na_paths`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_component_directory_standard_files_follow_contract_and_na_paths`、`components/form-field/test/form_field_semantics.rs::form_field_component_directory_standard_files_follow_contract_and_na_paths`。
 
 ### 6. AI 原生能力与文件落点（Struct-First & Projection）
 - [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。
@@ -483,7 +483,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_file_placement_discipline_is_strict_for_component_scope`
     - `bash scripts/check-ui-components-component-files.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非文件落点纪律契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_file_placement_discipline_is_strict_for_component_scope`、`crates/ui-components/tests/form_field_semantics.rs::form_field_file_placement_discipline_is_strict_for_component_scope`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_file_placement_discipline_is_strict_for_component_scope`、`components/form-field/test/form_field_semantics.rs::form_field_file_placement_discipline_is_strict_for_component_scope`。
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。
   - 本组件判定：N/A（`FormField` 为单字段基础组件，不存在复杂多槽位组合与可编排 DSL 输入，不引入 `*Spec::new()...render()` builder）。
   - 协议兜底：继续使用 `src/protocol.rs` 维护最小 schema 兼容（`FormFieldComponentSpec + schema_version`），而非引入组件级 `src/spec.rs`。
@@ -493,7 +493,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_hyper_structure_builder_spec_is_not_applicable_for_simple_component`
     - `bash scripts/check-ui-components-component-files.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 Hyper-Structure Builder 契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`crates/ui-components/tests/form_field_semantics.rs::form_field_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_hyper_structure_builder_spec_is_not_applicable_for_simple_component`、`components/form-field/test/form_field_semantics.rs::form_field_hyper_structure_builder_spec_is_not_applicable_for_simple_component`。
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。
   - 已满足（Manifest 落位）：`components/form-field/src/Component.toml` 已新增并声明 `schema_version`、`component` 元数据、核心输入轴与 `context_compression_manifest/rbi_signature_projection` 能力标记。
   - 已满足（RBI 投影落位）：`components/form-field/src/form_field.rbi` 已新增并投影 `FormFieldTone/FormFieldIndicatorVariant/FormFieldIndicatorPlacement` 与 `FormField(...) -> IntoView` 签名，覆盖受控轴与语义输入参数。
@@ -503,7 +503,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_context_compression_manifest_and_rbi_projection_are_present_and_synced`
     - `bash scripts/check-ui-components-component-files.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 Manifest/RBI 契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_context_compression_manifest_and_rbi_projection_are_present_and_synced`、`crates/ui-components/tests/form_field_semantics.rs::form_field_context_compression_manifest_and_rbi_projection_are_present_and_synced`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_context_compression_manifest_and_rbi_projection_are_present_and_synced`、`components/form-field/test/form_field_semantics.rs::form_field_context_compression_manifest_and_rbi_projection_are_present_and_synced`。
 - [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
@@ -521,7 +521,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`
     - `bash scripts/check-ui-components-contract-hygiene.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 Agent Contract 契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_agent_contract_schema_is_typed_traceable_and_whitelist_safe`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_agent_contract_schema_governance_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_agent_contract_is_schema_typed_and_machine_readable`、`crates/ui-components/tests/form_field_semantics.rs::form_field_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`crates/ui-components/tests/form_field_semantics.rs::form_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_agent_contract_schema_is_typed_traceable_and_whitelist_safe`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_agent_contract_schema_governance_rules`、`components/form-field/test/form_field_semantics.rs::form_field_agent_contract_is_schema_typed_and_machine_readable`、`components/form-field/test/form_field_semantics.rs::form_field_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing`、`components/form-field/test/form_field_semantics.rs::form_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
@@ -531,7 +531,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`
     - `bash scripts/check-ui-components-streaming.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非流式定义契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes`。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
@@ -542,7 +542,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_snapshot_as_default_baseline_capability`
     - `bash scripts/check-ui-components-streaming.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 Snapshot 基线契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_check2_documents_snapshot_as_default_baseline_capability`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_snapshot_as_default_baseline_capability`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_check2_documents_snapshot_as_default_baseline_capability`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_snapshot_as_default_baseline_capability`。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
@@ -560,7 +560,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`
     - `bash scripts/check-ui-components-streaming.sh`
   - 当前环境说明：上述命令在本执行环境被统一阻断为 `Invalid cross-device link (os error 18)`；阻断发生在依赖编译阶段，非 Streaming Required/Optional 职责契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_check2_documents_streaming_required_optional_classification_rules`、`components/form-field/test/semantics.rs::form_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/form-field/test/semantics.rs::form_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_streaming_required_optional_classification_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`crates/ui-components/tests/form_field_semantics.rs::form_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_check2_documents_streaming_required_optional_classification_rules`、`components/form-field/test/semantics.rs::form_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/form-field/test/semantics.rs::form_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_streaming_required_optional_classification_rules`、`components/form-field/test/form_field_semantics.rs::form_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/form-field/test/form_field_semantics.rs::form_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。
@@ -577,7 +577,7 @@
     - `bash scripts/check-ui-components-engineering.sh`
   - 当前环境说明（cargo 路径）：`cargo test -p ui-form-field ...`、`cargo test -p ui-components ...` 与 `bash scripts/check-ui-components-engineering.sh` 在依赖编译阶段触发 `Invalid cross-device link (os error 18)`。
   - 当前环境说明（hygiene 脚本路径）：`./scripts/check-rust-hygiene.sh` 可执行，但在本环境失败于两项外部条件：`rg` 构建不含 PCRE2（重复输出 `PCRE2 is not available in this build of ripgrep`），以及 `[api-contract] violation set changed (baseline drift)`；该失败不指向 `components/form-field` 的 `unwrap/expect/let _ =` 或字符串热点回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/form-field/test/semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/form-field/test/semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`crates/ui-components/tests/form_field_semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`crates/ui-components/tests/form_field_semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`crates/ui-components/tests/form_field_semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/form-field/test/semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/form-field/test/semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards`、`components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_contract_forbids_unwrap_expect_and_let_underscore_in_non_test_sources`、`components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_string_clone_hotspots_converge_to_cow_or_are_absent`、`components/form-field/test/form_field_semantics.rs::form_field_rust_hygiene_script_enforces_repo_level_hygiene_guards`。
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
   - 已满足（特性树注册）：`crates/ui-components/Cargo.toml` 已定义 `component-form_field = ["component-switch", "component-checkbox"]`，`FormField` 具备独立组件级 feature 门控。
   - 已满足（`lib.rs` 门控）：`crates/ui-components/src/lib.rs` 仅在 `#[cfg(any(..., feature = "component-form_field", ...))]` 下暴露 `pub mod field_form;`；`crates/ui-components/src/field_form.rs` 通过 `#[cfg(feature = "component-form_field")] pub mod form_field;` 挂载实现。
@@ -589,11 +589,11 @@
     - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-form_field,inject-css`
   - 当前环境说明（特性树/反向依赖）：两条 `cargo tree` 最小特性命令在本环境可执行，输出显示 `component-form_field` 与 `inject-css` 为命令行启用特性，且未出现 `all-components` 被隐式拉起；`-p web-demo` 路径显示由 `web-demo-components` 显式聚合。
   - 当前环境说明（最小特性 wasm 编译）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-form_field,inject-css` 在依赖编译阶段触发 `Invalid cross-device link (os error 18)`，属于当前构建环境阻断，非 `FormField` tree-shaking 特性门控回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_tree_shaking_contract_is_feature_gated_without_global_reachability_leak`、`crates/ui-components/tests/form_field_semantics.rs::form_field_feature_dependency_chain_supports_minimal_component_builds`、`crates/ui-components/tests/form_field_semantics.rs::form_field_tree_shaking_boundaries_stay_feature_gated`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_tree_shaking_contract_is_feature_gated_without_global_reachability_leak`、`components/form-field/test/form_field_semantics.rs::form_field_feature_dependency_chain_supports_minimal_component_builds`、`components/form-field/test/form_field_semantics.rs::form_field_tree_shaking_boundaries_stay_feature_gated`。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
   - 已满足（语义契约覆盖）：`components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency` 覆盖 `role/aria/data-*`、键盘与指针分支，并显式禁止快照断言；`components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable` 固化状态来源标记可检索性。
   - 已满足（焦点/交互路径）：`Switch` 适配层在 `view.rs` 挂载 `data-focus-visible/data-focused/data-pressed/data-hovered`，并由 `on:keydown/on:keyup` 与 pointer handlers 统一进 `ui_headless::use_switch` 语义契约，避免仅靠视觉快照判断。
-  - 已满足（性能回归）：`components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking` 与 `crates/ui-components/tests/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking` 固化预算、可观测 marker 与阻断阈值。
+  - 已满足（性能回归）：`components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking` 与 `components/form-field/test/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking` 固化预算、可观测 marker 与阻断阈值。
   - `render_count` 现状：仓库尚未具备统一可移植 `render_count` 自动化，本组件采用 mount-only 等价证据，并在 `docs/plan/TODO.md` 保留 “建立 `render_count` 自动化回归（Button/Input/Accordion）” 跟踪项；能力落地后补齐精确渲染计数断言。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency -- --exact`
@@ -603,8 +603,8 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_performance_governance_budget_is_defined_traceable_and_blocking`
     - `bash scripts/check-ui-components-performance.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 `FormField` 语义契约与性能预算回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency`、`components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable`、`components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`、`crates/ui-components/tests/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits`、`crates/ui-components/tests/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`。
-- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `FormField` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/form-field/src/protocol.rs` 的 `FormFieldComponentSchemaVersion::V1`、`components/form-field/src/Component.toml` 的 `schema_version = "1"` 与 `ui.form_field.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/form-field/test/semantics.rs::form_field_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`、`crates/ui-components/tests/form_field_semantics.rs::form_field_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 已接入对应 `cargo test` 目标。）
+  - 回归：`components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency`、`components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable`、`components/form-field/test/semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`、`components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits`、`components/form-field/test/form_field_semantics.rs::form_field_performance_governance_budget_is_defined_traceable_and_blocking`。
+- [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `FormField` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/form-field/src/protocol.rs` 的 `FormFieldComponentSchemaVersion::V1`、`components/form-field/src/Component.toml` 的 `schema_version = "1"` 与 `ui.form_field.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/form-field/test/semantics.rs::form_field_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`、`components/form-field/test/form_field_semantics.rs::form_field_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 已接入对应 `cargo test` 目标。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - 已满足（Playground 覆盖）：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::form_field` 已提供 `Hello World（默认路径）`、`Switch Indicator + Description`、`Checkbox Indicator + Quiet + Invalid/Disabled` 与 `Controlled vs Default (Comparison)` 四组验收面，覆盖状态矩阵与受控/非受控对照。
   - 已满足（流式/快照展现）：docs 页面新增 `data-slot="form-field-streaming-policy"` 与 `data-slot="form-field-streaming-modes"`，显式标注 `Streaming Optional; fallback=snapshot.` 与 `Snapshot` 展现语义。
@@ -615,20 +615,20 @@
     - `npx playwright test e2e/tests/docs_app_form_field_contract.spec.mjs --grep "playground source is copy-paste ready"`
     - `bash scripts/check-ui-components-dx.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 FormField 文档契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`crates/ui-components/tests/form_field_semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field playground source is copy-paste ready`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`components/form-field/test/form_field_semantics.rs::form_field_docs_are_copy_paste_ready_with_hello_world_state_matrix_and_streaming_snapshot`、`e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field playground source is copy-paste ready`。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
   - 已满足（组件级语义测试）：`components/form-field/test/semantics.rs` 持续覆盖关键状态轴与动作语义（`form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency`、`form_field_state_markers_are_observable_queryable_and_enumerable`、`form_field_a11y_i18n_contract_is_mounted_without_hardcoded_view_text`），断言聚焦 `data-*`/`aria-*`/`role` 与状态来源标记。
   - 已满足（快照仅补充）：语义回归显式约束“不以视觉快照为主判据”，并在 e2e 侧持续使用语义属性断言（`e2e/tests/docs_app_form_field_contract.spec.mjs` 的 `toHaveAttribute(\"data-state\" ...)`、键盘路径 `page.keyboard.press(\"Enter\")`）；未引入 screenshot-only 判定路径。
-  - 已满足（变更同步补测）：新增回归 `components/form-field/test/semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 与 `crates/ui-components/tests/form_field_semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`，并接入 `scripts/check-ui-components-performance.sh` 阻断执行。
+  - 已满足（变更同步补测）：新增回归 `components/form-field/test/semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks` 与 `components/form-field/test/form_field_semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`，并接入 `scripts/check-ui-components-performance.sh` 阻断执行。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks -- --exact`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`
     - `bash scripts/check-ui-components-performance.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 FormField 语义测试优先契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency`、`components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable`、`components/form-field/test/semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`、`crates/ui-components/tests/form_field_semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_semantic_contract_tests_cover_branch_matrix_without_snapshot_dependency`、`components/form-field/test/semantics.rs::form_field_state_markers_are_observable_queryable_and_enumerable`、`components/form-field/test/semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`、`components/form-field/test/form_field_semantics.rs::form_field_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks`。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -644,7 +644,7 @@
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source`
     - `bash scripts/check-ui-components-e2e-form-field.sh`
   - 当前环境说明：上述 `cargo test` 命令在本执行环境于依赖编译阶段触发 `Invalid cross-device link (os error 18)`；该阻断为环境问题，非 FormField E2E 选择器稳定契约回归。
-  - 回归：`components/form-field/test/semantics.rs::form_field_e2e_selector_stability_prefers_semantic_markers_and_settled_waits`、`components/form-field/test/semantics.rs::form_field_check2_marks_e2e_selector_stability_item_complete`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_e2e_selector_and_stable_wait_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits`、`crates/ui-components/tests/form_field_semantics.rs::form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_e2e_selector_stability_item_complete`。
+  - 回归：`components/form-field/test/semantics.rs::form_field_e2e_selector_stability_prefers_semantic_markers_and_settled_waits`、`components/form-field/test/semantics.rs::form_field_check2_marks_e2e_selector_stability_item_complete`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_e2e_selector_and_stable_wait_rules`、`components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_uses_semantic_selectors_and_settled_waits`、`components/form-field/test/form_field_semantics.rs::form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_e2e_selector_stability_item_complete`。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
@@ -652,7 +652,7 @@
   - 已满足（可重复关键流程）：`e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field key flow is repeatable with semantic breakpoints` 覆盖加载 -> `focus + Enter` 键盘交互 -> `data-state` 语义断点验证 -> reload 复验，形成稳定可重复路径。
   - 已满足（语义断点可定位）：关键断点固定在 `#docs-form-field-tos[data-slot="form-field"]`、`[data-slot="checkbox"]`、`data-state=selected-invalid/invalid`、`data-selected`，失败可直接定位到语义契约断点而非页面像素差异。
   - 已满足（高风险路径优先）：该流程显式覆盖 `focus/keyboard` 路径；`overlay` 对 `FormField` 组件不适用；组件层无远程异步交互，等待策略由 `body:not(:has(#boot))` 与语义属性收敛断点保障。
-  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules`、`components/form-field/test/semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/form-field/test/semantics.rs::form_field_check2_marks_e2e_repeatable_key_flow_item_complete`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_e2e_repeatable_key_flow_item_complete`。
+  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules`、`components/form-field/test/semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/form-field/test/semantics.rs::form_field_check2_marks_e2e_repeatable_key_flow_item_complete`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_e2e_repeatable_key_flow_rules`、`components/form-field/test/form_field_semantics.rs::form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_e2e_repeatable_key_flow_item_complete`。
   - 已满足（脚本门禁）：`scripts/check-ui-components-e2e-form-field.sh` 已纳入 `form_field_check2_documents_e2e_repeatable_key_flow_rules` 与 `form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic`，确保关键流程回归可阻断。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic -- --exact`
@@ -667,8 +667,8 @@
   - 已满足（docs 示例同步）：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::form_field` 已覆盖 `Hello World`、`Switch Indicator + Description`、`Checkbox Indicator + Quiet + Invalid/Disabled`、`Controlled vs Default (Comparison)` 四组路径，并保持 `FormField` 默认调用与进阶调用并存。
   - 已满足（参数矩阵/状态矩阵）：docs 页面同时覆盖受控与非受控（`is_selected + on_selected_change` / `default_selected`）、禁用（`is_disabled=true`）、错误态（`is_invalid=true`）、视觉轴（`tone`、`indicator_variant`、`indicator_placement`）；并通过 `data-slot=\"form-field-state-matrix-note\"` 与 `data-slot=\"form-field-controlled-uncontrolled-note\"` 固化说明。
   - 已满足（API 与默认值一致）：docs 使用的公共命名与 `components/form-field/src/view.rs`/`components/form-field/src/logic.rs` 一致（`is_selected/on_selected_change/default_selected`）；默认值归一仍由 `logic.rs::normalize_selected_axis` 的 `DEFAULT_SELECTED` 单点控制。
-  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules`、`components/form-field/test/semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/form-field/test/semantics.rs::form_field_check2_marks_docs_sync_and_state_matrix_item_complete`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_docs_sync_and_state_matrix_item_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_docs_sync_and_state_matrix_rules` 与 `form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，并由 `crates/ui-components/tests/form_field_semantics.rs::form_field_dx_check_script_covers_docs_sync_and_state_matrix_contract` 固化。
+  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules`、`components/form-field/test/semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/form-field/test/semantics.rs::form_field_check2_marks_docs_sync_and_state_matrix_item_complete`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_docs_sync_and_state_matrix_rules`、`components/form-field/test/form_field_semantics.rs::form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_docs_sync_and_state_matrix_item_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_docs_sync_and_state_matrix_rules` 与 `form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults`，并由 `components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_docs_sync_and_state_matrix_contract` 固化。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_docs_examples_and_state_matrix_sync_with_logic_api_names_and_defaults -- --exact`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_docs_sync_and_state_matrix_rules`
@@ -682,8 +682,8 @@
   - 已满足（README/入口存在）：新增 `components/form-field/src/README.md`，并保持 docs 入口 `apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::form_field` 可索引，避免“只有源码没有文档”。
   - 已满足（新手优先内容）：README 已提供 `## Hello World`、`## 常见用法`、`## 先用起来，再进阶`，默认调用路径先于架构层描述出现。
   - 已满足（docs 渐进顺序）：docs-app 页面保持 `Hello World（默认路径） -> Switch Indicator + Description -> Checkbox Indicator + Quiet + Invalid/Disabled -> Controlled vs Default (Comparison)` 的由浅入深顺序。
-  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_documentation_as_product_rules`、`components/form-field/test/semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression`、`components/form-field/test/semantics.rs::form_field_check2_marks_documentation_as_product_contract_complete`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_documentation_as_product_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_documentation_as_product_contract_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_documentation_as_product_rules` 与 `form_field_documentation_entry_exists_with_beginner_first_progression`，并由 `crates/ui-components/tests/form_field_semantics.rs::form_field_dx_check_script_covers_documentation_as_product_contract` 固化。
+  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_documentation_as_product_rules`、`components/form-field/test/semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression`、`components/form-field/test/semantics.rs::form_field_check2_marks_documentation_as_product_contract_complete`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_documentation_as_product_rules`、`components/form-field/test/form_field_semantics.rs::form_field_documentation_entry_exists_with_beginner_first_progression`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_documentation_as_product_contract_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_documentation_as_product_rules` 与 `form_field_documentation_entry_exists_with_beginner_first_progression`，并由 `components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_documentation_as_product_contract` 固化。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_documentation_entry_exists_with_beginner_first_progression -- --exact`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_documentation_as_product_rules`
@@ -698,8 +698,8 @@
   - 已满足（状态切换与实时预览）：Workbench 通过 `SegmentedControl + Switch` 驱动 props/state，预览区域持续输出 `FormField` 语义状态；`test_config_signal=interactive_actual_config` 固化可读配置回显，`data-slot=\"form-field-workbench-controls\"` 与 `data-slot=\"form-field-workbench-compare\"` 作为稳定验收锚点。
   - 已满足（AI Spec 组件要求）：N/A（`FormField` 非 AI Spec 组件，不承载 Spec 输入 DSL）；以标准 props 交互工作台作为等价验收面。
   - 已满足（关键流程可复现）：复用 `e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field key flow is repeatable with semantic breakpoints`，覆盖稳定等待、键盘交互（`Enter`）、语义断点和 reload 后复验。
-  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_interactive_playground_rules`、`components/form-field/test/semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/form-field/test/semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/form-field/test/semantics.rs::form_field_check2_marks_interactive_playground_item_complete`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_interactive_playground_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`crates/ui-components/tests/form_field_semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_interactive_playground_item_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_docs_app_provides_interactive_playground_for_props_state_and_preview` 与 `form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`，并由 `crates/ui-components/tests/form_field_semantics.rs::form_field_dx_check_script_covers_interactive_playground_contract` 固化。
+  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_interactive_playground_rules`、`components/form-field/test/semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/form-field/test/semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/form-field/test/semantics.rs::form_field_check2_marks_interactive_playground_item_complete`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_interactive_playground_rules`、`components/form-field/test/form_field_semantics.rs::form_field_docs_app_provides_interactive_playground_for_props_state_and_preview`、`components/form-field/test/form_field_semantics.rs::form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_interactive_playground_item_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_docs_app_provides_interactive_playground_for_props_state_and_preview` 与 `form_field_interactive_playground_reuses_repeatable_semantic_e2e_flow`，并由 `components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_interactive_playground_contract` 固化。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_docs_app_provides_interactive_playground_for_props_state_and_preview -- --exact`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_interactive_playground_rules`
@@ -713,9 +713,9 @@
   - 文档代码与当前实现必须同步，防止示例漂移。
   - 已满足（复制按钮 + 可运行 imports）：`apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` 自动补全 `use leptos::prelude::*;` 与 `use ui_components::*;`，`e2e/tests/docs_app_form_field_contract.spec.mjs::docs-app form-field playground source is copy-paste ready` 持续断言代码块 `data-copyable="true"` 与复制按钮 `aria-label`。
   - 已满足（真实源码落点 + 依赖前提）：`apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::form_field` 提供 `data-slot="form-field-source-paths"` 与 `data-slot="form-field-source-prerequisites"`，明确 `components/form-field/src/{mod,logic,view,styles}.rs` 与 `component-form_field`（`inject-css` 可选）前提；E2E 断言同步覆盖上述路径与依赖文案。
-  - 已满足（文档实现同步）：`components/form-field/test/semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies` 与 `crates/ui-components/tests/form_field_semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies` 直接校验 docs 页面、Playground 复制管线与 E2E 合同文本一致。
-  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules`、`components/form-field/test/semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/form-field/test/semantics.rs::form_field_check2_marks_source_first_copy_paste_ready_contract_complete`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`crates/ui-components/tests/form_field_semantics.rs::form_field_dx_check_script_covers_source_first_copy_paste_ready_contract`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_source_first_copy_paste_ready_contract_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_source_first_copy_paste_ready_rules`、`form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`，并由 `crates/ui-components/tests/form_field_semantics.rs::form_field_dx_check_script_covers_source_first_copy_paste_ready_contract` 固化。
+  - 已满足（文档实现同步）：`components/form-field/test/semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies` 与 `components/form-field/test/form_field_semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies` 直接校验 docs 页面、Playground 复制管线与 E2E 合同文本一致。
+  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules`、`components/form-field/test/semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/form-field/test/semantics.rs::form_field_check2_marks_source_first_copy_paste_ready_contract_complete`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_source_first_copy_paste_ready_rules`、`components/form-field/test/form_field_semantics.rs::form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`、`components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_source_first_copy_paste_ready_contract`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_source_first_copy_paste_ready_contract_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_source_first_copy_paste_ready_rules`、`form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies`，并由 `components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_source_first_copy_paste_ready_contract` 固化。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies -- --exact`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_source_first_copy_paste_ready_rules`
@@ -730,8 +730,8 @@
   - 已满足（对标文档同步）：`docs/spec/heroui-parameter-design-strategy.md` 已新增 `### FormField 同步记录（2026-02-20）`，明确 `FormField` 参数主轴、docs 入口、示例矩阵、Source-first 路径及“参数语义变更先文档后实现”约束。
   - 已满足（研究文档补充判定）：本轮仅为参数语义与组件文档入口同步，不引入新的 Spectrum/HeroUI 风格结论；策略文档中已明确“不需要追加 `docs/research/spectrum-heroui-style-interface-study.md`”。
   - 已满足（组件文档入口可访问）：docs 索引 `apps/docs-app/src/pages/components/pages.rs` 保持 `component_doc!(\"FormField\", \"form-field\", \"Forms\", forms_groups_extra::form_field)`，页面实现位于 `apps/docs-app/src/pages/components/pages/forms_groups_extra.rs::form_field()`，并由 `components/form-field/src/README.md` 提供等价文档入口。
-  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_heroui_benchmark_docs_sync_rules`、`components/form-field/test/semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/form-field/test/semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/form-field/test/semantics.rs::form_field_check2_marks_heroui_benchmark_docs_sync_contract_complete`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_documents_heroui_benchmark_docs_sync_rules`、`crates/ui-components/tests/form_field_semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`crates/ui-components/tests/form_field_semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`crates/ui-components/tests/form_field_semantics.rs::form_field_check2_marks_heroui_benchmark_docs_sync_contract_complete`。
-  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_heroui_benchmark_docs_sync_rules` 与 `form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`，并由 `crates/ui-components/tests/form_field_semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract` 固化。
+  - 已满足（自动化回归）：`components/form-field/test/semantics.rs::form_field_check2_documents_heroui_benchmark_docs_sync_rules`、`components/form-field/test/semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/form-field/test/semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/form-field/test/semantics.rs::form_field_check2_marks_heroui_benchmark_docs_sync_contract_complete`、`components/form-field/test/form_field_semantics.rs::form_field_check2_documents_heroui_benchmark_docs_sync_rules`、`components/form-field/test/form_field_semantics.rs::form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`、`components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract`、`components/form-field/test/form_field_semantics.rs::form_field_check2_marks_heroui_benchmark_docs_sync_contract_complete`。
+  - 已满足（脚本门禁）：`scripts/check-ui-components-dx.sh` 已纳入 `form_field_check2_documents_heroui_benchmark_docs_sync_rules` 与 `form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable`，并由 `components/form-field/test/form_field_semantics.rs::form_field_dx_check_script_covers_heroui_benchmark_docs_sync_contract` 固化。
   - compile/test 证据（命令）：
     - `cargo test -p ui-form-field form_field_heroui_strategy_and_component_docs_are_synchronized_and_indexable -- --exact`
     - `cargo test -p ui-components --test form_field_semantics --no-default-features --features component-form_field,inject-css form_field_check2_documents_heroui_benchmark_docs_sync_rules`

@@ -2636,7 +2636,7 @@ fn field_tree_shaking_contract_is_feature_gated_and_budget_guarded() {
     for required in [
         "#[cfg(any(",
         "feature = \"component-field\",",
-        "pub mod field_form;",
+        "pub mod field_form {",
         "#[cfg(all(feature = \"web-demo-components\", not(feature = \"all-components\")))]",
         "pub use web_demo_components::*;",
         "#[cfg(feature = \"all-components\")]",
@@ -2748,7 +2748,7 @@ fn field_ui_components_entry_files_follow_fixed_layered_contract() {
     for marker in [
         "#[cfg(any(",
         "feature = \"component-field\",",
-        "pub mod field_form;",
+        "pub mod field_form {",
         "#[cfg(feature = \"component-field\")]",
         "pub use ui_field as field;",
         "pub mod root;",

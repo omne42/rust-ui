@@ -30,7 +30,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -46,7 +46,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -130,7 +130,7 @@
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
-  - 已核验（N/A-无独立测试面）：`selection_indicator` 无独立组件实现，回归测试集中在 `crates/ui-components/tests/selection_indicator_module_semantics.rs`，并以宿主 `list/menu item` 与 `ui-state-primitives::selection` 的语义契约作为证据源；覆盖 `role/aria/data-state/source`、受控/非受控（`single_controlled_calls_on_change_but_does_not_update_internal` 等）、disabled、键盘/指针路径（`use_listbox + on:keydown + on:pointermove/on:click`）等关键分支。`SSR/wasm` 差异在该模块按适用范围为 N/A（无 `web-sys`/无平台分支代码）；测试策略以语义断言为主，未以视觉快照作为合并依据。
+  - 已核验（N/A-无独立测试面）：`selection_indicator` 无独立组件实现，回归测试集中在 `components/selection-indicator/test/selection_indicator_module_semantics.rs`，并以宿主 `list/menu item` 与 `ui-state-primitives::selection` 的语义契约作为证据源；覆盖 `role/aria/data-state/source`、受控/非受控（`single_controlled_calls_on_change_but_does_not_update_internal` 等）、disabled、键盘/指针路径（`use_listbox + on:keydown + on:pointermove/on:click`）等关键分支。`SSR/wasm` 差异在该模块按适用范围为 N/A（无 `web-sys`/无平台分支代码）；测试策略以语义断言为主，未以视觉快照作为合并依据。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -169,7 +169,7 @@
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
 - [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
-  - 已核验（N/A-无独立输入面）：`selection_indicator` 无独立 props/API；关键输入与状态轴由宿主与原语类型化建模（`crates/ui-state-primitives/src/selection.rs` 的 `SelectedKey`，`components/list/src/logic.rs` 的 `ListItemSelectionIndicator`，`components/menu/src/item/logic.rs` 的 `MenuItemSelectionIndicator`）。关键状态通过稳定语义标记对外暴露（`components/list/src/view.rs` / `components/menu/src/item/view.rs` 的 `data-state/data-selection-indicator/data-aria-source/data-class-source/aria-*`），并由 `crates/ui-components/tests/selection_indicator_module_semantics.rs` 持续断言。
+  - 已核验（N/A-无独立输入面）：`selection_indicator` 无独立 props/API；关键输入与状态轴由宿主与原语类型化建模（`crates/ui-state-primitives/src/selection.rs` 的 `SelectedKey`，`components/list/src/logic.rs` 的 `ListItemSelectionIndicator`，`components/menu/src/item/logic.rs` 的 `MenuItemSelectionIndicator`）。关键状态通过稳定语义标记对外暴露（`components/list/src/view.rs` / `components/menu/src/item/view.rs` 的 `data-state/data-selection-indicator/data-aria-source/data-class-source/aria-*`），并由 `components/selection-indicator/test/selection_indicator_module_semantics.rs` 持续断言。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -202,7 +202,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 已核验（N/A-无独立 `selection_indicator/view.rs`）：`selection_indicator` 当前不导出独立组件视图层；语义挂载由宿主组件承担，`components/list/src/view.rs` 已按 `List` / `ListItem` / `ListSection` 分块，`components/menu/src/item/view.rs` 保持独立 `MenuItem` 组件；`selection_indicator` 仅以稳定语义标记与插槽挂载（如 `data-selection-indicator`），未引入巨型单块 `view!`。
@@ -220,7 +220,7 @@
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
 - [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
-  - 已核验（N/A-无独立 `selection_indicator/view.rs` 且宿主无注入点）：`selection_indicator` 当前无本地 `inner_html` 使用；宿主 `components/list/src/view.rs` 与 `components/menu/src/item/view.rs` 未出现 `inner_html`/`dangerously_set_inner_html`/`set_inner_html`。因此不存在用户输入、远端返回或未清洗模板被注入 DOM 的路径；语义回归由 `crates/ui-components/tests/selection_indicator_module_semantics.rs` 持续断言。
+  - 已核验（N/A-无独立 `selection_indicator/view.rs` 且宿主无注入点）：`selection_indicator` 当前无本地 `inner_html` 使用；宿主 `components/list/src/view.rs` 与 `components/menu/src/item/view.rs` 未出现 `inner_html`/`dangerously_set_inner_html`/`set_inner_html`。因此不存在用户输入、远端返回或未清洗模板被注入 DOM 的路径；语义回归由 `components/selection-indicator/test/selection_indicator_module_semantics.rs` 持续断言。
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
@@ -283,7 +283,7 @@
 
 ### 7. 测试与文档（验证闭环）
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
-  - 已核验：`selection_indicator` 无独立组件实现，语义回归集中在 `crates/ui-components/tests/selection_indicator_module_semantics.rs`，并持续断言宿主 `list/menu item` 的 `role/aria/data-state/data-selection-indicator/data-aria-source/data-class-source`，覆盖受控/非受控、disabled、键盘与指针路径；测试未以视觉快照作为主断言。
+  - 已核验：`selection_indicator` 无独立组件实现，语义回归集中在 `components/selection-indicator/test/selection_indicator_module_semantics.rs`，并持续断言宿主 `list/menu item` 的 `role/aria/data-state/data-selection-indicator/data-aria-source/data-class-source`，覆盖受控/非受控、disabled、键盘与指针路径；测试未以视觉快照作为主断言。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -365,4 +365,4 @@
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。
 - [x] 文档与示例同步更新。
 - [x] 门禁完整通过（fmt/clippy/test/smoke 等）。
-  - 已核验（按 `selection_indicator` 责任范围）：已完成 `/root/.cargo/bin/rustfmt --check crates/ui-components/tests/selection_indicator_module_semantics.rs`、`/root/.cargo/bin/cargo clippy -p ui-components --no-default-features --test selection_indicator_module_semantics -- -D warnings`、`/root/.cargo/bin/cargo test -p ui-components --no-default-features --test selection_indicator_module_semantics`（92 tests passed），并执行逐项单独验证：基于 `-- --list` 枚举 92 条测试后逐条 `-- --exact` 单跑，结果 `INDIVIDUAL_TEST_SUMMARY total=92 passed=92 failed=0`。默认特性全量链路受他人并行改动影响（`clippy` 命中 `crates/ui-components/src/tray/logic.rs` 未使用导入告警；`test` 命中 `crates/ui-components/src/sheet/view.rs` `FnOnce` 编译错误），本任务未越界修改他人文件。
+  - 已核验（按 `selection_indicator` 责任范围）：已完成 `/root/.cargo/bin/rustfmt --check components/selection-indicator/test/selection_indicator_module_semantics.rs`、`/root/.cargo/bin/cargo clippy -p ui-components --no-default-features --test selection_indicator_module_semantics -- -D warnings`、`/root/.cargo/bin/cargo test -p ui-components --no-default-features --test selection_indicator_module_semantics`（92 tests passed），并执行逐项单独验证：基于 `-- --list` 枚举 92 条测试后逐条 `-- --exact` 单跑，结果 `INDIVIDUAL_TEST_SUMMARY total=92 passed=92 failed=0`。默认特性全量链路受他人并行改动影响（`clippy` 命中 `crates/ui-components/src/tray/logic.rs` 未使用导入告警；`test` 命中 `crates/ui-components/src/sheet/view.rs` `FnOnce` 编译错误），本任务未越界修改他人文件。

@@ -13,9 +13,6 @@ macro_rules! wasm_debug_proxy {
 
 pub(crate) use wasm_debug_proxy;
 
-#[cfg(target_arch = "wasm32")]
-mod observability;
-
 #[cfg(feature = "component-button_copy")]
 pub use ui_snippet as snippet;
 

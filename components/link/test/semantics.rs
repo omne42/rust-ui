@@ -643,7 +643,7 @@ fn link_semantics_tests_cover_contract_matrix_not_visual_snapshot_only() {
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
     let local_semantics = load_source("test/semantics.rs");
-    let integration_semantics = load_source("../../crates/ui-components/tests/link_semantics.rs");
+    let integration_semantics = load_source("../../components/link/test/link_semantics.rs");
 
     for needle in [
         "data-state=state.state.as_attr()",

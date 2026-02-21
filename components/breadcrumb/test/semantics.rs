@@ -1113,7 +1113,7 @@ fn breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots() {
     let view_source = component_source("src/view.rs");
     let local_semantics_source = component_source("test/semantics.rs");
     let workspace_semantics_source =
-        docs_source("../../crates/ui-components/tests/breadcrumb_semantics.rs");
+        docs_source("../../components/breadcrumb/test/breadcrumb_semantics.rs");
 
     for needle in [
         "aria-current=\"page\"",
@@ -1179,7 +1179,7 @@ fn breadcrumb_semantics_suite_is_contract_first_not_snapshot_only() {
     let view_source = component_source("src/view.rs");
     let local_semantics_source = component_source("test/semantics.rs");
     let workspace_semantics_source =
-        docs_source("../../crates/ui-components/tests/breadcrumb_semantics.rs");
+        docs_source("../../components/breadcrumb/test/breadcrumb_semantics.rs");
 
     for marker in [
         "<nav",
@@ -1233,8 +1233,8 @@ fn breadcrumb_check2_documents_semantics_first_testing_rules() {
         "新增/变更语义字段必须同步补测试，否则不得打勾。",
         "components/breadcrumb/test/semantics.rs::breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots",
         "components/breadcrumb/test/semantics.rs::breadcrumb_semantics_suite_is_contract_first_not_snapshot_only",
-        "crates/ui-components/tests/breadcrumb_semantics.rs::breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots",
-        "crates/ui-components/tests/breadcrumb_semantics.rs::breadcrumb_semantics_suite_is_contract_first_not_snapshot_only",
+        "components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_semantics_contract_tests_prioritize_contracts_over_snapshots",
+        "components/breadcrumb/test/breadcrumb_semantics.rs::breadcrumb_semantics_suite_is_contract_first_not_snapshot_only",
         "scripts/check-ui-components-contract-hygiene.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1946,7 +1946,7 @@ fn breadcrumb_performance_governance_contract_is_budgeted_traceable_and_blocking
     let perf_probe_source = docs_source("../../apps/docs-app/src/perf_probe.rs");
     let perf_script_source = docs_source("../../scripts/check-ui-components-performance.sh");
     let accordion_semantics_source =
-        docs_source("../../crates/ui-components/tests/accordion_semantics.rs");
+        docs_source("../../components/accordion/test/accordion_semantics.rs");
 
     for needle in [
         "<ComponentPage",
@@ -3738,7 +3738,7 @@ fn breadcrumb_semantics_and_performance_regression_cover_aria_data_focus_and_ren
  {
     let local_semantics = component_source("test/semantics.rs");
     let aggregated_semantics =
-        docs_source("../../crates/ui-components/tests/breadcrumb_semantics.rs");
+        docs_source("../../components/breadcrumb/test/breadcrumb_semantics.rs");
     let view_source = component_source("src/view.rs");
     let styles_source = component_source("src/styles.rs");
     let perf_probe_source = docs_source("../../apps/docs-app/src/perf_probe.rs");

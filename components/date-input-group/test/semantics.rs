@@ -2798,7 +2798,7 @@ fn date_input_group_performance_governance_is_mount_only_traceable_and_blocking_
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
     let accordion_semantics_source =
-        load_source("../../crates/ui-components/tests/accordion_semantics.rs");
+        load_source("../../components/accordion/test/accordion_semantics.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
     for needle in [
@@ -5814,7 +5814,6 @@ fn date_input_group_wasm_debug_contract_is_na_and_feature_isolated() {
     for required in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(required),

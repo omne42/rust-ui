@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -175,12 +175,12 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（N/A：`EmptyState` 为展示型非交互组件，不存在“关键更新路径”与复杂交互内存曲线；本组件采用 mount-only 预算等价证据而非交互 `render_count` 计数。仓库级 `UiPerfProbe` 与 docs/e2e 已提供可重复阈值阻断（`data-perf-*` + `data-perf-violation`），`component_page_perf_budget` 对未显式登记组件回落到 `UiPerfBudget::mount_only(120.0)`。基础组件 `Button/Input` 的预算与治理门禁仍由既有测试覆盖；本组件新增 `crates/ui-components/tests/empty_state_semantics.rs::empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking`，并接入 `scripts/check-ui-components-performance.sh` 形成阻断门禁。`render_count` 自动化仍按仓库 TODO 跟踪（Button/Input/Accordion），作为后续补齐项。）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（N/A：`EmptyState` 为展示型非交互组件，不存在“关键更新路径”与复杂交互内存曲线；本组件采用 mount-only 预算等价证据而非交互 `render_count` 计数。仓库级 `UiPerfProbe` 与 docs/e2e 已提供可重复阈值阻断（`data-perf-*` + `data-perf-violation`），`component_page_perf_budget` 对未显式登记组件回落到 `UiPerfBudget::mount_only(120.0)`。基础组件 `Button/Input` 的预算与治理门禁仍由既有测试覆盖；本组件新增 `components/empty-state/test/empty_state_semantics.rs::empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking`，并接入 `scripts/check-ui-components-performance.sh` 形成阻断门禁。`render_count` 自动化仍按仓库 TODO 跟踪（Button/Input/Accordion），作为后续补齐项。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`empty-state` 的 `view.rs` 保持轻量：核心结构为单根 `view!`，仅在 `icon/actions` 可选槽位使用局部 `view!` 子块，不存在索引驱动的大型循环拼装；文件体量受控且语义分块清晰。该约束由 `components/empty-state/test/semantics.rs::empty_state_view_macro_complexity_is_bounded_and_semantically_split` 锁定（行数上限、`view!` 数量上限、语义子块存在性、禁止索引驱动结构拼装）。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
@@ -255,9 +255,9 @@
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（`empty-state` 非测试源码（`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`）已清理为无 `unwrap/expect`、无 `let _ = ...`、无 `String::from/.to_owned` 克隆热点；默认文案存储收敛到 `logic.rs::EmptyStateStrings` 的 `Cow<'static, str>`（并同步到 `empty_state.rbi`）。已执行 `./scripts/check-rust-hygiene.sh`，当前环境因 `rg` 缺少 PCRE2 与仓库级 `api-contract baseline drift` 报错提前失败（非本组件代码引入），组件级契约由 `components/empty-state/test/semantics.rs::empty_state_rust_hygiene_contract_is_enforced` 锁定。）
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（`ui-components` 已为 `empty-state` 建立组件级特性链：`crates/ui-components/Cargo.toml` 存在 `component-empty_state = ["dep:ui-empty-state"]` 且 `ui-empty-state` 为可选依赖；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-empty_state")] pub use ui_empty_state as empty_state;` 做条件导出；`crates/ui-components/src/css.rs` 通过同名 feature 条件聚合 `empty_state::styles::CSS`，不存在无条件拉入路径。`apps/web-demo/Cargo.toml` 对 `ui-components` 使用 `default-features = false` + `features = ["inject-css", "web-demo-components"]`，避免隐式拉起 `all-components`。回归由 `components/empty-state/test/semantics.rs::empty_state_tree_shaking_feature_gates_are_wired` 锁定。）
-- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`EmptyState` 的语义回归已覆盖 `aria-*` 与 `data-*`：`components/empty-state/test/semantics.rs::empty_state_has_a11y_i18n_l10n_contract_entry_points`、`::empty_state_exposes_stable_observable_and_source_markers`、`::empty_state_agent_contract_schema_is_typed_and_mounted`；焦点流转对本组件为 N/A（非交互展示组件），由 `::empty_state_non_interactive_matrix_axes_are_explicitly_not_applicable` 与 `::empty_state_has_no_focus_stack_overlay_restore_protocol` 锁定。性能侧采用 mount-only 等价证据并纳入阻断脚本：`components/empty-state/test/semantics.rs::empty_state_performance_governance_is_mount_only_traceable_and_blocking` 与 `crates/ui-components/tests/empty_state_semantics.rs::empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking`。`render_count` 自动化按仓库计划对高频/重型组件（Button/Input/Accordion）执行，本组件维持 mount-only 基线。）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（`EmptyState` 的语义回归已覆盖 `aria-*` 与 `data-*`：`components/empty-state/test/semantics.rs::empty_state_has_a11y_i18n_l10n_contract_entry_points`、`::empty_state_exposes_stable_observable_and_source_markers`、`::empty_state_agent_contract_schema_is_typed_and_mounted`；焦点流转对本组件为 N/A（非交互展示组件），由 `::empty_state_non_interactive_matrix_axes_are_explicitly_not_applicable` 与 `::empty_state_has_no_focus_stack_overlay_restore_protocol` 锁定。性能侧采用 mount-only 等价证据并纳入阻断脚本：`components/empty-state/test/semantics.rs::empty_state_performance_governance_is_mount_only_traceable_and_blocking` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_performance_governance_contract_is_mount_only_traceable_and_blocking`。`render_count` 自动化按仓库计划对高频/重型组件（Button/Input/Accordion）执行，本组件维持 mount-only 基线。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `EmptyState` 变更未引入跨大版本 API 破坏升级；组件协议仍为 `v1`（`components/empty-state/src/Component.toml` 保持 `schema_version = "1"`），公开签名维持兼容（`components/empty-state/src/empty_state.rbi` 的 `pub fn EmptyState(...)` 未发生破坏性迁移）。当前无需新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2` 纯函数迁移层。回归由 `components/empty-state/test/semantics.rs::empty_state_version_deprecation_migration_is_na_without_major_breaking_upgrade` 锁定。）
-- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 已补齐 `Hello World (Default Path)`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)`，并通过 `code_imports=empty_state_imports` 保障复制代码自动补全 imports；回归由 `components/empty-state/test/semantics.rs::empty_state_docs_are_copy_paste_ready_with_state_matrix_and_mode_sections` 与 `crates/ui-components/tests/empty_state_semantics.rs::empty_state_docs_page_covers_primary_playgrounds` 锁定。）
+- [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display_extra.rs` 已补齐 `Hello World (Default Path)`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)`，并通过 `code_imports=empty_state_imports` 保障复制代码自动补全 imports；回归由 `components/empty-state/test/semantics.rs::empty_state_docs_are_copy_paste_ready_with_state_matrix_and_mode_sections` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_docs_page_covers_primary_playgrounds` 锁定。）
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`EmptyState` 语义回归已锁定契约字段而非视觉快照：`components/empty-state/test/semantics.rs::empty_state_exposes_stable_observable_and_source_markers` 覆盖 `data-* + aria-* + role + source markers`，`::empty_state_has_a11y_i18n_l10n_contract_entry_points` 覆盖可访问性与本地化挂载，`::empty_state_semantic_tests_prioritize_contract_over_visual_snapshot` 显式约束语义测试套件不走 snapshot-only 路径。`EmptyState` 为非交互展示组件，键盘动作语义轴按适用范围为 N/A；若未来新增交互语义字段，必须同步补 `*_semantics.rs` 断言后方可维持勾选。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
@@ -282,11 +282,11 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs::empty_state()` 保留 `Source-first Starter (Copy-Paste Ready)`，并新增 `data-slot="empty-state-source-first-contract"` 区块，明确 `Show code -> CodeBlock copy` 路径、`compose_copy_ready_code` 自动补全 imports 机制、真实源码落点（`components/empty-state/src/{mod,logic,view,styles,motion}.rs`）与依赖前提（`ui-components` 需启用 `component-empty_state, inject-css` 且挂载 `UiRoot`）。回归由 `components/empty-state/test/semantics.rs::empty_state_source_first_docs_keep_copy_button_and_real_source_dependency_hints` 与 `crates/ui-components/tests/empty_state_semantics.rs::empty_state_docs_source_first_contract_points_to_copy_ready_runtime_and_real_paths` 锁定。）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`apps/docs-app/src/pages/components/pages/display_extra.rs::empty_state()` 保留 `Source-first Starter (Copy-Paste Ready)`，并新增 `data-slot="empty-state-source-first-contract"` 区块，明确 `Show code -> CodeBlock copy` 路径、`compose_copy_ready_code` 自动补全 imports 机制、真实源码落点（`components/empty-state/src/{mod,logic,view,styles,motion}.rs`）与依赖前提（`ui-components` 需启用 `component-empty_state, inject-css` 且挂载 `UiRoot`）。回归由 `components/empty-state/test/semantics.rs::empty_state_source_first_docs_keep_copy_button_and_real_source_dependency_hints` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_docs_source_first_contract_points_to_copy_ready_runtime_and_real_paths` 锁定。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已在 `docs/spec/heroui-parameter-design-strategy.md` 新增 `### EmptyState 同步记录（2026-02-20）`，同步参数模型、docs 入口（`apps/docs-app/src/pages/components/pages.rs` 的 `component_doc!("EmptyState", "empty-state", "Display", display_extra::empty_state)`）、示例矩阵与 Source-first 依赖前提，并明确本轮无需补 `docs/research/spectrum-heroui-style-interface-study.md`。组件文档入口保持可索引：`#/components/empty-state` + `components/empty-state/README.md`。回归由 `components/empty-state/test/semantics.rs::empty_state_heroui_strategy_doc_and_component_docs_are_synced` 与 `crates/ui-components/tests/empty_state_semantics.rs::empty_state_heroui_strategy_sync_entry_is_present_and_indexable` 锁定。）
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已在 `docs/spec/heroui-parameter-design-strategy.md` 新增 `### EmptyState 同步记录（2026-02-20）`，同步参数模型、docs 入口（`apps/docs-app/src/pages/components/pages.rs` 的 `component_doc!("EmptyState", "empty-state", "Display", display_extra::empty_state)`）、示例矩阵与 Source-first 依赖前提，并明确本轮无需补 `docs/research/spectrum-heroui-style-interface-study.md`。组件文档入口保持可索引：`#/components/empty-state` + `components/empty-state/README.md`。回归由 `components/empty-state/test/semantics.rs::empty_state_heroui_strategy_doc_and_component_docs_are_synced` 与 `components/empty-state/test/empty_state_semantics.rs::empty_state_heroui_strategy_sync_entry_is_present_and_indexable` 锁定。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

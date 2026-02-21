@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（Badge：非交互展示组件，键盘/焦点/指针语义为 N/A；已通过 `ui_headless::locale_attrs` 接入 `lang/dir`，并由 `crates/ui-components/tests/badge_semantics.rs` + `e2e/tests/docs_app_badge_contract.spec.mjs` 覆盖语义回归）
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（Badge：非交互展示组件，键盘/焦点/指针语义为 N/A；已通过 `ui_headless::locale_attrs` 接入 `lang/dir`，并由 `components/badge/test/badge_semantics.rs` + `e2e/tests/docs_app_badge_contract.spec.mjs` 覆盖语义回归）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（Badge：组件侧仅保留 `BadgeMotion + sanitize_motion + attach_motion` 合同输出，无自实现 spring/keyframe/driver；`crates/ui-motion` 已提供 non-wasm no-op/stub。Badge 目前无 open/close 等语义状态驱动动画，状态映射项为 N/A）
@@ -43,16 +43,16 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（Badge：`logic/view/styles/motion` 职责已分离；状态机与 A11y 契约分别来自 `ui-state-primitives` 与 `ui-headless`；公共导出仅 `Badge/BadgeVariant/BadgeMotion`，未暴露 DOM 细节类型。已补 `components/badge/test/semantics.rs`；原 `crates/ui-components/tests/badge_semantics.rs` 保留为跨 crate 集成回归）
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（Badge：`logic/view/styles/motion` 职责已分离；状态机与 A11y 契约分别来自 `ui-state-primitives` 与 `ui-headless`；公共导出仅 `Badge/BadgeVariant/BadgeMotion`，未暴露 DOM 细节类型。已补 `components/badge/test/semantics.rs`；原 `components/badge/test/badge_semantics.rs` 保留为跨 crate 集成回归）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于 `src` 同级 `test/` 中，内部测试文件同名（如 `logic.rs` -> `test/logic.rs`）；Badge 已满足。
-  - 语义契约测试新增 `components/badge/test/semantics.rs`；`crates/ui-components/tests/badge_semantics.rs` 继续承担跨 crate 集成验证。
+  - 语义契约测试新增 `components/badge/test/semantics.rs`；`components/badge/test/badge_semantics.rs` 继续承担跨 crate 集成验证。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（Badge：公共 API 仅 `variant/class_name/lang/dir`，无布尔状态轴与事件回调，`is_* / on_* / default_*` 家族在本组件为 N/A；未引入同义别名漂移；本轮未新增公共命名）
@@ -116,7 +116,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（Badge：已具备 `components/badge/test/semantics.rs`、`crates/ui-components/tests/badge_semantics.rs` 与 `e2e/tests/docs_app_badge_contract.spec.mjs`，断言 `data-state/data-variant/data-class-source/data-ui-*` 等语义契约；未依赖视觉快照。Badge 无受控轴、disabled、键盘/指针交互，相关分支按 N/A 解释）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（Badge：已具备 `components/badge/test/semantics.rs`、`components/badge/test/badge_semantics.rs` 与 `e2e/tests/docs_app_badge_contract.spec.mjs`，断言 `data-state/data-variant/data-class-source/data-ui-*` 等语义契约；未依赖视觉快照。Badge 无受控轴、disabled、键盘/指针交互，相关分支按 N/A 解释）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -149,7 +149,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（Badge：关键离散输入 `variant` 使用 `BadgeVariant` enum，`logic.rs` 通过 `resolve_variant/resolve_render_state` 统一归一并在 `test/logic.rs` 回归；`view.rs` 稳定输出 `data-variant/data-fill/data-state/data-class-source/data-ui-*`，`components/badge/test/semantics.rs` 与 `crates/ui-components/tests/badge_semantics.rs` 可直接定位契约破坏点）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（Badge：关键离散输入 `variant` 使用 `BadgeVariant` enum，`logic.rs` 通过 `resolve_variant/resolve_render_state` 统一归一并在 `test/logic.rs` 回归；`view.rs` 稳定输出 `data-variant/data-fill/data-state/data-class-source/data-ui-*`，`components/badge/test/semantics.rs` 与 `components/badge/test/badge_semantics.rs` 可直接定位契约破坏点）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -175,12 +175,12 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（Badge：展示型轻组件，`view.rs` 为单节点渲染、`logic.rs` 为纯归一派生，无高频交互更新路径；关键性能风险可归因到样式与语义标记路径。`render_count` 自动化在仓库层仍按计划推进（`docs/plan/TODO.md` 已记录，且 `crates/ui-components/tests/accordion_semantics.rs` 有跟踪守卫），本组件条目按“等价证据 + 仓库级跟踪”通过）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（Badge：展示型轻组件，`view.rs` 为单节点渲染、`logic.rs` 为纯归一派生，无高频交互更新路径；关键性能风险可归因到样式与语义标记路径。`render_count` 自动化在仓库层仍按计划推进（`docs/plan/TODO.md` 已记录，且 `components/accordion/test/accordion_semantics.rs` 有跟踪守卫），本组件条目按“等价证据 + 仓库级跟踪”通过）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（Badge：`components/badge/src/view.rs` 仅单个浅层 `view!`，结构为 `<span> + children`，无深嵌套与重复子树；当前无需再拆分局部渲染函数）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
@@ -212,7 +212,7 @@
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 样式与动效（Theme & Motion）
-- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（Badge：`components/badge/src/styles.rs` 已将间距/圆角/边框宽度/字体/颜色入口统一改为双层回退链，如 `var(--ui-font-size-100, var(--ui-fallback-font-size-100))`、`var(--ui-accent, var(--ui-fallback-accent))`；Fallback 变量由 `crates/ui-theme/src/css.rs` 统一输出。回归已补：`components/badge/test/semantics.rs::badge_styles_use_defensive_variable_fallback_chains`，并同步 `crates/ui-components/tests/badge_semantics.rs` 断言。）
+- [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。（Badge：`components/badge/src/styles.rs` 已将间距/圆角/边框宽度/字体/颜色入口统一改为双层回退链，如 `var(--ui-font-size-100, var(--ui-fallback-font-size-100))`、`var(--ui-accent, var(--ui-fallback-accent))`；Fallback 变量由 `crates/ui-theme/src/css.rs` 统一输出。回归已补：`components/badge/test/semantics.rs::badge_styles_use_defensive_variable_fallback_chains`，并同步 `components/badge/test/badge_semantics.rs` 断言。）
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。（Badge：`crates/ui-components/src/css.rs` 的 `push_components_css` 已统一输出 `@layer ui { ... }` 并按 feature 聚合 `component-badge` 样式；`components/badge/src/view.rs` 未使用普通 inline style，运行时仅通过语义标记与 class 驱动样式）
 - [x] Motion 合同化：`stiffness`/`damping` 等参数在 `motion.rs` 内置为组件 Contract，并通过 `attach_motion` 挂载；必须尊重 `prefers-reduced-motion` 且在 non-wasm/SSR 安全降级（no-op）。（Badge：`components/badge/src/motion.rs` 已提供 `BadgeMotion` Contract、`sanitize_motion` 约束与 `attach_motion()` 挂载输出；`reduced_ms` 明确 reduced-motion 降级语义。Badge 为展示型组件，未采用 spring 物理参数（`stiffness/damping` 子项按 N/A）；non-wasm/SSR no-op 由 `crates/ui-motion/src/lib.rs` 契约保障）
 - [x] `ui-components` 固定入口文件落点正确。（已核验：`crates/ui-components/src/lib.rs` 作为总入口并通过 `component-*` feature gate 条件导出组件；`crates/ui-components/src/css.rs` 的 `push_components_css` 在 `inject-css` 下按 feature 聚合并包裹 `@layer ui`；`crates/ui-components/src/root.rs` 的 `UiRoot` 统一注入 base css + theme vars + 可选 components css，并提供 `UiI18n`/`IdProvider` 上下文；`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver。`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 当前均不存在）
@@ -235,15 +235,15 @@
 - [x] 文件落点纪律：组件目录严格由 `mod.rs`（导出）、`logic.rs`（归一派生）、`styles.rs`（Token 样式）、`view.rs`（渲染）、`motion.rs`（动效）组成；复杂组件可选 `spec.rs`；禁止 `render.rs`。（Badge：核心实现文件已按 `mod/logic/styles/view/motion` 固定落点组织，且不存在 `render.rs` 与 `spec.rs`。目录中的 `README.md` 与 `protocol.rs` 属文档/协议辅助文件，不参与组件渲染与装配链路）
 - [x] Hyper-Structure Builder（`spec.rs`）：复杂组件必须提供 AI 友好的 `*Spec::new()...render()` 建造者 API。（Badge：轻量展示组件，不属于需要 Builder Spec 的复杂配置场景；当前未引入 `spec.rs`，仅保留 `protocol.rs` 作为 schema/serde 契约类型定义，该条按 N/A 通过）
 - [x] 上下文压缩协议（Manifest + RBI）：新增/大改组件必须同步维护组件目录下 `Component.toml`（能力清单）和 `.rbi`（接口签名投影），避免 AI 检索工具箱过时。（Badge：已新增 `components/badge/src/Component.toml` 与 `components/badge/src/badge.rbi`，分别声明能力清单与公共接口签名投影；并补回归 `components/badge/test/semantics.rs::{badge_component_manifest_declares_context_compression_contract,badge_rbi_tracks_public_signature_projection}` 锁定关键字段，防止索引漂移）
-- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（Badge：`components/badge/src/logic.rs` 已升级为类型化 `BadgeAgentContract`（`BadgeAgentSchemaVersion/Intent/Action/StateAxis/Source/Stream*/OutputStatus` 枚举 + `as_attr()`），`view.rs` 仅挂载 `data-ui-*` 与 `data-class-source`，不再散落字符串拼接。`state/source` 由 `BadgeState` 派生并映射为封闭集合；配置进入渲染链路仅限 `variant/class_name/lang/dir` 白名单输入，且未使用 `inner_html`/脚本注入路径。回归：`components/badge/test/logic.rs::resolve_agent_contract_emits_machine_readable_markers`、`crates/ui-components/tests/badge_semantics.rs::badge_emits_baseline_style_state_data_attributes`）
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（Badge：`components/badge/src/logic.rs` 已升级为类型化 `BadgeAgentContract`（`BadgeAgentSchemaVersion/Intent/Action/StateAxis/Source/Stream*/OutputStatus` 枚举 + `as_attr()`），`view.rs` 仅挂载 `data-ui-*` 与 `data-class-source`，不再散落字符串拼接。`state/source` 由 `BadgeState` 派生并映射为封闭集合；配置进入渲染链路仅限 `variant/class_name/lang/dir` 白名单输入，且未使用 `inner_html`/脚本注入路径。回归：`components/badge/test/logic.rs::resolve_agent_contract_emits_machine_readable_markers`、`components/badge/test/badge_semantics.rs::badge_emits_baseline_style_state_data_attributes`）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（Badge：已按该二分语义落地；`Streaming` 对本组件标记为不支持（`stream_support=unsupported`），`Snapshot` 为默认渲染模式（`stream_fallback=snapshot` + `stream_mode=snapshot`）。证据：`components/badge/src/logic.rs` 的 `BadgeAgentStreamSupport/BadgeAgentStreamFallback/BadgeAgentStreamMode`，以及 `components/badge/src/view.rs` 输出 `data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode`；回归见 `components/badge/test/logic.rs` 与 `crates/ui-components/tests/badge_semantics.rs`）
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（Badge：已按该二分语义落地；`Streaming` 对本组件标记为不支持（`stream_support=unsupported`），`Snapshot` 为默认渲染模式（`stream_fallback=snapshot` + `stream_mode=snapshot`）。证据：`components/badge/src/logic.rs` 的 `BadgeAgentStreamSupport/BadgeAgentStreamFallback/BadgeAgentStreamMode`，以及 `components/badge/src/view.rs` 输出 `data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode`；回归见 `components/badge/test/logic.rs` 与 `components/badge/test/badge_semantics.rs`）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（Badge：`components/badge/src/logic.rs` 将 `stream_fallback` 与 `stream_mode` 默认收敛到 `BadgeAgentStreamFallback::Snapshot` / `BadgeAgentStreamMode::Snapshot`，组件在接收完整配置后按单次快照稳定渲染；`components/badge/src/view.rs` 挂载 `data-ui-stream-fallback`/`data-ui-stream-mode`，并由 `components/badge/test/logic.rs` 与 `crates/ui-components/tests/badge_semantics.rs` 回归锁定）
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（Badge：`components/badge/src/logic.rs` 将 `stream_fallback` 与 `stream_mode` 默认收敛到 `BadgeAgentStreamFallback::Snapshot` / `BadgeAgentStreamMode::Snapshot`，组件在接收完整配置后按单次快照稳定渲染；`components/badge/src/view.rs` 挂载 `data-ui-stream-fallback`/`data-ui-stream-mode`，并由 `components/badge/test/logic.rs` 与 `components/badge/test/badge_semantics.rs` 回归锁定）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（Badge：非正文阅读面组件，归类为 `Streaming Optional`；当前不支持流式增量渲染（`stream_support=unsupported`），且已显式声明 `fallback=snapshot`（`stream_fallback=snapshot`、`stream_mode=snapshot`）。输出状态通过 `data-ui-output-status=verified` 连续暴露，配合 `data-ui-stream-*` 保持机器可读；Badge 为非交互展示节点，`role/aria-*` 在本条按 N/A 解释。数据校验、断线恢复与重试仍由上层负责，组件仅稳定渲染）
@@ -254,11 +254,11 @@
 
 ### 7. 测试、门禁与交付
 - [x] 代码卫生（Rust Hygiene）：非测试代码中完全禁止 `unwrap/expect`，禁止无处理的 `let _ = ...`；字符串复制热点收敛为 `Cow<'static, str>`（执行 `./scripts/check-rust-hygiene.sh` 验证）。（Badge：已在 `components/badge/src/logic.rs` 将 class 组装收敛为 `Cow<'static, str>`（去除局部 `to_string()` 热点），且 `src/*.rs` 无 `.unwrap(`/`.expect(`/`let _ =`。回归新增：`components/badge/test/semantics.rs::{badge_non_test_source_avoids_forbidden_hygiene_patterns,badge_logic_uses_cow_for_class_name_composition}`。`./scripts/check-rust-hygiene.sh` 已执行，但在仓库级前置门禁 `check-api-contracts`（基线漂移）与本机 `rg` 缺少 PCRE2 支持处失败，属全仓问题，非 Badge 局部回归）
-- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（Badge：`crates/ui-components/Cargo.toml` 已注册 `component-badge = [\"dep:ui-badge\"]` 且 `ui-badge` 为 `optional`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-badge\")] pub use ui_badge as badge;` 门控导出；`crates/ui-components/src/css.rs` 在 `#[cfg(feature = \"inject-css\")]` 下再以 `#[cfg(feature = \"component-badge\")] out.push_str(crate::badge::styles::CSS);` 条件聚合。验证：`cargo tree -e features -p ui-components --no-default-features --features component-badge,inject-css` 未拉起 `all-components`；`apps/web-demo/Cargo.toml` 依赖 `ui-components` 使用 `default-features = false` + `web-demo-components`。回归补充：`crates/ui-components/tests/badge_semantics.rs::ui_components_reexports_badge_component_crate` 新增 CSS gate 断言）
-- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（Badge：`data-*` 语义契约已由 `components/badge/test/semantics.rs` + `crates/ui-components/tests/badge_semantics.rs` + `e2e/tests/docs_app_badge_contract.spec.mjs` 覆盖，断言集中在 `data-slot/data-variant/data-fill/data-class-source/data-ui-*`，未依赖视觉快照。Badge 为非交互展示组件，无键盘焦点流转与交互 `aria-*` 状态轴，该子项按 N/A 处理；`render_count` 仅对高频/重型组件强制，Badge 非该类组件，本条按 N/A 通过）
+- [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。（Badge：`crates/ui-components/Cargo.toml` 已注册 `component-badge = [\"dep:ui-badge\"]` 且 `ui-badge` 为 `optional`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = \"component-badge\")] pub use ui_badge as badge;` 门控导出；`crates/ui-components/src/css.rs` 在 `#[cfg(feature = \"inject-css\")]` 下再以 `#[cfg(feature = \"component-badge\")] out.push_str(crate::badge::styles::CSS);` 条件聚合。验证：`cargo tree -e features -p ui-components --no-default-features --features component-badge,inject-css` 未拉起 `all-components`；`apps/web-demo/Cargo.toml` 依赖 `ui-components` 使用 `default-features = false` + `web-demo-components`。回归补充：`components/badge/test/badge_semantics.rs::ui_components_reexports_badge_component_crate` 新增 CSS gate 断言）
+- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（Badge：`data-*` 语义契约已由 `components/badge/test/semantics.rs` + `components/badge/test/badge_semantics.rs` + `e2e/tests/docs_app_badge_contract.spec.mjs` 覆盖，断言集中在 `data-slot/data-variant/data-fill/data-class-source/data-ui-*`，未依赖视觉快照。Badge 为非交互展示组件，无键盘焦点流转与交互 `aria-*` 状态轴，该子项按 N/A 处理；`render_count` 仅对高频/重型组件强制，Badge 非该类组件，本条按 N/A 通过）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（Badge：本轮未引入跨大版本 API 破坏升级，公共 API 仍为 `Badge/BadgeVariant/BadgeMotion`（`components/badge/src/mod.rs`），协议版本仍停留在 `BadgeComponentSchemaVersion::V1`（`components/badge/src/protocol.rs`）；因此无需新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2`。该条按 N/A 通过）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（Badge：`apps/docs-app/src/pages/components/pages/display.rs` 已提供 `Playground title="Hello World"` 与 `Playground title="Variant Matrix"`，并有 `Badge Workbench (Display + Config + Code + CSS Test)` 作为可复现验收面；Badge 无受控状态轴，`受控/非受控对照` 子项按 N/A 处理。流式/快照方面，Badge 明确为 snapshot 路径（`data-ui-stream-fallback=snapshot` / `data-ui-stream-mode=snapshot`），由 `e2e/tests/docs_app_badge_contract.spec.mjs` 验证。Source-first 复制链路由 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` 自动补全 imports（`DEFAULT_PLAYGROUND_IMPORTS`），并有 `apps/docs-app/src/test/playground.rs` 回归）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（Badge：语义断言已由 `components/badge/test/semantics.rs::badge_view_mounts_headless_locale_and_semantic_markers`、`components/badge/test/logic.rs::resolve_agent_contract_emits_machine_readable_markers`、`crates/ui-components/tests/badge_semantics.rs::badge_emits_baseline_style_state_data_attributes` 与 `crates/ui-components/tests/badge_semantics.rs::badge_e2e_contract_file_exists_and_uses_semantic_selectors` 覆盖，重点验证 `data-*` 与状态来源契约（`data-class-source`/`data-ui-source`），且不依赖视觉快照。Badge 为非交互展示组件，无键盘动作与交互 `role/aria-*` 状态轴，该子项按 N/A 处理）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（Badge：语义断言已由 `components/badge/test/semantics.rs::badge_view_mounts_headless_locale_and_semantic_markers`、`components/badge/test/logic.rs::resolve_agent_contract_emits_machine_readable_markers`、`components/badge/test/badge_semantics.rs::badge_emits_baseline_style_state_data_attributes` 与 `components/badge/test/badge_semantics.rs::badge_e2e_contract_file_exists_and_uses_semantic_selectors` 覆盖，重点验证 `data-*` 与状态来源契约（`data-class-source`/`data-ui-source`），且不依赖视觉快照。Badge 为非交互展示组件，无键盘动作与交互 `role/aria-*` 状态轴，该子项按 N/A 处理）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -270,11 +270,11 @@
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（Badge：`apps/docs-app/src/pages/components/pages/display.rs::badge()` 已同步包含文档说明 + 示例（`Hello World`）+ 状态矩阵（`Variant Matrix`）+ 参数/场景矩阵（`Badge Workbench (Display + Config + Code + CSS Test)`，含 `variant/locale/custom class/rtl` 控制与 `Scenario compare`）。API 名称与默认值一致性已由 `crates/ui-components/tests/badge_semantics.rs::badge_docs_api_names_and_defaults_align_with_logic_contract` 锁定：`variant/class_name/lang/dir` 与 `logic.rs::resolve_variant(unwrap_or_default)`、`BadgeVariant::Default` 默认路径保持一致。Badge 无受控/disabled 状态轴，该子项按 N/A 解释）
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（Badge：`apps/docs-app/src/pages/components/pages/display.rs::badge()` 已同步包含文档说明 + 示例（`Hello World`）+ 状态矩阵（`Variant Matrix`）+ 参数/场景矩阵（`Badge Workbench (Display + Config + Code + CSS Test)`，含 `variant/locale/custom class/rtl` 控制与 `Scenario compare`）。API 名称与默认值一致性已由 `components/badge/test/badge_semantics.rs::badge_docs_api_names_and_defaults_align_with_logic_contract` 锁定：`variant/class_name/lang/dir` 与 `logic.rs::resolve_variant(unwrap_or_default)`、`BadgeVariant::Default` 默认路径保持一致。Badge 无受控/disabled 状态轴，该子项按 N/A 解释）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（Badge：`components/badge/src/README.md` 已提供新手入口，并明确“先用起来，再进阶”顺序：`先用起来（Quick Start）` 的 Hello World 示例在前，`常见用法`（variant/class/lang/dir）其次，`进阶（Workbench）` 与架构分层说明后置。等价文档入口 `apps/docs-app/src/pages/components/pages/display.rs::badge()` 同步可访问。回归锚点：`crates/ui-components/tests/badge_semantics.rs::badge_readme_keeps_beginner_first_doc_path`）
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（Badge：`components/badge/src/README.md` 已提供新手入口，并明确“先用起来，再进阶”顺序：`先用起来（Quick Start）` 的 Hello World 示例在前，`常见用法`（variant/class/lang/dir）其次，`进阶（Workbench）` 与架构分层说明后置。等价文档入口 `apps/docs-app/src/pages/components/pages/display.rs::badge()` 同步可访问。回归锚点：`components/badge/test/badge_semantics.rs::badge_readme_keeps_beginner_first_doc_path`）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
@@ -282,11 +282,11 @@
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（Badge：docs-app Playground 已提供代码复制链路（`data-slot="code-block"` + `data-copyable="true"`），并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐默认 imports（`use leptos::prelude::*;`、`use ui_components::*;`）；回归见 `apps/docs-app/src/test/playground.rs`。组件侧 E2E `e2e/tests/docs_app_badge_contract.spec.mjs::docs-app badge playground source is copy-paste ready` 已断言复制代码包含 imports 与 `<Badge>`。Source-first 落点与依赖前提在 `components/badge/src/README.md::Source-first（Copy-Paste Ready）` 明确标注（`view.rs/logic.rs/styles.rs`）。文档-实现同步由 `crates/ui-components/tests/badge_semantics.rs::{badge_docs_playgrounds_lock_state_matrix_contract_values,badge_docs_api_names_and_defaults_align_with_logic_contract,badge_readme_keeps_beginner_first_doc_path}` 锁定）
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（Badge：docs-app Playground 已提供代码复制链路（`data-slot="code-block"` + `data-copyable="true"`），并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐默认 imports（`use leptos::prelude::*;`、`use ui_components::*;`）；回归见 `apps/docs-app/src/test/playground.rs`。组件侧 E2E `e2e/tests/docs_app_badge_contract.spec.mjs::docs-app badge playground source is copy-paste ready` 已断言复制代码包含 imports 与 `<Badge>`。Source-first 落点与依赖前提在 `components/badge/src/README.md::Source-first（Copy-Paste Ready）` 明确标注（`view.rs/logic.rs/styles.rs`）。文档-实现同步由 `components/badge/test/badge_semantics.rs::{badge_docs_playgrounds_lock_state_matrix_contract_values,badge_docs_api_names_and_defaults_align_with_logic_contract,badge_readme_keeps_beginner_first_doc_path}` 锁定）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（Badge：已在 `docs/spec/heroui-parameter-design-strategy.md` 新增 `Badge 同步记录（2026-02-20）`，明确参数主轴 `variant/class_name/lang/dir` 与“无破坏性参数语义变更”的结论。组件文档入口保持可访问并可索引：`apps/docs-app/src/pages/components/pages.rs` 的 `component_doc!(\"Badge\", \"badge\", \"Display\", display::badge)` -> `#/components/badge`。回归锚点：`crates/ui-components/tests/badge_semantics.rs::badge_heroui_strategy_and_docs_entry_stay_in_sync`，防止实现先漂移文档后补）
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（Badge：已在 `docs/spec/heroui-parameter-design-strategy.md` 新增 `Badge 同步记录（2026-02-20）`，明确参数主轴 `variant/class_name/lang/dir` 与“无破坏性参数语义变更”的结论。组件文档入口保持可访问并可索引：`apps/docs-app/src/pages/components/pages.rs` 的 `component_doc!(\"Badge\", \"badge\", \"Display\", display::badge)` -> `#/components/badge`。回归锚点：`components/badge/test/badge_semantics.rs::badge_heroui_strategy_and_docs_entry_stay_in_sync`，防止实现先漂移文档后补）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

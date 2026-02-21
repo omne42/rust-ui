@@ -417,7 +417,7 @@ fn overlays_checklist_marks_semantic_contract_testing_complete() {
         "check2.md should mark semantic-contract testing checklist item as completed."
     );
     assert!(
-        check2.contains("`crates/ui-components/tests/overlay_semantics.rs`")
+        check2.contains("`components/overlay/test/overlay_semantics.rs`")
             && check2.contains("`popover_semantics.rs`")
             && check2.contains("`modal_semantics.rs`")
             && check2.contains("normalize_open_state_supports_controlled_and_uncontrolled_modes")

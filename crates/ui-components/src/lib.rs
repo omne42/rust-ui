@@ -17,9 +17,6 @@ macro_rules! wasm_debug_proxy {
 #[cfg(feature = "component-button")]
 pub(crate) use wasm_debug_proxy;
 
-#[cfg(target_arch = "wasm32")]
-mod observability;
-
 mod css;
 
 #[cfg(feature = "component-accordion")]
@@ -72,8 +69,6 @@ pub use ui_checkbox_group as checkbox_group;
 pub use ui_chip as chip;
 #[cfg(feature = "component-circular_progress")]
 pub use ui_circular_progress as circular_progress;
-// Domain-compatibility shims: keep legacy flat module names stable while
-// implementations live under `button/*`.
 #[cfg(feature = "component-clear_button")]
 #[path = "../../../components/button/src/clear_button/mod.rs"]
 pub mod clear_button;
@@ -201,6 +196,12 @@ pub use ui_error_message as error_message;
 pub use ui_error_view as error_view;
 #[cfg(feature = "component-example_theme")]
 pub use ui_example_theme as example_theme;
+#[cfg(feature = "component-form")]
+#[path = "../../../components/form/src/mod.rs"]
+mod field_form_form;
+#[cfg(feature = "component-form_field")]
+#[path = "../../../components/form-field/src/mod.rs"]
+mod field_form_form_field;
 #[cfg(any(
     feature = "component-description",
     feature = "component-field",
@@ -211,7 +212,28 @@ pub use ui_example_theme as example_theme;
     feature = "component-form_field",
     feature = "component-help_text"
 ))]
-pub mod field_form;
+pub mod field_form {
+    #[cfg(feature = "component-description")]
+    pub use crate::description;
+    #[cfg(feature = "component-field")]
+    pub use ui_field as field;
+    #[cfg(feature = "component-field_error")]
+    pub use ui_field_error as field_error;
+    #[cfg(feature = "component-field_label")]
+    pub use ui_field_label as field_label;
+    #[cfg(feature = "component-fieldset")]
+    pub use ui_fieldset as fieldset;
+    #[cfg(feature = "component-form")]
+    pub mod form {
+        pub use crate::field_form_form::*;
+    }
+    #[cfg(feature = "component-form_field")]
+    pub mod form_field {
+        pub use crate::field_form_form_field::*;
+    }
+    #[cfg(feature = "component-help_text")]
+    pub use ui_help_text as help_text;
+}
 #[cfg(feature = "component-file_trigger")]
 #[path = "../../../components/file-trigger/src/mod.rs"]
 pub mod file_trigger;

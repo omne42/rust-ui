@@ -23,11 +23,6 @@ use ui_headless::{
     A11yDirection, ButtonOptions, FocusRingOptions, HoverOptions, OnPress, popup_trigger_attrs,
     use_button, use_focus_ring, use_hover,
 };
-#[cfg(any(
-    feature = "component-action_button_group",
-    feature = "component-action_group"
-))]
-use ui_headless::{CommonStrings, use_ui_i18n};
 
 #[cfg(feature = "component-action_group")]
 #[derive(Clone, Copy)]
@@ -226,8 +221,8 @@ pub fn ActionButtonGroup(
     #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let i18n = use_ui_i18n();
-    let common_strings = i18n.strings::<CommonStrings>();
+    let i18n = ui_headless::use_ui_i18n();
+    let common_strings = i18n.strings::<ui_headless::CommonStrings>();
     let _aria_label_fallback = common_strings.action_button_group_aria_label.as_ref();
     let class_name = action_logic::action_button_group_logic::normalize_optional_text(class_name);
     let normalized_aria_label =
@@ -318,8 +313,8 @@ pub fn ActionGroup(
     #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let i18n = use_ui_i18n();
-    let common_strings = i18n.strings::<CommonStrings>();
+    let i18n = ui_headless::use_ui_i18n();
+    let common_strings = i18n.strings::<ui_headless::CommonStrings>();
     let items = action_logic::action_group_logic::normalize_items(items);
     let item_ids = action_logic::action_group_logic::collect_item_ids(&items);
 

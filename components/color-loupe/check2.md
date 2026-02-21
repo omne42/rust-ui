@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ColorLoupe` 未在组件内自实现 spring/driver；仅保留 CSS keyframes 表达展示过渡，并通过 `--ui-text-field-motion-duration/easing` token 变量桥接主题动效参数，`prefers-reduced-motion` 下显式降级为 `animation: none`，不引入 wasm 专属运行时依赖）
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ColorLoupe` 公共布尔 props 已统一为 `is_open/is_disabled`，docs 与 playground 调用已同步；组件无事件回调，`on_*` 当前 N/A；本次为统一命名，不保留 `open/disabled` 别名）
@@ -116,7 +116,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（语义回归已覆盖 `role/aria/data-state/source markers`：`components/color-loupe/test/semantics.rs` 与 `crates/ui-components/tests/color_loupe_semantics.rs` 断言 `role=\"img\"`、`aria-label`、`data-state/data-disabled/data-aria-source/data-class-source` 等稳定标记；状态枚举封闭集合由 `components/color-loupe/test/logic.rs::semantic_markers_use_closed_enumerable_value_sets` 锁定。组件为展示型外部输入快照 API，无受控/非受控切换、无键盘/指针交互路径，相关分支 N/A；组件无 wasm/ssr 行为分叉，且 `color_loupe_public_surface_does_not_expose_dom_platform_types` 锁定平台类型边界）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（语义回归已覆盖 `role/aria/data-state/source markers`：`components/color-loupe/test/semantics.rs` 与 `components/color-loupe/test/color_loupe_semantics.rs` 断言 `role=\"img\"`、`aria-label`、`data-state/data-disabled/data-aria-source/data-class-source` 等稳定标记；状态枚举封闭集合由 `components/color-loupe/test/logic.rs::semantic_markers_use_closed_enumerable_value_sets` 锁定。组件为展示型外部输入快照 API，无受控/非受控切换、无键盘/指针交互路径，相关分支 N/A；组件无 wasm/ssr 行为分叉，且 `color_loupe_public_surface_does_not_expose_dom_platform_types` 锁定平台类型边界）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -135,7 +135,7 @@
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`apps/docs-app/src/pages/components/pages/forms_color.rs` 已提供 `ColorLoupe` 默认主题基线路径（`slug=\"color-loupe\"` + `Hello World`/状态矩阵 Playground）；`crates/ui-components/tests/color_loupe_semantics.rs` 已锁定 docs 展示入口与关键示例存在性。仓库级截图基线与 Button/Input/Overlay 视觉回归为全局治理项，对单组件检查按 N/A 适配）
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`apps/docs-app/src/pages/components/pages/forms_color.rs` 已提供 `ColorLoupe` 默认主题基线路径（`slug=\"color-loupe\"` + `Hello World`/状态矩阵 Playground）；`components/color-loupe/test/color_loupe_semantics.rs` 已锁定 docs 展示入口与关键示例存在性。仓库级截图基线与 Button/Input/Overlay 视觉回归为全局治理项，对单组件检查按 N/A 适配）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
@@ -149,7 +149,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`components/color-loupe/src/logic.rs` 以 `ColorLoupeLogicInput` + `ui-state-primitives::ColorLoupeStateInput` 约束输入空间，并在 `resolve_component_state` 统一归一；`components/color-loupe/test/logic.rs::semantic_markers_use_closed_enumerable_value_sets` 锁定无效状态归一与封闭集合。`components/color-loupe/src/view.rs` 暴露稳定机器可读标记（`data-state/data-open/data-disabled/data-x-bucket/data-y-bucket/data-aria-source/data-class-source`），并由 `crates/ui-components/tests/color_loupe_semantics.rs` 回归锁定。离散轴 `variant/size/mode/status` 对本组件 N/A：当前无该类公共输入）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`components/color-loupe/src/logic.rs` 以 `ColorLoupeLogicInput` + `ui-state-primitives::ColorLoupeStateInput` 约束输入空间，并在 `resolve_component_state` 统一归一；`components/color-loupe/test/logic.rs::semantic_markers_use_closed_enumerable_value_sets` 锁定无效状态归一与封闭集合。`components/color-loupe/src/view.rs` 暴露稳定机器可读标记（`data-state/data-open/data-disabled/data-x-bucket/data-y-bucket/data-aria-source/data-class-source`），并由 `components/color-loupe/test/color_loupe_semantics.rs` 回归锁定。离散轴 `variant/size/mode/status` 对本组件 N/A：当前无该类公共输入）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -180,7 +180,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`components/color-loupe/src/view.rs` 已将 loupe 片段拆分为 `render_loupe_fill(color: Option<String>) -> impl IntoView` 与 `render_loupe_bubble(color: Option<String>) -> impl IntoView`，主 `ColorLoupe` `view!` 仅组合结构并通过 `{move || render_loupe_bubble(color.get_value())}` 挂载，避免在主宏块内重复深嵌套分支；回归由 `components/color-loupe/test/semantics.rs::color_loupe_view_macro_complexity_is_split_into_semantic_subrenders` 锁定）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
@@ -258,7 +258,7 @@
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（语义回归已覆盖 `role=\"img\"`、`aria-label`、`data-state/data-output-state/data-aria-source/data-class-source`，并由 `components/color-loupe/test/semantics.rs::color_loupe_semantics_and_performance_regression_contract_is_covered` 锁定；焦点流转对当前 snapshot 展示组件判定 N/A：`view.rs` 无 `tabindex`/focus handler/`NodeRef` 焦点链；性能回归沿用仓库既定等价证据路径：`apps/docs-app/src/pages/components/shell.rs` 对 `color-loupe` 定义 `UiPerfBudget { max_mount_ms: 20.0, max_update_ms: Some(6.0), max_heap_kb: Some(320.0) }`，并由 `scripts/check-ui-components-performance.sh` 的 `color_loupe_performance_governance_contract_is_budgeted_traceable_and_blocking` 门禁阻断；`render_count` 自动化 follow-up 继续由仓库统一计划跟踪。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `color-loupe` 变更未引入跨大版本 API 破坏升级，公共签名与能力声明仍维持 `v1` 语义（`Component.toml`/`Component.rbi` 与 `ColorLoupe` props 未发生 breaking rename/removal），因此不存在 `migrate_v1_to_v2` 的迁移层与弃用窗口注册触发条件。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/forms_color.rs::color_loupe()` 已补齐 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled（N/A）` 与 `Streaming Optional / Snapshot` Playground；其中受控/非受控对照对本组件按 snapshot 性质明确标注 N/A（无内部可变状态轴）。文档已新增 `Source-first / Copy-Paste Ready` 区块，并显式指向 `apps/docs-app/src/playground.rs::compose_copy_ready_code`（自动补全 imports）与组件真实源码路径 `components/color-loupe/src/{view.rs,logic.rs,styles.rs}`。回归由 `components/color-loupe/test/semantics.rs::color_loupe_docs_product_copy_paste_ready_contract_is_complete` 锁定。）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`components/color-loupe/test/semantics.rs` 已以语义契约断言为主：覆盖 `role=\"img\"`、`aria-label`、`data-state/data-output-state/data-aria-source/data-class-source`，并校验新增文档语义位点；`crates/ui-components/tests/color_loupe_semantics.rs` 同步保留语义回归入口。本组件为 snapshot 展示型非交互组件，键盘动作路径 N/A（无 `on:keydown`/focus handler 状态机），快照渲染相关断言仅作补充，不替代语义契约。新增/变更语义字段由 `components/color-loupe/test/semantics.rs::color_loupe_semantics_first_contract_prioritizes_data_aria_role_and_source_markers` 与 checklist 守卫测试共同阻断回归。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`components/color-loupe/test/semantics.rs` 已以语义契约断言为主：覆盖 `role=\"img\"`、`aria-label`、`data-state/data-output-state/data-aria-source/data-class-source`，并校验新增文档语义位点；`components/color-loupe/test/color_loupe_semantics.rs` 同步保留语义回归入口。本组件为 snapshot 展示型非交互组件，键盘动作路径 N/A（无 `on:keydown`/focus handler 状态机），快照渲染相关断言仅作补充，不替代语义契约。新增/变更语义字段由 `components/color-loupe/test/semantics.rs::color_loupe_semantics_first_contract_prioritizes_data_aria_role_and_source_markers` 与 checklist 守卫测试共同阻断回归。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

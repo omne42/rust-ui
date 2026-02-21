@@ -11,7 +11,7 @@
 [x] 最高优先级，这是一个button组件的扩展组件，它应该使用button组件的能力而非重新实现。
 
 ### 1. 大骨架（架构边界与层职责）
-- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ActionButton` 通过 `button_logic::resolve_view_state` 复用共享按钮状态管线，`button_logic` 再消费 `ui_state_primitives::button::resolve_state_core`；`ActionGroup` 直接消费 `ui_state_primitives::action_group`。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_state_primitives_are_consumed_via_button_logic` 与 `crates/ui-components/tests/action_group_semantics.rs` 的 `action_group_selection_primitive_is_sourced_from_state_primitives`）
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ActionButton` 通过 `button_logic::resolve_view_state` 复用共享按钮状态管线，`button_logic` 再消费 `ui_state_primitives::button::resolve_state_core`；`ActionGroup` 直接消费 `ui_state_primitives::action_group`。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_state_primitives_are_consumed_via_button_logic` 与 `components/button/test/action_group_semantics.rs` 的 `action_group_selection_primitive_is_sourced_from_state_primitives`）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`ActionButton` 在 `view.rs` 挂载 `use_button/use_focus_ring/use_hover`，并通过共享 `button_logic` 消费语义状态；`logic.rs` 不承载 headless hook 编排。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_uses_button_state_machine_and_headless_hooks` 与 `action_button_mounts_headless_contract_in_view_not_logic_layer`）
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`ActionButton` 在 `view.rs` 挂载 `use_button/use_focus_ring/use_hover`，并通过共享 `button_logic` 消费语义状态；`logic.rs` 不承载 headless hook 编排。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_uses_button_state_machine_and_headless_hooks` 与 `action_button_mounts_headless_contract_in_view_not_logic_layer`）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -29,35 +29,35 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ActionButton` 复用 `ButtonMotion` 与 `button_motion::attach_motion`，不重写按钮动效引擎；`ActionButtonGroup` 的 `action/motion.rs` 仅做 motion 参数归一与 CSS 变量映射。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_motion_reuses_button_contract_and_group_motion_stays_mapping_only`）
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ActionButton` 复用 `ButtonMotion` 与 `button_motion::attach_motion`，不重写按钮动效引擎；`ActionButtonGroup` 的 `action/motion.rs` 仅做 motion 参数归一与 CSS 变量映射。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_motion_reuses_button_contract_and_group_motion_stays_mapping_only`）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`ActionButton` 复用 `button_logic` 的按钮主题表面契约，不重建主题；`action/styles.rs` 仅消费 `var(--ui-*)` 变量。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_theme_contract_reuses_ui_theme_tokens_and_button_surface`）
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`ActionButton` 复用 `button_logic` 的按钮主题表面契约，不重建主题；`action/styles.rs` 仅消费 `var(--ui-*)` 变量。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_theme_contract_reuses_ui_theme_tokens_and_button_surface`）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ActionButton` 家族保持装配层职责：`view.rs` 组合 `action logic + button logic + ui-headless + button motion`，`logic.rs` 仅归一/派生，`styles.rs` 仅 token-first 静态样式，`motion.rs` 仅动效参数映射。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_family_stays_in_ui_components_assembly_layer`）
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ActionButton` 家族保持装配层职责：`view.rs` 组合 `action logic + button logic + ui-headless + button motion`，`logic.rs` 仅归一/派生，`styles.rs` 仅 token-first 静态样式，`motion.rs` 仅动效参数映射。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_family_stays_in_ui_components_assembly_layer`）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ActionButton` 家族公开布尔 props 已统一到 `is_*`，其中 `ActionButtonGroup/ActionGroup` 的 `disabled` 已收敛为 `is_disabled`；回归由 `crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_api_naming_uses_is_prefix_only` 约束）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ActionButton` 家族公开布尔 props 已统一到 `is_*`，其中 `ActionButtonGroup/ActionGroup` 的 `disabled` 已收敛为 `is_disabled`；回归由 `components/button/test/action_button_semantics.rs` 的 `action_button_api_naming_uses_is_prefix_only` 约束）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`ActionButton` / `ActionButtonGroup` 无受控状态轴；`ActionGroup` 的选择轴已提供 `selected_ids + on_selected_ids_change + default_selected_ids` 并统一接入 `use_controllable_state`。对应回归：`crates/ui-components/tests/action_group_semantics.rs` 的 `action_group_controlled_uncontrolled_contract_is_complete`）
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`ActionButton` / `ActionButtonGroup` 无受控状态轴；`ActionGroup` 的选择轴已提供 `selected_ids + on_selected_ids_change + default_selected_ids` 并统一接入 `use_controllable_state`。对应回归：`components/button/test/action_group_semantics.rs` 的 `action_group_controlled_uncontrolled_contract_is_complete`）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
@@ -81,24 +81,24 @@
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`ActionButton` 签名不暴露必填内部 `state` 对象，进阶控制均为可选 props；`apps/docs-app` 的 `action_button` 提供 5 行内最小可用示例并单独展示进阶状态示例。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_dx_paradox_keeps_default_usage_simple_and_advanced_optional`）
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`ActionButton` 签名不暴露必填内部 `state` 对象，进阶控制均为可选 props；`apps/docs-app` 的 `action_button` 提供 5 行内最小可用示例并单独展示进阶状态示例。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_dx_paradox_keeps_default_usage_simple_and_advanced_optional`）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`ActionButtonGroup` 以 `children: Children` 显式组合 `ActionButton`；`ActionGroup` 采用类型化 `Vec<ActionGroupItem>` 作为配置式 item spec，不使用并行数组。docs 分别在 `actions.rs` 与 `actions_extra.rs` 展示两种推荐路径。对应回归：`crates/ui-components/tests/action_group_semantics.rs` 的 `action_composite_apis_use_explicit_children_or_typed_item_specs`）
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`ActionButtonGroup` 以 `children: Children` 显式组合 `ActionButton`；`ActionGroup` 采用类型化 `Vec<ActionGroupItem>` 作为配置式 item spec，不使用并行数组。docs 分别在 `actions.rs` 与 `actions_extra.rs` 展示两种推荐路径。对应回归：`components/button/test/action_group_semantics.rs` 的 `action_composite_apis_use_explicit_children_or_typed_item_specs`）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`ActionButton` 继续复用 `button + ui-headless` 的语义挂载；`ActionButtonGroup/ActionGroup` 的 fallback aria label 改为通过 `use_ui_i18n().strings::<CommonStrings>()` 注入（`action_button_group_aria_label/action_group_aria_label`），不在 `view.rs` 硬编码。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_family_a11y_and_i18n_fallbacks_are_context_driven`）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`ActionButton` 继续复用 `button + ui-headless` 的语义挂载；`ActionButtonGroup/ActionGroup` 的 fallback aria label 改为通过 `use_ui_i18n().strings::<CommonStrings>()` 注入（`action_button_group_aria_label/action_group_aria_label`），不在 `view.rs` 硬编码。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_family_a11y_and_i18n_fallbacks_are_context_driven`）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`ActionButton` 继续复用 button 的 `data-state/data-loading/data-label-source` 等标记；`ActionGroup` 新增 `data-selection-source`（`controlled/uncontrolled`）区分受控来源。对应回归：`crates/ui-components/tests/action_group_semantics.rs` 的 `action_group_controlled_uncontrolled_contract_is_complete` 与 `action_group_emits_baseline_style_state_data_attributes`）
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`ActionButton` 继续复用 button 的 `data-state/data-loading/data-label-source` 等标记；`ActionGroup` 新增 `data-selection-source`（`controlled/uncontrolled`）区分受控来源。对应回归：`components/button/test/action_group_semantics.rs` 的 `action_group_controlled_uncontrolled_contract_is_complete` 与 `action_group_emits_baseline_style_state_data_attributes`）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
@@ -111,7 +111,7 @@
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`ActionButton` 已复用 `button_view::render_button_content`，避免在 action `view.rs` 重复实现按钮内容渲染；职责边界由 `crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_family_stays_in_ui_components_assembly_layer` 和 `action_button_loading_render_rules_reuse_button_render_state` 约束）
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`ActionButton` 已复用 `button_view::render_button_content`，避免在 action `view.rs` 重复实现按钮内容渲染；职责边界由 `components/button/test/action_button_semantics.rs` 的 `action_button_family_stays_in_ui_components_assembly_layer` 和 `action_button_loading_render_rules_reuse_button_render_state` 约束）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
@@ -121,7 +121,7 @@
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`action/styles.rs` 保持 token-first 静态样式（`var(--ui-*)`）；`css.rs` 通过 feature gate 聚合 `ACTION_BUTTON_GROUP_CSS/ACTION_GROUP_CSS`；`UiRoot` 统一注入 `push_components_css`；运行时仅在 `ActionButtonGroup` 传递 motion css vars（`style=panel_vars`）。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_token_first_styles_are_gated_and_injected_via_ui_root`）
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`action/styles.rs` 保持 token-first 静态样式（`var(--ui-*)`）；`css.rs` 通过 feature gate 聚合 `ACTION_BUTTON_GROUP_CSS/ACTION_GROUP_CSS`；`UiRoot` 统一注入 `push_components_css`；运行时仅在 `ActionButtonGroup` 传递 motion css vars（`style=panel_vars`）。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_token_first_styles_are_gated_and_injected_via_ui_root`）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
@@ -140,7 +140,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`ActionButton` 家族离散输入继续复用 `button` 类型系统（`ActionButtonSize/ButtonType/...`）并通过 enum 映射输出封闭 `data-*` 标记；`ActionGroup` 通过 `data-selection-mode/data-selection-source/data-state` 提供机器可读状态。对应回归：`crates/ui-components/tests/action_button_semantics.rs` 的 `action_button_machine_readable_state_contract_is_typed_and_marker_driven`）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`ActionButton` 家族离散输入继续复用 `button` 类型系统（`ActionButtonSize/ButtonType/...`）并通过 enum 映射输出封闭 `data-*` 标记；`ActionGroup` 通过 `data-selection-mode/data-selection-source/data-state` 提供机器可读状态。对应回归：`components/button/test/action_button_semantics.rs` 的 `action_button_machine_readable_state_contract_is_typed_and_marker_driven`）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -163,26 +163,26 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（本次补齐 `action-button/action-button-group/action-group` 页面预算：`apps/docs-app/src/pages/components/shell.rs`；新增回归 `crates/ui-components/tests/action_button_semantics.rs::action_button_performance_governance_budget_is_defined_and_blocking`；并纳入 `scripts/check-ui-components-performance.sh`）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（本次补齐 `action-button/action-button-group/action-group` 页面预算：`apps/docs-app/src/pages/components/shell.rs`；新增回归 `components/button/test/action_button_semantics.rs::action_button_performance_governance_budget_is_defined_and_blocking`；并纳入 `scripts/check-ui-components-performance.sh`）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`ActionGroup` 视图已拆分为 `render_action_group_items` + `render_action_group_item`，避免在根 `view!` 内嵌套 map/item 构建；回归：`crates/ui-components/tests/action_button_semantics.rs::action_button_view_macro_complexity_is_split_into_semantic_subrenders`）
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`ActionGroup` 视图已拆分为 `render_action_group_items` + `render_action_group_item`，避免在根 `view!` 内嵌套 map/item 构建；回归：`components/button/test/action_button_semantics.rs::action_button_view_macro_complexity_is_split_into_semantic_subrenders`）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`ActionGroup` 局部渲染已使用 `render_action_group_items` / `render_action_group_item` 普通函数（`-> impl IntoView`），未新增局部 `#[component]`；回归：`crates/ui-components/tests/action_button_semantics.rs::action_button_functional_split_prefers_plain_functions_over_extra_components`）
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`ActionGroup` 局部渲染已使用 `render_action_group_items` / `render_action_group_item` 普通函数（`-> impl IntoView`），未新增局部 `#[component]`；回归：`components/button/test/action_button_semantics.rs::action_button_functional_split_prefers_plain_functions_over_extra_components`）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`ActionGroup` item 静态 class 片段已常量化：`ACTION_GROUP_ITEM_CLASS_BASE/SELECTED/DISABLED`，避免内联重复字面量；回归：`crates/ui-components/tests/action_button_semantics.rs::action_button_static_fragments_are_constantized_for_action_group_items`）
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`ActionGroup` item 静态 class 片段已常量化：`ACTION_GROUP_ITEM_CLASS_BASE/SELECTED/DISABLED`，避免内联重复字面量；回归：`components/button/test/action_button_semantics.rs::action_button_static_fragments_are_constantized_for_action_group_items`）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（Action 组件与 docs 示例不使用 `inner_html`；回归：`crates/ui-components/tests/action_button_semantics.rs::action_button_inner_html_usage_is_forbidden_in_component_and_docs_examples`）
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（Action 组件与 docs 示例不使用 `inner_html`；回归：`components/button/test/action_button_semantics.rs::action_button_inner_html_usage_is_forbidden_in_component_and_docs_examples`）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
@@ -194,7 +194,7 @@
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`ActionButton` 复用 `Button` 的 spec/tracing/debug 契约，不新增本地 spec 边界；新增回归：`crates/ui-components/tests/action_button_semantics.rs::action_button_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks`，并纳入 `scripts/check-ui-components-engineering.sh`）
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`ActionButton` 复用 `Button` 的 spec/tracing/debug 契约，不新增本地 spec 边界；新增回归：`components/button/test/action_button_semantics.rs::action_button_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks`，并纳入 `scripts/check-ui-components-engineering.sh`）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。

@@ -1828,7 +1828,7 @@ fn collapsible_check2_marks_e2e_selector_stability_item_complete() {
         "components/collapsible/test/semantics.rs::collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/collapsible/test/semantics.rs::collapsible_e2e_contract_covers_ready_and_settled_conditions_for_disclosure_paths",
         "components/collapsible/test/semantics.rs::collapsible_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "crates/ui-components/tests/collapsible_semantics.rs::collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/collapsible/test/collapsible_semantics.rs::collapsible_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "scripts/check-ui-components-e2e-collapsible.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -1952,7 +1952,7 @@ fn collapsible_check2_marks_repeatable_keyflow_regression_item_complete() {
         "components/collapsible/test/semantics.rs::collapsible_e2e_regression_failures_map_to_semantic_contract_breakpoints",
         "components/collapsible/test/semantics.rs::collapsible_e2e_regression_prioritizes_focus_and_keyboard_risk_paths",
         "components/collapsible/test/semantics.rs::collapsible_e2e_check_script_covers_repeatable_keyflow_regression_contract",
-        "crates/ui-components/tests/collapsible_semantics.rs::collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow",
+        "components/collapsible/test/collapsible_semantics.rs::collapsible_e2e_regression_suite_contains_repeatable_disclosure_keyflow",
         "scripts/check-ui-components-e2e-collapsible.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2037,7 +2037,7 @@ fn collapsible_semantic_markers_changed_in_view_must_be_covered_by_semantics_che
     let view = load_source("src/view.rs");
     let local_semantics = include_str!("semantics.rs");
     let aggregated_semantics =
-        include_str!("../../../crates/ui-components/tests/collapsible_semantics.rs");
+        include_str!("../../../components/collapsible/test/collapsible_semantics.rs");
 
     for marker in [
         "role=aria.attrs.role",
@@ -2769,7 +2769,7 @@ fn collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_re
  {
     let local_semantics = load_source("test/semantics.rs");
     let aggregated_semantics =
-        load_source("../../crates/ui-components/tests/collapsible_semantics.rs");
+        load_source("../../components/collapsible/test/collapsible_semantics.rs");
     let view = load_source("src/view.rs");
     let e2e = load_source("../../e2e/tests/docs_app_collapsible.spec.mjs");
     let todo = load_source("../../docs/plan/TODO.md");
@@ -4286,7 +4286,6 @@ fn collapsible_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolate
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(needle),

@@ -422,9 +422,9 @@ fn carousel_check2_marks_tree_shaking_feature_pruning_contract_complete() {
         "carousel_tree_shaking_contract_keeps_feature_gated_entrypoints",
         "carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
         "carousel_check2_marks_tree_shaking_feature_pruning_contract_complete",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_tree_shaking_contract_keeps_feature_gated_entrypoints",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_marks_tree_shaking_feature_pruning_contract_complete",
+        "components/carousel/test/carousel_semantics.rs::carousel_tree_shaking_contract_keeps_feature_gated_entrypoints",
+        "components/carousel/test/carousel_semantics.rs::carousel_tree_shaking_script_enforces_component_minimal_feature_tree_and_budget",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_tree_shaking_feature_pruning_contract_complete",
         "cargo tree -e features -i ui-components -p ui-components --no-default-features --features component-carousel,inject-css",
         "cargo tree -e features -i ui-components -p web-demo",
         "scripts/check-ui-components-tree-shaking.sh",
@@ -888,9 +888,9 @@ fn carousel_check2_marks_ui_components_fixed_entry_files_complete() {
         "components/carousel/test/semantics.rs::carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
         "components/carousel/test/semantics.rs::carousel_entrypoints_check_script_covers_fixed_entrypoint_contract",
         "components/carousel/test/semantics.rs::carousel_check2_marks_ui_components_fixed_entry_files_complete",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_entrypoints_check_script_covers_fixed_entrypoint_contract",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_marks_ui_components_fixed_entry_files_complete",
+        "components/carousel/test/carousel_semantics.rs::carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "components/carousel/test/carousel_semantics.rs::carousel_entrypoints_check_script_covers_fixed_entrypoint_contract",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_ui_components_fixed_entry_files_complete",
         "scripts/check-ui-components-entrypoints.sh",
         "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_ui_components_fixed_entry_files_follow_layered_boundaries",
         "Invalid cross-device link (os error 18)",
@@ -1031,7 +1031,7 @@ fn carousel_component_directory_standard_files_follow_contract_and_na_paths() {
         "导出边界证据：`mod.rs` 维持最小稳定导出（`Carousel/CarouselMotion` 与必要常量、类型）；未出现 `pub mod logic/view/motion` 过度导出。",
         "职责证据：`logic.rs` 仅做 props 归一化、状态派生与来源标记；`styles.rs` 仅承载 token-first 静态 CSS；`view.rs` 仅做 Leptos 结构渲染 + headless 语义挂载；`motion.rs` 仅做 `CarouselMotion + attach_carousel_indicator_motion` 合同映射与挂载。",
         "spec N/A 证据：`components/carousel/src/spec.rs` 不存在，`mod.rs` 未声明 `mod spec;`；简单组件不引入 spec。",
-        "回归覆盖：`components/carousel/test/semantics.rs::carousel_component_directory_standard_files_follow_contract_and_na_paths`、`crates/ui-components/tests/carousel_semantics.rs::carousel_component_directory_standard_files_follow_contract_and_na_paths`。",
+        "回归覆盖：`components/carousel/test/semantics.rs::carousel_component_directory_standard_files_follow_contract_and_na_paths`、`components/carousel/test/carousel_semantics.rs::carousel_component_directory_standard_files_follow_contract_and_na_paths`。",
         "门禁证据：`scripts/check-ui-components-component-files.sh` 新增 `carousel_component_directory_standard_files_follow_contract_and_na_paths` 命令，阻断目录落点回归。",
     ] {
         assert!(
@@ -1117,9 +1117,9 @@ fn carousel_check2_marks_file_placement_discipline_complete() {
         "components/carousel/test/semantics.rs::carousel_file_placement_discipline_is_strict_for_component_scope",
         "components/carousel/test/semantics.rs::carousel_component_files_script_covers_file_placement_discipline",
         "components/carousel/test/semantics.rs::carousel_check2_marks_file_placement_discipline_complete",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_file_placement_discipline_is_strict_for_component_scope",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_component_files_script_covers_file_placement_discipline",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_marks_file_placement_discipline_complete",
+        "components/carousel/test/carousel_semantics.rs::carousel_file_placement_discipline_is_strict_for_component_scope",
+        "components/carousel/test/carousel_semantics.rs::carousel_component_files_script_covers_file_placement_discipline",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_file_placement_discipline_complete",
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_file_placement_discipline_is_strict_for_component_scope",
         "Invalid cross-device link (os error 18)",
@@ -1192,9 +1192,9 @@ fn carousel_check2_marks_hyper_structure_builder_contract_complete() {
         "components/carousel/test/semantics.rs::carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "components/carousel/test/semantics.rs::carousel_component_files_script_covers_hyper_structure_builder_na_contract",
         "components/carousel/test/semantics.rs::carousel_check2_marks_hyper_structure_builder_contract_complete",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_component_files_script_covers_hyper_structure_builder_na_contract",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_marks_hyper_structure_builder_contract_complete",
+        "components/carousel/test/carousel_semantics.rs::carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
+        "components/carousel/test/carousel_semantics.rs::carousel_component_files_script_covers_hyper_structure_builder_na_contract",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_hyper_structure_builder_contract_complete",
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_hyper_structure_builder_spec_is_not_applicable_for_simple_component",
         "Invalid cross-device link (os error 18)",
@@ -1338,9 +1338,9 @@ fn carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete(
         "components/carousel/test/semantics.rs::carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "components/carousel/test/semantics.rs::carousel_component_files_check_script_covers_context_compression_manifest_contract",
         "components/carousel/test/semantics.rs::carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_component_files_check_script_covers_context_compression_manifest_contract",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete",
+        "components/carousel/test/carousel_semantics.rs::carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
+        "components/carousel/test/carousel_semantics.rs::carousel_component_files_check_script_covers_context_compression_manifest_contract",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_context_compression_manifest_and_rbi_contract_complete",
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test carousel_semantics --no-default-features --features component-carousel,inject-css carousel_context_compression_manifest_and_rbi_projection_are_present_and_current",
         "Invalid cross-device link (os error 18)",
@@ -1476,8 +1476,7 @@ fn carousel_performance_governance_contract_is_mount_only_traceable_and_blocking
 fn carousel_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement()
  {
     let local_semantics = load_source("test/semantics.rs");
-    let aggregated_semantics =
-        load_source("../../crates/ui-components/tests/carousel_semantics.rs");
+    let aggregated_semantics = load_source("../../components/carousel/test/carousel_semantics.rs");
     let view_source = load_source("src/view.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
     let script_source = load_source("../../scripts/check-ui-components-performance.sh");
@@ -1813,7 +1812,6 @@ fn carousel_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated()
     for required in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root_source.contains(required),
@@ -3609,7 +3607,7 @@ fn carousel_semantic_contract_matrix_covers_state_interaction_and_non_snapshot_p
     let logic_source = load_source("src/logic.rs");
     let semantics_source = load_source("test/semantics.rs");
     let workspace_semantics_source =
-        load_source("../../crates/ui-components/tests/carousel_semantics.rs");
+        load_source("../../components/carousel/test/carousel_semantics.rs");
 
     for required in [
         "role=root_a11y.attrs.role",
@@ -3744,12 +3742,12 @@ fn carousel_semantic_test_priority_prefers_data_aria_role_and_source_contracts_o
     let view_source = load_source("src/view.rs");
     let local_semantics_source = load_source("test/semantics.rs");
     let workspace_semantics_source =
-        load_source("../../crates/ui-components/tests/carousel_semantics.rs");
+        load_source("../../components/carousel/test/carousel_semantics.rs");
     let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
 
     assert!(
         path_exists("test/semantics.rs")
-            && path_exists("../../crates/ui-components/tests/carousel_semantics.rs"),
+            && path_exists("../../components/carousel/test/carousel_semantics.rs"),
         "Carousel semantic-priority gate requires component/local `*_semantics.rs` suites.",
     );
 
@@ -3969,10 +3967,10 @@ fn carousel_check2_marks_e2e_selector_stability_item_complete() {
         "components/carousel/test/semantics.rs::carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/carousel/test/semantics.rs::carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
         "components/carousel/test/semantics.rs::carousel_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_documents_e2e_selector_and_stable_wait_rules",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_e2e_check_script_covers_selector_and_settled_wait_contract",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_documents_e2e_selector_and_stable_wait_rules",
+        "components/carousel/test/carousel_semantics.rs::carousel_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/carousel/test/carousel_semantics.rs::carousel_e2e_contract_covers_ready_and_settled_conditions_for_motion_paths",
+        "components/carousel/test/carousel_semantics.rs::carousel_e2e_check_script_covers_selector_and_settled_wait_contract",
         "e2e/tests/docs_app_carousel_contract.spec.mjs",
         "scripts/check-ui-components-e2e-carousel.sh",
         "Invalid cross-device link (os error 18)",
@@ -4101,10 +4099,10 @@ fn carousel_check2_marks_e2e_repeatable_key_flow_item_complete() {
         "components/carousel/test/semantics.rs::carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
         "components/carousel/test/semantics.rs::carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
         "components/carousel/test/semantics.rs::carousel_check2_marks_e2e_repeatable_key_flow_item_complete",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_documents_e2e_repeatable_key_flow_rules",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-        "crates/ui-components/tests/carousel_semantics.rs::carousel_check2_marks_e2e_repeatable_key_flow_item_complete",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_documents_e2e_repeatable_key_flow_rules",
+        "components/carousel/test/carousel_semantics.rs::carousel_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+        "components/carousel/test/carousel_semantics.rs::carousel_e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
+        "components/carousel/test/carousel_semantics.rs::carousel_check2_marks_e2e_repeatable_key_flow_item_complete",
         "scripts/check-ui-components-e2e-carousel.sh",
         "Invalid cross-device link (os error 18)",
     ] {

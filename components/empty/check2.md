@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（N/A：`empty` 为静态结构组件，无 enter/exit/active 等动效语义轴；不依赖 `ui-motion`，也不包含 `motion.rs`）
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（N/A：`empty` 无可控状态轴与回调 props，当前公开输入仅 `class_name` 与 `variant`，不涉及 `is_* / on_* / default_*` 三元组）
@@ -149,7 +149,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（离散状态轴由 `EmptyMediaVariant`/`EmptySlot` `enum` 建模，`EmptyPartStateInput -> EmptyPartState` 在 `logic.rs` 统一归一化，`view.rs` 稳定挂载 `data-slot/data-state/data-class-source/data-variant/data-variant-source`；`components/empty/test/logic.rs` 与 `components/empty/test/semantics.rs`、`crates/ui-components/tests/empty_semantics.rs` 可直接定位“类型约束/归一化/语义标记”契约破坏点）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（离散状态轴由 `EmptyMediaVariant`/`EmptySlot` `enum` 建模，`EmptyPartStateInput -> EmptyPartState` 在 `logic.rs` 统一归一化，`view.rs` 稳定挂载 `data-slot/data-state/data-class-source/data-variant/data-variant-source`；`components/empty/test/logic.rs` 与 `components/empty/test/semantics.rs`、`components/empty/test/empty_semantics.rs` 可直接定位“类型约束/归一化/语义标记”契约破坏点）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -163,15 +163,15 @@
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（N/A：`empty` 未接入 `ui-headless`，不会引入或破坏其特性互斥；上游 `crates/ui-headless/src/lib.rs` 已有 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 守卫，且 `crates/ui-components/tests/empty_semantics.rs` 已回归约束 `empty` 不依赖 `ui-headless`）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（N/A：`empty` 未接入 `ui-headless`，不会引入或破坏其特性互斥；上游 `crates/ui-headless/src/lib.rs` 已有 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 守卫，且 `components/empty/test/empty_semantics.rs` 已回归约束 `empty` 不依赖 `ui-headless`）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（N/A：`empty` 未接入 `ui-motion` 且不存在 `motion.rs`；`crates/ui-motion/src/lib.rs` 已通过 `#[cfg(not(target_arch = "wasm32"))]` 提供可预测 no-op `web::animate` 与 `prefers_reduced_motion` stub，并有 `non_wasm_web_backend_is_predictable_noop` 测试；`crates/ui-components/tests/empty_semantics.rs` 已约束 `empty` 不依赖 `ui-motion`）
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（N/A：`empty` 未接入 `ui-motion` 且不存在 `motion.rs`；`crates/ui-motion/src/lib.rs` 已通过 `#[cfg(not(target_arch = "wasm32"))]` 提供可预测 no-op `web::animate` 与 `prefers_reduced_motion` stub，并有 `non_wasm_web_backend_is_predictable_noop` 测试；`components/empty/test/empty_semantics.rs` 已约束 `empty` 不依赖 `ui-motion`）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（N/A：`empty` 无动效语义轴、未接入 `ui-motion` 且不存在 `motion.rs`，因此无 `reduced-motion` 分支需求；组件实现保持平台无关与 hydration 稳定，`components/empty/test/semantics.rs` 已约束无平台分支漂移与确定性初始化，`crates/ui-components/tests/empty_semantics.rs` 已约束无 motion runtime 依赖）
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（N/A：`empty` 无动效语义轴、未接入 `ui-motion` 且不存在 `motion.rs`，因此无 `reduced-motion` 分支需求；组件实现保持平台无关与 hydration 稳定，`components/empty/test/semantics.rs` 已约束无平台分支漂移与确定性初始化，`components/empty/test/empty_semantics.rs` 已约束无 motion runtime 依赖）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
@@ -180,7 +180,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`empty` 的 `view.rs` 已按 `Root/Header/Title/Description/Content/Media` 语义分块为 6 个浅层 `view!`；每块仅单根 `<div>` + 单次 `{children()}` 投影；`components/empty/test/semantics.rs` 新增 `component_view_macro_complexity_stays_semantically_split_and_shallow` 防回归）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。

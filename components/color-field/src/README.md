@@ -90,7 +90,7 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
 
 ## Test and Verification
 
-- 语义回归：`crates/ui-components/tests/color_field_semantics.rs`
+- 语义回归：`components/color-field/test/color_field_semantics.rs`
 - primitives 单测：`crates/ui-state-primitives/src/color_field.rs`
 - docs 验收页：`apps/docs-app/src/pages/components/pages/forms_color.rs`
 - E2E 契约：`e2e/tests/docs_app_color_field_contract.spec.mjs`

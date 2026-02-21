@@ -11,7 +11,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 架构边界与分层约束（Kernel/Shell 总线）
-- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`components/alert/src/logic.rs` 仅消费 `ui_state_primitives::alert_banner::{AlertBannerTone/AlertBannerFill/AlertBannerVariant/resolve_tone/normalize_fill/resolve_hide_icon/resolve_view_state/normalize_optional_text}`，组件层只做 API 适配与语义挂载；原语测试由 `crates/ui-state-primitives/src/test/alert_banner.rs` 覆盖，组件侧回归由 `components/alert/test/logic.rs` 与 `crates/ui-components/tests/alert_semantics.rs` 锁定。）
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`components/alert/src/logic.rs` 仅消费 `ui_state_primitives::alert_banner::{AlertBannerTone/AlertBannerFill/AlertBannerVariant/resolve_tone/normalize_fill/resolve_hide_icon/resolve_view_state/normalize_optional_text}`，组件层只做 API 适配与语义挂载；原语测试由 `crates/ui-state-primitives/src/test/alert_banner.rs` 覆盖，组件侧回归由 `components/alert/test/logic.rs` 与 `components/alert/test/alert_semantics.rs` 锁定。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -29,30 +29,30 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`components/alert/src/motion.rs` 仅定义 `AlertMotion` contract + `attach_motion` 映射；执行器复用 `ui_motion::spring::SpringAnimator`，non-wasm 分支提供 no-op/stub。回归：`components/alert/test/motion.rs` 与 `crates/ui-components/tests/alert_semantics.rs::alert_motion_contract_remains_spring_based`。）
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`components/alert/src/motion.rs` 仅定义 `AlertMotion` contract + `attach_motion` 映射；执行器复用 `ui_motion::spring::SpringAnimator`，non-wasm 分支提供 no-op/stub。回归：`components/alert/test/motion.rs` 与 `components/alert/test/alert_semantics.rs::alert_motion_contract_remains_spring_based`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/alert/src/styles.rs` 仅消费 `var(--ui-*)` 语义变量（如 `--ui-bg-muted/--ui-border/--ui-accent/--ui-danger`），未在组件层重建主题上下文或引入平行私有 token 命名体系；组件语义回归见 `crates/ui-components/tests/alert_semantics.rs`。）
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`components/alert/src/styles.rs` 仅消费 `var(--ui-*)` 语义变量（如 `--ui-bg-muted/--ui-border/--ui-accent/--ui-danger`），未在组件层重建主题上下文或引入平行私有 token 命名体系；组件语义回归见 `components/alert/test/alert_semantics.rs`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`components/alert/src` 已按 `mod.rs/logic.rs/view.rs/styles.rs/motion.rs` 分责；`mod.rs` 仅导出稳定 API（`Alert/AlertTone/AlertFill/AlertLayout/AlertVariant/AlertMotion`），未暴露 `web-sys`/DOM 细节类型；语义测试已迁移到 `components/alert/test/semantics.rs`，`crates/ui-components/tests/alert_semantics.rs` 仅保留转发入口。）
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`components/alert/src` 已按 `mod.rs/logic.rs/view.rs/styles.rs/motion.rs` 分责；`mod.rs` 仅导出稳定 API（`Alert/AlertTone/AlertFill/AlertLayout/AlertVariant/AlertMotion`），未暴露 `web-sys`/DOM 细节类型；语义测试已迁移到 `components/alert/test/semantics.rs`，`components/alert/test/alert_semantics.rs` 仅保留转发入口。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（Alert 布尔轴以 `is_hide_icon` 为主命名，并保留 `hide_icon` 兼容输入；兼容优先级由 `logic::resolve_hide_icon` 统一管理且输出 `data-hide-icon-source` 来源标记。回归：`components/alert/test/semantics.rs::alert_api_naming_contract_keeps_is_prefix_with_legacy_alias_bridge`。）
@@ -102,31 +102,31 @@
 - [x] 环境订阅流（Env Streams）：`Resize/Theme/Intersection` 等环境变化在 `view.rs` 采样、防抖后转化为高层语义 `Action`（如 `BreakpointChanged`）推送到 `logic`；禁止原始事件洪泛。（N/A：Alert 无 `Resize/Intersection` 订阅与环境驱动状态流。）
 - [x] 事件光锥（Event Light Cone）：`Table/Grid` 等大型集合批量操作必须走 `Context Bus + Selector` 与状态压缩表达（如 `SelectionState::All`），禁止 O(N) 级向下 prop drilling。（N/A：Alert 非大型集合组件，不存在批量选择/广播链路。）
 - [x] 统一因果总线（Causality Bus）：复杂派生总线操作必须支持透传 `TraceId`，确保“用户触发 -> 派生命令 -> 总线广播 -> 订阅者”因果链不断裂。（N/A：Alert 无跨组件总线派生行为与异步命令流，不产生 `TraceId` 链路断裂风险。）
-- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`view.rs` 通过 `locale_attrs(lang, dir)` 接入 `lang/dir`，`logic.rs` 通过 `live_region_attrs(...)` 统一 `role/aria-live` 挂载；图标读屏文案支持 `icon_label` 覆盖并暴露 `data-icon-label-source`。回归：`crates/ui-components/tests/alert_semantics.rs::alert_a11y_and_i18n_contract_is_mounted_from_headless_locale_bridge`。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`view.rs` 通过 `locale_attrs(lang, dir)` 接入 `lang/dir`，`logic.rs` 通过 `live_region_attrs(...)` 统一 `role/aria-live` 挂载；图标读屏文案支持 `icon_label` 覆盖并暴露 `data-icon-label-source`。回归：`components/alert/test/alert_semantics.rs::alert_a11y_and_i18n_contract_is_mounted_from_headless_locale_bridge`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（根节点稳定输出 `data-layout/data-tone/data-fill/data-title/data-description/data-icon/data-variant-source/data-hide-icon-source/data-icon-label-source` 以及 `role/aria-live`。回归：`crates/ui-components/tests/alert_semantics.rs::alert_emits_unified_state_markers`。）
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（根节点稳定输出 `data-layout/data-tone/data-fill/data-title/data-description/data-icon/data-variant-source/data-hide-icon-source/data-icon-label-source` 以及 `role/aria-live`。回归：`components/alert/test/alert_semantics.rs::alert_emits_unified_state_markers`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`styles.rs` 状态分支基于 `data-layout/data-tone/data-fill/data-icon` 与稳定 class；无 `:nth-child`/`:nth-of-type` 结构猜测；`view.rs` 无 inline style 业务注入。回归：`crates/ui-components/tests/alert_semantics.rs::alert_styles_depend_on_explicit_state_selectors`。）
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`styles.rs` 状态分支基于 `data-layout/data-tone/data-fill/data-icon` 与稳定 class；无 `:nth-child`/`:nth-of-type` 结构猜测；`view.rs` 无 inline style 业务注入。回归：`components/alert/test/alert_semantics.rs::alert_styles_depend_on_explicit_state_selectors`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`crates/ui-components/tests/alert_semantics.rs` 断言 API/role/aria/data-* 与分层契约，无快照依赖。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`components/alert/test/alert_semantics.rs` 断言 API/role/aria/data-* 与分层契约，无快照依赖。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（目录职责边界与标准文件齐备，且未引入 `render.rs` 漂移。回归：`crates/ui-components/tests/alert_semantics.rs::alert_component_file_responsibilities_match_standard_layout`。）
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（目录职责边界与标准文件齐备，且未引入 `render.rs` 漂移。回归：`components/alert/test/alert_semantics.rs::alert_component_file_responsibilities_match_standard_layout`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（Alert 为简单展示组件，`components/alert/src/spec.rs` 不存在，保持轻量接口面。回归：`crates/ui-components/tests/alert_semantics.rs::alert_component_file_responsibilities_match_standard_layout`。）
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（Alert 为简单展示组件，`components/alert/src/spec.rs` 不存在，保持轻量接口面。回归：`components/alert/test/alert_semantics.rs::alert_component_file_responsibilities_match_standard_layout`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
@@ -140,7 +140,7 @@
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`crates/ui-components/Cargo.toml` 提供 `component-alert = [\"dep:ui-alert\"]`；`lib.rs` 与 `css.rs` 均在 `#[cfg(feature = \"component-alert\")]` 下导出/聚合 Alert 模块与样式。回归：`crates/ui-components/tests/alert_semantics.rs::alert_tree_shaking_contract_is_feature_gated_for_module_and_css`。）
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`crates/ui-components/Cargo.toml` 提供 `component-alert = [\"dep:ui-alert\"]`；`lib.rs` 与 `css.rs` 均在 `#[cfg(feature = \"component-alert\")]` 下导出/聚合 Alert 模块与样式。回归：`components/alert/test/alert_semantics.rs::alert_tree_shaking_contract_is_feature_gated_for_module_and_css`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -149,7 +149,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（离散输入由 `AlertTone/AlertFill/AlertLayout/AlertVariant` 枚举约束；机器可读状态通过稳定 `data-*` 与来源标记输出。回归：`components/alert/test/logic.rs` + `crates/ui-components/tests/alert_semantics.rs::alert_emits_unified_state_markers`。）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（离散输入由 `AlertTone/AlertFill/AlertLayout/AlertVariant` 枚举约束；机器可读状态通过稳定 `data-*` 与来源标记输出。回归：`components/alert/test/logic.rs` + `components/alert/test/alert_semantics.rs::alert_emits_unified_state_markers`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -158,12 +158,12 @@
 ### 4. DOM/环境边界治理
 - [x] 焦点全局栈（Focus Stack & GC）：层叠 `Overlay` 禁止私存 `NodeRef` 作为恢复目标；必须依赖全局 Focus Manager（如 `FallbackTo/Selector`）防止焦点坠落到 `document.body`。（N/A：Alert 非层叠 Overlay 组件，无焦点陷阱与 restore target 生命周期。）
 - [x] 受控外交特区（Escape Hatches）：集成 ECharts/Map 等命令式第三方库时必须处于 `Foreign Zone`（`YieldControl/CleanupForeign`）；第三方实例不得暴露为组件公共 API 或反向污染状态机。（N/A：Alert 未接入命令式第三方渲染引擎。）
-- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（Alert 逻辑与视图未使用 `now()/Uuid/rand` 非确定性初始化路径；回归：`crates/ui-components/tests/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
+- [x] SSR 时空断裂治理（Hydration Discontinuity）：逻辑初始化禁止依赖 `now()` 或原生随机 UUID；必须通过 `IdProvider` 注入确定性种子，确保 SSR/Hydration 间 ID 稳定。（Alert 逻辑与视图未使用 `now()/Uuid/rand` 非确定性初始化路径；回归：`components/alert/test/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
 - [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（compile-only 实证通过：`cargo check --manifest-path components/alert/Cargo.toml --target wasm32-unknown-unknown`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（实证：`cargo check -p ui-headless --no-default-features --features web,ssr` 预期失败并命中 `features \`web\` and \`ssr\` are mutually exclusive`；回归：`crates/ui-components/tests/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（实证：`cargo check -p ui-headless --no-default-features --features web,ssr` 预期失败并命中 `features \`web\` and \`ssr\` are mutually exclusive`；回归：`components/alert/test/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
@@ -171,7 +171,7 @@
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`components/alert/src/motion.rs` 同时包含 wasm/non-wasm `cfg` 分支，wasm 路径在 `prefers_reduced_motion` 下早返回；语义输出在 `view.rs` 保持同构。回归：`crates/ui-components/tests/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`components/alert/src/motion.rs` 同时包含 wasm/non-wasm `cfg` 分支，wasm 路径在 `prefers_reduced_motion` 下早返回；语义输出在 `view.rs` 保持同构。回归：`components/alert/test/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
@@ -180,9 +180,9 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（图标分支已从主 `view!` 抽离到 `render_alert_icon(...)`，主渲染块只做结构装配；回归：`crates/ui-components/tests/alert_semantics.rs::alert_view_structure_avoids_macro_bloat_and_prefers_function_split`。）
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（图标分支已从主 `view!` 抽离到 `render_alert_icon(...)`，主渲染块只做结构装配；回归：`components/alert/test/alert_semantics.rs::alert_view_structure_avoids_macro_bloat_and_prefers_function_split`。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
@@ -194,7 +194,7 @@
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（Alert 未使用 `inner_html/set_inner_html`；回归：`crates/ui-components/tests/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（Alert 未使用 `inner_html/set_inner_html`；回归：`components/alert/test/alert_semantics.rs::alert_dom_environment_contracts_cover_cfg_and_hydration_boundaries`。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
@@ -258,7 +258,7 @@
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（语义覆盖：`components/alert/test/semantics.rs::alert_emits_unified_state_markers` 断言 `role/aria-live/data-*` 关键契约；焦点流转（N/A-交互中立）由 `components/alert/test/semantics.rs::alert_focus_path_is_neutral_without_focus_trap_or_keyboard_contract` 固化：Alert 根节点不注入 `tabindex/focus_trap/keyboard handlers`，仅承载状态区域语义并透传 `children`。性能回归：Alert 非高频/重型组件，当前测试框架未提供精确 `render_count` 计数，采用等价证据 `components/alert/test/semantics.rs::alert_render_count_equivalent_evidence_keeps_stateless_single_pass_path`（无本地 signal/effect/事件环路，渲染路径为单次归一 `resolve_state` + 挂载）。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `Alert` 改动未引入跨大版本 API 破坏升级；`components/alert/src/Component.toml` 仍为 `schema_version = "1"`，公共导出面保持稳定（`mod.rs`/`alert.rbi`）。回归：`components/alert/test/semantics.rs::alert_version_migration_not_required_without_major_breaking_upgrade`。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（`apps/docs-app/src/pages/components/pages/display.rs::alert` 已提供 `Hello World`、`State Matrix`、`Controlled vs Uncontrolled (N/A)`、`Streaming Optional / Snapshot` 四个 Playground；各 Playground 通过 `code_imports` 走 import-ready 复制链路；并新增 `data-slot=\"alert-source-first\"` 区块 + `Snippet(copyable=true)` 作为 Source-first 一键复制入口，依赖 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports。回归：`components/alert/test/semantics.rs::docs_page_hello_world_stays_minimal_and_copy_paste_ready`、`components/alert/test/semantics.rs::docs_page_alert_has_productized_playgrounds_and_source_first_copy_ready_contract`。）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`components/alert/test/semantics.rs` 已作为独立 `*_semantics.rs` 覆盖关键契约：`alert_emits_unified_state_markers` 断言 `data-* + role + aria-live + source markers`，`alert_a11y_and_i18n_contract_is_mounted_from_headless_locale_bridge` 覆盖可访问性与 `lang/dir` 接入，`alert_focus_path_is_neutral_without_focus_trap_or_keyboard_contract` 覆盖键盘/焦点路径（Alert 为交互中立组件），且断言聚焦语义契约与来源字段而非视觉快照。新增/变更语义字段均在该文件追加契约断言并由 `crates/ui-components/tests/alert_semantics.rs` 转发执行。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`components/alert/test/semantics.rs` 已作为独立 `*_semantics.rs` 覆盖关键契约：`alert_emits_unified_state_markers` 断言 `data-* + role + aria-live + source markers`，`alert_a11y_and_i18n_contract_is_mounted_from_headless_locale_bridge` 覆盖可访问性与 `lang/dir` 接入，`alert_focus_path_is_neutral_without_focus_trap_or_keyboard_contract` 覆盖键盘/焦点路径（Alert 为交互中立组件），且断言聚焦语义契约与来源字段而非视觉快照。新增/变更语义字段均在该文件追加契约断言并由 `components/alert/test/alert_semantics.rs` 转发执行。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

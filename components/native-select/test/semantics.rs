@@ -36,7 +36,7 @@ fn load_source(path: &str) -> &'static str {
         "ui_motion_lib" => include_str!("../../../crates/ui-motion/src/lib.rs"),
         "native_select_cargo_toml" => include_str!("../Cargo.toml"),
         "workspace_native_select_semantics" => {
-            include_str!("../../../crates/ui-components/tests/native_select_semantics.rs")
+            include_str!("../../../components/native-select/test/native_select_semantics.rs")
         }
         "ui_components_lib" => include_str!("../../../crates/ui-components/src/lib.rs"),
         "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
@@ -3553,7 +3553,7 @@ fn native_select_checklist_tracks_ui_components_contract() {
     );
     assert!(
         check2.contains("native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults")
-            && check2.contains("crates/ui-components/tests/native_select_semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults"),
+            && check2.contains("components/native-select/test/native_select_semantics.rs::native_select_docs_matrix_and_api_contract_are_synced_with_logic_defaults"),
         "check2.md should link docs-app sync item to component/workspace regression tests."
     );
     assert!(
@@ -3579,7 +3579,7 @@ fn native_select_checklist_tracks_ui_components_contract() {
     );
     assert!(
         check2.contains("native_select_readme_is_beginner_friendly_documentation_product")
-            && check2.contains("crates/ui-components/tests/native_select_semantics.rs::native_select_readme_is_beginner_friendly_documentation_product"),
+            && check2.contains("components/native-select/test/native_select_semantics.rs::native_select_readme_is_beginner_friendly_documentation_product"),
         "check2.md should link beginner-friendly documentation item to component/workspace regression tests."
     );
     assert!(

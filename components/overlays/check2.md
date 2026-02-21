@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`crates/ui-motion/src/{lib,spring,web}.rs` 仅提供通用 runtime primitives（`SpringAnimator`、`sanitize_config`、`prefers_reduced_motion` 与 wasm/non-wasm backend），不包含组件 slot/ARIA/业务语义；`components/overlays/src/motion.rs` 仅做聚合映射并委托 `overlay/popover/tray` sanitize；组件级 attach 发生在 `components/{overlay,popover,sheet}/src/motion.rs`，均通过 `ui_motion::spring::SpringAnimator` 执行并提供 `#[cfg(not(target_arch = "wasm32"))]` no-op/stub 路径；防回归见 `components/overlays/tests/overlays_module_semantics.rs::overlays_motion_contract_is_mapped_to_ui_motion_runtime`。）
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`OverlaysRoot` 公共布尔 props 已统一为 `is_open/is_modal`，移除旧别名 `open/modal`：`components/overlays/src/view.rs`；示例与文档同步到新命名：`components/overlays/src/README.md`、`apps/docs-app/src/pages/components/pages/overlays.rs`；语义回归新增 `components/overlays/test/semantics.rs::overlays_root_public_props_follow_api_naming_contract` 锁定命名契约。兼容迁移路径：调用侧将 `open=`/`modal=` 直接替换为 `is_open=`/`is_modal=`。）
@@ -116,7 +116,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（已落实：overlays 模块回归测试与组件语义测试均以 `role/aria/data-state/data-*-source` 契约断言为主，不依赖视觉快照（`crates/ui-components/tests/overlay_semantics.rs`、`popover_semantics.rs`、`modal_semantics.rs` + `components/overlays/tests/overlays_module_semantics.rs`）；关键分支矩阵已覆盖：受控/非受控（`components/modal/test/logic.rs::normalize_open_state_supports_controlled_and_uncontrolled_modes`）、disabled 语义轴（`is_keyboard_dismiss_disabled` + `data-keyboard-dismiss(-source)`）、键盘/指针路径（`on:keydown`/`on:pointerdown` + `e2e/tests/docs_app_nav_sheet.spec.mjs` 的 `click + Escape`），以及 wasm/non-wasm 差异（`overlay/popover/sheet` 的 `#[cfg(target_arch = \"wasm32\")]` / `#[cfg(not(target_arch = \"wasm32\"))]` 视图与 motion 分支契约断言）。防回归：`components/overlays/tests/overlays_module_semantics.rs::overlays_semantic_contract_tests_cover_matrix_and_do_not_rely_on_snapshots_only`。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（已落实：overlays 模块回归测试与组件语义测试均以 `role/aria/data-state/data-*-source` 契约断言为主，不依赖视觉快照（`components/overlay/test/overlay_semantics.rs`、`popover_semantics.rs`、`modal_semantics.rs` + `components/overlays/tests/overlays_module_semantics.rs`）；关键分支矩阵已覆盖：受控/非受控（`components/modal/test/logic.rs::normalize_open_state_supports_controlled_and_uncontrolled_modes`）、disabled 语义轴（`is_keyboard_dismiss_disabled` + `data-keyboard-dismiss(-source)`）、键盘/指针路径（`on:keydown`/`on:pointerdown` + `e2e/tests/docs_app_nav_sheet.spec.mjs` 的 `click + Escape`），以及 wasm/non-wasm 差异（`overlay/popover/sheet` 的 `#[cfg(target_arch = \"wasm32\")]` / `#[cfg(not(target_arch = \"wasm32\"))]` 视图与 motion 分支契约断言）。防回归：`components/overlays/tests/overlays_module_semantics.rs::overlays_semantic_contract_tests_cover_matrix_and_do_not_rely_on_snapshots_only`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -180,7 +180,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（已落实：复杂 overlays 视图已按语义子块拆分，`components/modal/src/view.rs` 通过 `render_modal_title/render_modal_description/render_modal_body/render_modal_sections` 约束主 `view!` 深度，`components/sheet/src/view.rs` 通过 `render_backdrop/render_panel` 分离结构片段；本次对 `components/tray/src/view.rs` 去除重复分支 `if root_state.show_description { ... } else { ... }`，收敛为单一 `<Sheet>` 装配并引入 `TrayPanelRenderInputs + render_tray_panel`（实现为 `render_tray_panel`、`render_tray_close_slot`、`render_tray_header_slot`、`render_tray_body_slot`、`render_tray_footer_slot`），避免巨型单块宏与重复展开。门禁回归：`components/overlays/tests/overlays_module_semantics.rs::overlays_view_macro_complexity_is_bounded_by_semantic_subblocks`、`components/overlays/test/semantics.rs::overlays_checklist_marks_view_macro_complexity_control_complete`。命令已尝试（2026-02-20）：`cargo test -p ui-overlays overlays_view_macro_complexity_is_bounded_by_semantic_subblocks`；当前环境被系统级 `Invalid cross-device link (os error 18)` 阻断，待环境修复后复跑补日志。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。

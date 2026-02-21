@@ -1807,7 +1807,7 @@ fn semantics_first_contract_prioritizes_data_aria_role_and_state_source_over_sna
     let view_source = read_source("src/view.rs");
     let self_source = read_source("test/semantics.rs");
     let workspace_semantics_source =
-        read_workspace_source("crates/ui-components/tests/description_semantics.rs");
+        read_workspace_source("components/description/test/description_semantics.rs");
 
     for needle in [
         "aria-label=aria_label",

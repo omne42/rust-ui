@@ -17,7 +17,7 @@ fn load_source(path: &str) -> &'static str {
         "ui_components_css" => include_str!("../../../crates/ui-components/src/css.rs"),
         "ui_components_root" => include_str!("../../../crates/ui-components/src/root.rs"),
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/coachmark_semantics.rs")
+            include_str!("../../../components/coachmark/test/coachmark_semantics.rs")
         }
         "theme_visual_baseline_page" => {
             include_str!(
@@ -3273,7 +3273,6 @@ fn coachmark_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated(
     for required in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(required),

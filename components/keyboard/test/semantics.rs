@@ -40,7 +40,7 @@ fn load_source(path: &str) -> &'static str {
             include_str!("../../../e2e/tests/docs_app_keyboard_contract.spec.mjs")
         }
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/keyboard_semantics.rs")
+            include_str!("../../../components/keyboard/test/keyboard_semantics.rs")
         }
         "protocol" => include_str!("../src/protocol.rs"),
         _ => panic!("unsupported source path: {path}"),

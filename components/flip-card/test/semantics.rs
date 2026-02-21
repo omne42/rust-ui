@@ -2565,7 +2565,6 @@ fn flip_card_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib_source.contains(needle),

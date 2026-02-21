@@ -146,7 +146,7 @@ view! {
 
 ## Testing Contract
 
-- 语义契约测试：`crates/ui-components/tests/dropdown_semantics.rs`
+- 语义契约测试：`components/menu/test/dropdown_semantics.rs`
 - docs-app 页面示例：`apps/docs-app/src/pages/components/pages/collections_extra.rs`
 - E2E 合同测试：`e2e/tests/docs_app_dropdown_contract.spec.mjs`
 

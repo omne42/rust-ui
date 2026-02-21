@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -258,7 +258,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
   - 预算与阈值证据：`apps/docs-app/src/pages/components/shell.rs` 新增 `"color-picker" => UiPerfBudget { max_mount_ms: 36.0, max_update_ms: Some(12.0), max_heap_kb: Some(640.0) }`，并继续保留 `button/input` 基线预算定义。
   - 可检测/可阻断证据：`apps/docs-app/src/perf_probe.rs` 暴露 `data-perf-*` 机器可读标记；`e2e/tests/docs_app_components_coverage.spec.mjs` 断言预算属性与 `not.toHaveAttribute("data-perf-violation", "true")`；`scripts/check-ui-components-performance.sh` 新增 `cargo test -p ui-color-picker color_picker_performance_governance_contract_is_budgeted_traceable_and_blocking` 阻断项。
@@ -404,7 +404,7 @@
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。（语义覆盖由 `components/color-picker/test/semantics.rs::color_picker_semantic_contract_matrix_covers_state_inputs_and_platform_paths` 提供，断言 `role/aria-*`、`data-*` 与键盘/焦点路径；性能回归覆盖由 `components/color-picker/test/semantics.rs::color_picker_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `components/color-picker/test/semantics.rs::color_picker_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 提供，绑定 `UiPerfBudget`/`UiPerfProbe`/e2e 阻断。当前测试框架对精确 `render_count` 仍走等价证据，后续自动化补齐由 `docs/plan/TODO.md` 的 render_count 条目追踪；门禁接入 `scripts/check-ui-components-performance.sh`。）
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。（N/A：本次 `ColorPicker` 改动未引入跨大版本 API 破坏升级，组件协议与 Agent Contract 仍保持 `v1`（`components/color-picker/src/protocol.rs` 的 `PickerComponentSchemaVersion::V1`、`components/color-picker/src/Component.toml` 的 `schema_version = "1"` 与 `ui.color-picker.agent-contract.v1`），因此不触发 Codemod/Schema Registry 弃用窗口与 `migrate_v1_to_v2` 迁移层要求。回归：`components/color-picker/test/semantics.rs::color_picker_version_deprecation_migration_registry_is_explicitly_na_without_major_breaking_upgrade`；门禁脚本：`scripts/check-ui-components-engineering.sh` 新增对应 `cargo test` 目标。）
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。（已核验（color-picker docs Playground）：`apps/docs-app/src/pages/components/pages/forms_color.rs::color_picker()` 已提供 `Hello World（默认路径）`、`State Matrix`、`Controlled vs Uncontrolled`、`Streaming Optional / Snapshot`、`Source-first Starter (Copy-Paste Ready)`。已核验（复制即运行）：上述 Playground 显式设置 `code_imports=color_picker_imports`，并通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 在复制时自动补全缺失 imports。回归：`components/color-picker/test/semantics.rs::color_picker_docs_product_contract_is_copy_paste_ready_with_playground_stream_snapshot_and_imports`；门禁脚本：`scripts/check-ui-components-contract-hygiene.sh` 新增对应 `cargo test` 目标。）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（已核验（语义契约覆盖）：`components/color-picker/test/semantics.rs::color_picker_semantic_contract_matrix_covers_state_inputs_and_platform_paths`、`components/color-picker/test/semantics.rs::color_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-picker/test/semantics.rs::color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably` 覆盖 `role/aria/data-state/source` 与键盘/指针路径。已核验（语义优先门禁）：新增 `components/color-picker/test/semantics.rs::color_picker_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only`，并在 `scripts/check-ui-components-contract-hygiene.sh` 新增对应 `cargo test -p ui-color-picker color_picker_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only`。已核验（`*_semantics.rs` 对应）：`crates/ui-components/tests/color_picker_semantics.rs` 继续映射 `components/color-picker/test/semantics.rs`，保持交互组件语义测试入口稳定。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（已核验（语义契约覆盖）：`components/color-picker/test/semantics.rs::color_picker_semantic_contract_matrix_covers_state_inputs_and_platform_paths`、`components/color-picker/test/semantics.rs::color_picker_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`components/color-picker/test/semantics.rs::color_picker_snapshot_baseline_consumes_complete_result_and_renders_stably` 覆盖 `role/aria/data-state/source` 与键盘/指针路径。已核验（语义优先门禁）：新增 `components/color-picker/test/semantics.rs::color_picker_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only`，并在 `scripts/check-ui-components-contract-hygiene.sh` 新增对应 `cargo test -p ui-color-picker color_picker_semantics_priority_contract_prefers_semantic_assertions_over_snapshot_only`。已核验（`*_semantics.rs` 对应）：`components/color-picker/test/color_picker_semantics.rs` 继续映射 `components/color-picker/test/semantics.rs`，保持交互组件语义测试入口稳定。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

@@ -2568,9 +2568,9 @@ fn checkbox_group_check2_marks_documentation_as_product_beginner_item_complete()
         "apps/docs-app/src/pages/components/pages/forms.rs::checkbox_group",
         "components/checkbox-group/test/semantics.rs::checkbox_group_check2_documents_documentation_as_product_rules",
         "components/checkbox-group/test/semantics.rs::checkbox_group_documentation_entry_exists_with_beginner_first_progression",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_check2_documents_documentation_as_product_rules",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_documentation_entry_exists_with_beginner_first_progression",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_documentation_as_product_beginner_contract",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_check2_documents_documentation_as_product_rules",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_documentation_entry_exists_with_beginner_first_progression",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_documentation_as_product_beginner_contract",
         "scripts/check-ui-components-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2697,10 +2697,10 @@ fn checkbox_group_check2_marks_interactive_playground_contract_complete() {
         "components/checkbox-group/test/semantics.rs::checkbox_group_check2_documents_interactive_playground_rules",
         "components/checkbox-group/test/semantics.rs::checkbox_group_docs_app_provides_interactive_playground_for_props_state_and_preview",
         "components/checkbox-group/test/semantics.rs::checkbox_group_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_check2_documents_interactive_playground_rules",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_docs_app_provides_interactive_playground_for_props_state_and_preview",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_interactive_playground_reuses_repeatable_semantic_e2e_flow",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_interactive_playground_contract",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_check2_documents_interactive_playground_rules",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_docs_app_provides_interactive_playground_for_props_state_and_preview",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_interactive_playground_reuses_repeatable_semantic_e2e_flow",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_interactive_playground_contract",
         "scripts/check-ui-components-dx.sh",
         "AI Spec 相关联动示例：N/A（`checkbox-group` 非 Spec 构建器组件）",
         "Invalid cross-device link (os error 18)",
@@ -2811,9 +2811,9 @@ fn checkbox_group_check2_marks_source_first_copy_paste_ready_contract_complete()
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
         "components/checkbox-group/test/semantics.rs::checkbox_group_check2_documents_source_first_copy_paste_ready_rules",
         "components/checkbox-group/test/semantics.rs::checkbox_group_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_check2_documents_source_first_copy_paste_ready_rules",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_source_first_copy_paste_ready_contract",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_check2_documents_source_first_copy_paste_ready_rules",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_docs_source_first_copy_paste_ready_with_real_paths_and_dependencies",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_source_first_copy_paste_ready_contract",
         "scripts/check-ui-components-dx.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2924,9 +2924,9 @@ fn checkbox_group_check2_marks_heroui_benchmark_docs_sync_contract_complete() {
         "components/checkbox-group/test/semantics.rs::checkbox_group_check2_documents_heroui_benchmark_docs_sync_rules",
         "components/checkbox-group/test/semantics.rs::checkbox_group_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
         "components/checkbox-group/test/semantics.rs::checkbox_group_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_check2_documents_heroui_benchmark_docs_sync_rules",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_check2_documents_heroui_benchmark_docs_sync_rules",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_heroui_strategy_and_component_docs_are_synchronized_and_indexable",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_dx_check_script_covers_heroui_benchmark_docs_sync_contract",
         "docs/spec/heroui-parameter-design-strategy.md",
         "scripts/check-ui-components-dx.sh",
         "Invalid cross-device link (os error 18)",
@@ -3963,7 +3963,6 @@ fn checkbox_group_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(needle),
@@ -4536,7 +4535,7 @@ fn checkbox_group_ui_components_fixed_entry_files_follow_layered_boundaries() {
     for required in [
         "- [x] `ui-components` 固定入口文件落点正确。",
         "components/checkbox-group/test/semantics.rs::checkbox_group_ui_components_fixed_entry_files_follow_layered_boundaries",
-        "crates/ui-components/tests/checkbox_group_semantics.rs::checkbox_group_ui_components_fixed_entry_files_follow_layered_boundaries",
+        "components/checkbox-group/test/checkbox_group_semantics.rs::checkbox_group_ui_components_fixed_entry_files_follow_layered_boundaries",
         "cargo test -p ui-components --test checkbox_group_semantics --no-default-features --features component-checkbox_group,inject-css checkbox_group_ui_components_fixed_entry_files_follow_layered_boundaries",
     ] {
         assert!(

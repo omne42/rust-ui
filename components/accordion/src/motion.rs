@@ -109,9 +109,9 @@ pub fn attach_indicator_motion(
     is_open: leptos::prelude::Signal<bool>,
     motion: AccordionMotion,
 ) {
-    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
+    use ui_observability::set_css_property_observed;
 
     let motion = StoredValue::new(sanitize_motion(motion));
     if prefers_reduced_motion() {
@@ -459,9 +459,9 @@ pub fn attach_panel_motion(
     slot_projection: logic::AccordionSlotProjection,
     on_panel_lifecycle: leptos::prelude::Callback<logic::AccordionPanelLifecycleEvent>,
 ) {
-    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::{JsCast, closure::Closure};
+    use ui_observability::set_css_property_observed;
 
     let motion = StoredValue::new(sanitize_motion(motion));
     let last_hidden = StoredValue::new_local(None::<bool>);

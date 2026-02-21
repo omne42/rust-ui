@@ -2461,9 +2461,9 @@ fn overlays_cascade_layer_and_runtime_style_contract_is_enforced() {
 #[test]
 fn overlays_semantic_contract_tests_cover_matrix_and_do_not_rely_on_snapshots_only() {
     let overlays_tests = load_source("tests/overlays_module_semantics.rs");
-    let overlay_semantics = load_source("../../crates/ui-components/tests/overlay_semantics.rs");
-    let popover_semantics = load_source("../../crates/ui-components/tests/popover_semantics.rs");
-    let modal_semantics = load_source("../../crates/ui-components/tests/modal_semantics.rs");
+    let overlay_semantics = load_source("../../components/overlay/test/overlay_semantics.rs");
+    let popover_semantics = load_source("../../components/popover/src/test/popover_semantics.rs");
+    let modal_semantics = load_source("../../components/modal/test/modal_semantics.rs");
     let modal_logic_tests = load_source("../modal/test/logic.rs");
     let nav_sheet_e2e = load_source("../../e2e/tests/docs_app_nav_sheet.spec.mjs");
 
@@ -2607,12 +2607,12 @@ fn overlays_semantic_contract_tests_cover_matrix_and_do_not_rely_on_snapshots_on
 fn overlays_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks()
  {
     let overlays_tests = load_source("tests/overlays_module_semantics.rs");
-    let overlay_semantics = load_source("../../crates/ui-components/tests/overlay_semantics.rs");
-    let popover_semantics = load_source("../../crates/ui-components/tests/popover_semantics.rs");
-    let modal_semantics = load_source("../../crates/ui-components/tests/modal_semantics.rs");
-    let drawer_semantics = load_source("../../crates/ui-components/tests/drawer_semantics.rs");
+    let overlay_semantics = load_source("../../components/overlay/test/overlay_semantics.rs");
+    let popover_semantics = load_source("../../components/popover/src/test/popover_semantics.rs");
+    let modal_semantics = load_source("../../components/modal/test/modal_semantics.rs");
+    let drawer_semantics = load_source("../../components/drawer/test/drawer_semantics.rs");
     let bottom_sheet_semantics =
-        load_source("../../crates/ui-components/tests/bottom_sheet_semantics.rs");
+        load_source("../../components/bottom-sheet/test/bottom_sheet_semantics.rs");
     let perf_script_source = load_source("../../scripts/check-ui-components-performance.sh");
 
     for marker in [
@@ -2702,10 +2702,10 @@ fn overlays_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
     let modal_view = load_source("../modal/src/view.rs");
     let drawer_view = load_source("../drawer/src/view.rs");
 
-    let overlay_semantics = load_source("../../crates/ui-components/tests/overlay_semantics.rs");
-    let popover_semantics = load_source("../../crates/ui-components/tests/popover_semantics.rs");
-    let modal_semantics = load_source("../../crates/ui-components/tests/modal_semantics.rs");
-    let drawer_semantics = load_source("../../crates/ui-components/tests/drawer_semantics.rs");
+    let overlay_semantics = load_source("../../components/overlay/test/overlay_semantics.rs");
+    let popover_semantics = load_source("../../components/popover/src/test/popover_semantics.rs");
+    let modal_semantics = load_source("../../components/modal/test/modal_semantics.rs");
+    let drawer_semantics = load_source("../../components/drawer/test/drawer_semantics.rs");
 
     for marker in [
         "data-role-source=root_state.role_source_attr",
@@ -4959,9 +4959,9 @@ fn overlays_performance_governance_contract_is_budgeted_traceable_and_blocking()
 fn overlays_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement()
  {
     let local_semantics = load_source("tests/overlays_module_semantics.rs");
-    let overlay_semantics = load_source("../../crates/ui-components/tests/overlay_semantics.rs");
-    let popover_semantics = load_source("../../crates/ui-components/tests/popover_semantics.rs");
-    let modal_semantics = load_source("../../crates/ui-components/tests/modal_semantics.rs");
+    let overlay_semantics = load_source("../../components/overlay/test/overlay_semantics.rs");
+    let popover_semantics = load_source("../../components/popover/src/test/popover_semantics.rs");
+    let modal_semantics = load_source("../../components/modal/test/modal_semantics.rs");
     let focus_trap_source = load_source("../../crates/ui-headless/src/focus_trap.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
 
@@ -5412,7 +5412,6 @@ fn overlays_wasm_debug_contract_reuses_global_trace_overlay_and_stays_feature_is
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root_source.contains(needle),

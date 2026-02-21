@@ -3737,7 +3737,7 @@ fn semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snaps
     let overlay_view_source = include_str!("../../../overlay/src/view.rs");
     let local_semantics_source = include_str!("semantics.rs");
     let workspace_semantics_source =
-        include_str!("../../../../crates/ui-components/tests/alert_dialog_semantics.rs");
+        include_str!("../../../../components/alert-dialog/src/test/alert_dialog_semantics.rs");
     let perf_script_source = include_str!("../../../../scripts/check-ui-components-performance.sh");
 
     for marker in [
@@ -3835,7 +3835,7 @@ fn check2_marks_semantic_test_priority_item_complete() {
         for marker in [
             "components/alert-dialog/src/test/semantics.rs::semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
             "components/alert-dialog/src/test/semantics.rs::semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
-            "crates/ui-components/tests/alert_dialog_semantics.rs::alert_dialog_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
+            "components/alert-dialog/src/test/alert_dialog_semantics.rs::alert_dialog_semantic_test_priority_prefers_data_aria_role_and_source_contracts_over_snapshot_only_checks",
             "scripts/check-ui-components-performance.sh",
             "Invalid cross-device link (os error 18)",
         ] {
@@ -3981,7 +3981,7 @@ fn check2_marks_e2e_selector_stability_item_complete() {
             "data-slot=\"alert-dialog-e2e-open-destructive\"",
             "ready/settled",
             "components/alert-dialog/src/test/semantics.rs::e2e_selector_contract_uses_semantic_markers_and_settled_waits",
-            "crates/ui-components/tests/alert_dialog_semantics.rs::alert_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+            "components/alert-dialog/src/test/alert_dialog_semantics.rs::alert_dialog_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
             "scripts/check-ui-components-e2e-alert-dialog.sh",
             "Invalid cross-device link (os error 18)",
         ] {
@@ -4100,7 +4100,7 @@ fn check2_marks_e2e_repeatable_key_flow_item_complete() {
             "N/A",
             "components/alert-dialog/src/test/semantics.rs::e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
             "components/alert-dialog/src/test/semantics.rs::e2e_high_risk_paths_cover_focus_keyboard_and_settled_semantic_breakpoints",
-            "crates/ui-components/tests/alert_dialog_semantics.rs::alert_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
+            "components/alert-dialog/src/test/alert_dialog_semantics.rs::alert_dialog_e2e_key_flow_is_repeatable_and_failure_points_are_semantic",
             "scripts/check-ui-components-e2e-alert-dialog.sh",
             "Invalid cross-device link (os error 18)",
         ] {

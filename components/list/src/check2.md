@@ -28,7 +28,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -42,7 +42,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -74,11 +74,11 @@
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`logic.rs` 通过 `pub use primitives::{ListItemSelectionIndicator, ListSectionHeadingTone};` 暴露离散轴枚举；`view.rs` 离散 props 使用 `Option<A11yDirection>`、`ListMotion`、`ListSectionMotion`、`ListSectionHeadingTone`，未引入字符串状态输入或 `Option<bool>` 互斥轴。回归：`components/list/test/semantics.rs::list_discrete_state_axes_are_type_constrained` 与 `crates/ui-components/tests/list_module_semantics.rs::list_discrete_state_axes_are_type_constrained`。）
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`logic.rs` 通过 `pub use primitives::{ListItemSelectionIndicator, ListSectionHeadingTone};` 暴露离散轴枚举；`view.rs` 离散 props 使用 `Option<A11yDirection>`、`ListMotion`、`ListSectionMotion`、`ListSectionHeadingTone`，未引入字符串状态输入或 `Option<bool>` 互斥轴。回归：`components/list/test/semantics.rs::list_discrete_state_axes_are_type_constrained` 与 `components/list/test/list_module_semantics.rs::list_discrete_state_axes_are_type_constrained`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`logic.rs` 统一消费 `ui_state_primitives::list` 并暴露装配接口，`view.rs` 仅通过 `logic::normalize_selection_axis + use_controllable_state` 桥接并消费 `logic::resolve_state/item::resolve_state/section::resolve_state` 输出，未绑定业务 store。回归：`components/list/test/semantics.rs::list_state_primitives_are_consumed_via_logic_without_business_store_binding` 与 `crates/ui-components/tests/list_module_semantics.rs::list_state_primitives_are_consumed_via_logic_without_business_store_binding`。）
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`logic.rs` 统一消费 `ui_state_primitives::list` 并暴露装配接口，`view.rs` 仅通过 `logic::normalize_selection_axis + use_controllable_state` 桥接并消费 `logic::resolve_state/item::resolve_state/section::resolve_state` 输出，未绑定业务 store。回归：`components/list/test/semantics.rs::list_state_primitives_are_consumed_via_logic_without_business_store_binding` 与 `components/list/test/list_module_semantics.rs::list_state_primitives_are_consumed_via_logic_without_business_store_binding`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
@@ -86,13 +86,13 @@
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`List` 基础 API 仅要求 `id_base + items`，受控轴保持可选；`collections.rs` 新增 `Hello World (Uncontrolled)`，`README` Hello World 同步为无状态接线路径。回归：`components/list/test/semantics.rs::list_dx_hello_world_is_minimal_and_does_not_require_state_wiring` 与 `crates/ui-components/tests/list_module_semantics.rs::list_dx_hello_world_is_minimal_and_state_machine_free`。）
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`List` 基础 API 仅要求 `id_base + items`，受控轴保持可选；`collections.rs` 新增 `Hello World (Uncontrolled)`，`README` Hello World 同步为无状态接线路径。回归：`components/list/test/semantics.rs::list_dx_hello_world_is_minimal_and_does_not_require_state_wiring` 与 `components/list/test/list_module_semantics.rs::list_dx_hello_world_is_minimal_and_state_machine_free`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（根 API 仅保留 `items` 单轴输入，不提供 `labels/titles/panels` 并行数组语法；`ListSection(children)` 与 `ListItem(children)` 承担显式组合结构，docs 提供 `<ListSection><ListItem .../></ListSection>` 示例。回归：`components/list/test/semantics.rs::list_composite_api_avoids_parallel_array_conventions` 与 `crates/ui-components/tests/list_module_semantics.rs::list_composite_api_prefers_explicit_parent_item_structure`。）
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（根 API 仅保留 `items` 单轴输入，不提供 `labels/titles/panels` 并行数组语法；`ListSection(children)` 与 `ListItem(children)` 承担显式组合结构，docs 提供 `<ListSection><ListItem .../></ListSection>` 示例。回归：`components/list/test/semantics.rs::list_composite_api_avoids_parallel_array_conventions` 与 `components/list/test/list_module_semantics.rs::list_composite_api_prefers_explicit_parent_item_structure`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
@@ -173,7 +173,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。

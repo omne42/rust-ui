@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components` + `components/*` (**breaking**): migrates legacy `crates/ui-components/tests/*` into per-component `components/*/test/*`, removes stale `field_form.rs`/`observability.rs` legacy bridges from `ui-components`, and tightens commit-time gate policy to disallow `RUST_UI_SKIP_ARCH_CHECK=1` and `SKIP_WASM=1` bypass in `githooks/pre-commit`.
+
 - `ui-button` + `docs-app` + `web-demo` (**breaking**): removes `Button`/`ActionButton` `is_icon_only` + `start_content/end_content` props and migrates callers to Spectrum-style child composition (icon + optional text as children), while keeping docs-app/dev startup flow validated via Trunk.
 
 - `docs-app` + `ui-layout`: migrates docs shell/page/playground high-level layout from inline/class-driven containers to `ui-layout` primitives (`Header/Flex/Grid/Card/Heading`), removes `index.html` inline CSS, and keeps docs styling focused on visual polish instead of structural layout ownership.

@@ -8,10 +8,10 @@
 本清单仅评估“一个组件”的改动结果，不替代仓库级治理。
 先过第 1-2 节（骨架）再进入第 3-6 节（实现细节）。
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
-[x] 最高优先级，这是一个button组件的扩展组件，它应该使用button组件的能力而非重新实现。（`SearchInputButton` 已复用 `button_logic::normalize_input` 归一禁用/aria/class/button_type 契约，并继续使用 `search_input/logic.rs` 仅承载该组件特有占位符与快捷键语义，不重复造按钮基础归一能力。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_prioritizes_button_capability_reuse_over_reimplementation`）
+[x] 最高优先级，这是一个button组件的扩展组件，它应该使用button组件的能力而非重新实现。（`SearchInputButton` 已复用 `button_logic::normalize_input` 归一禁用/aria/class/button_type 契约，并继续使用 `search_input/logic.rs` 仅承载该组件特有占位符与快捷键语义，不重复造按钮基础归一能力。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_prioritizes_button_capability_reuse_over_reimplementation`）
 
 ### 1. 大骨架（架构边界与层职责）
-- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`SearchInputButton` 在 `view.rs` 通过 `button_logic::normalize_input` 复用按钮基础归一能力；`button_logic` 再直接复用 `ui_state_primitives::button::{normalize_optional_text, resolve_aria_label}`。`search_input/logic.rs` 仅保留该组件特有占位符/快捷键状态映射，不再本地合并 `is_disabled || disabled`。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_state_primitives_are_consumed_via_button_logic`）
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`SearchInputButton` 在 `view.rs` 通过 `button_logic::normalize_input` 复用按钮基础归一能力；`button_logic` 再直接复用 `ui_state_primitives::button::{normalize_optional_text, resolve_aria_label}`。`search_input/logic.rs` 仅保留该组件特有占位符/快捷键状态映射，不再本地合并 `is_disabled || disabled`。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_state_primitives_are_consumed_via_button_logic`）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -21,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`SearchInputButton` 在 `view.rs` 使用与 `Button` 一致的 `use_button/use_focus_ring/use_hover` 契约并挂载 typed attrs/handlers；`logic.rs` 不承载 hook 与事件编排，保持归一/派生纯逻辑。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_mounts_headless_contract_in_view_not_logic_layer`）
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`SearchInputButton` 在 `view.rs` 使用与 `Button` 一致的 `use_button/use_focus_ring/use_hover` 契约并挂载 typed attrs/handlers；`logic.rs` 不承载 hook 与事件编排，保持归一/派生纯逻辑。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_mounts_headless_contract_in_view_not_logic_layer`）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -39,75 +39,75 @@
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`search_input/styles.rs` 仅消费 `var(--ui-*)` 与 `--ui-button-scale` 共享 token 表面，不自建平行 token；`view.rs` 继续通过共享 button 归一管线装配 class/aria 语义。`ui-theme` 的 tokens/theme/css 仍是主题轴与变量唯一来源。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_theme_contract_reuses_ui_theme_tokens_and_button_surface`）
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`search_input/styles.rs` 仅消费 `var(--ui-*)` 与 `--ui-button-scale` 共享 token 表面，不自建平行 token；`view.rs` 继续通过共享 button 归一管线装配 class/aria 语义。`ui-theme` 的 tokens/theme/css 仍是主题轴与变量唯一来源。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_theme_contract_reuses_ui_theme_tokens_and_button_surface`）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`SearchInputButton` 的 `view.rs` 仅做装配：组合 `search_input logic + button_logic normalize + ui_headless hooks + search_input motion attach`；`logic.rs` 仅保留 props 归一/状态派生；`motion.rs` 仅映射到共享 `button::motion`; `styles.rs` 仅 token-first 静态样式。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_stays_in_ui_components_assembly_layer`）
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`SearchInputButton` 的 `view.rs` 仅做装配：组合 `search_input logic + button_logic normalize + ui_headless hooks + search_input motion attach`；`logic.rs` 仅保留 props 归一/状态派生；`motion.rs` 仅映射到共享 `button::motion`; `styles.rs` 仅 token-first 静态样式。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_stays_in_ui_components_assembly_layer`）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`SearchInputButton` 已移除 `disabled` 布尔别名，只保留 `is_disabled`；docs 使用与语义断言同步收敛到 `is_disabled`。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_api_naming_uses_is_prefix_only`，以及 `crates/ui-components/tests/button_search_input_semantics.rs` 的 docs 契约断言更新）
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`SearchInputButton` 已移除 `disabled` 布尔别名，只保留 `is_disabled`；docs 使用与语义断言同步收敛到 `is_disabled`。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_api_naming_uses_is_prefix_only`，以及 `components/button/test/button_search_input_semantics.rs` 的 docs 契约断言更新）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`SearchInputButton` 仅是触发型按钮扩展组件，无可控状态轴；对外交互为 `on_press`，不暴露 `value/default/on_*_change` 三元组。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_has_no_controlled_state_axis_so_triplet_contract_is_not_applicable`）
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`SearchInputButton` 仅是触发型按钮扩展组件，无可控状态轴；对外交互为 `on_press`，不暴露 `value/default/on_*_change` 三元组。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_has_no_controlled_state_axis_so_triplet_contract_is_not_applicable`）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`SearchInputButton` 的默认占位符/紧凑占位符、`button_type` 与 `aria_label` 回退优先级已收敛到 `search_input/logic.rs` 的 `resolve_view_state`、`resolve_button_type`、`resolve_effective_aria_label`；`view.rs` 仅消费归一化输出，不再本地 `match button_type` 或 `unwrap_or_else` 二次兜底。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_default_priority_is_centralized_in_logic_module`）
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`SearchInputButton` 的默认占位符/紧凑占位符、`button_type` 与 `aria_label` 回退优先级已收敛到 `search_input/logic.rs` 的 `resolve_view_state`、`resolve_button_type`、`resolve_effective_aria_label`；`view.rs` 仅消费归一化输出，不再本地 `match button_type` 或 `unwrap_or_else` 二次兜底。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_default_priority_is_centralized_in_logic_module`）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`SearchInputButton` 的输入清洗与状态派生集中在 `search_input/logic.rs`：`normalize_optional_text`（已复用 `button_logic::normalize_optional_text`）、`resolve_view_state`、`resolve_state`；`view.rs` 仅调用这些归一化函数并消费 `SearchInputButtonStateInput` 输出，不在事件与样式分支中重建状态机。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_state_normalization_is_centralized_in_logic_module`）
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`SearchInputButton` 的输入清洗与状态派生集中在 `search_input/logic.rs`：`normalize_optional_text`（已复用 `button_logic::normalize_optional_text`）、`resolve_view_state`、`resolve_state`；`view.rs` 仅调用这些归一化函数并消费 `SearchInputButtonStateInput` 输出，不在事件与样式分支中重建状态机。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_state_normalization_is_centralized_in_logic_module`）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`SearchInputButton` 的离散输入 `button_type` 已改为 `Option<ButtonType>` 并通过 `logic::resolve_button_type` 统一为枚举，移除字符串分支映射；其余状态仍由类型化 `SearchInputButtonStateInput` 承载。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_discrete_inputs_are_enum_constrained`）
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`SearchInputButton` 的离散输入 `button_type` 已改为 `Option<ButtonType>` 并通过 `logic::resolve_button_type` 统一为枚举，移除字符串分支映射；其余状态仍由类型化 `SearchInputButtonStateInput` 承载。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_discrete_inputs_are_enum_constrained`）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`SearchInputButton` 通过 `button_logic` 复用 `ui_state_primitives::button` 的归一与状态 core 能力；`search_input` 组件自身不直接绑定业务 store/context。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_state_primitive_source_stays_in_status_primitives_and_no_business_store_binding`）
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`SearchInputButton` 通过 `button_logic` 复用 `ui_state_primitives::button` 的归一与状态 core 能力；`search_input` 组件自身不直接绑定业务 store/context。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_state_primitive_source_stays_in_status_primitives_and_no_business_store_binding`）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`SearchInputButton` 是同步触发型按钮扩展，无远程请求与异步状态轴；组件不定义 `is_loading/error/retry/aria-busy` 本地协议，仅复用 `button` 的按压/禁用语义。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_has_no_async_interaction_protocol_so_async_contract_is_not_applicable`）
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`SearchInputButton` 是同步触发型按钮扩展，无远程请求与异步状态轴；组件不定义 `is_loading/error/retry/aria-busy` 本地协议，仅复用 `button` 的按压/禁用语义。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_has_no_async_interaction_protocol_so_async_contract_is_not_applicable`）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`SearchInputButton` 基础 API 为单组件触发入口，不要求手动接线 `ui-state-primitives/ui-headless` 状态机；进阶能力（placeholder/shortcut/motion/class/aria/button_type）均为可选 props。docs 的 `search_input_button` 代码片段以最小 `<SearchInputButton />` 形态起步，再按条件追加进阶参数。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_dx_paradox_keeps_default_usage_simple_and_advanced_optional`）
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`SearchInputButton` 基础 API 为单组件触发入口，不要求手动接线 `ui-state-primitives/ui-headless` 状态机；进阶能力（placeholder/shortcut/motion/class/aria/button_type）均为可选 props。docs 的 `search_input_button` 代码片段以最小 `<SearchInputButton />` 形态起步，再按条件追加进阶参数。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_dx_paradox_keeps_default_usage_simple_and_advanced_optional`）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`SearchInputButton` 是单体触发组件，不是组合型容器组件；其公开 API 不包含 `children/items` 等组合入口，也不引入 `labels/titles/panels` 并行数组约定。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_is_not_a_composite_component_and_avoids_parallel_array_api_shapes`）
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`SearchInputButton` 是单体触发组件，不是组合型容器组件；其公开 API 不包含 `children/items` 等组合入口，也不引入 `labels/titles/panels` 并行数组约定。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_is_not_a_composite_component_and_avoids_parallel_array_api_shapes`）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`SearchInputButton` 在 `view.rs` 接入 `use_ui_i18n + CommonStrings`，占位符兜底文案从 i18n bundle (`search_input_button_placeholder`) 获取；并通过 `locale_attrs` 消费 `lang/dir` 语义上下文，不再在视图层硬编码 `"Search"`。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_a11y_and_i18n_fallbacks_are_context_driven`）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`SearchInputButton` 在 `view.rs` 接入 `use_ui_i18n + CommonStrings`，占位符兜底文案从 i18n bundle (`search_input_button_placeholder`) 获取；并通过 `locale_attrs` 消费 `lang/dir` 语义上下文，不再在视图层硬编码 `"Search"`。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_a11y_and_i18n_fallbacks_are_context_driven`）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`view.rs` 已输出稳定状态标记：`data-state/data-enabled/data-disabled/data-shortcut/data-placeholder/data-compact-placeholder/data-aria-label-source/data-custom-class/data-hovered/data-pressed/data-motion-source/data-custom-motion`，并转发 `role/tabindex/aria-disabled`。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_emits_baseline_style_data_attributes` 与 `search_input_button_forwards_headless_button_semantics`）
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`view.rs` 已输出稳定状态标记：`data-state/data-enabled/data-disabled/data-shortcut/data-placeholder/data-compact-placeholder/data-aria-label-source/data-custom-class/data-hovered/data-pressed/data-motion-source/data-custom-motion`，并转发 `role/tabindex/aria-disabled`。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_emits_baseline_style_data_attributes` 与 `search_input_button_forwards_headless_button_semantics`）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`styles.rs` 的状态分支选择器基于 `data-state/data-shortcut/data-compact-placeholder/data-motion-source/data-custom-motion` 与稳定 class（如 `--enabled/--custom-placeholder/--with-shortcut`），未使用结构猜测型选择器（如 `:nth-child`）。对应回归：`crates/ui-components/tests/search_input_button_semantics.rs` 的 `search_input_button_styles_include_state_marker_contracts`）
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`styles.rs` 的状态分支选择器基于 `data-state/data-shortcut/data-compact-placeholder/data-motion-source/data-custom-motion` 与稳定 class（如 `--enabled/--custom-placeholder/--with-shortcut`），未使用结构猜测型选择器（如 `:nth-child`）。对应回归：`components/button/test/search_input_button_semantics.rs` 的 `search_input_button_styles_include_state_marker_contracts`）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`SearchInputButton` 语义回归集中在 `crates/ui-components/tests/search_input_button_semantics.rs` 与 `crates/ui-components/tests/button_search_input_semantics.rs`，断言覆盖 `role/aria/data-*`、状态来源标记、文档契约与 motion/source 标记；未依赖视觉快照作为主验证手段。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`SearchInputButton` 语义回归集中在 `components/button/test/search_input_button_semantics.rs` 与 `components/button/test/button_search_input_semantics.rs`，断言覆盖 `role/aria/data-*`、状态来源标记、文档契约与 motion/source 标记；未依赖视觉快照作为主验证手段。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -168,7 +168,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`search_input/view.rs` 已将图标、placeholder 片段、shortcut 片段拆分为独立渲染函数并由主 `view!` 组合，降低单块宏体积；对应回归：`search_input_button_view_is_split_into_plain_functions_with_static_icon_fragments`。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。

@@ -8,7 +8,7 @@ fn load_source(path: &str) -> &'static str {
         "styles" => include_str!("../src/styles.rs"),
         "view" => include_str!("../src/view.rs"),
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/contextual_help_semantics.rs")
+            include_str!("../../../components/contextual-help/test/contextual_help_semantics.rs")
         }
         _ => panic!("unsupported source path: {path}"),
     }
@@ -969,7 +969,7 @@ fn contextual_help_performance_governance_has_budgeted_equivalent_evidence() {
     let docs_shell = include_str!("../../../apps/docs-app/src/pages/components/shell.rs");
     let perf_script = include_str!("../../../scripts/check-ui-components-performance.sh");
     let accordion_semantics =
-        include_str!("../../../crates/ui-components/tests/accordion_semantics.rs");
+        include_str!("../../../components/accordion/test/accordion_semantics.rs");
 
     for needle in [
         "use crate::perf_probe::{UiPerfBudget, UiPerfProbe};",

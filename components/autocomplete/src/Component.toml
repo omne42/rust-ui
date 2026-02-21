@@ -223,11 +223,11 @@ kind = "active-highlight-motion"
 
 [[checks]]
 name = "agent_contract_schema_markers"
-by = "crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_agent_contract_is_schema_typed_and_machine_readable"
+by = "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_agent_contract_is_schema_typed_and_machine_readable"
 
 [[checks]]
 name = "agent_contract_whitelist_boundary"
-by = "crates/ui-components/tests/autocomplete_semantics.rs::autocomplete_agent_contract_render_path_is_whitelist_safe_and_script_injection_free"
+by = "components/autocomplete/test/autocomplete_semantics.rs::autocomplete_agent_contract_render_path_is_whitelist_safe_and_script_injection_free"
 
 [[agent_contract]]
 schema = "ui.autocomplete.agent-contract.v1"

@@ -90,7 +90,7 @@ let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
 ## Test Contract
 
-- Semantic contract tests live in `crates/ui-components/tests/overlay_semantics.rs`.
+- Semantic contract tests live in `components/overlay/test/overlay_semantics.rs`.
 - Coverage includes module exports, marker contracts, Escape behavior guards, motion contract sanitization, CSS aggregation, and docs playground anchors.
 
 ## docs-app Entry

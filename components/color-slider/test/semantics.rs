@@ -28,7 +28,7 @@ fn load_source(rel_path: &str) -> String {
 fn color_slider_semantics_tests_are_migrated_to_component_directory() {
     let mod_source = load_source("../../components/color-slider/src/mod.rs");
     let legacy_semantics =
-        include_str!("../../../crates/ui-components/tests/color_slider_semantics.rs");
+        include_str!("../../../components/color-slider/test/color_slider_semantics.rs");
     let local_semantics = include_str!("semantics.rs");
 
     assert!(
@@ -446,7 +446,6 @@ fn color_slider_wasm_debug_contract_is_explicitly_na_and_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             ui_components_lib.contains(needle),

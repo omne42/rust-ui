@@ -1336,7 +1336,7 @@ fn form_tree_shaking_contract_is_feature_gated_and_not_registry_bound() {
 
     for required in [
         "feature = \"component-form\"",
-        "pub mod field_form;",
+        "pub mod field_form {",
         "pub use field_form::form::{Form, FormLabelAlign, FormLabelPosition, use_form_context};",
     ] {
         assert!(
@@ -2238,7 +2238,6 @@ fn form_wasm_debug_contract_is_na_and_feature_isolated() {
 
     for required in [
         "macro_rules! wasm_debug_proxy",
-        "mod observability;",
         "provide_ui_trace(debug_overlay_enabled);",
         "Show when=move || debug_overlay_enabled",
         "-wasm-debug",

@@ -85,9 +85,9 @@ pub fn attach_motion(
     is_disabled: bool,
     motion: ButtonMotion,
 ) {
-    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
+    use ui_observability::set_css_property_observed;
 
     if is_disabled {
         return;
@@ -210,9 +210,9 @@ pub fn attach_button_group_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     motion: ButtonGroupMotion,
 ) {
-    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
+    use ui_observability::set_css_property_observed;
 
     let motion = StoredValue::new(sanitize_button_group_motion(motion));
     let initialized = StoredValue::new(false);

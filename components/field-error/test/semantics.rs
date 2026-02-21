@@ -36,7 +36,7 @@ fn load_source(rel_path: &str) -> &'static str {
             include_str!("../../../apps/docs-app/src/pages/components/pages/forms_extra.rs")
         }
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/field_error_semantics.rs")
+            include_str!("../../../components/field-error/test/field_error_semantics.rs")
         }
         _ => panic!("unsupported source path: {rel_path}"),
     }
@@ -1127,7 +1127,7 @@ fn field_error_tree_shaking_contract_uses_feature_gates_without_implicit_all_com
     for required in [
         "#[cfg(any(",
         "feature = \"component-field_error\",",
-        "pub mod field_form;",
+        "pub mod field_form {",
         "#[cfg(all(feature = \"web-demo-components\", not(feature = \"all-components\")))]",
         "pub use web_demo_components::*;",
         "#[cfg(feature = \"all-components\")]",
@@ -2945,7 +2945,7 @@ fn field_error_ui_components_fixed_entry_files_contract_is_satisfied() {
 
     for required in [
         "feature = \"component-field_error\",",
-        "pub mod field_form;",
+        "pub mod field_form {",
         "pub use field_form::field_error::{FieldError, FieldErrorTone};",
     ] {
         assert!(

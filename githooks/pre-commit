@@ -113,10 +113,24 @@ if [[ ! -f "$arch_check_script" ]]; then
   exit 1
 fi
 
-if [[ "${RUST_UI_SKIP_ARCH_CHECK:-}" != "1" ]]; then
-  bash "$arch_check_script" --staged
-else
-  echo "pre-commit: architecture check skipped (RUST_UI_SKIP_ARCH_CHECK=1)." >&2
+if [[ "${RUST_UI_SKIP_ARCH_CHECK:-}" == "1" ]]; then
+  cat >&2 <<'EOF'
+pre-commit: RUST_UI_SKIP_ARCH_CHECK=1 is not allowed.
+
+Commit gate must run architecture checks unconditionally.
+EOF
+  exit 1
 fi
+
+if [[ "${SKIP_WASM:-}" == "1" ]]; then
+  cat >&2 <<'EOF'
+pre-commit: SKIP_WASM=1 is not allowed during commit.
+
+Commit gate must run the full required check matrix for this environment.
+EOF
+  exit 1
+fi
+
+bash "$arch_check_script" --staged
 
 bash "$gate_script"

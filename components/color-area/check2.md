@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -199,15 +199,15 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-  - 证据：`components/color-area/src/styles.rs:152` 通过 `@media (prefers-reduced-motion: reduce)` 将动效时长降级为 `1ms`；`components/color-area/src/view.rs:71` 采用 `id_base` 派生稳定 ID（无随机/时钟初始化）且 `components/color-area/src/view.rs:196` 统一挂载 `use_color_area` 语义契约；`crates/ui-headless/src/color_area.rs:120` 为平台无关合约生成；`components/color-area/src/check2.md:13` 与 `components/color-area/src/check2.md:14` 已记录 native/wasm 最小特性编译通过；`crates/ui-components/tests/color_area_semantics.rs:472` 断言无 `web_sys`/`wasm_bindgen` 泄漏，防止 SSR/wasm 语义路径分裂。
+  - 证据：`components/color-area/src/styles.rs:152` 通过 `@media (prefers-reduced-motion: reduce)` 将动效时长降级为 `1ms`；`components/color-area/src/view.rs:71` 采用 `id_base` 派生稳定 ID（无随机/时钟初始化）且 `components/color-area/src/view.rs:196` 统一挂载 `use_color_area` 语义契约；`crates/ui-headless/src/color_area.rs:120` 为平台无关合约生成；`components/color-area/src/check2.md:13` 与 `components/color-area/src/check2.md:14` 已记录 native/wasm 最小特性编译通过；`components/color-area/test/color_area_semantics.rs:472` 断言无 `web_sys`/`wasm_bindgen` 泄漏，防止 SSR/wasm 语义路径分裂。
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-  - 证据：`apps/docs-app/src/pages/components/shell.rs:34` 统一定义组件页性能预算并在 `apps/docs-app/src/pages/components/shell.rs:272` 通过 `UiPerfProbe` 挂载到包括 `color-area` 在内的组件页面（`color-area` 走 `apps/docs-app/src/pages/components/shell.rs:176` 的 `mount_only(120.0)` 默认预算）；`apps/docs-app/src/perf_probe.rs:55` 暴露稳定 `data-perf-*` 指标与 `data-perf-violation` 阈值阻断标记；`e2e/tests/docs_app_components_coverage.spec.mjs:70` 对 all-components 页面循环断言 perf probe 阈值（含 `color-area`）；基础组件预算与阻断契约由 `crates/ui-components/tests/input_semantics.rs:327`（含 Button/Input 预算与 render_count 约束文本）和 `scripts/check-ui-components-performance.sh:7` 的门禁用例执行；`render_count` 自动化缺口已由 `crates/ui-components/tests/accordion_semantics.rs:1651` + `docs/plan/TODO.md:500` 跟踪为后续必做项。
+  - 证据：`apps/docs-app/src/pages/components/shell.rs:34` 统一定义组件页性能预算并在 `apps/docs-app/src/pages/components/shell.rs:272` 通过 `UiPerfProbe` 挂载到包括 `color-area` 在内的组件页面（`color-area` 走 `apps/docs-app/src/pages/components/shell.rs:176` 的 `mount_only(120.0)` 默认预算）；`apps/docs-app/src/perf_probe.rs:55` 暴露稳定 `data-perf-*` 指标与 `data-perf-violation` 阈值阻断标记；`e2e/tests/docs_app_components_coverage.spec.mjs:70` 对 all-components 页面循环断言 perf probe 阈值（含 `color-area`）；基础组件预算与阻断契约由 `components/text-input/test/input_semantics.rs:327`（含 Button/Input 预算与 render_count 约束文本）和 `scripts/check-ui-components-performance.sh:7` 的门禁用例执行；`render_count` 自动化缺口已由 `components/accordion/test/accordion_semantics.rs:1651` + `docs/plan/TODO.md:500` 跟踪为后续必做项。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
@@ -217,7 +217,7 @@
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-  - 证据：`components/color-area/src/view.rs:41` 仅保留一个顶层 `#[component]`（`ColorArea`），局部片段未再升格为子组件；轻逻辑语义装配通过普通函数 `components/color-area/src/view.rs:24`（`resolve_semantics`）复用；语义标记稳定性由 `components/color-area/test/semantics.rs:156` 与 `crates/ui-components/tests/color_area_semantics.rs:237` 持续断言。
+  - 证据：`components/color-area/src/view.rs:41` 仅保留一个顶层 `#[component]`（`ColorArea`），局部片段未再升格为子组件；轻逻辑语义装配通过普通函数 `components/color-area/src/view.rs:24`（`resolve_semantics`）复用；语义标记稳定性由 `components/color-area/test/semantics.rs:156` 与 `components/color-area/test/color_area_semantics.rs:237` 持续断言。
 - [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
@@ -227,7 +227,7 @@
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-  - 证据：`components/color-area/src` 组件实现路径未出现 `inner_html` 注入；`crates/ui-components/tests/color_area_semantics.rs:468` 的 `color_area_forbids_inner_html_and_platform_type_leakage` 回归测试在 `crates/ui-components/tests/color_area_semantics.rs:472` 显式禁止 `inner_html`（同时禁止平台泄漏标记），满足语义与安全约束。
+  - 证据：`components/color-area/src` 组件实现路径未出现 `inner_html` 注入；`components/color-area/test/color_area_semantics.rs:468` 的 `color_area_forbids_inner_html_and_platform_type_leakage` 回归测试在 `components/color-area/test/color_area_semantics.rs:472` 显式禁止 `inner_html`（同时禁止平台泄漏标记），满足语义与安全约束。
 - [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
@@ -281,7 +281,7 @@
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-  - 证据：ColorArea 根节点持续输出稳定机器可读语义与 Agent Contract 标记（`data-value-control-mode`/`data-value-source` + `data-ui-schema`/`data-ui-intent`/`data-ui-action`/`data-ui-state`/`data-ui-source`，见 `components/color-area/src/view.rs:353`-`components/color-area/src/view.rs:363`），并由回归测试锁定（`crates/ui-components/tests/color_area_semantics.rs:250`-`crates/ui-components/tests/color_area_semantics.rs:260`）；Agent 字段来自类型化 schema（`ColorAreaAgentSchema/Intent/Action/State` 枚举与 `ColorAreaAgentContract`，见 `components/color-area/src/logic.rs:53`、`components/color-area/src/logic.rs:118`、`components/color-area/src/logic.rs:131`、`components/color-area/src/logic.rs:146`、`components/color-area/src/logic.rs:161`）并通过 `resolve_agent_contract` 统一映射（`components/color-area/src/logic.rs:463`、`components/color-area/src/logic.rs:479`-`components/color-area/src/logic.rs:487`），避免散落字符串拼接；契约字段与状态轴可追溯性由逻辑层测试验证（`components/color-area/test/logic.rs:205`-`components/color-area/test/logic.rs:229`）；渲染链路输入边界走白名单能力：`preview_color` 先经 `sanitize_preview_color -> sanitize_color_value` 字符白名单过滤再进入样式变量（`components/color-area/src/logic.rs:413`、`crates/ui-state-primitives/src/color_area.rs:133`、`crates/ui-state-primitives/src/swatch.rs:171`-`crates/ui-state-primitives/src/swatch.rs:184`），且无 `inner_html` 注入路径（`components/color-area/src/view.rs`）。
+  - 证据：ColorArea 根节点持续输出稳定机器可读语义与 Agent Contract 标记（`data-value-control-mode`/`data-value-source` + `data-ui-schema`/`data-ui-intent`/`data-ui-action`/`data-ui-state`/`data-ui-source`，见 `components/color-area/src/view.rs:353`-`components/color-area/src/view.rs:363`），并由回归测试锁定（`components/color-area/test/color_area_semantics.rs:250`-`components/color-area/test/color_area_semantics.rs:260`）；Agent 字段来自类型化 schema（`ColorAreaAgentSchema/Intent/Action/State` 枚举与 `ColorAreaAgentContract`，见 `components/color-area/src/logic.rs:53`、`components/color-area/src/logic.rs:118`、`components/color-area/src/logic.rs:131`、`components/color-area/src/logic.rs:146`、`components/color-area/src/logic.rs:161`）并通过 `resolve_agent_contract` 统一映射（`components/color-area/src/logic.rs:463`、`components/color-area/src/logic.rs:479`-`components/color-area/src/logic.rs:487`），避免散落字符串拼接；契约字段与状态轴可追溯性由逻辑层测试验证（`components/color-area/test/logic.rs:205`-`components/color-area/test/logic.rs:229`）；渲染链路输入边界走白名单能力：`preview_color` 先经 `sanitize_preview_color -> sanitize_color_value` 字符白名单过滤再进入样式变量（`components/color-area/src/logic.rs:413`、`crates/ui-state-primitives/src/color_area.rs:133`、`crates/ui-state-primitives/src/swatch.rs:171`-`crates/ui-state-primitives/src/swatch.rs:184`），且无 `inner_html` 注入路径（`components/color-area/src/view.rs`）。
 - [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
@@ -303,13 +303,13 @@
 - [x] Tree Shaking & 特性剪裁：组件必须注册到 `ui-components` 特性树（如 `component-accordion`）；`css.rs` 和 `lib.rs` 聚合必须受 feature 门控，禁止无条件全局依赖。
   - 证据：`color-area` 已注册组件级特性（`component-color_area = ["dep:ui-color-area"]`，`crates/ui-components/Cargo.toml:423`）；`lib.rs` 对模块导出与聚合入口均受 feature 门控（`#[cfg(feature = "component-color_area")] pub use ui_color_area as color_area;` 见 `crates/ui-components/src/lib.rs:92`，`push_components_css` 受 `inject-css` gate 见 `crates/ui-components/src/lib.rs:810`）；`css.rs` 的 CSS 注入同样按 feature 条件聚合（`crates/ui-components/src/css.rs:1`、`crates/ui-components/src/css.rs:76`，并在未开启时走 no-op `crates/ui-components/src/css.rs:360`）。最小特性树验证中仅解析到 `ui-color-area` 依赖链（`cargo tree -e features -p ui-components --no-default-features --features component-color_area,inject-css` 命中 `ui-color-area`，见输出行 1956-1957），且无 `all-components` 命中（同命令 `rg "all-components"` 空结果）。
 - [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。
-  - 证据：ColorArea 语义测试已覆盖 `data-*`/`aria-*`/焦点流转且不依赖视觉快照：`crates/ui-components/tests/color_area_semantics.rs:237`-`crates/ui-components/tests/color_area_semantics.rs:260` 约束关键 `data-*` 与 Agent Contract 字段，`crates/ui-components/tests/color_area_semantics.rs:553`-`crates/ui-components/tests/color_area_semantics.rs:560` 要求 E2E 含 `aria-disabled`、`root.focus()` 与键盘路径；对应 E2E 断言为属性/焦点断言而非截图（`e2e/tests/docs_app_color_area_contract.spec.mjs:43`、`e2e/tests/docs_app_color_area_contract.spec.mjs:62`、`e2e/tests/docs_app_color_area_contract.spec.mjs:71`）。性能回归采用可重复测量基线：组件页统一挂载 `UiPerfProbe`（`apps/docs-app/src/pages/components/shell.rs:292`）并暴露稳定 `data-perf-*` 指标与超预算阻断位（`apps/docs-app/src/perf_probe.rs:55`-`apps/docs-app/src/perf_probe.rs:66`），`docs_app_components_coverage` 在 sample/all 模式均断言无 `data-perf-violation`（`e2e/tests/docs_app_components_coverage.spec.mjs:39`-`e2e/tests/docs_app_components_coverage.spec.mjs:43`、`e2e/tests/docs_app_components_coverage.spec.mjs:76`-`e2e/tests/docs_app_components_coverage.spec.mjs:80`）。`render_count` 自动化仍为仓库级后续项，已被显式跟踪（`docs/plan/TODO.md:500`；守护测试 `crates/ui-components/tests/accordion_semantics.rs:1651`）。
+  - 证据：ColorArea 语义测试已覆盖 `data-*`/`aria-*`/焦点流转且不依赖视觉快照：`components/color-area/test/color_area_semantics.rs:237`-`components/color-area/test/color_area_semantics.rs:260` 约束关键 `data-*` 与 Agent Contract 字段，`components/color-area/test/color_area_semantics.rs:553`-`components/color-area/test/color_area_semantics.rs:560` 要求 E2E 含 `aria-disabled`、`root.focus()` 与键盘路径；对应 E2E 断言为属性/焦点断言而非截图（`e2e/tests/docs_app_color_area_contract.spec.mjs:43`、`e2e/tests/docs_app_color_area_contract.spec.mjs:62`、`e2e/tests/docs_app_color_area_contract.spec.mjs:71`）。性能回归采用可重复测量基线：组件页统一挂载 `UiPerfProbe`（`apps/docs-app/src/pages/components/shell.rs:292`）并暴露稳定 `data-perf-*` 指标与超预算阻断位（`apps/docs-app/src/perf_probe.rs:55`-`apps/docs-app/src/perf_probe.rs:66`），`docs_app_components_coverage` 在 sample/all 模式均断言无 `data-perf-violation`（`e2e/tests/docs_app_components_coverage.spec.mjs:39`-`e2e/tests/docs_app_components_coverage.spec.mjs:43`、`e2e/tests/docs_app_components_coverage.spec.mjs:76`-`e2e/tests/docs_app_components_coverage.spec.mjs:80`）。`render_count` 自动化仍为仓库级后续项，已被显式跟踪（`docs/plan/TODO.md:500`；守护测试 `components/accordion/test/accordion_semantics.rs:1651`）。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A（本次未触发跨大版本破坏升级）：ColorArea 对外导出面保持稳定（`components/color-area/src/mod.rs:6`-`components/color-area/src/mod.rs:8`），组件协议版本仍为 `V1`（`components/color-area/src/protocol.rs:9`-`components/color-area/src/protocol.rs:12`，`schema_version` 字段仍为同一轴 `components/color-area/src/protocol.rs:18`），未引入 `v2` 协议或破坏性迁移入口，因此无需新增 Schema Registry 弃用窗口与 `migrate_v1_to_v2`。
 - [x] 文档即产品（Copy-Paste Ready）：`apps/docs-app` 必须新增 Playground（Hello World、状态矩阵、受控/非受控对照），支持流式/快照展现，并提供 Source-first 一键复制且补全 imports。
   - 证据：`color-area` docs 页已补齐所需 Playground：`Hello World`（`apps/docs-app/src/pages/components/pages/forms_color.rs:397`）、`State Matrix`（`apps/docs-app/src/pages/components/pages/forms_color.rs:467`）、`Controlled vs Uncontrolled`（`apps/docs-app/src/pages/components/pages/forms_color.rs:420`）；并新增 `Streaming Optional / Snapshot` 展示（`apps/docs-app/src/pages/components/pages/forms_color.rs:499`，含 `data-ui-streaming="optional"` / `data-ui-fallback="snapshot"` / `data-ui-output-state="snapshot"`）。Source-first copy-ready 能力通过 Playground 统一注入：默认 imports 基线 `use leptos::prelude::*; use ui_components::*;`（`apps/docs-app/src/playground.rs:10`），复制前自动补齐缺失 imports（`apps/docs-app/src/playground.rs:176`）；ColorArea 页面补充了明确文案与源码落点（`apps/docs-app/src/pages/components/pages/forms_color.rs:664`）。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
-  - 证据：组件侧与聚合侧均有语义测试入口（`components/color-area/test/semantics.rs:1`、`crates/ui-components/tests/color_area_semantics.rs:1`）；断言覆盖关键状态轴与来源标记（`data-disabled-source`、`data-value-source`、`data-ui-*`，见 `crates/ui-components/tests/color_area_semantics.rs:239`、`crates/ui-components/tests/color_area_semantics.rs:250`）；键盘/焦点/可访问性路径通过语义断言验证（`await root.focus()`、`ArrowRight/ArrowUp`、`aria-disabled`，见 `crates/ui-components/tests/color_area_semantics.rs:537`、`crates/ui-components/tests/color_area_semantics.rs:558`，以及 `e2e/tests/docs_app_color_area_contract.spec.mjs:42`、`e2e/tests/docs_app_color_area_contract.spec.mjs:45`、`e2e/tests/docs_app_color_area_contract.spec.mjs:62`）。当前验证以语义契约断言为主，不依赖视觉快照。
+  - 证据：组件侧与聚合侧均有语义测试入口（`components/color-area/test/semantics.rs:1`、`components/color-area/test/color_area_semantics.rs:1`）；断言覆盖关键状态轴与来源标记（`data-disabled-source`、`data-value-source`、`data-ui-*`，见 `components/color-area/test/color_area_semantics.rs:239`、`components/color-area/test/color_area_semantics.rs:250`）；键盘/焦点/可访问性路径通过语义断言验证（`await root.focus()`、`ArrowRight/ArrowUp`、`aria-disabled`，见 `components/color-area/test/color_area_semantics.rs:537`、`components/color-area/test/color_area_semantics.rs:558`，以及 `e2e/tests/docs_app_color_area_contract.spec.mjs:42`、`e2e/tests/docs_app_color_area_contract.spec.mjs:45`、`e2e/tests/docs_app_color_area_contract.spec.mjs:62`）。当前验证以语义契约断言为主，不依赖视觉快照。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - 证据：ColorArea E2E 选择器以语义 `data-*` 为主（`CONTROLLED_ROOT` 使用 `[data-component][data-slot][data-value-control-mode][data-grid-size]`，`e2e/tests/docs_app_color_area_contract.spec.mjs:5`；禁用分支同样走 `data-disabled/data-slot`，`e2e/tests/docs_app_color_area_contract.spec.mjs:55`、`e2e/tests/docs_app_color_area_contract.spec.mjs:61`），未使用文本定位。WASM 就绪等待采用语义条件而非固定 sleep（`body:not(:has(#boot)).waitFor()` 与 `expect(...).toHaveAttribute(...)`，`e2e/tests/docs_app_color_area_contract.spec.mjs:9`、`e2e/tests/docs_app_color_area_contract.spec.mjs:15`；全局覆盖用例同策略见 `e2e/tests/docs_app_components_coverage.spec.mjs:14`、`e2e/tests/docs_app_components_coverage.spec.mjs:35`），且无 `waitForTimeout`。组件交互包含 motion 语义时，测试以显式 settled 语义断言收敛（键盘后断言 `data-value-x/data-selected-col/data-ui-output-status`，`e2e/tests/docs_app_color_area_contract.spec.mjs:46`、`e2e/tests/docs_app_color_area_contract.spec.mjs:47`、`e2e/tests/docs_app_color_area_contract.spec.mjs:74`）；组件无远程异步流程，异步重试类 ready/settled 为 N/A。
 - [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。

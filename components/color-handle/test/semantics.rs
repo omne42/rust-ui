@@ -21,7 +21,7 @@ fn load_source(path: &str) -> &'static str {
             include_str!("../../../e2e/tests/docs_app_color_handle_contract.spec.mjs")
         }
         "legacy_semantics" => {
-            include_str!("../../../crates/ui-components/tests/color_handle_semantics.rs")
+            include_str!("../../../components/color-handle/test/color_handle_semantics.rs")
         }
         _ => panic!("unsupported source path: {path}"),
     }

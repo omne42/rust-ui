@@ -100,7 +100,7 @@ let (selected, set_selected) = signal(Some(0_usize));
 
 ## Test Contract
 
-- Semantic tests: `crates/ui-components/tests/carousel_semantics.rs`.
+- Semantic tests: `components/carousel/test/carousel_semantics.rs`.
 - Coverage includes source markers, controlled/uncontrolled paths, orientation contracts, and docs anchors.
 
 ## docs-app Entry

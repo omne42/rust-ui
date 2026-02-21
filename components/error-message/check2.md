@@ -29,7 +29,7 @@
   - 必须下沉：键盘模型、焦点模型、跨设备输入归一、ARIA 状态映射、overlay/presence 等交互语义。
   - A11y 契约与共享工具落点固定在 `crates/ui-headless/src/a11y.rs`；组件只在 `view.rs` 挂载，不在组件层重写。
   - 语义契约必须提供 `lang` / `dir`（LTR/RTL）接入能力；headless 不硬编码用户可见文本，文案由 i18n/l10n 层提供。
-  - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
+  - 语义契约正确性必须有回归：`components/*/test/**` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
@@ -43,7 +43,7 @@
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
-  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `crates/ui-components/tests/<component>_semantics.rs`。
+  - 量化尺寸基准必须可回归：尺寸基准在 `tokens.rs` 与 `theme.rs` 定义，主题回归在 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归在 `components/*/test/*<component>_semantics.rs`。
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
@@ -52,7 +52,7 @@
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
   - 测试文件位于src同级的test/中，内部测试文件同名（如rust-ui/components/accordion/src/logic.rs与rust-ui/components/accordion/test/logic.rs）。
-  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/crates/ui-components/tests/accordion_semantics.rs的旧版实现，需要迁移到新目录。
+  - 还需要一个semantics.rs用于测试。可能存在类似rust-ui/components/accordion/test/accordion_semantics.rs的旧版实现，需要迁移到新目录。
 
 ### 2. API 设计与状态内核（Logic/Kernel）
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
@@ -143,7 +143,7 @@
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
 - [x] 测试验证“语义契约”而不只验证视觉快照。
-  - 已满足：存在语义契约测试，覆盖 `role/aria/data-state/source markers`（`crates/ui-headless/src/test/error_message.rs`、`crates/ui-components/tests/error_message_semantics.rs`、`components/error-message/test/logic.rs`）。
+  - 已满足：存在语义契约测试，覆盖 `role/aria/data-state/source markers`（`crates/ui-headless/src/test/error_message.rs`、`components/error-message/test/error_message_semantics.rs`、`components/error-message/test/logic.rs`）。
   - 覆盖矩阵（按适用范围）：`disabled` 与来源标记已覆盖；受控/非受控 N/A（组件无独立可控状态轴）；键盘/指针路径 N/A（非交互 live-region）；SSR/wasm 差异 N/A（语义契约为纯数据映射，平台分歧不影响契约断言）。
   - 视觉快照未作为主验证手段；当前断言以语义与契约字符串匹配/状态映射为主。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
@@ -202,7 +202,7 @@
   - 已满足（类型约束）：`crates/ui-state-primitives/src/error_message.rs` 以 `ErrorMessageTone`、`ErrorMessageElement`、`ErrorMessageStatus` 三个 `enum` 建模离散输入与状态轴，避免字符串协议与布尔爆炸。
   - 已满足（无效状态归一）：`normalize_state_flags -> resolve_status -> status_to_primitive_flags -> resolve_model` 在 `crates/ui-state-primitives/src/error_message.rs` 形成单一归一化通道，`disabled + truncate` 组合会收敛到封闭状态 `ErrorMessageStatus::Disabled`。
   - 已满足（机器可读语义标记）：`components/error-message/src/view.rs` 稳定输出 `data-tone/data-state/data-disabled/data-truncate/data-message-source/data-aria-source/data-class-source` 与 `data-ui-*` 契约字段，供测试与 Agent 自动化直接消费。
-  - 已满足（可持续闭环）：`components/error-message/test/logic.rs` 直接断言归一化与状态收敛规则；`crates/ui-components/tests/error_message_semantics.rs` 直接断言关键语义标记和契约字符串，失败信息可定位到具体契约字段。
+  - 已满足（可持续闭环）：`components/error-message/test/logic.rs` 直接断言归一化与状态收敛规则；`components/error-message/test/error_message_semantics.rs` 直接断言关键语义标记和契约字符串，失败信息可定位到具体契约字段。
   - 验证备注：当前环境运行 `cargo test` 遭遇系统级 `Invalid cross-device link (os error 18)`；本条以源码与测试断言定义完成审查，执行门禁以 CI 结果为准。
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
@@ -261,7 +261,7 @@
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
-  - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
+  - 测试要求：在 `components/*/test/**` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 已满足（结构扁平）：`components/error-message/src/view.rs` 以 `match element` 切分为 `Span/Paragraph/Div` 三个语义分支；每个 `view!` 仅渲染单个根节点 + 文本内容，不存在 header/body/item 级深层嵌套。
@@ -304,7 +304,7 @@
   - 已满足（Workbench 隔离画布）：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 为 `error-message` 提供 `Playground title=\"Config + Code + CSS Test Workbench\"`，并挂载 `code_signal/test_css_source/test_config_signal`，可在隔离画布中联调展示、配置、代码与样式。
   - 已满足（样式快速反馈路径）：`scripts/dev-docs-app.sh` 使用 `trunk serve` 启动 docs 开发环境；`error-message` 页面同时提供 `test_css_source=\"components/error-message/src/styles.rs\"` 的样式观测入口，常见样式调整可直接在 docs workbench 验证，不需要先搭业务页面链路。
   - N/A（状态保留）：`error-message` 为无内部交互状态的展示叶子组件，核心状态由 props 驱动（`tone/is_disabled/is_truncated/...`），不存在需要额外“状态保留开关”的内部会话态；开发时上下文保持由 docs workbench 的控件信号天然承担。
-  - 已满足（回归锁定）：`crates/ui-components/tests/error_message_semantics.rs` 已断言 `Config + Code + CSS Test Workbench` 与 `test_css_source/test_config_signal` 存在，防止 DX 入口被回归删除。
+  - 已满足（回归锁定）：`components/error-message/test/error_message_semantics.rs` 已断言 `Config + Code + CSS Test Workbench` 与 `test_css_source/test_config_signal` 存在，防止 DX 入口被回归删除。
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
@@ -321,7 +321,7 @@
 - [x] 样式孤岛防御（Defensive Variables）：`styles.rs` 使用双层回退链 `var(--ui-*, var(--ui-fallback-*))`；禁止组件内硬编码 Hex 或裸尺寸终值，Fallback 终值由 `ui-theme` 统一输出（SSOT）。
   - 已满足（双层回退链）：`components/error-message/src/styles.rs` 的字号/行高/语义色/动效时长与曲线/outline 相关变量均改为 `var(--ui-*, var(--ui-fallback-*))` 形式（例如 `--ui-font-size-100`、`--ui-danger`、`--ui-text-field-motion-duration`、`--ui-accent`）。
   - 已满足（SSOT 终值来源）：组件侧移除了 `12px/16px/140ms/ease` 等本地终值，fallback 统一指向 `ui-theme` 生成的 `--ui-fallback-*` 变量（见 `crates/ui-theme/src/css.rs`）。
-  - 已满足（回归约束）：新增 `components/error-message/test/semantics.rs::error_message_styles_use_defensive_variable_fallback_chain`，并同步更新 `crates/ui-components/tests/error_message_semantics.rs`，锁定防御性变量链路并阻断终值回归。
+  - 已满足（回归约束）：新增 `components/error-message/test/semantics.rs::error_message_styles_use_defensive_variable_fallback_chain`，并同步更新 `components/error-message/test/error_message_semantics.rs`，锁定防御性变量链路并阻断终值回归。
 - [x] 级联层覆盖（`@layer ui`）：组件 CSS 默认聚合进 `@layer ui`；运行时数值调整仅通过 CSS Custom Properties（如 `style:--x=...`），禁止普通内联样式（如 `style=\"top: 10px\"`）。
   - 已满足（`@layer ui` 聚合）：`crates/ui-components/src/css.rs::push_components_css` 统一以 `out.push_str(\"\\n@layer ui {\\n\")` 包裹组件样式，并在 `component-error_message` feature 下聚合 `crate::error_message::styles::CSS`。
   - 已满足（运行时仅 CSS 变量）：`components/error-message/src/view.rs` 的 `style` 来源固定为 `attach_motion(None, motion)`；`components/error-message/src/motion.rs` 仅写入 `--ui-error-message-transition-ms` 自定义属性，不注入 `top/left/width/...` 等普通布局样式。
@@ -383,13 +383,13 @@
   - 已满足（两种模式类型化）：`crates/ui-headless/src/error_message.rs` 新增 `ErrorMessageAgentOutputMode::{Streaming, Snapshot}`，将输出渲染模式约束为封闭二元集合，避免自由文本漂移。
   - 已满足（当前组件落在 Snapshot）：`use_error_message` 统一输出 `data-ui-stream-mode/data-stream-mode = "snapshot"`，并在 `components/error-message/src/view.rs` 通过 `semantics.attrs` 挂载，保证运行态语义稳定。
   - 已满足（检索投影一致）：`components/error-message/src/Component.toml` 增加 `output_mode_axis = [\"streaming\", \"snapshot\"]` 与 `stream_mode` marker，`components/error-message/src/error_message.rbi` 同步 `ErrorMessageAgentStreamMode::{Streaming, Snapshot}`。
-  - 已满足（回归守卫）：`components/error-message/test/semantics.rs` 与 `crates/ui-components/tests/error_message_semantics.rs` 新增/更新断言，锁定模式枚举与挂载链路。
+  - 已满足（回归守卫）：`components/error-message/test/semantics.rs` 与 `components/error-message/test/error_message_semantics.rs` 新增/更新断言，锁定模式枚举与挂载链路。
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
 - [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。
   - 已满足（默认快照模式）：`crates/ui-headless/src/error_message.rs` 在 `use_error_message` 中将 `ui_output_mode` 固定为 `ErrorMessageAgentOutputMode::Snapshot`，并输出 `data-ui-stream-mode/data-stream-mode = "snapshot"`。
   - 已满足（完整结果可稳定渲染）：`components/error-message/src/view.rs` 无增量拼接路径，直接消费归一化后的 `text/aria_label/state` 与 `semantics.attrs`，即使输入为完整结果也只走一次稳定渲染挂载。
-  - 已满足（回归守卫）：`crates/ui-headless/src/test/error_message.rs` 断言默认 `snapshot` 模式；`crates/ui-components/tests/error_message_semantics.rs` 与 `components/error-message/test/semantics.rs` 断言 `data-ui-stream-mode/data-stream-fallback` 等快照语义字段存在并可检索。
+  - 已满足（回归守卫）：`crates/ui-headless/src/test/error_message.rs` 断言默认 `snapshot` 模式；`components/error-message/test/error_message_semantics.rs` 与 `components/error-message/test/semantics.rs` 断言 `data-ui-stream-mode/data-stream-fallback` 等快照语义字段存在并可检索。
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
 - [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
@@ -426,10 +426,10 @@
   - 已满足（受控/非受控对照）：新增 `Controlled / Uncontrolled (Input-Driven N/A)` Playground，明确 `error-message` 为输入驱动叶子组件，无 `value/on_value_change/default_value` 状态轴，基础调用不需要额外接线。
   - 已满足（流式/快照展现）：新增 `Streaming Optional + Snapshot Fallback` Playground，显式展示 `Streaming Optional` 且 `fallback=snapshot` 的契约说明，便于对照 `data-ui-stream-*` 标记。
   - 已满足（Source-first 一键复制 + imports）：新增 `data-slot="error-message-source-first"` 区块与 `Snippet(copyable=true)`，并明确通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补全 imports 后复制。
-  - 已满足（文档回归守卫）：`crates/ui-components/tests/error_message_semantics.rs` 的 docs 断言已同步覆盖上述 Playground 与 Source-first 标记，阻断文档回退。
+  - 已满足（文档回归守卫）：`components/error-message/test/error_message_semantics.rs` 的 docs 断言已同步覆盖上述 Playground 与 Source-first 标记，阻断文档回退。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 已满足（语义契约优先，不依赖视觉快照）：`components/error-message/test/semantics.rs` 的 `error_message_semantics_tests_cover_aria_and_data_contracts` 断言 `role/aria-*` 与 `data-state/data-message-source/data-aria-source/data-class-source/data-ui-state/data-ui-source/data-output-status`。
-  - 已满足（组件级 `*_semantics.rs` 覆盖）：存在 `crates/ui-components/tests/error_message_semantics.rs` 与 `components/error-message/test/semantics.rs`，分别覆盖装配层语义挂载与组件目录语义契约。
+  - 已满足（组件级 `*_semantics.rs` 覆盖）：存在 `components/error-message/test/error_message_semantics.rs` 与 `components/error-message/test/semantics.rs`，分别覆盖装配层语义挂载与组件目录语义契约。
   - 已满足（动作语义与来源语义）：`crates/ui-headless/src/test/error_message.rs` 断言 `data_message_source/data_aria_source/data_class_source` 以及输出状态语义（`data_ui_action/data_ui_output_status`）映射，锁定状态来源契约。
   - 已满足（键盘路径 N/A 且可验证）：`error-message` 为非交互 live-region 叶子组件；`components/error-message/test/semantics.rs` 的 `error_message_is_non_interactive_leaf_without_focus_or_high_frequency_loops` 已断言无 `tabindex`、无 `on:focus/on:keydown` 路径。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
@@ -453,7 +453,7 @@
   - 已满足（文档与示例同步）：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 的 `error_message()` 已包含 `Hello World`、`Tone Variants`、`Truncate + Disabled + Element + Custom Class`、`Display Comparisons (Tone / State / Element)` 与 Workbench，覆盖本次行为与参数面。
   - 已满足（状态矩阵覆盖）：文档显式覆盖 `tone`（auto/neutral/negative）、`is_disabled`、`is_truncated`、`element` 等关键状态轴；受控/非受控条目以 `Input-Driven N/A` 形式给出组件边界说明。
   - 已满足（API 名称与默认值一致）：文档示例使用 `is_disabled/is_truncated`（并兼容 alias 语义），默认路径与 `logic.rs`/`ui-state-primitives` 一致（`tone=Auto` 并映射到 negative、`element` 默认 `Paragraph`、状态默认 `false`）。
-  - 已满足（自动化回归守卫）：`crates/ui-components/tests/error_message_semantics.rs` 的 `error_message_docs_page_covers_primary_playgrounds` 与 `error_message_docs_playgrounds_lock_state_matrix_contract_values` 已锁定 docs 页面关键示例与矩阵字段，阻断文档回退。
+  - 已满足（自动化回归守卫）：`components/error-message/test/error_message_semantics.rs` 的 `error_message_docs_page_covers_primary_playgrounds` 与 `error_message_docs_playgrounds_lock_state_matrix_contract_values` 已锁定 docs 页面关键示例与矩阵字段，阻断文档回退。
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
@@ -461,7 +461,7 @@
   - 已满足（文档入口存在）：`components/error-message/src/README.md` 与 `apps/docs-app/src/pages/components/pages/forms_extra.rs::error_message()` 同时作为源码侧与运行侧入口，避免“只有源码没有文档”。
   - 已满足（零门槛最小示例）：`components/error-message/src/README.md` 顶部新增 `快速开始（先用起来）`，直接给出可运行 Hello World；docs 页面也以 `Hello World (Default API)` 开场。
   - 已满足（先用起来，再进阶）：README 明确分层为“快速开始 -> 进阶入口 -> display/config/code/css/matrix”，将默认 API 路径前置，高级参数与对比矩阵后置。
-  - 已满足（回归守卫）：`crates/ui-components/tests/error_message_semantics.rs::error_message_readme_includes_display_config_code_css_test_sections` 与 docs 页面相关断言共同约束文档主结构不回退。
+  - 已满足（回归守卫）：`components/error-message/test/error_message_semantics.rs::error_message_readme_includes_display_config_code_css_test_sections` 与 docs 页面相关断言共同约束文档主结构不回退。
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
@@ -476,14 +476,14 @@
 - [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
   - 已满足（一键复制 + 可运行 imports）：`apps/docs-app/src/pages/components/pages/forms_extra.rs` 提供 `data-slot="error-message-source-first"` 与 `Snippet(copyable=true)`，并给出含 `use leptos::prelude::*; use ui_components::*;` 的最小可运行片段；Playground 复制链路通过 `apps/docs-app/src/playground.rs::compose_copy_ready_code` 自动补齐缺失 imports。
   - 已满足（真实源码落点与依赖前提）：source-first 区块显式列出 `components/error-message/src/{mod,logic,view,styles,motion}.rs`，并标注 `component-error_message`、`inject-css` 两项前置特性，避免“复制即报错”。
-  - 已满足（文档与实现同步防漂移）：`crates/ui-components/tests/error_message_semantics.rs` 对 `data-slot="error-message-source-first"`、`compose_copy_ready_code`、`error-message-source-paths`、`error-message-source-prerequisites` 设有断言；`e2e/tests/docs_app_error_message_contract.spec.mjs` 断言 playground code block `data-copyable=true`，回归可定位。
+  - 已满足（文档与实现同步防漂移）：`components/error-message/test/error_message_semantics.rs` 对 `data-slot="error-message-source-first"`、`compose_copy_ready_code`、`error-message-source-paths`、`error-message-source-prerequisites` 设有断言；`e2e/tests/docs_app_error_message_contract.spec.mjs` 断言 playground code block `data-copyable=true`，回归可定位。
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
 - [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
   - 已满足（对标策略文档已同步）：`docs/spec/heroui-parameter-design-strategy.md` 新增 `### ErrorMessage 同步记录（2026-02-21）`，明确本组件参数主轴、`is_*` 主命名与 `disabled/truncate` 兼容别名归一策略，避免实现先漂移文档后补。
   - 已满足（组件文档入口可索引）：`apps/docs-app/src/pages/components/pages.rs` 已通过 `component_doc!(\"ErrorMessage\", \"error-message\", \"Forms\", forms_extra::error_message)` 暴露入口；`#/components/error-message` 可直接访问，且 `components/error-message/src/README.md` 提供等价入口。
-  - 已满足（防“仅代码更新”回退）：`crates/ui-components/tests/error_message_semantics.rs` 新增 `error_message_heroui_strategy_doc_is_synced_with_docs_entry`，断言 HeroUI 对标文档与 docs 入口同步；本轮无需补 `docs/research/spectrum-heroui-style-interface-study.md`（无新增风格研究结论）。
+  - 已满足（防“仅代码更新”回退）：`components/error-message/test/error_message_semantics.rs` 新增 `error_message_heroui_strategy_doc_is_synced_with_docs_entry`，断言 HeroUI 对标文档与 docs 入口同步；本轮无需补 `docs/research/spectrum-heroui-style-interface-study.md`（无新增风格研究结论）。
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。

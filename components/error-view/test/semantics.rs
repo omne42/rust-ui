@@ -5382,7 +5382,7 @@ fn error_view_semantic_test_priority_prefers_data_aria_role_and_source_contracts
  {
     let view_source = load_error_view_component_source("src/view.rs");
     let local_semantics_source = load_error_view_component_source("test/semantics.rs");
-    let suite_source = load_workspace_source("crates/ui-components/tests/error_view_semantics.rs");
+    let suite_source = load_workspace_source("components/error-view/test/error_view_semantics.rs");
     let check2_source = load_error_view_component_source("check2.md");
     let perf_script_source = load_workspace_source("scripts/check-ui-components-performance.sh");
 

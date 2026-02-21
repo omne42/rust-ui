@@ -67,6 +67,6 @@ view! { <Pagination total_pages=12 page=page set_page=set_page /> }
 
 - docs 入口：`apps/docs-app/src/pages/components/pages/collections.rs::pagination()`
 - 组件源码：`components/pagination/src/{mod,logic,view,styles,i18n}.rs`
-- 语义回归：`crates/ui-components/tests/pagination_semantics.rs`
+- 语义回归：`components/pagination/test/pagination_semantics.rs`
 - e2e 合约：`e2e/tests/docs_app_pagination_contract.spec.mjs`
 - package 模式最小特性：`component-pagination`（会联动 `component-button`）；样式注入可叠加 `inject-css`。

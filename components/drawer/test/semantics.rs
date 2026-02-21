@@ -573,7 +573,7 @@ fn drawer_check2_marks_defensive_variable_contract_complete() {
         "scripts/check-ui-components-contract-hygiene.sh",
         "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "components/drawer/test/semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
+        "components/drawer/test/drawer_semantics.rs::drawer_styles_use_defensive_variable_fallback_chain_with_ui_theme_ssot_terminals",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -681,7 +681,7 @@ fn drawer_check2_marks_cascade_layer_contract_complete() {
         "scripts/check-ui-components-contract-hygiene.sh",
         "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_cascade_layer_and_runtime_style_contract_is_enforced",
         "components/drawer/test/semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
+        "components/drawer/test/drawer_semantics.rs::drawer_cascade_layer_and_runtime_style_contract_is_enforced",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -1200,7 +1200,7 @@ fn drawer_semantic_test_priority_prefers_data_aria_role_and_source_contracts_ove
     let sheet_view_source = include_str!("../../sheet/src/view.rs");
     let local_semantics_source = include_str!("semantics.rs");
     let workspace_semantics_source =
-        include_str!("../../../crates/ui-components/tests/drawer_semantics.rs");
+        include_str!("../../../components/drawer/test/drawer_semantics.rs");
     let perf_script_source = include_str!("../../../scripts/check-ui-components-performance.sh");
 
     for marker in [
@@ -1438,7 +1438,7 @@ fn drawer_check2_marks_e2e_selector_stability_item_complete() {
         "components/drawer/test/semantics.rs::drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "components/drawer/test/semantics.rs::drawer_e2e_contract_covers_ready_and_settled_conditions_for_overlay_paths",
         "components/drawer/test/semantics.rs::drawer_e2e_check_script_covers_selector_and_settled_wait_contract",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
+        "components/drawer/test/drawer_semantics.rs::drawer_e2e_selector_contract_uses_semantic_markers_and_settled_waits",
         "scripts/check-ui-components-e2e-drawer.sh",
         "Invalid cross-device link (os error 18)",
     ] {
@@ -2428,7 +2428,7 @@ fn drawer_check2_marks_motion_contract_complete() {
         "scripts/check-ui-components-contract-hygiene.sh",
         "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "components/drawer/test/semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
+        "components/drawer/test/drawer_semantics.rs::drawer_motion_contract_is_builtin_and_attached_with_reduced_motion_and_non_wasm_noop",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -2643,7 +2643,7 @@ fn drawer_check2_marks_component_directory_standard_files_contract_complete() {
         "scripts/check-ui-components-component-files.sh",
         "cargo test -p ui-components --test drawer_semantics --no-default-features --features component-drawer,inject-css drawer_component_directory_standard_files_follow_contract_and_na_paths",
         "components/drawer/test/semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
+        "components/drawer/test/drawer_semantics.rs::drawer_component_directory_standard_files_follow_contract_and_na_paths",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(
@@ -3674,8 +3674,7 @@ fn drawer_performance_governance_contract_is_budgeted_traceable_and_blocking() {
 fn drawer_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement()
 {
     let local_semantics = include_str!("semantics.rs");
-    let aggregated_semantics =
-        include_str!("../../../crates/ui-components/tests/drawer_semantics.rs");
+    let aggregated_semantics = include_str!("../../../components/drawer/test/drawer_semantics.rs");
     let drawer_view_source = include_str!("../src/view.rs");
     let sheet_view_source = include_str!("../../sheet/src/view.rs");
     let focus_trap_source = include_str!("../../../crates/ui-headless/src/focus_trap.rs");
@@ -4063,7 +4062,6 @@ fn drawer_wasm_debug_contract_reuses_global_trace_and_stays_feature_isolated() {
     for needle in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root_source.contains(needle),
@@ -5221,9 +5219,9 @@ fn drawer_check2_marks_engineering_contract_complete() {
         "components/drawer/test/semantics.rs::drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
         "components/drawer/test/semantics.rs::drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
         "components/drawer/test/semantics.rs::drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
-        "crates/ui-components/tests/drawer_semantics.rs::drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
+        "components/drawer/test/drawer_semantics.rs::drawer_engineering_contract_uses_serde_protocol_and_structured_schema_defaults",
+        "components/drawer/test/drawer_semantics.rs::drawer_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events",
+        "components/drawer/test/drawer_semantics.rs::drawer_engineering_contract_avoids_runtime_leaks_in_public_api_surface",
         "Invalid cross-device link (os error 18)",
     ] {
         assert!(

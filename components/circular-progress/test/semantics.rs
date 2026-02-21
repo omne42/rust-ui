@@ -1074,7 +1074,7 @@ fn circular_progress_semantic_test_priority_prefers_data_aria_role_and_source_co
     let view = load_source("view");
     let local_semantics = include_str!("semantics.rs");
     let workspace_semantics =
-        include_str!("../../../crates/ui-components/tests/circular_progress_semantics.rs");
+        include_str!("../../../components/circular-progress/test/circular_progress_semantics.rs");
     let perf_script = include_str!("../../../scripts/check-ui-components-performance.sh");
     let check2 = load_source("check2");
 
@@ -1787,7 +1787,7 @@ fn circular_progress_tree_shaking_feature_pruning_contract_is_gated_in_lib_css_a
         "CircularProgress checklist should mark tree-shaking feature-pruning item complete.",
     );
     assert!(
-        check2.contains("crates/ui-components/tests/circular_progress_semantics.rs::circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete"),
+        check2.contains("components/circular-progress/test/circular_progress_semantics.rs::circular_progress_check2_marks_tree_shaking_feature_pruning_contract_complete"),
         "check2 should reference the ui-components tree-shaking feature-pruning regression test.",
     );
 }
@@ -2377,7 +2377,7 @@ fn circular_progress_semantics_and_performance_regression_cover_aria_data_focus_
     let view = load_source("view");
     let local_semantics = include_str!("semantics.rs");
     let aggregated_semantics =
-        include_str!("../../../crates/ui-components/tests/circular_progress_semantics.rs");
+        include_str!("../../../components/circular-progress/test/circular_progress_semantics.rs");
     let focus_trap = include_str!("../../../crates/ui-headless/src/focus_trap.rs");
     let todo = include_str!("../../../docs/plan/TODO.md");
     let script = include_str!("../../../scripts/check-ui-components-performance.sh");
@@ -2699,7 +2699,6 @@ fn circular_progress_wasm_debug_contract_is_explicitly_na_and_feature_isolated_l
     for required in [
         "macro_rules! wasm_debug_proxy",
         "pub(crate) use wasm_debug_proxy;",
-        "#[cfg(target_arch = \"wasm32\")]\nmod observability;",
     ] {
         assert!(
             crate_root.contains(required),

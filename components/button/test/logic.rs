@@ -1,6 +1,31 @@
 use super::*;
 use crate::ButtonIntent;
 
+fn base_state_input() -> ButtonStateInput {
+    ButtonStateInput {
+        is_disabled: false,
+        is_loading: false,
+        variant: ButtonVariant::Default,
+        color: ButtonColor::Primary,
+        radius: ButtonRadius::Md,
+        size: ButtonSize::M,
+        loading_placement: ButtonLoadingPlacement::Start,
+        is_full_width: false,
+        has_custom_class_name: false,
+        has_custom_motion: false,
+    }
+}
+
+fn base_normalization_input() -> ButtonInputNormalizationInput {
+    ButtonInputNormalizationInput {
+        is_disabled: false,
+        is_full_width: false,
+        class_name: None,
+        aria_label: None,
+        button_type: ButtonType::Button,
+    }
+}
+
 #[test]
 fn variant_class_names_are_stable() {
     assert_eq!(
@@ -99,23 +124,7 @@ fn radius_class_and_attr_names_are_stable() {
 }
 
 #[test]
-fn string_conversions_cover_aligned_parameter_tokens() {
-    assert_eq!(ButtonVariant::from("solid"), ButtonVariant::Solid);
-    assert_eq!(ButtonVariant::from("faded"), ButtonVariant::Faded);
-    assert_eq!(ButtonVariant::from("bordered"), ButtonVariant::Bordered);
-    assert_eq!(ButtonVariant::from("light"), ButtonVariant::Light);
-    assert_eq!(ButtonVariant::from("flat"), ButtonVariant::Flat);
-    assert_eq!(ButtonVariant::from("ghost"), ButtonVariant::Ghost);
-    assert_eq!(ButtonVariant::from("shadow"), ButtonVariant::Shadow);
-
-    assert_eq!(ButtonColor::from("primary"), ButtonColor::Primary);
-    assert_eq!(ButtonColor::from("danger"), ButtonColor::Danger);
-    assert_eq!(ButtonRadius::from("full"), ButtonRadius::Full);
-    assert_eq!(ButtonRadius::from("none"), ButtonRadius::None);
-}
-
-#[test]
-fn size_class_names_are_stable() {
+fn size_class_names_and_string_conversions_are_stable() {
     assert_eq!(ButtonSize::Xs.class_name(), "ui-button--size-xs");
     assert_eq!(ButtonSize::S.class_name(), "ui-button--size-s");
     assert_eq!(ButtonSize::M.class_name(), "ui-button--size-m");
@@ -127,16 +136,6 @@ fn size_class_names_are_stable() {
     assert_eq!(ButtonSize::IconL.class_name(), "ui-button--size-icon-l");
     assert_eq!(ButtonSize::IconXl.class_name(), "ui-button--size-icon-xl");
 
-    assert_eq!(ButtonSize::Default.class_name(), "ui-button--size-m");
-    assert_eq!(ButtonSize::Sm.class_name(), "ui-button--size-s");
-    assert_eq!(ButtonSize::Lg.class_name(), "ui-button--size-l");
-    assert_eq!(ButtonSize::Icon.class_name(), "ui-button--size-icon-m");
-    assert_eq!(ButtonSize::IconSm.class_name(), "ui-button--size-icon-s");
-    assert_eq!(ButtonSize::IconLg.class_name(), "ui-button--size-icon-l");
-}
-
-#[test]
-fn size_string_conversions_cover_xs_to_xl_contract() {
     assert_eq!(ButtonSize::from("xs"), ButtonSize::Xs);
     assert_eq!(ButtonSize::from("s"), ButtonSize::S);
     assert_eq!(ButtonSize::from("m"), ButtonSize::M);
@@ -145,14 +144,11 @@ fn size_string_conversions_cover_xs_to_xl_contract() {
 }
 
 #[test]
-fn loading_placement_attrs_match_variants() {
+fn loading_placement_and_button_type_attrs_are_stable() {
     assert_eq!(ButtonLoadingPlacement::Start.as_attr(), "start");
     assert_eq!(ButtonLoadingPlacement::End.as_attr(), "end");
     assert_eq!(ButtonLoadingPlacement::Center.as_attr(), "center");
-}
 
-#[test]
-fn button_type_attrs_and_string_conversions_are_stable() {
     assert_eq!(ButtonType::Button.as_attr(), "button");
     assert_eq!(ButtonType::Submit.as_attr(), "submit");
     assert_eq!(ButtonType::Reset.as_attr(), "reset");
@@ -163,61 +159,53 @@ fn button_type_attrs_and_string_conversions_are_stable() {
 }
 
 #[test]
-fn boolean_input_source_attrs_are_stable() {
-    assert_eq!(ButtonBooleanInputSource::IsProp.as_attr(), "is-prop");
-    assert_eq!(ButtonBooleanInputSource::Default.as_attr(), "default");
-}
-
-#[test]
 fn label_source_attrs_are_stable() {
-    assert_eq!(
-        ui_state_primitives::button::ButtonLabelSource::Explicit.as_attr(),
-        "explicit"
-    );
-    assert_eq!(
-        ui_state_primitives::button::ButtonLabelSource::Fallback.as_attr(),
-        "fallback"
-    );
-    assert_eq!(
-        ui_state_primitives::button::ButtonLabelSource::None.as_attr(),
-        "none"
-    );
+    assert_eq!(ButtonLabelSource::Explicit.as_attr(), "explicit");
+    assert_eq!(ButtonLabelSource::None.as_attr(), "none");
 }
 
 #[test]
-fn normalize_optional_text_trims_and_filters_blank_values() {
+fn normalize_optional_text_and_aria_label_follow_new_contract() {
     assert_eq!(normalize_optional_text(None), None);
     assert_eq!(normalize_optional_text(Some("  \n\t".to_string())), None);
     assert_eq!(
         normalize_optional_text(Some("  Button  ".to_string())),
         Some("Button".to_string())
     );
+
+    assert_eq!(
+        resolve_aria_label(Some(" Save ".to_string())),
+        (Some("Save".to_string()), ButtonLabelSource::Explicit)
+    );
+    assert_eq!(resolve_aria_label(None), (None, ButtonLabelSource::None));
 }
 
 #[test]
-fn resolve_aria_label_prefers_explicit_then_fallback() {
-    assert_eq!(
-        resolve_aria_label(Some(" Save ".to_string()), true, None),
-        (
-            Some("Save".to_string()),
-            ui_state_primitives::button::ButtonLabelSource::Explicit
-        )
-    );
-    assert_eq!(
-        resolve_aria_label(None, true, None),
-        (
-            Some(ui_state_primitives::button::BUTTON_ICON_ONLY_FALLBACK_ARIA_LABEL.to_string()),
-            ui_state_primitives::button::ButtonLabelSource::Fallback,
-        )
-    );
-    assert_eq!(
-        resolve_aria_label(None, false, None),
-        (None, ui_state_primitives::button::ButtonLabelSource::None)
-    );
-}
+fn normalize_input_and_state_resolution_match_flags() {
+    let normalized = normalize_input(ButtonInputNormalizationInput {
+        is_disabled: true,
+        is_full_width: true,
+        class_name: Some("  docs-btn  ".to_string()),
+        aria_label: Some(" Save ".to_string()),
+        button_type: ButtonType::Submit,
+    });
 
-#[test]
-fn resolve_state_tracks_visual_markers() {
+    assert!(normalized.is_disabled);
+    assert!(normalized.is_full_width);
+    assert_eq!(
+        normalized.disabled_input_source,
+        ButtonBooleanInputSource::IsProp
+    );
+    assert_eq!(
+        normalized.full_width_input_source,
+        ButtonBooleanInputSource::IsProp
+    );
+    assert_eq!(normalized.class_name, Some("docs-btn".to_string()));
+    assert!(normalized.has_custom_class_name);
+    assert_eq!(normalized.aria_label, Some("Save".to_string()));
+    assert_eq!(normalized.aria_label_source, ButtonLabelSource::Explicit);
+    assert_eq!(normalized.button_type, ButtonType::Submit);
+
     let state = resolve_state(ButtonStateInput {
         is_disabled: false,
         is_loading: true,
@@ -226,10 +214,7 @@ fn resolve_state_tracks_visual_markers() {
         radius: ButtonRadius::Full,
         size: ButtonSize::Icon,
         loading_placement: ButtonLoadingPlacement::End,
-        is_icon_only: true,
         is_full_width: true,
-        has_start_content: true,
-        has_end_content: false,
         has_custom_class_name: true,
         has_custom_motion: true,
     });
@@ -239,106 +224,109 @@ fn resolve_state_tracks_visual_markers() {
     assert_eq!(state.color_attr, "success");
     assert_eq!(state.radius_attr, "full");
     assert_eq!(state.loading_placement_attr, "end");
-    assert!(state.is_icon_only);
     assert!(state.is_full_width);
-    assert!(state.has_start_content);
-    assert!(!state.has_end_content);
     assert!(state.has_custom_class_name);
     assert!(state.has_custom_motion);
 }
 
 #[test]
-fn resolve_agent_contract_exposes_machine_readable_capabilities() {
-    let interactive = resolve_state(ButtonStateInput {
-        is_disabled: false,
-        is_loading: false,
-        variant: ButtonVariant::Default,
-        color: ButtonColor::Primary,
-        radius: ButtonRadius::Md,
-        size: ButtonSize::M,
-        loading_placement: ButtonLoadingPlacement::Start,
-        is_icon_only: false,
-        is_full_width: false,
-        has_start_content: false,
-        has_end_content: false,
-        has_custom_class_name: false,
-        has_custom_motion: false,
+fn render_state_and_class_composition_follow_current_model() {
+    let state = resolve_state(ButtonStateInput {
+        is_loading: true,
+        variant: ButtonVariant::Outline,
+        color: ButtonColor::Danger,
+        radius: ButtonRadius::Sm,
+        size: ButtonSize::S,
+        loading_placement: ButtonLoadingPlacement::Center,
+        is_full_width: true,
+        has_custom_class_name: true,
+        has_custom_motion: true,
+        ..base_state_input()
     });
-    let contract = resolve_agent_contract(interactive, true);
-    assert_eq!(contract.schema_name, BUTTON_AGENT_SCHEMA);
-    assert_eq!(contract.schema_version.as_str(), "1");
-    assert_eq!(contract.intent.as_str(), "trigger");
-    assert_eq!(contract.action.as_str(), "press");
-    assert_eq!(contract.state.as_str(), "ready");
-    assert_eq!(contract.source.as_str(), "state-primitives");
-    assert!(contract.capabilities.can_press);
-    assert!(contract.capabilities.can_focus);
-    assert!(contract.capabilities.can_hover);
-    assert!(contract.capabilities.can_popup_trigger);
 
-    let disabled = resolve_state(ButtonStateInput {
-        is_disabled: true,
-        ..ButtonStateInput {
-            is_disabled: false,
-            is_loading: false,
-            variant: ButtonVariant::Default,
-            color: ButtonColor::Primary,
-            radius: ButtonRadius::Md,
-            size: ButtonSize::M,
-            loading_placement: ButtonLoadingPlacement::Start,
-            is_icon_only: false,
-            is_full_width: false,
-            has_start_content: false,
-            has_end_content: false,
-            has_custom_class_name: false,
-            has_custom_motion: false,
-        }
-    });
-    let contract = resolve_agent_contract(disabled, false);
-    assert_eq!(contract.state.as_str(), "disabled");
-    assert!(!contract.capabilities.can_press);
-    assert!(!contract.capabilities.can_focus);
-    assert!(!contract.capabilities.can_hover);
-    assert!(!contract.capabilities.can_popup_trigger);
+    let class_name = compose_class_name(Some("docs-button".to_string()), state);
+    for needle in [
+        "ui-button",
+        "ui-button--variant-outline",
+        "ui-button--color-danger",
+        "ui-button--radius-sm",
+        "ui-button--size-s",
+        "ui-button--loading-center",
+        "ui-button--full-width",
+        "ui-button--loading",
+        "ui-button--custom-motion",
+        "docs-button",
+    ] {
+        assert!(class_name.contains(needle));
+    }
+
+    let start = derive_render_state(resolve_state(ButtonStateInput {
+        is_loading: true,
+        loading_placement: ButtonLoadingPlacement::Start,
+        ..base_state_input()
+    }));
+    assert!(start.show_start_inline_spinner);
+    assert!(!start.show_end_spinner);
+    assert!(!start.show_center_spinner);
+
+    let end = derive_render_state(resolve_state(ButtonStateInput {
+        is_loading: true,
+        loading_placement: ButtonLoadingPlacement::End,
+        ..base_state_input()
+    }));
+    assert!(!end.show_start_inline_spinner);
+    assert!(end.show_end_spinner);
+    assert!(!end.show_center_spinner);
+
+    let center = derive_render_state(resolve_state(ButtonStateInput {
+        is_loading: true,
+        loading_placement: ButtonLoadingPlacement::Center,
+        ..base_state_input()
+    }));
+    assert!(!center.show_start_inline_spinner);
+    assert!(!center.show_end_spinner);
+    assert!(center.show_center_spinner);
 }
 
 #[test]
-fn resolve_output_status_maps_loading_submit_and_default_paths() {
-    let loading = resolve_state(ButtonStateInput {
-        is_disabled: false,
+fn resolve_view_state_and_status_and_agent_contract_are_consistent() {
+    let view_state = resolve_view_state(ButtonLogicInput {
+        normalized: normalize_input(ButtonInputNormalizationInput {
+            is_disabled: true,
+            is_full_width: true,
+            class_name: Some("  docs-btn  ".to_string()),
+            aria_label: None,
+            button_type: ButtonType::Button,
+        }),
         is_loading: true,
-        variant: ButtonVariant::Default,
-        color: ButtonColor::Primary,
-        radius: ButtonRadius::Md,
-        size: ButtonSize::M,
-        loading_placement: ButtonLoadingPlacement::Start,
-        is_icon_only: false,
-        is_full_width: false,
-        has_start_content: false,
-        has_end_content: false,
-        has_custom_class_name: false,
-        has_custom_motion: false,
+        variant: ButtonVariant::Outline,
+        color: ButtonColor::Danger,
+        radius: ButtonRadius::Sm,
+        size: ButtonSize::S,
+        loading_placement: ButtonLoadingPlacement::Center,
+        has_custom_motion: true,
     });
-    assert_eq!(
-        resolve_output_status(loading, ButtonType::Submit).as_attr(),
-        "draft"
-    );
+
+    assert!(view_state.state.is_disabled);
+    assert!(view_state.state.is_full_width);
+    assert!(view_state.state.has_custom_motion);
+    assert_eq!(view_state.source.disabled_source_attr, "loading");
+    assert_eq!(view_state.source.loading_source_attr, "prop");
+    assert_eq!(view_state.source.disabled_input_source_attr, "is-prop");
+    assert_eq!(view_state.source.full_width_input_source_attr, "is-prop");
+    assert!(view_state.class_name.contains("ui-button--variant-outline"));
+    assert!(view_state.class_name.contains("docs-btn"));
+    assert!(view_state.render.show_center_spinner);
 
     let ready = resolve_state(ButtonStateInput {
-        is_disabled: false,
         is_loading: false,
-        variant: ButtonVariant::Default,
-        color: ButtonColor::Primary,
-        radius: ButtonRadius::Md,
-        size: ButtonSize::M,
-        loading_placement: ButtonLoadingPlacement::Start,
-        is_icon_only: false,
-        is_full_width: false,
-        has_start_content: false,
-        has_end_content: false,
-        has_custom_class_name: false,
-        has_custom_motion: false,
+        ..base_state_input()
     });
+    let disabled = resolve_state(ButtonStateInput {
+        is_disabled: true,
+        ..base_state_input()
+    });
+
     assert_eq!(
         resolve_output_status(ready, ButtonType::Submit).as_attr(),
         "submittable"
@@ -347,6 +335,29 @@ fn resolve_output_status_maps_loading_submit_and_default_paths() {
         resolve_output_status(ready, ButtonType::Button).as_attr(),
         "verified"
     );
+    assert_eq!(
+        resolve_output_status(view_state.state, ButtonType::Submit).as_attr(),
+        "draft"
+    );
+
+    let interactive_contract = resolve_agent_contract(ready, true);
+    assert_eq!(interactive_contract.schema_name, BUTTON_AGENT_SCHEMA);
+    assert_eq!(interactive_contract.schema_version.as_str(), "1");
+    assert_eq!(interactive_contract.intent.as_str(), "trigger");
+    assert_eq!(interactive_contract.action.as_str(), "press");
+    assert_eq!(interactive_contract.state.as_str(), "ready");
+    assert_eq!(interactive_contract.source.as_str(), "state-primitives");
+    assert!(interactive_contract.capabilities.can_press);
+    assert!(interactive_contract.capabilities.can_focus);
+    assert!(interactive_contract.capabilities.can_hover);
+    assert!(interactive_contract.capabilities.can_popup_trigger);
+
+    let disabled_contract = resolve_agent_contract(disabled, false);
+    assert_eq!(disabled_contract.state.as_str(), "disabled");
+    assert!(!disabled_contract.capabilities.can_press);
+    assert!(!disabled_contract.capabilities.can_focus);
+    assert!(!disabled_contract.capabilities.can_hover);
+    assert!(!disabled_contract.capabilities.can_popup_trigger);
 }
 
 #[test]
@@ -379,245 +390,13 @@ fn normalize_schema_json_input_enforces_typed_whitelist_boundary() {
 }
 
 #[test]
-fn normalize_input_prefers_is_prefix_aliases_and_applies_defaults() {
-    let normalized = normalize_input(ButtonInputNormalizationInput {
-        is_disabled: true,
-        is_full_width: false,
-        class_name: Some("  docs-btn  ".to_string()),
-        aria_label: None,
-        icon_only_fallback_aria_label: None,
-        is_icon_only: true,
-        button_type: ButtonType::default(),
-    });
-
-    assert!(normalized.is_disabled);
-    assert!(!normalized.is_full_width);
-    assert_eq!(
-        normalized.disabled_input_source,
-        ButtonBooleanInputSource::IsProp
-    );
-    assert_eq!(
-        normalized.full_width_input_source,
-        ButtonBooleanInputSource::Default
-    );
-    assert_eq!(normalized.class_name, Some("docs-btn".to_string()));
-    assert!(normalized.has_custom_class_name);
-    assert_eq!(normalized.button_type, ButtonType::Button);
-    assert_eq!(
-        normalized.aria_label,
-        Some(ui_state_primitives::button::BUTTON_ICON_ONLY_FALLBACK_ARIA_LABEL.to_string())
-    );
-    assert_eq!(normalized.aria_label_source, ButtonLabelSource::Fallback);
-}
-
-#[test]
-fn normalize_input_uses_is_flags_without_legacy_aliases() {
-    let normalized = normalize_input(ButtonInputNormalizationInput {
-        is_disabled: false,
-        is_full_width: true,
-        class_name: Some("   ".to_string()),
-        aria_label: Some("  Save  ".to_string()),
-        icon_only_fallback_aria_label: None,
-        is_icon_only: false,
-        button_type: ButtonType::Submit,
-    });
-
+fn defaults_are_kept_when_inputs_are_missing() {
+    let normalized = normalize_input(base_normalization_input());
     assert!(!normalized.is_disabled);
-    assert!(normalized.is_full_width);
-    assert_eq!(
-        normalized.disabled_input_source,
-        ButtonBooleanInputSource::Default
-    );
-    assert_eq!(
-        normalized.full_width_input_source,
-        ButtonBooleanInputSource::IsProp
-    );
-    assert_eq!(normalized.class_name, None);
-    assert!(!normalized.has_custom_class_name);
-    assert_eq!(normalized.aria_label, Some("Save".to_string()));
-    assert_eq!(normalized.aria_label_source, ButtonLabelSource::Explicit);
-    assert_eq!(normalized.button_type, ButtonType::Submit);
-}
-
-#[test]
-fn loading_forces_disabled() {
-    assert!(
-        !resolve_state(ButtonStateInput {
-            is_disabled: false,
-            is_loading: false,
-            variant: ButtonVariant::Default,
-            color: ButtonColor::Primary,
-            radius: ButtonRadius::Md,
-            size: ButtonSize::M,
-            loading_placement: ButtonLoadingPlacement::Start,
-            is_icon_only: false,
-            is_full_width: false,
-            has_start_content: false,
-            has_end_content: false,
-            has_custom_class_name: false,
-            has_custom_motion: false,
-        })
-        .is_disabled
-    );
-
-    assert!(
-        resolve_state(ButtonStateInput {
-            is_disabled: false,
-            is_loading: true,
-            variant: ButtonVariant::Default,
-            color: ButtonColor::Primary,
-            radius: ButtonRadius::Md,
-            size: ButtonSize::M,
-            loading_placement: ButtonLoadingPlacement::Start,
-            is_icon_only: false,
-            is_full_width: false,
-            has_start_content: false,
-            has_end_content: false,
-            has_custom_class_name: false,
-            has_custom_motion: false,
-        })
-        .is_disabled
-    );
-
-    assert!(
-        resolve_state(ButtonStateInput {
-            is_disabled: true,
-            is_loading: false,
-            variant: ButtonVariant::Default,
-            color: ButtonColor::Primary,
-            radius: ButtonRadius::Md,
-            size: ButtonSize::M,
-            loading_placement: ButtonLoadingPlacement::Start,
-            is_icon_only: false,
-            is_full_width: false,
-            has_start_content: false,
-            has_end_content: false,
-            has_custom_class_name: false,
-            has_custom_motion: false,
-        })
-        .is_disabled
-    );
-}
-
-#[test]
-fn compose_class_name_includes_state_markers() {
-    let class_name = compose_class_name(
-        Some("docs-button".to_string()),
-        resolve_state(ButtonStateInput {
-            is_disabled: false,
-            is_loading: true,
-            variant: ButtonVariant::Outline,
-            color: ButtonColor::Danger,
-            radius: ButtonRadius::Sm,
-            size: ButtonSize::S,
-            loading_placement: ButtonLoadingPlacement::Center,
-            is_icon_only: true,
-            is_full_width: true,
-            has_start_content: true,
-            has_end_content: true,
-            has_custom_class_name: true,
-            has_custom_motion: true,
-        }),
-    );
-
-    for needle in [
-        "ui-button",
-        "ui-button--variant-outline",
-        "ui-button--color-danger",
-        "ui-button--radius-sm",
-        "ui-button--size-s",
-        "ui-button--loading-center",
-        "ui-button--icon-only",
-        "ui-button--full-width",
-        "ui-button--loading",
-        "ui-button--has-start",
-        "ui-button--has-end",
-        "ui-button--custom-motion",
-        "docs-button",
-    ] {
-        assert!(
-            class_name.contains(needle),
-            "composed class name should contain `{needle}`"
-        );
-    }
-}
-
-#[test]
-fn derive_render_state_maps_loading_placement_to_spinner_slots() {
-    let start_with_slot = derive_render_state(resolve_state(ButtonStateInput {
-        is_disabled: false,
-        is_loading: true,
-        variant: ButtonVariant::Default,
-        color: ButtonColor::Primary,
-        radius: ButtonRadius::Md,
-        size: ButtonSize::M,
-        loading_placement: ButtonLoadingPlacement::Start,
-        is_icon_only: false,
-        is_full_width: false,
-        has_start_content: true,
-        has_end_content: false,
-        has_custom_class_name: false,
-        has_custom_motion: false,
-    }));
-    assert!(!start_with_slot.show_start_inline_spinner);
-    assert!(start_with_slot.show_start_overlay_spinner);
-    assert_eq!(start_with_slot.start_loading_attr, Some("true"));
-
-    let end = derive_render_state(resolve_state(ButtonStateInput {
-        is_disabled: false,
-        is_loading: true,
-        variant: ButtonVariant::Default,
-        color: ButtonColor::Primary,
-        radius: ButtonRadius::Md,
-        size: ButtonSize::M,
-        loading_placement: ButtonLoadingPlacement::End,
-        is_icon_only: false,
-        is_full_width: false,
-        has_start_content: false,
-        has_end_content: false,
-        has_custom_class_name: false,
-        has_custom_motion: false,
-    }));
-    assert!(end.show_end_spinner);
-    assert!(!end.show_start_inline_spinner);
-    assert!(!end.show_center_spinner);
-}
-
-#[test]
-fn resolve_view_state_centralizes_state_and_class_derivation() {
-    let view_state = resolve_view_state(ButtonLogicInput {
-        normalized: normalize_input(ButtonInputNormalizationInput {
-            is_disabled: true,
-            is_full_width: true,
-            class_name: Some("  docs-btn  ".to_string()),
-            aria_label: None,
-            icon_only_fallback_aria_label: None,
-            is_icon_only: false,
-            button_type: ButtonType::Button,
-        }),
-        is_loading: true,
-        variant: ButtonVariant::Outline,
-        color: ButtonColor::Danger,
-        radius: ButtonRadius::Sm,
-        size: ButtonSize::S,
-        loading_placement: ButtonLoadingPlacement::Center,
-        is_icon_only: true,
-        has_start_content: false,
-        has_end_content: true,
-        has_custom_motion: true,
-    });
-
-    assert!(view_state.state.is_disabled);
-    assert!(view_state.state.is_full_width);
-    assert!(view_state.state.has_end_content);
-    assert!(view_state.state.has_custom_motion);
-    assert_eq!(view_state.source.disabled_source_attr, "loading");
-    assert_eq!(view_state.source.loading_source_attr, "prop");
-    assert_eq!(view_state.source.disabled_input_source_attr, "is-prop");
-    assert_eq!(view_state.source.full_width_input_source_attr, "is-prop");
-    assert!(view_state.class_name.contains("ui-button--variant-outline"));
-    assert!(view_state.class_name.contains("docs-btn"));
-    assert!(view_state.render.show_center_spinner);
+    assert!(!normalized.is_full_width);
+    assert_eq!(normalized.aria_label, None);
+    assert_eq!(normalized.aria_label_source, ButtonLabelSource::None);
+    assert_eq!(normalized.button_type, ButtonType::Button);
 }
 
 #[cfg(feature = "component-button_group")]
@@ -661,7 +440,6 @@ fn button_group_aria_label_uses_trimmed_label_or_fallback() {
 #[test]
 fn resolve_button_group_state_tracks_orientation_attachment_and_label_source() {
     let state = resolve_button_group_state(ButtonGroupOrientation::Vertical, true, true);
-
     assert!(!state.is_horizontal);
     assert!(state.is_vertical);
     assert!(state.is_attached);
@@ -670,7 +448,6 @@ fn resolve_button_group_state_tracks_orientation_attachment_and_label_source() {
     assert!(!state.has_fallback_label);
 
     let state = resolve_button_group_state(ButtonGroupOrientation::Horizontal, false, false);
-
     assert!(state.is_horizontal);
     assert!(!state.is_vertical);
     assert!(!state.is_attached);
