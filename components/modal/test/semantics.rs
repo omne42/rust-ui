@@ -1,8 +1,24 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn component_dir() -> PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let included_test_path = manifest_dir.join(file!());
+    let resolved_test_path = included_test_path
+        .canonicalize()
+        .unwrap_or(included_test_path);
+
+    resolved_test_path
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| {
+            panic!("component root should be parent of test dir for {resolved_test_path:?}")
+        })
+        .to_path_buf()
+}
 
 fn load_source(rel_path: &str) -> String {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(rel_path);
+    let path = component_dir().join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -18,7 +34,7 @@ fn modal_component_keeps_expected_file_boundaries() {
         "test/protocol.rs",
         "test/semantics.rs",
     ] {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(rel_path);
+        let path = component_dir().join(rel_path);
         assert!(
             path.exists(),
             "Modal component should keep required file `{rel_path}`."
@@ -904,7 +920,7 @@ fn modal_avoids_spec_rs_sprawl_and_keeps_versioned_protocol_contract() {
     let protocol_source = load_source("src/protocol.rs");
     let protocol_tests_source = load_source("test/protocol.rs");
     let readme_source = load_source("src/README.md");
-    let spec_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/spec.rs");
+    let spec_path = component_dir().join("src/spec.rs");
 
     assert!(
         !spec_path.exists(),
@@ -3314,9 +3330,9 @@ fn modal_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
     let ui_components_src_dir =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
+        component_dir().join("../../crates/ui-components/src");
     let ui_headless_src_dir =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-headless/src");
+        component_dir().join("../../crates/ui-headless/src");
 
     for needle in [
         "#[cfg(feature = \"component-modal\")]",
@@ -3416,7 +3432,7 @@ fn modal_entrypoints_check_script_covers_fixed_entry_files_gate() {
 
 #[test]
 fn modal_component_directory_standard_files_follow_contract_and_na_paths() {
-    let component_src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let component_src_dir = component_dir().join("src");
     let mod_source = load_source("src/mod.rs");
     let logic_source = load_source("src/logic.rs");
     let styles_source = load_source("src/styles.rs");
@@ -3530,7 +3546,7 @@ fn modal_component_files_check_script_covers_standard_layout_gate() {
 
 #[test]
 fn modal_file_placement_discipline_is_strict_for_component_scope() {
-    let component_src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let component_src_dir = component_dir().join("src");
     let mod_source = load_source("src/mod.rs");
     let logic_source = load_source("src/logic.rs");
     let styles_source = load_source("src/styles.rs");
@@ -3601,7 +3617,7 @@ fn modal_file_placement_check_script_covers_contract() {
 
 #[test]
 fn modal_hyper_structure_builder_spec_is_not_applicable_for_simple_component() {
-    let component_src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let component_src_dir = component_dir().join("src");
     let mod_source = load_source("src/mod.rs");
     let view_source = load_source("src/view.rs");
     let logic_source = load_source("src/logic.rs");
@@ -3666,7 +3682,7 @@ fn modal_hyper_structure_builder_check_script_covers_na_contract() {
 #[test]
 fn modal_context_compression_manifest_and_rbi_projection_are_present_and_current() {
     for required_file in ["src/Component.toml", "src/modal.rbi"] {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(required_file);
+        let path = component_dir().join(required_file);
         assert!(
             path.exists(),
             "modal context-compression artifact should exist: `{required_file}`."

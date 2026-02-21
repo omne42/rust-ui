@@ -1,8 +1,24 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn component_dir() -> PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let included_test_path = manifest_dir.join(file!());
+    let resolved_test_path = included_test_path
+        .canonicalize()
+        .unwrap_or(included_test_path);
+
+    resolved_test_path
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| {
+            panic!("component root should be parent of test dir for {resolved_test_path:?}")
+        })
+        .to_path_buf()
+}
 
 fn load_source(rel_path: &str) -> String {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(rel_path);
+    let path = component_dir().join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -55,7 +71,7 @@ fn dialog_component_keeps_expected_file_boundaries() {
         "src/styles.rs",
         "src/motion.rs",
     ] {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(rel_path);
+        let path = component_dir().join(rel_path);
         assert!(
             path.exists(),
             "Dialog component should keep required file `{rel_path}`."
@@ -937,7 +953,7 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
         "../../crates/ui-components/src/a11y.rs",
     ] {
         assert!(
-            !Path::new(env!("CARGO_MANIFEST_DIR"))
+            !component_dir()
                 .join(forbidden)
                 .exists(),
             "ui-components forbidden entrypoint file should not exist: `{forbidden}`.",
@@ -950,7 +966,7 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
         "../../crates/ui-headless/src/a11y.rs",
     ] {
         assert!(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
+            component_dir()
                 .join(required)
                 .exists(),
             "ui-headless canonical primitive file should exist: `{required}`.",
@@ -1101,7 +1117,7 @@ fn dialog_component_directory_standard_files_follow_contract_and_na_paths() {
         "src/view.rs",
         "src/motion.rs",
     ] {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(required);
+        let path = component_dir().join(required);
         assert!(
             path.exists(),
             "dialog component directory should include `{required}`.",
@@ -1109,7 +1125,7 @@ fn dialog_component_directory_standard_files_follow_contract_and_na_paths() {
     }
 
     for forbidden_file in ["src/render.rs", "src/spec.rs"] {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(forbidden_file);
+        let path = component_dir().join(forbidden_file);
         assert!(
             !path.exists(),
             "dialog component directory should keep `{forbidden_file}` absent.",
@@ -1275,14 +1291,14 @@ fn dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component() 
     let checklist_source = load_source("check2.md");
     let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
 
-    let spec_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/spec.rs");
+    let spec_path = component_dir().join("src/spec.rs");
     assert!(
         !spec_path.exists(),
         "Dialog should not add `spec.rs` unless it becomes a complex schema-driven component."
     );
 
     let button_spec_path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../components/button/src/spec.rs");
+        component_dir().join("../../components/button/src/spec.rs");
     assert!(
         button_spec_path.exists(),
         "button should remain the canonical complex component carrying `spec.rs`."
@@ -1333,7 +1349,7 @@ fn dialog_context_compression_manifest_and_rbi_projection_are_present_and_curren
     let checklist_source = load_source("check2.md");
     let script_source = load_source("../../scripts/check-ui-components-component-files.sh");
 
-    let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let src_dir = component_dir().join("src");
     assert!(
         src_dir.join("Component.toml").exists(),
         "dialog context-compression contract requires `src/Component.toml`."
@@ -3719,7 +3735,7 @@ fn dialog_engineering_contract_uses_serde_protocol_and_keeps_tracing_runtime_bou
     let checklist_source = load_source("check2.md");
     let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
 
-    let spec_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/spec.rs");
+    let spec_path = component_dir().join("src/spec.rs");
     assert!(
         !spec_path.exists(),
         "Dialog should not introduce `spec.rs`; protocol is carried by `src/protocol.rs`."

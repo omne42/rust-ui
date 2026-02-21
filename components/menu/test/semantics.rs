@@ -2,7 +2,19 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn component_dir() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).to_path_buf()
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let included_test_path = manifest_dir.join(file!());
+    let resolved_test_path = included_test_path
+        .canonicalize()
+        .unwrap_or(included_test_path);
+
+    resolved_test_path
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| {
+            panic!("component root should be parent of test dir for {resolved_test_path:?}")
+        })
+        .to_path_buf()
 }
 
 fn load_component_source(rel_path: &str) -> String {
