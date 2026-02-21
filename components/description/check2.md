@@ -281,7 +281,7 @@
   - 已满足（可归因）：`components/description/src/view.rs` 暴露 `data-state/data-tone/data-aria-source/data-class-source`，可将回归归因到状态归一、渲染挂载与样式来源路径；组件无 `motion.rs`，不存在动效分支噪音。
   - 已满足（基础组件 `render_count` 基线）：`crates/ui-components/tests/button_semantics.rs::button_performance_governance_contract_is_budgeted_traceable_and_blocking` 与 `crates/ui-components/tests/input_semantics.rs::input_performance_governance_contract_is_budgeted_traceable_and_blocking` 持续锁定“初始化后预算为 1”条目。
   - N/A（本组件精确 `render_count`）：`Description` 为静态文本语义组件，当前无交互更新环路；暂以 mount-only perf probe + 语义来源标记作为等价证据。
-  - 已跟踪（自动化补齐计划）：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”任务。
+  - 已跟踪（自动化补齐计划）：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”任务。
   - 已满足（阻断门禁）：`scripts/check-ui-components-performance.sh` 运行 `description_performance_governance_contract_is_mount_only_traceable_and_blocking` 并串联 Button/Input/render_count 跟踪门禁。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。

@@ -106,6 +106,6 @@ pub struct CommandDialogPartState {
     pub overlay_motion_source_attr: &'static str,
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-command_dialog")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

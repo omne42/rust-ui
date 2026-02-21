@@ -77,7 +77,6 @@ fn render_tray_close_slot(
                 aria_label=close_label
                 variant=ButtonVariant::Ghost
                 size=ButtonSize::IconSm
-                is_icon_only=true
                 on_press=on_close
             >
                 {render_tray_close_icon()}

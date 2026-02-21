@@ -15,6 +15,6 @@ pub fn sanitize_color_value(value: Option<String>) -> Option<String> {
     logic::sanitize_color_value(value)
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-color_swatch")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

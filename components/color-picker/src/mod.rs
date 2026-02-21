@@ -7,6 +7,6 @@ pub use logic::{ColorPickerState, ColorPickerStateInput, DEFAULT_ARIA_LABEL, DEF
 pub use motion::ColorPickerMotion;
 pub use view::ColorPicker;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-color_picker")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

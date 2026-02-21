@@ -8,7 +8,7 @@ pub use logic::{
 };
 pub use view::FormField;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-form_field")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;
 

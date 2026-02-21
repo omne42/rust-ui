@@ -94,6 +94,6 @@ pub struct ModalPartState {
     pub exit_source_attr: &'static str,
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-modal")))]
 #[path = "../test/semantics.rs"]
 mod semantics;

@@ -1447,11 +1447,7 @@ fn autocomplete_dx_hello_world_keeps_zero_wiring_default_path() {
             "Autocomplete README hello section should include minimal marker `{needle}`.",
         );
     }
-    for forbidden in [
-        "signal(",
-        "selected_index=",
-        "set_selected_index=",
-    ] {
+    for forbidden in ["signal(", "selected_index=", "set_selected_index="] {
         assert!(
             !readme_hello_section.contains(forbidden),
             "Autocomplete README hello section should stay zero-wiring and avoid `{forbidden}`.",

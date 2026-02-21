@@ -3,10 +3,17 @@ use std::path::{Path, PathBuf};
 
 fn component_dir() -> PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let included_test_path = manifest_dir.join(file!());
-    let resolved_test_path = included_test_path
-        .canonicalize()
-        .unwrap_or(included_test_path);
+    let workspace_root = manifest_dir.parent().and_then(Path::parent);
+    let mut candidates = vec![manifest_dir.join(file!())];
+    if let Some(root) = workspace_root {
+        candidates.push(root.join(file!()));
+    }
+    candidates.push(PathBuf::from(file!()));
+
+    let resolved_test_path = candidates
+        .into_iter()
+        .find_map(|candidate| candidate.canonicalize().ok())
+        .unwrap_or_else(|| panic!("failed to resolve test file path from file!()={}", file!()));
 
     resolved_test_path
         .parent()
@@ -4338,7 +4345,7 @@ fn menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_co
     for check in [&check2, &src_check2] {
         for marker in [
             "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
-            "N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”",
+            "N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”",
             "menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
         ] {
             assert!(

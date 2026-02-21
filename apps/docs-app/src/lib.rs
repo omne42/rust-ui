@@ -155,7 +155,6 @@ pub fn App() -> impl IntoView {
                             aria_label="Open navigation".to_string()
                             variant=ButtonVariant::Ghost
                             size=ButtonSize::IconSm
-                            is_icon_only=true
                             class_name="docs-header__nav-toggle".to_string()
                             on_press=open_nav
                         >

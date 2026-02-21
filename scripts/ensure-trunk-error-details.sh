@@ -49,123 +49,155 @@ if [[ ! -f "$autoreload_file" ]]; then
   exit 1
 fi
 
-if ! grep -Fq "cargo build stderr (tail):" "$target_file"; then
-  patch "$target_file" <<'PATCH'
---- mod.rs.orig
-+++ mod.rs
-@@
--        let build_res = common::run_command("cargo", "cargo", &args, &self.cfg.working_directory)
--            .await
--            .context("error during cargo build execution");
-+        let build_out = Command::new("cargo")
-+            .current_dir(&self.cfg.working_directory)
-+            .args(args.as_slice())
-+            .stdout(Stdio::piped())
-+            .stderr(Stdio::piped())
-+            .spawn()
-+            .context("error spawning cargo build task")?
-+            .wait_with_output()
-+            .await
-+            .context("error during cargo build execution")?;
-@@
--        // Now propagate any errors which came from the cargo build.
--        build_res?;
-+        // Now propagate any errors which came from the cargo build.
-+        if !build_out.status.success() {
-+            let stderr = String::from_utf8_lossy(&build_out.stderr);
-+            let stdout = String::from_utf8_lossy(&build_out.stdout);
-+
-+            let stderr_tail = stderr
-+                .lines()
-+                .rev()
-+                .take(120)
-+                .collect::<Vec<_>>()
-+                .into_iter()
-+                .rev()
-+                .collect::<Vec<_>>()
-+                .join("\n");
-+            let stdout_tail = stdout
-+                .lines()
-+                .rev()
-+                .take(40)
-+                .collect::<Vec<_>>()
-+                .into_iter()
-+                .rev()
-+                .collect::<Vec<_>>()
-+                .join("\n");
-+
-+            let mut details = String::new();
-+            if !stderr_tail.trim().is_empty() {
-+                details.push_str("cargo build stderr (tail):\n");
-+                details.push_str(&stderr_tail);
-+            }
-+            if !stdout_tail.trim().is_empty() {
-+                if !details.is_empty() {
-+                    details.push_str("\n\n");
-+                }
-+                details.push_str("cargo build stdout (tail):\n");
-+                details.push_str(&stdout_tail);
-+            }
-+            if details.is_empty() {
-+                details.push_str("cargo build failed with empty stdout/stderr");
-+            }
-+
-+            bail!("cargo build returned a bad status: {}\n\n{details}", build_out.status);
-+        }
-PATCH
-fi
+if ! grep -Fq "cargo build stderr (tail):" "$target_file" \
+  || ! grep -Fq "cargo artifacts stderr (tail):" "$target_file"; then
+  python3 - "$target_file" <<'PY'
+from pathlib import Path
+import sys
 
-if ! grep -Fq "cargo artifacts stderr (tail):" "$target_file"; then
-  patch "$target_file" <<'PATCH'
---- mod.rs.orig
-+++ mod.rs
-@@
--        if !artifacts_out.status.success() {
--            eprintln!("{}", String::from_utf8_lossy(&artifacts_out.stderr));
--            bail!("bad status returned from cargo artifacts request");
--        }
-+        if !artifacts_out.status.success() {
-+            let stderr = String::from_utf8_lossy(&artifacts_out.stderr);
-+            let stdout = String::from_utf8_lossy(&artifacts_out.stdout);
-+
-+            let stderr_tail = stderr
-+                .lines()
-+                .rev()
-+                .take(80)
-+                .collect::<Vec<_>>()
-+                .into_iter()
-+                .rev()
-+                .collect::<Vec<_>>()
-+                .join("\n");
-+            let stdout_tail = stdout
-+                .lines()
-+                .rev()
-+                .take(40)
-+                .collect::<Vec<_>>()
-+                .into_iter()
-+                .rev()
-+                .collect::<Vec<_>>()
-+                .join("\n");
-+
-+            let mut details = String::new();
-+            if !stderr_tail.trim().is_empty() {
-+                details.push_str("cargo artifacts stderr (tail):\n");
-+                details.push_str(&stderr_tail);
-+            }
-+            if !stdout_tail.trim().is_empty() {
-+                if !details.is_empty() {
-+                    details.push_str("\n\n");
-+                }
-+                details.push_str("cargo artifacts stdout (tail):\n");
-+                details.push_str(&stdout_tail);
-+            }
-+            if details.is_empty() {
-+                details.push_str("cargo artifacts request failed with empty stdout/stderr");
-+            }
-+
-+            bail!("bad status returned from cargo artifacts request\n\n{details}");
-+        }
-PATCH
+path = Path(sys.argv[1])
+source = path.read_text(encoding="utf-8")
+updated = source
+
+build_runner_old = """        let build_res = common::run_command("cargo", "cargo", &args, &self.cfg.working_directory)
+            .await
+            .context("error during cargo build execution");
+"""
+build_runner_new = """        let build_out = Command::new("cargo")
+            .current_dir(&self.cfg.working_directory)
+            .args(args.as_slice())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .context("error spawning cargo build task")?
+            .wait_with_output()
+            .await
+            .context("error during cargo build execution")?;
+"""
+
+build_error_old = """        // Now propagate any errors which came from the cargo build.
+        build_res?;
+"""
+build_error_new = """        // Now propagate any errors which came from the cargo build.
+        if !build_out.status.success() {
+            let stderr = String::from_utf8_lossy(&build_out.stderr);
+            let stdout = String::from_utf8_lossy(&build_out.stdout);
+
+            let stderr_tail = stderr
+                .lines()
+                .rev()
+                .take(120)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect::<Vec<_>>()
+                .join("\\n");
+            let stdout_tail = stdout
+                .lines()
+                .rev()
+                .take(40)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect::<Vec<_>>()
+                .join("\\n");
+
+            let mut details = String::new();
+            if !stderr_tail.trim().is_empty() {
+                details.push_str("cargo build stderr (tail):\\n");
+                details.push_str(&stderr_tail);
+            }
+            if !stdout_tail.trim().is_empty() {
+                if !details.is_empty() {
+                    details.push_str("\\n\\n");
+                }
+                details.push_str("cargo build stdout (tail):\\n");
+                details.push_str(&stdout_tail);
+            }
+            if details.is_empty() {
+                details.push_str("cargo build failed with empty stdout/stderr");
+            }
+
+            bail!("cargo build returned a bad status: {}\\n\\n{details}", build_out.status);
+        }
+"""
+
+artifacts_error_old = """        if !artifacts_out.status.success() {
+            eprintln!("{}", String::from_utf8_lossy(&artifacts_out.stderr));
+            bail!("bad status returned from cargo artifacts request");
+        }
+"""
+artifacts_error_new = """        if !artifacts_out.status.success() {
+            let stderr = String::from_utf8_lossy(&artifacts_out.stderr);
+            let stdout = String::from_utf8_lossy(&artifacts_out.stdout);
+
+            let stderr_tail = stderr
+                .lines()
+                .rev()
+                .take(80)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect::<Vec<_>>()
+                .join("\\n");
+            let stdout_tail = stdout
+                .lines()
+                .rev()
+                .take(40)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect::<Vec<_>>()
+                .join("\\n");
+
+            let mut details = String::new();
+            if !stderr_tail.trim().is_empty() {
+                details.push_str("cargo artifacts stderr (tail):\\n");
+                details.push_str(&stderr_tail);
+            }
+            if !stdout_tail.trim().is_empty() {
+                if !details.is_empty() {
+                    details.push_str("\\n\\n");
+                }
+                details.push_str("cargo artifacts stdout (tail):\\n");
+                details.push_str(&stdout_tail);
+            }
+            if details.is_empty() {
+                details.push_str("cargo artifacts request failed with empty stdout/stderr");
+            }
+
+            bail!("bad status returned from cargo artifacts request\\n\\n{details}");
+        }
+"""
+
+if "cargo build stderr (tail):" not in updated:
+    if build_runner_old in updated:
+        updated = updated.replace(build_runner_old, build_runner_new, 1)
+    else:
+        print(
+            "ensure-trunk-error-details: warning: cannot find cargo build runner block",
+            file=sys.stderr,
+        )
+    if build_error_old in updated:
+        updated = updated.replace(build_error_old, build_error_new, 1)
+    else:
+        print(
+            "ensure-trunk-error-details: warning: cannot find cargo build error block",
+            file=sys.stderr,
+        )
+
+if "cargo artifacts stderr (tail):" not in updated:
+    if artifacts_error_old in updated:
+        updated = updated.replace(artifacts_error_old, artifacts_error_new, 1)
+    else:
+        print(
+            "ensure-trunk-error-details: warning: cannot find cargo artifacts error block",
+            file=sys.stderr,
+        )
+
+if updated != source:
+    path.write_text(updated, encoding="utf-8")
+PY
 fi
 
 if ! grep -Fq "trunk-overlay-shell" "$autoreload_file"; then

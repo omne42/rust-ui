@@ -53,7 +53,6 @@ fn render_drawer_close(inputs: DrawerCloseInputs) -> impl IntoView {
                     aria_label=close_label
                     variant=ButtonVariant::Ghost
                     size=ButtonSize::IconSm
-                    is_icon_only=true
                     on_press=close_action.get_value()
                 >
                     {render_drawer_close_icon()}

@@ -305,10 +305,7 @@ pub struct ButtonStateInput {
     pub radius: ButtonRadius,
     pub size: ButtonSize,
     pub loading_placement: ButtonLoadingPlacement,
-    pub is_icon_only: bool,
     pub is_full_width: bool,
-    pub has_start_content: bool,
-    pub has_end_content: bool,
     pub has_custom_class_name: bool,
     pub has_custom_motion: bool,
 }
@@ -319,8 +316,6 @@ pub struct ButtonInputNormalizationInput {
     pub is_full_width: bool,
     pub class_name: Option<String>,
     pub aria_label: Option<String>,
-    pub icon_only_fallback_aria_label: Option<String>,
-    pub is_icon_only: bool,
     pub button_type: ButtonType,
 }
 
@@ -576,11 +571,7 @@ pub fn normalize_input(input: ButtonInputNormalizationInput) -> ButtonInputNorma
     };
     let class_name = normalize_optional_text(input.class_name);
     let has_custom_class_name = class_name.is_some();
-    let (aria_label, aria_label_source) = resolve_aria_label(
-        input.aria_label,
-        input.is_icon_only,
-        input.icon_only_fallback_aria_label,
-    );
+    let (aria_label, aria_label_source) = resolve_aria_label(input.aria_label);
     let button_type = input.button_type;
 
     ButtonInputNormalization {
@@ -605,9 +596,6 @@ pub struct ButtonLogicInput {
     pub radius: ButtonRadius,
     pub size: ButtonSize,
     pub loading_placement: ButtonLoadingPlacement,
-    pub is_icon_only: bool,
-    pub has_start_content: bool,
-    pub has_end_content: bool,
     pub has_custom_motion: bool,
 }
 
@@ -623,10 +611,7 @@ pub struct ButtonState {
     pub size: ButtonSize,
     pub loading_placement: ButtonLoadingPlacement,
     pub loading_placement_attr: &'static str,
-    pub is_icon_only: bool,
     pub is_full_width: bool,
-    pub has_start_content: bool,
-    pub has_end_content: bool,
     pub has_custom_class_name: bool,
     pub has_custom_motion: bool,
     pub state_attr: &'static str,
@@ -635,10 +620,8 @@ pub struct ButtonState {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ButtonRenderState {
     pub show_start_inline_spinner: bool,
-    pub show_start_overlay_spinner: bool,
     pub show_end_spinner: bool,
     pub show_center_spinner: bool,
-    pub start_loading_attr: Option<&'static str>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -653,10 +636,7 @@ pub fn resolve_state(input: ButtonStateInput) -> ButtonState {
     let core = resolve_state_core(ButtonStateCoreInput {
         is_disabled: input.is_disabled,
         is_loading: input.is_loading,
-        is_icon_only: input.is_icon_only,
         is_full_width: input.is_full_width,
-        has_start_content: input.has_start_content,
-        has_end_content: input.has_end_content,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
     });
@@ -672,10 +652,7 @@ pub fn resolve_state(input: ButtonStateInput) -> ButtonState {
         size: input.size,
         loading_placement: input.loading_placement,
         loading_placement_attr: input.loading_placement.as_attr(),
-        is_icon_only: core.is_icon_only,
         is_full_width: core.is_full_width,
-        has_start_content: core.has_start_content,
-        has_end_content: core.has_end_content,
         has_custom_class_name: core.has_custom_class_name,
         has_custom_motion: core.has_custom_motion,
         state_attr: core.state_attr,
@@ -687,13 +664,11 @@ pub fn derive_render_state(state: ButtonState) -> ButtonRenderState {
         state.is_loading && matches!(state.loading_placement, ButtonLoadingPlacement::Start);
 
     ButtonRenderState {
-        show_start_inline_spinner: is_start_loading && !state.has_start_content,
-        show_start_overlay_spinner: is_start_loading && state.has_start_content,
+        show_start_inline_spinner: is_start_loading,
         show_end_spinner: state.is_loading
             && matches!(state.loading_placement, ButtonLoadingPlacement::End),
         show_center_spinner: state.is_loading
             && matches!(state.loading_placement, ButtonLoadingPlacement::Center),
-        start_loading_attr: (is_start_loading && state.has_start_content).then_some("true"),
     }
 }
 
@@ -707,10 +682,7 @@ pub fn resolve_view_state(input: ButtonLogicInput) -> ButtonViewState {
         radius: input.radius,
         size: input.size,
         loading_placement: input.loading_placement,
-        is_icon_only: input.is_icon_only,
         is_full_width: normalized.is_full_width,
-        has_start_content: input.has_start_content,
-        has_end_content: input.has_end_content,
         has_custom_class_name: normalized.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
     });
@@ -747,20 +719,11 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ButtonState) -
         format!("ui-button--loading-{}", state.loading_placement_attr),
     ];
 
-    if state.is_icon_only {
-        classes.push("ui-button--icon-only".to_string());
-    }
     if state.is_full_width {
         classes.push("ui-button--full-width".to_string());
     }
     if state.is_loading {
         classes.push("ui-button--loading".to_string());
-    }
-    if state.has_start_content {
-        classes.push("ui-button--has-start".to_string());
-    }
-    if state.has_end_content {
-        classes.push("ui-button--has-end".to_string());
     }
     if state.has_custom_motion {
         classes.push("ui-button--custom-motion".to_string());

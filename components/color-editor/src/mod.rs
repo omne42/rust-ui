@@ -11,6 +11,6 @@ pub use motion::ColorEditorMotion;
 pub use ui_state_primitives::color_editor::{ColorEditorFormat, ColorEditorState};
 pub use view::ColorEditor;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-color_editor")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

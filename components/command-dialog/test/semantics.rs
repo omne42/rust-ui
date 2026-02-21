@@ -1,15 +1,37 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn component_dir() -> PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_root = manifest_dir.parent().and_then(Path::parent);
+    let mut candidates = vec![manifest_dir.join(file!())];
+    if let Some(root) = workspace_root {
+        candidates.push(root.join(file!()));
+    }
+    candidates.push(PathBuf::from(file!()));
+
+    let resolved_test_path = candidates
+        .into_iter()
+        .find_map(|candidate| candidate.canonicalize().ok())
+        .unwrap_or_else(|| panic!("failed to resolve test file path from file!()={}", file!()));
+
+    resolved_test_path
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| {
+            panic!("component root should be parent of test dir for {resolved_test_path:?}")
+        })
+        .to_path_buf()
+}
 
 fn load_source(rel_path: &str) -> String {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let path = component_dir().join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn command_dialog_directory_layout_matches_ui_components_contract() {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest_dir = component_dir();
 
     for rel_path in [
         "src/mod.rs",

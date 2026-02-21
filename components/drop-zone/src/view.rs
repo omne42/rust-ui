@@ -326,7 +326,7 @@ pub fn DropZone(
             };
             let zone: leptos::web_sys::Element = zone.unchecked_into();
 
-            if ui_headless::a11y::should_focus_proxy_button_on_click(&zone, ev.target()) {
+            if ui_headless::a11y::should_focus_proxy_button_on_click(&zone, _ev.target()) {
                 if let Some(button) = focus_button_ref.get_untracked() {
                     ui_observability::observe_js_result!(button.focus());
                 }

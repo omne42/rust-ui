@@ -215,7 +215,7 @@
   - 阻断与观测：`apps/docs-app/src/perf_probe.rs` 提供稳定 `data-perf-mount-ms/data-perf-budget-ms/data-perf-budget-update-ms/data-perf-budget-heap-kb/data-perf-violation/data-perf-observability`；`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言预算属性存在且 `data-perf-violation != true`。
   - 归因路径：`components/command-dialog/src/view.rs` 暴露 `data-state/data-open-mode/data-action-source/data-open-change-source/data-command-motion-source/data-overlay-motion-source`，可将回归归因到状态/语义/动效通道。
   - 自动化证据：`crates/ui-components/tests/command_dialog_semantics.rs` 新增 `command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking`；门禁脚本 `scripts/check-ui-components-performance.sh` 新增命令 `cargo test -p ui-components --test command_dialog_semantics --no-default-features --features component-command_dialog,inject-css command_dialog_performance_governance_contract_is_mount_only_traceable_and_blocking`，并保持 `docs_perf_probe_budgets_are_wired_for_component_pages` 与 `perf_render_count_follow_up_is_tracked_in_plan`。
-  - 现状说明：当前测试框架尚未提供通用精确 `render_count` 计数，按清单采用可重复 `UiPerfProbe + data-perf-*` 等价证据；`docs/plan/TODO.md` 持续跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”。
+  - 现状说明：当前测试框架尚未提供通用精确 `render_count` 计数，按清单采用可重复 `UiPerfProbe + data-perf-*` 等价证据；`docs/plan/TODO.md` 持续跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。

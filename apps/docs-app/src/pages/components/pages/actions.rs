@@ -793,7 +793,6 @@ pub(super) fn button() -> AnyView {
 <Button id="docs-button-matrix-disabled".to_string() is_disabled=true>"Disabled"</Button>
 <Button
   id="docs-button-matrix-icon-only".to_string()
-  is_icon_only=true
   aria_label="Icon only".to_string()
 >
   "★"
@@ -975,12 +974,9 @@ pub(super) fn button() -> AnyView {
                                                 is_disabled=is_disabled
                                                 is_loading=is_loading
                                                 loading_placement=loading_placement
-                                                is_icon_only=icon_only
                                                 is_full_width=is_full_width
                                                 schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
-                                                start_content=move || view! { <span>"★"</span> }
-                                                end_content=move || view! { <span>"→"</span> }
                                             >
                                                 {if icon_only { "★" } else { "Button" }}
                                             </Button>
@@ -995,11 +991,9 @@ pub(super) fn button() -> AnyView {
                                                 is_disabled=is_disabled
                                                 is_loading=is_loading
                                                 loading_placement=loading_placement
-                                                is_icon_only=icon_only
                                                 is_full_width=is_full_width
                                                 schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
-                                                start_content=move || view! { <span>"★"</span> }
                                             >
                                                 {if icon_only { "★" } else { "Button" }}
                                             </Button>
@@ -1014,11 +1008,9 @@ pub(super) fn button() -> AnyView {
                                                 is_disabled=is_disabled
                                                 is_loading=is_loading
                                                 loading_placement=loading_placement
-                                                is_icon_only=icon_only
                                                 is_full_width=is_full_width
                                                 schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
-                                                end_content=move || view! { <span>"→"</span> }
                                             >
                                                 {if icon_only { "★" } else { "Button" }}
                                             </Button>
@@ -1033,7 +1025,6 @@ pub(super) fn button() -> AnyView {
                                                 is_disabled=is_disabled
                                                 is_loading=is_loading
                                                 loading_placement=loading_placement
-                                                is_icon_only=icon_only
                                                 is_full_width=is_full_width
                                                 schema_json=schema_json.clone().unwrap_or_default()
                                                 aria_label=if icon_only { "Button".to_string() } else { String::new() }
@@ -1069,7 +1060,6 @@ pub(super) fn button() -> AnyView {
                     </Button>
                     <Button
                         id="docs-button-matrix-icon-only".to_string()
-                        is_icon_only=true
                         aria_label="Icon only".to_string()
                     >
                         "★"
@@ -1249,14 +1239,12 @@ pub(super) fn action_button() -> AnyView {
         r#"<ActionButton
   is_loading=true
   loading_placement=ActionButtonLoadingPlacement::Start
-  start_content=move || view! { <span>"★"</span> }
 >
   "Start"
 </ActionButton>
 <ActionButton
   is_loading=true
   loading_placement=ActionButtonLoadingPlacement::End
-  end_content=move || view! { <span>"→"</span> }
 >
   "End"
 </ActionButton>"#
@@ -1358,7 +1346,6 @@ pub(super) fn action_button() -> AnyView {
                             size=ActionButtonSize::S
                             is_loading=true
                             loading_placement=ActionButtonLoadingPlacement::Start
-                            start_content=move || view! { <span>"★"</span> }
                         >
                             "Start"
                         </ActionButton>
@@ -1366,11 +1353,10 @@ pub(super) fn action_button() -> AnyView {
                             size=ActionButtonSize::L
                             is_loading=true
                             loading_placement=ActionButtonLoadingPlacement::End
-                            end_content=move || view! { <span>"→"</span> }
                         >
                             "End"
                         </ActionButton>
-                        <ActionButton is_icon_only=true is_quiet=true aria_label="Settings".to_string()>
+                        <ActionButton is_quiet=true aria_label="Settings".to_string()>
                             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                                 <path
                                     d="M10 13.3a3.3 3.3 0 1 0 0-6.6a3.3 3.3 0 0 0 0 6.6Z"
@@ -1471,10 +1457,7 @@ pub(super) fn action_button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_disabled=is_disabled
                                                 is_quiet=is_quiet
-                                                is_icon_only=is_icon_only
                                                 aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
-                                                start_content=move || view! { <span>"★"</span> }
-                                                end_content=move || view! { <span>"→"</span> }
                                             >
                                                 {if is_icon_only { "★" } else { "Action" }}
                                             </ActionButton>
@@ -1486,9 +1469,7 @@ pub(super) fn action_button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_disabled=is_disabled
                                                 is_quiet=is_quiet
-                                                is_icon_only=is_icon_only
                                                 aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
-                                                start_content=move || view! { <span>"★"</span> }
                                             >
                                                 {if is_icon_only { "★" } else { "Action" }}
                                             </ActionButton>
@@ -1500,9 +1481,7 @@ pub(super) fn action_button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_disabled=is_disabled
                                                 is_quiet=is_quiet
-                                                is_icon_only=is_icon_only
                                                 aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
-                                                end_content=move || view! { <span>"→"</span> }
                                             >
                                                 {if is_icon_only { "★" } else { "Action" }}
                                             </ActionButton>
@@ -1514,7 +1493,6 @@ pub(super) fn action_button() -> AnyView {
                                                 loading_placement=loading_placement
                                                 is_disabled=is_disabled
                                                 is_quiet=is_quiet
-                                                is_icon_only=is_icon_only
                                                 aria_label=if is_icon_only { "Action".to_string() } else { String::new() }
                                             >
                                                 {if is_icon_only { "★" } else { "Action" }}

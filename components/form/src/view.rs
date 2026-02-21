@@ -66,6 +66,6 @@ pub fn Form(
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-form")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

@@ -197,7 +197,6 @@ pub fn Button(
     color: ButtonColor,
     radius: ButtonRadius,
     size: ButtonSize,
-    is_icon_only: bool,
     is_full_width: bool,
     motion: ButtonMotion,
     loading_placement: ButtonLoadingPlacement,

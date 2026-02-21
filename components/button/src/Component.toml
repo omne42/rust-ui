@@ -47,12 +47,6 @@ default = "ButtonSize::M"
 controlled = false
 
 [[inputs]]
-name = "is_icon_only"
-ty = "bool"
-default = "false"
-controlled = false
-
-[[inputs]]
 name = "is_full_width"
 ty = "bool"
 default = "false"
@@ -130,17 +124,7 @@ scope = "root-attribute"
 [[slots]]
 name = "default"
 required = true
-description = "Button label/content slot"
-
-[[slots]]
-name = "start_content"
-required = false
-description = "Optional leading icon/content slot"
-
-[[slots]]
-name = "end_content"
-required = false
-description = "Optional trailing icon/content slot"
+description = "Button children slot (compose icon and optional text as children)"
 
 [[capabilities]]
 name = "context_compression_manifest"

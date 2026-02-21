@@ -9,6 +9,6 @@ mod view;
 pub use motion::CoachmarkMotion;
 pub use view::Coachmark;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-coachmark")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

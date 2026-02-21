@@ -85,8 +85,6 @@ pub fn normalize_input(input: FieldButtonResolveInput) -> FieldButtonNormalizedI
         is_full_width: false,
         class_name: input.class_name.clone(),
         aria_label: input.aria_label.clone(),
-        icon_only_fallback_aria_label: None,
-        is_icon_only: false,
         button_type: input.button_type,
     });
     let has_custom_aria_label = shared_normalized.aria_label.is_some();
@@ -120,10 +118,7 @@ pub fn resolve_state(input: FieldButtonStateInput) -> FieldButtonState {
     let core = resolve_state_core(ButtonStateCoreInput {
         is_disabled: input.is_disabled,
         is_loading: false,
-        is_icon_only: false,
         is_full_width: false,
-        has_start_content: false,
-        has_end_content: false,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: false,
     });

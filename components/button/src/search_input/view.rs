@@ -100,8 +100,6 @@ pub fn SearchInputButton(
         is_full_width: false,
         class_name,
         aria_label,
-        icon_only_fallback_aria_label: None,
-        is_icon_only: false,
         button_type,
     });
 

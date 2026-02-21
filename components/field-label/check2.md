@@ -175,7 +175,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（通过：`FieldLabel` 为轻量静态标签组件，关键路径限定为 `logic.rs` 归一化 + `view.rs` 语义挂载（无动效循环/高频状态更新）；仓库统一预算与阻断链路由 `scripts/check-ui-components-performance.sh` 提供（覆盖 `button/input` 等基线与性能契约）；当前测试基建对通用精确 `render_count` 仍在补齐阶段，`docs/plan/TODO.md` 已显式跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（通过：`FieldLabel` 为轻量静态标签组件，关键路径限定为 `logic.rs` 归一化 + `view.rs` 语义挂载（无动效循环/高频状态更新）；仓库统一预算与阻断链路由 `scripts/check-ui-components-performance.sh` 提供（覆盖 `button/input` 等基线与性能契约）；当前测试基建对通用精确 `render_count` 仍在补齐阶段，`docs/plan/TODO.md` 已显式跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。

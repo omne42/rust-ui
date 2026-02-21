@@ -3,10 +3,17 @@ use std::path::{Path, PathBuf};
 
 fn component_dir() -> PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let included_test_path = manifest_dir.join(file!());
-    let resolved_test_path = included_test_path
-        .canonicalize()
-        .unwrap_or(included_test_path);
+    let workspace_root = manifest_dir.parent().and_then(Path::parent);
+    let mut candidates = vec![manifest_dir.join(file!())];
+    if let Some(root) = workspace_root {
+        candidates.push(root.join(file!()));
+    }
+    candidates.push(PathBuf::from(file!()));
+
+    let resolved_test_path = candidates
+        .into_iter()
+        .find_map(|candidate| candidate.canonicalize().ok())
+        .unwrap_or_else(|| panic!("failed to resolve test file path from file!()={}", file!()));
 
     resolved_test_path
         .parent()
@@ -1644,7 +1651,7 @@ fn modal_performance_governance_contract_is_budgeted_traceable_and_blocking() {
 
     for needle in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(needle),
@@ -3329,10 +3336,8 @@ fn modal_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let ui_components_root_source = load_source("../../crates/ui-components/src/root.rs");
     let active_highlight_source =
         load_source("../../crates/ui-visual-primitive/src/active_highlight.rs");
-    let ui_components_src_dir =
-        component_dir().join("../../crates/ui-components/src");
-    let ui_headless_src_dir =
-        component_dir().join("../../crates/ui-headless/src");
+    let ui_components_src_dir = component_dir().join("../../crates/ui-components/src");
+    let ui_headless_src_dir = component_dir().join("../../crates/ui-headless/src");
 
     for needle in [
         "#[cfg(feature = \"component-modal\")]",
@@ -4489,7 +4494,7 @@ fn modal_semantics_and_performance_regression_cover_aria_data_focus_and_render_c
 
     for marker in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(marker),

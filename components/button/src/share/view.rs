@@ -63,30 +63,20 @@ fn render_front_button(
 ) -> AnyView {
     match icon {
         ShareButtonIconPlacement::Prefix => view! {
-            <Button
-                variant=variant
-                size=size
-                start_content=move || view! {
-                    <span data-slot="share-button-trigger-icon">
-                        {render_trigger_icon()}
-                    </span>
-                }
-            >
+            <Button variant=variant size=size>
+                <span data-slot="share-button-trigger-icon">
+                    {render_trigger_icon()}
+                </span>
                 <span data-slot="share-button-label">{move || label.get_value()}</span>
             </Button>
         }
         .into_any(),
         ShareButtonIconPlacement::Suffix => view! {
-            <Button
-                variant=variant
-                size=size
-                end_content=move || view! {
-                    <span data-slot="share-button-trigger-icon">
-                        {render_trigger_icon()}
-                    </span>
-                }
-            >
+            <Button variant=variant size=size>
                 <span data-slot="share-button-label">{move || label.get_value()}</span>
+                <span data-slot="share-button-trigger-icon">
+                    {render_trigger_icon()}
+                </span>
             </Button>
         }
         .into_any(),
@@ -134,7 +124,6 @@ fn render_platform_button(
             <Button
                 variant=ButtonVariant::Ghost
                 size=icon_button_size
-                is_icon_only=true
                 aria_label=aria_label
                 on_press=on_press
             >

@@ -51,6 +51,9 @@ fn load_source(rel_path: &str) -> &'static str {
         "../../scripts/check-ui-components-component-files.sh" => {
             include_str!("../../../scripts/check-ui-components-component-files.sh")
         }
+        "../../scripts/check-ui-components-contract-hygiene.sh" => {
+            include_str!("../../../scripts/check-ui-components-contract-hygiene.sh")
+        }
         "../../scripts/check-ui-components-entrypoints.sh" => {
             include_str!("../../../scripts/check-ui-components-entrypoints.sh")
         }
@@ -65,6 +68,9 @@ fn load_source(rel_path: &str) -> &'static str {
         }
         "../../scripts/check-ui-components-e2e-color-editor.sh" => {
             include_str!("../../../scripts/check-ui-components-e2e-color-editor.sh")
+        }
+        "../../scripts/check-rust-hygiene.sh" => {
+            include_str!("../../../scripts/check-rust-hygiene.sh")
         }
         "../../apps/docs-app/src/playground.rs" => {
             include_str!("../../../apps/docs-app/src/playground.rs")
@@ -2722,7 +2728,7 @@ fn color_editor_performance_governance_contract_is_budgeted_traceable_and_blocki
 
     for needle in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(needle),
@@ -2822,7 +2828,7 @@ fn color_editor_semantics_and_performance_regression_cover_aria_data_focus_and_r
 
     for marker in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(marker),

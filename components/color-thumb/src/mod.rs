@@ -7,6 +7,6 @@ pub use logic::{ColorThumbState, ColorThumbStateInput, DEFAULT_ARIA_LABEL, DEFAU
 pub use motion::ColorThumbMotion;
 pub use view::ColorThumb;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-color_thumb")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

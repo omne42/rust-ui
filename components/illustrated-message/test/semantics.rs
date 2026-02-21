@@ -2664,7 +2664,7 @@ fn illustrated_message_performance_governance_is_mount_only_traceable_and_blocki
 
     assert!(
         todo_source.contains(
-            "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据"
+            "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据"
         ),
         "performance governance should keep explicit render_count automation follow-up in plan.",
     );

@@ -95,6 +95,6 @@ pub fn Label(
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-label")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

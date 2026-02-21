@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [features]
 default = []
+component-menu = []
 component-menu_item = []
 component-menu_section = []
 

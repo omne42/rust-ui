@@ -318,7 +318,7 @@
   - 可归因证据：`components/chart/src/view.rs` 暴露 `data-active-value-source`、`data-active-interaction-source`、`data-class-source`、`data-motion-source`、`data-custom-motion` 标记，区分状态/样式/动效路径来源。
   - 脚本门禁证据：`scripts/check-ui-components-performance.sh` 新增 `chart_performance_governance_contract_is_budgeted_traceable_and_blocking` 执行命令，确保回归可阻断。
   - 回归证据：`components/chart/test/semantics.rs` 与 `crates/ui-components/tests/chart_semantics.rs` 新增 `chart_performance_governance_contract_is_budgeted_traceable_and_blocking`。
-  - `render_count` 跟进证据：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”任务，作为当前框架下的等价证据与后续自动化补齐计划。
+  - `render_count` 跟进证据：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”任务，作为当前框架下的等价证据与后续自动化补齐计划。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。

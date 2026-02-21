@@ -543,7 +543,7 @@ fn ripple_performance_governance_budget_is_defined_and_blocking() {
 
     assert!(
         todo_source.contains(
-            "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据"
+            "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据"
         ),
         "performance governance should keep render_count follow-up marker in TODO plan."
     );

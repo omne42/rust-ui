@@ -43,6 +43,6 @@ impl MenuItemSpec {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-menu")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

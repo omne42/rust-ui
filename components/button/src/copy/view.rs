@@ -127,7 +127,6 @@ fn render_copy_button(
                     variant=variant
                     size=size
                     motion=motion.button
-                    is_icon_only=view_state.is_icon_only
                     is_loading=is_copying
                     aria_label=aria_label.get_value()
                     is_disabled=!view_state.is_copyable

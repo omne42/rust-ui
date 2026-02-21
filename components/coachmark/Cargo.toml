@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [features]
 default = []
+component-coachmark = []
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }

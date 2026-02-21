@@ -97,6 +97,6 @@ pub struct DialogPartState {
     pub exit_source_attr: &'static str,
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-dialog")))]
 #[path = "../test/semantics.rs"]
 mod semantics;

@@ -2667,7 +2667,7 @@ fn collapsible_performance_governance_contract_is_budgeted_traceable_and_blockin
 
     for needle in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo.contains(needle),
@@ -2825,7 +2825,7 @@ fn collapsible_semantics_and_performance_regression_cover_aria_data_focus_and_re
 
     for marker in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo.contains(marker),

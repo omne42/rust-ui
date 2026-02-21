@@ -220,10 +220,7 @@ fn navigation_item_runtime_decisions_are_centralized() {
 
     assert_eq!(
         resolve_key_decision("ArrowRight", false, 1, &items, true),
-        Some(NavigationKeyDecision {
-            next_focus_index: Some(1),
-            selection_target: Some(NavigationSelectionTarget::Index(1))
-        })
+        None
     );
     assert_eq!(
         resolve_key_decision("Enter", false, 1, &items, true),

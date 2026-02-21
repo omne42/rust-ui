@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [features]
 default = []
+component-alert_dialog = []
 
 [dependencies]
 ui-observability = { path = "../../crates/ui-observability" }

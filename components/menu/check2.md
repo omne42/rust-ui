@@ -512,7 +512,7 @@
   - 语义与焦点流转证据：`components/menu/src/view.rs` 与 `components/menu/src/item/view.rs` 持续挂载 `role/aria-*`、`data-*`（含 `data-state`/`data-controlled`/`data-uncontrolled`/`data-focused`）以及 `on:keydown`、`on:pointermove` 交互路径。
   - 回归：`components/menu/test/semantics.rs::menu_semantic_contract_tests_cover_interaction_matrix_without_snapshot_dependency`、`components/menu/test/semantics.rs::menu_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/menu/test/semantics.rs::menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
   - 门禁脚本：`scripts/check-ui-components-performance.sh` 已纳入 `cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
-  - N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”。
+  - N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”。
   - 验证记录：`cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 在当前环境编译阶段受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试与门禁命令锁定。
 - [x] 版本弃用迁移（Codemod/Registry）：若提交包含跨大版本 API 破坏升级，必须在 Schema Registry 注册弃用窗口并提供纯函数迁移层（`migrate_v1_to_v2`）。
   - N/A（触发条件未满足）：本次 `menu` 提交未发生跨大版本 API 破坏升级，`components/menu/src/Component.toml` 与 `components/menu/src/logic.rs` 仍保持 `schema_version = "1"` / `MenuAgentSchemaVersion::V1`，不需要引入 `migrate_v1_to_v2`。

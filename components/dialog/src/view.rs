@@ -44,7 +44,6 @@ fn render_dialog_close_section(
                     aria_label=close_label
                     variant=ButtonVariant::Ghost
                     size=ButtonSize::IconSm
-                    is_icon_only=true
                     on_press=close_action.get_value()
                 >
                     {render_dialog_close_icon()}

@@ -9,7 +9,6 @@ use super::{ActionButtonGroupDensity, ActionButtonGroupMotion, ActionButtonGroup
 use super::{ActionButtonLoadingPlacement, ActionButtonMotion, ActionButtonSize, ActionButtonType};
 #[cfg(feature = "component-action_group")]
 use super::{ActionGroupItem, ActionGroupSelectionMode, ActionGroupStateInput, ActionGroupTone};
-use leptos::children::ViewFn;
 use leptos::{html, prelude::*};
 #[cfg(feature = "component-action_group")]
 use std::collections::BTreeSet;
@@ -21,9 +20,14 @@ use ui_headless::labeled_toolbar_attrs;
 #[cfg(feature = "component-action_group")]
 use ui_headless::use_controllable_state;
 use ui_headless::{
-    A11yDirection, ButtonOptions, CommonStrings, FocusRingOptions, HoverOptions, OnPress,
-    popup_trigger_attrs, use_button, use_focus_ring, use_hover, use_ui_i18n,
+    A11yDirection, ButtonOptions, FocusRingOptions, HoverOptions, OnPress, popup_trigger_attrs,
+    use_button, use_focus_ring, use_hover,
 };
+#[cfg(any(
+    feature = "component-action_button_group",
+    feature = "component-action_group"
+))]
+use ui_headless::{CommonStrings, use_ui_i18n};
 
 #[cfg(feature = "component-action_group")]
 #[derive(Clone, Copy)]
@@ -43,9 +47,6 @@ pub fn ActionButton(
     #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] size: Option<ActionButtonSize>,
     #[prop(optional)] is_quiet: Option<bool>,
-    #[prop(optional)] is_icon_only: bool,
-    #[prop(optional, into)] start_content: Option<ViewFn>,
-    #[prop(optional, into)] end_content: Option<ViewFn>,
     #[prop(optional)] motion: ActionButtonMotion,
     #[prop(optional)] loading_placement: ActionButtonLoadingPlacement,
     #[prop(optional, into)] class_name: Option<String>,
@@ -61,8 +62,6 @@ pub fn ActionButton(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
-    let i18n = use_ui_i18n();
-    let common_strings = i18n.strings::<CommonStrings>();
     #[cfg(feature = "component-action_button_group")]
     let group = action_logic::action_button_group_logic::use_action_button_group_context();
 
@@ -99,15 +98,10 @@ pub fn ActionButton(
         is_full_width: false,
         class_name,
         aria_label,
-        // icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string())
-        icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.as_ref().into()),
-        is_icon_only,
         button_type: action_logic::action_button_logic::resolve_button_type(button_type),
     });
     let aria_label = normalized.aria_label.clone();
     let aria_label_source = normalized.aria_label_source;
-    let has_start_content = start_content.is_some();
-    let has_end_content = end_content.is_some();
     let has_custom_motion = motion != ActionButtonMotion::default();
     let button_type = normalized.button_type;
 
@@ -119,9 +113,6 @@ pub fn ActionButton(
         radius: ButtonRadius::default(),
         size: resolved.size,
         loading_placement,
-        is_icon_only,
-        has_start_content,
-        has_end_content,
         has_custom_motion,
     });
     let state = view_state.state;
@@ -150,8 +141,6 @@ pub fn ActionButton(
     );
 
     let class = view_state.class_name;
-    let start_content = start_content.map(StoredValue::new);
-    let end_content = end_content.map(StoredValue::new);
     let popup_a11y = popup_trigger_attrs(
         aria_haspopup,
         aria_controls,
@@ -175,10 +164,7 @@ pub fn ActionButton(
             data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
             data-loading=state.is_loading.then_some("true")
             data-loading-placement=state.loading_placement_attr
-            data-icon-only=state.is_icon_only.then_some("true")
             data-full-width=state.is_full_width.then_some("true")
-            data-has-start=state.has_start_content.then_some("true")
-            data-has-end=state.has_end_content.then_some("true")
             data-quiet=is_quiet.then_some("true")
             data-label-source=aria_label_source.as_attr()
             data-color=state.color_attr
@@ -219,7 +205,7 @@ pub fn ActionButton(
                 focus_ring.handlers.on_blur.run(());
             }
         >
-            {button_view::render_button_content(state, render, start_content, end_content, children)}
+            {button_view::render_button_content(render, children)}
         </button>
     }
 }

@@ -191,8 +191,8 @@ pub fn ColorWheel(
     let track_ref_for_pointer = track_ref;
     let on_input_handler = semantics.handlers.on_input;
     let on_key_down_handler = semantics.handlers.on_key_down;
-    let _on_track_pointer_down_handler = semantics.handlers.on_track_pointer_down;
-    let _on_track_pointer_move_handler = semantics.handlers.on_track_pointer_move;
+    let on_track_pointer_down_handler = semantics.handlers.on_track_pointer_down;
+    let on_track_pointer_move_handler = semantics.handlers.on_track_pointer_move;
     let on_track_pointer_up_handler = semantics.handlers.on_track_pointer_up;
     let on_track_pointer_cancel_handler = semantics.handlers.on_track_pointer_cancel;
     let on_track_pointer_leave_handler = semantics.handlers.on_track_pointer_leave;

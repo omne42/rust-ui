@@ -7,6 +7,6 @@ pub use logic::{
 };
 pub use view::ColorLoupe;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-color_loupe")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

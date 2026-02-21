@@ -3161,7 +3161,7 @@ fn sonner_performance_governance_contract_is_budgeted_repeatable_attributable_an
 
     for needle in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(needle),

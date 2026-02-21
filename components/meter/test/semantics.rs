@@ -1635,7 +1635,7 @@ fn performance_governance_budget_is_defined_repeatable_and_traceable_for_meter()
 
     for marker in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(marker),
@@ -1787,7 +1787,7 @@ fn semantic_and_performance_regression_contract_is_covered_for_meter() {
 
     for marker in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(marker),

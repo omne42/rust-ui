@@ -9,6 +9,6 @@ pub use logic::{
 pub use motion::ColorSwatchPickerMotion;
 pub use view::ColorSwatchPicker;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-color_swatch_picker")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

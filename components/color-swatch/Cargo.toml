@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [features]
 default = []
+component-color_swatch = []
 
 [dependencies]
 ui-observability = { path = "../../crates/ui-observability" }

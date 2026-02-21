@@ -256,7 +256,6 @@ pub fn ActionMenu(
                 size=size
                 is_disabled=trigger_disabled
                 is_quiet=is_quiet
-                is_icon_only=true
                 aria_label=aria_label.get_value()
                 aria_haspopup="menu"
                 aria_expanded=open

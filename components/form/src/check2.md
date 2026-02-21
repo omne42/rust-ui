@@ -226,7 +226,7 @@
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
   - 本组件判定：`Form` 为静态语义容器，按 mount-only 预算通过。关键路径限定为 `components/form/src/view.rs` 中一次 `logic::resolve_props` + 一次 `logic::resolve_view_state`，无 `on:*` 事件处理器、无 `create_effect/create_resource`、无计时器/RAF/异步任务、无 `ui-motion` attach。
   - 可归因与阻断：组件侧采用源码守卫等价证据（出现高频更新或逐帧路径即测试失败），可直接归因到 `logic.rs/view.rs/styles.rs/motion.rs` 路径；仓库级阻断链路由 `scripts/check-ui-components-performance.sh` 执行。
-  - render_count 边界：`Button/Input` 的 `render_count=1` 基线属于仓库级治理；`docs/plan/TODO.md` 保持“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”跟踪项，本组件不重复定义跨组件预算。
+  - render_count 边界：`Button/Input` 的 `render_count=1` 基线属于仓库级治理；`docs/plan/TODO.md` 保持“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”跟踪项，本组件不重复定义跨组件预算。
   - 回归：`components/form/test/semantics.rs::form_performance_governance_contract_is_mount_only_traceable_and_blocking`。
 - [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。

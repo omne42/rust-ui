@@ -26,7 +26,7 @@ fn sanitize_motion_falls_back_for_invalid_values() {
     assert_eq!(motion.spring.mass, default.spring.mass);
     assert_eq!(motion.spring.precision, default.spring.precision);
     assert_eq!(motion.initial_y_px, default.initial_y_px);
-    assert_eq!(motion.initial_opacity, 1.0);
+    assert_eq!(motion.initial_opacity, default.initial_opacity);
 }
 
 #[test]

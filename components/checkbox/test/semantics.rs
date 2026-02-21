@@ -1922,7 +1922,7 @@ fn checkbox_performance_governance_budget_is_defined_and_blocking_locally() {
 
     for needle in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(needle),

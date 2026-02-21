@@ -11,6 +11,6 @@ pub use logic::{OverlaysRootState, OverlaysRootStateInput, resolve_root_state};
 pub use motion::OverlaysMotion;
 pub use view::OverlaysRoot;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-overlays")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;

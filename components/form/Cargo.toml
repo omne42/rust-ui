@@ -9,6 +9,7 @@ path = "src/mod.rs"
 
 [features]
 default = []
+component-form = []
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }

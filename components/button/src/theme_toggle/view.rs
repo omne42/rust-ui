@@ -148,7 +148,6 @@ pub fn ThemeToggleButton(
                 class_name=class
                 variant=variant
                 size=size
-                is_icon_only=true
                 is_disabled=is_disabled
                 on_press=on_press
             >

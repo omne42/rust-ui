@@ -3619,7 +3619,7 @@ fn field_performance_governance_contract_is_budgeted_traceable_and_blocking() {
 
     for required in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(required),
@@ -3761,7 +3761,7 @@ fn field_semantics_and_performance_regression_cover_aria_data_focus_and_render_c
 
     for required in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(required) || check2_source.contains(required),

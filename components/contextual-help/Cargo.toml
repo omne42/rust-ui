@@ -9,5 +9,6 @@ path = "src/lib.rs"
 
 [features]
 default = []
+component-contextual_help = []
 
 [dependencies]

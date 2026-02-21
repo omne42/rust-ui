@@ -3312,7 +3312,7 @@ fn kbd_performance_governance_is_mount_only_traceable_and_backed_by_repo_gates()
 
     assert!(
         docs_todo.contains(
-            "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据"
+            "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据"
         ),
         "repo plan should keep render_count automation follow-up task for shared performance governance."
     );
@@ -3322,7 +3322,7 @@ fn kbd_performance_governance_is_mount_only_traceable_and_backed_by_repo_gates()
         "已核验（kbd）：`kbd` 为静态展示组件（无异步、无动效 attach、无交互状态更新环路），关键路径为 mount-only",
         "共享预算与阻断链路：`scripts/check-ui-components-performance.sh` 已纳入",
         "`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-budget-*` 并阻断 `data-perf-violation=true`",
-        "render_count 跟进状态：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”",
+        "render_count 跟进状态：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”",
         "N/A（kbd，组件级）：`Button`、`Input` 初始化渲染预算为 `1` 属于跨组件基线",
     ] {
         assert!(
@@ -3393,7 +3393,7 @@ fn kbd_semantics_and_performance_regression_contract_is_covered_with_clear_na_bo
 
     assert!(
         docs_todo.contains(
-            "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据"
+            "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据"
         ),
         "repo plan should keep render_count automation follow-up task for heavy/interactive components."
     );

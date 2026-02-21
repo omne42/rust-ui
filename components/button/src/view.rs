@@ -2,7 +2,6 @@ use crate::button::{
     ButtonColor, ButtonLoadingPlacement, ButtonMotion, ButtonRadius, ButtonSize, ButtonType,
     ButtonVariant, logic, motion,
 };
-use leptos::children::ViewFn;
 use leptos::{html, prelude::*};
 #[cfg(all(
     feature = "button-wasm-debug",
@@ -13,22 +12,16 @@ use std::borrow::Cow;
 #[cfg(feature = "component-button_group")]
 use ui_headless::labeled_group_attrs;
 use ui_headless::{
-    A11yDirection, ButtonOptions, CommonStrings, FocusRingOptions, HoverOptions, OnPress,
-    popup_trigger_attrs, use_button, use_focus_ring, use_hover, use_ui_i18n,
+    A11yDirection, ButtonOptions, FocusRingOptions, HoverOptions, OnPress, popup_trigger_attrs,
+    use_button, use_focus_ring, use_hover,
 };
 
 const SLOT_BUTTON: &str = "button";
 const SLOT_BUTTON_SPINNER: &str = "button-spinner";
-const SLOT_BUTTON_START: &str = "button-start";
-const SLOT_BUTTON_START_CONTENT: &str = "button-start-content";
 const SLOT_BUTTON_LABEL: &str = "button-label";
-const SLOT_BUTTON_END: &str = "button-end";
 
 const CLASS_BUTTON_SPINNER: &str = "ui-button__spinner";
-const CLASS_BUTTON_START: &str = "ui-button__start";
-const CLASS_BUTTON_START_CONTENT: &str = "ui-button__start-content";
 const CLASS_BUTTON_LABEL: &str = "ui-button__label";
-const CLASS_BUTTON_END: &str = "ui-button__end";
 
 #[cfg(all(
     feature = "button-wasm-debug",
@@ -604,65 +597,15 @@ fn render_spinner() -> impl IntoView {
     view! { <span class=CLASS_BUTTON_SPINNER data-slot=SLOT_BUTTON_SPINNER aria-hidden="true"></span> }
 }
 
-fn render_start_slot(
-    state: logic::ButtonState,
-    render: logic::ButtonRenderState,
-    start_content: Option<StoredValue<ViewFn>>,
-) -> AnyView {
-    if !state.has_start_content {
-        return ().into_any();
-    }
-
-    let Some(start_content) = start_content else {
-        return ().into_any();
-    };
-
-    view! {
-        <span
-            class=CLASS_BUTTON_START
-            data-slot=SLOT_BUTTON_START
-            data-loading-start=render.start_loading_attr
-        >
-            <span class=CLASS_BUTTON_START_CONTENT data-slot=SLOT_BUTTON_START_CONTENT>
-                {start_content.get_value().run()}
-            </span>
-            <Show when=move || render.show_start_overlay_spinner>{render_spinner()}</Show>
-        </span>
-    }
-    .into_any()
-}
-
-fn render_end_slot(state: logic::ButtonState, end_content: Option<StoredValue<ViewFn>>) -> AnyView {
-    if !state.has_end_content {
-        return ().into_any();
-    }
-
-    let Some(end_content) = end_content else {
-        return ().into_any();
-    };
-
-    view! {
-        <span class=CLASS_BUTTON_END data-slot=SLOT_BUTTON_END>
-            {end_content.get_value().run()}
-        </span>
-    }
-    .into_any()
-}
-
 pub(crate) fn render_button_content(
-    state: logic::ButtonState,
     render: logic::ButtonRenderState,
-    start_content: Option<StoredValue<ViewFn>>,
-    end_content: Option<StoredValue<ViewFn>>,
     children: Children,
 ) -> impl IntoView {
     view! {
         <Show when=move || render.show_start_inline_spinner>{render_spinner()}</Show>
-        {render_start_slot(state, render, start_content)}
         <span class=CLASS_BUTTON_LABEL data-slot=SLOT_BUTTON_LABEL>
             {children()}
         </span>
-        {render_end_slot(state, end_content)}
         <Show when=move || render.show_end_spinner>{render_spinner()}</Show>
         <Show when=move || render.show_center_spinner>{render_spinner()}</Show>
     }
@@ -677,10 +620,7 @@ pub fn Button(
     #[prop(optional, into)] color: ButtonColor,
     #[prop(optional, into)] radius: ButtonRadius,
     #[prop(optional, into)] size: ButtonSize,
-    #[prop(optional)] is_icon_only: bool,
     #[prop(optional)] is_full_width: bool,
-    #[prop(optional, into)] start_content: Option<ViewFn>,
-    #[prop(optional, into)] end_content: Option<ViewFn>,
     #[prop(optional)] motion: ButtonMotion,
     #[prop(optional)] loading_placement: ButtonLoadingPlacement,
     #[prop(optional, into)] class_name: Option<String>,
@@ -697,16 +637,11 @@ pub fn Button(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
-    let i18n = use_ui_i18n();
-    let common_strings = i18n.strings::<CommonStrings>();
     let normalized = logic::normalize_input(logic::ButtonInputNormalizationInput {
         is_disabled,
         is_full_width,
         class_name,
         aria_label,
-        // icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string())
-        icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.as_ref().into()),
-        is_icon_only,
         button_type,
     });
     let normalized_button_type = normalized.button_type;
@@ -720,9 +655,6 @@ pub fn Button(
         radius,
         size,
         loading_placement,
-        is_icon_only,
-        has_start_content: start_content.is_some(),
-        has_end_content: end_content.is_some(),
         has_custom_motion: motion != ButtonMotion::default(),
     });
     let state = view_state.state;
@@ -771,8 +703,6 @@ pub fn Button(
     );
 
     let class = view_state.class_name;
-    let start_content = start_content.map(StoredValue::new);
-    let end_content = end_content.map(StoredValue::new);
     let normalized_schema = logic::normalize_schema_json_input(schema_json);
     let has_popup_trigger = aria_haspopup.is_some();
     let agent_contract = logic::resolve_agent_contract(state, has_popup_trigger);
@@ -895,10 +825,7 @@ pub fn Button(
             data-disabled-input-source=view_state.source.disabled_input_source_attr
             data-full-width-source=view_state.source.full_width_input_source_attr
             data-loading-placement=state.loading_placement_attr
-            data-icon-only=state.is_icon_only.then_some("true")
             data-full-width=state.is_full_width.then_some("true")
-            data-has-start=state.has_start_content.then_some("true")
-            data-has-end=state.has_end_content.then_some("true")
             data-label-source=normalized_aria_label_source.as_attr()
             data-color=state.color_attr
             data-radius=state.radius_attr
@@ -947,7 +874,7 @@ pub fn Button(
             on:focus=on_focus
             on:blur=on_blur
         >
-            {render_button_content(state, render, start_content, end_content, children)}
+            {render_button_content(render, children)}
         </button>
         {debug_panel}
     }

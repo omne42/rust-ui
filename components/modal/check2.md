@@ -218,7 +218,7 @@
   - 已核验（共享预算门禁 + modal 可归因标记 + 阻断脚本）：`apps/docs-app/src/pages/components/shell.rs` 的 `component_page_perf_budget` 持续维护 `button/input` 显式预算并保留默认 `UiPerfBudget::mount_only(120.0)`；`apps/docs-app/src/perf_probe.rs` 输出 `data-perf-mount-ms/data-perf-budget-ms/data-perf-budget-update-ms/data-perf-budget-heap-kb/data-perf-violation/data-perf-observability`；`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言预算属性存在且 `data-perf-violation != true`；`apps/docs-app/src/debug_overlay.rs` 通过 `use_ui_trace + trace.emit` 提供可归因事件链。
   - `Modal` 自身已暴露可归因语义：`components/modal/src/view.rs` 稳定输出 `data-open-mode/source/change-source/prop-source` 与 `data-class-source/data-motion-source/data-exit-source`，可直接定位到状态/样式/动效路径。
   - 阻断回归：新增 `modal_performance_governance_contract_is_budgeted_traceable_and_blocking`（`components/modal/test/semantics.rs` + `crates/ui-components/tests/modal_semantics.rs`），并接入 `scripts/check-ui-components-performance.sh`。
-  - N/A（精确 `render_count` 自动计数）：当前测试链路尚无统一 runtime render counter；采用可重复 `UiPerfProbe + e2e + trace` 作为等价证据，且 `docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”跟踪项。
+  - N/A（精确 `render_count` 自动计数）：当前测试链路尚无统一 runtime render counter；采用可重复 `UiPerfProbe + e2e + trace` 作为等价证据，且 `docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”跟踪项。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。

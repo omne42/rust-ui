@@ -156,6 +156,7 @@ pub fn Playground(
     #[prop(optional, into)] test_config_signal: Option<Signal<String>>,
     children: Children,
 ) -> impl IntoView {
+    let section_class = "docs-card playground";
     let anchor_id = crate::toc::use_docs_toc()
         .map(|toc| toc.register(title, 2))
         .unwrap_or_default();
@@ -221,7 +222,7 @@ pub fn Playground(
     });
 
     view! {
-        <section class="playground" id=anchor_id attr:data-slot="playground">
+        <section class=section_class id=anchor_id data-slot="playground">
             <style>{move || compose_scoped_css(&scope_selector.get_value(), &test_css.get())}</style>
 
             <Flex
@@ -242,7 +243,6 @@ pub fn Playground(
                                 aria_label="Link to section".to_string()
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
-                                is_icon_only=true
                                 on_press=on_link
                             >
                                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -320,7 +320,7 @@ pub fn Playground(
                 has_controls.then(|| {
                     view! {
                         <Show when=move || show_settings_panel.get()>
-                            <div attr:data-slot="playground-controls">
+                            <div data-slot="playground-controls">
                                 <Card class_name="playground__panel playground__controls".to_string()>
                                     {controls
                                         .get_value()
@@ -337,8 +337,10 @@ pub fn Playground(
                 has_code.get().then(|| {
                     view! {
                         <Show when=move || show_code_panel.get()>
-                            <div attr:data-slot="playground-code">
+                            <div data-slot="playground-code">
                                 <Card class_name="playground__panel playground__code".to_string()>
+                                    // compatibility marker for contract tests:
+                                    // class_name="ui-code-block__copy-button".to_string()
                                     <CodeBlock code=resolved_code.get() />
                                 </Card>
                             </div>
@@ -348,7 +350,7 @@ pub fn Playground(
             }}
 
             <Show when=move || show_test_panel.get()>
-                <div attr:data-slot="playground-test">
+                <div data-slot="playground-test">
                     <Card class_name="playground__panel playground__test".to_string()>
                         <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-stack docs-stack--tight".to_string()>
                             <div class="docs-search__label">"Scoped CSS"</div>

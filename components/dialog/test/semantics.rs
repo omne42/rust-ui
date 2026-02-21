@@ -3,10 +3,17 @@ use std::path::{Path, PathBuf};
 
 fn component_dir() -> PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let included_test_path = manifest_dir.join(file!());
-    let resolved_test_path = included_test_path
-        .canonicalize()
-        .unwrap_or(included_test_path);
+    let workspace_root = manifest_dir.parent().and_then(Path::parent);
+    let mut candidates = vec![manifest_dir.join(file!())];
+    if let Some(root) = workspace_root {
+        candidates.push(root.join(file!()));
+    }
+    candidates.push(PathBuf::from(file!()));
+
+    let resolved_test_path = candidates
+        .into_iter()
+        .find_map(|candidate| candidate.canonicalize().ok())
+        .unwrap_or_else(|| panic!("failed to resolve test file path from file!()={}", file!()));
 
     resolved_test_path
         .parent()
@@ -953,9 +960,7 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
         "../../crates/ui-components/src/a11y.rs",
     ] {
         assert!(
-            !component_dir()
-                .join(forbidden)
-                .exists(),
+            !component_dir().join(forbidden).exists(),
             "ui-components forbidden entrypoint file should not exist: `{forbidden}`.",
         );
     }
@@ -966,9 +971,7 @@ fn dialog_ui_components_fixed_entry_files_follow_layered_boundaries() {
         "../../crates/ui-headless/src/a11y.rs",
     ] {
         assert!(
-            component_dir()
-                .join(required)
-                .exists(),
+            component_dir().join(required).exists(),
             "ui-headless canonical primitive file should exist: `{required}`.",
         );
     }
@@ -1297,8 +1300,7 @@ fn dialog_hyper_structure_builder_spec_is_not_applicable_for_simple_component() 
         "Dialog should not add `spec.rs` unless it becomes a complex schema-driven component."
     );
 
-    let button_spec_path =
-        component_dir().join("../../components/button/src/spec.rs");
+    let button_spec_path = component_dir().join("../../components/button/src/spec.rs");
     assert!(
         button_spec_path.exists(),
         "button should remain the canonical complex component carrying `spec.rs`."
@@ -1991,7 +1993,7 @@ fn dialog_semantics_and_performance_regression_cover_aria_data_focus_and_render_
 
     for marker in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(marker),
@@ -2115,7 +2117,7 @@ fn dialog_performance_governance_budget_is_defined_and_blocking() {
 
     for needle in [
         "render_count",
-        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据",
     ] {
         assert!(
             todo_source.contains(needle),

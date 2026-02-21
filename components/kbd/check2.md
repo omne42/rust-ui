@@ -249,7 +249,7 @@
 - [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
   - 已核验（kbd）：`kbd` 为静态展示组件（无异步、无动效 attach、无交互状态更新环路），关键路径为 mount-only；`logic.rs` 单次归一输出 `KbdViewModel`，`view.rs` 稳定输出语义标记，性能回归可归因于状态/渲染/样式路径。
   - 共享预算与阻断链路：`scripts/check-ui-components-performance.sh` 已纳入 `button_performance_governance_contract_is_budgeted_traceable_and_blocking`、`input_performance_governance_contract_is_budgeted_traceable_and_blocking`、`docs_perf_probe_budgets_are_wired_for_component_pages`、`perf_render_count_follow_up_is_tracked_in_plan`；`e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-budget-*` 并阻断 `data-perf-violation=true`。
-  - render_count 跟进状态：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”；在精确计数能力补齐前，采用 docs perf probe + e2e + 语义契约测试作为等价证据链。
+  - render_count 跟进状态：`docs/plan/TODO.md` 保留“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”；在精确计数能力补齐前，采用 docs perf probe + e2e + 语义契约测试作为等价证据链。
   - N/A（kbd，组件级）：`Button`、`Input` 初始化渲染预算为 `1` 属于跨组件基线；`kbd` 当前无更新路径，不在本组件伪造同构交互预算。若后续引入可更新交互，必须补齐本组件 `render_count` 自动化预算并接入阻断脚本。
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。

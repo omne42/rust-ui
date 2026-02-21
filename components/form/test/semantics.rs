@@ -1864,7 +1864,7 @@ fn form_performance_governance_contract_is_mount_only_traceable_and_blocking() {
 
     assert!(
         todo.contains(
-            "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据"
+            "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据"
         ),
         "repo todo should keep render_count follow-up tracking until automation lands."
     );
@@ -1873,7 +1873,7 @@ fn form_performance_governance_contract_is_mount_only_traceable_and_blocking() {
         for required in [
             "- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。",
             "`Form` 为静态语义容器，按 mount-only 预算通过",
-            "docs/plan/TODO.md` 保持“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”跟踪项",
+            "docs/plan/TODO.md` 保持“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”跟踪项",
             "components/form/test/semantics.rs::form_performance_governance_contract_is_mount_only_traceable_and_blocking",
         ] {
             assert!(
@@ -1940,7 +1940,7 @@ fn form_semantics_and_performance_regression_contract_covers_aria_data_focus_and
 
     assert!(
         todo.contains(
-            "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据"
+            "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据"
         ),
         "repo todo should keep render_count automation follow-up for heavy components."
     );

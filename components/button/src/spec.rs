@@ -354,7 +354,6 @@ pub struct ButtonSpec {
     is_disabled: bool,
     is_loading: bool,
     loading_placement: ButtonLoadingPlacement,
-    is_icon_only: bool,
     is_full_width: bool,
     motion: ButtonMotion,
     text: ButtonText,
@@ -373,7 +372,6 @@ impl Default for ButtonSpec {
             is_disabled: false,
             is_loading: false,
             loading_placement: ButtonLoadingPlacement::Start,
-            is_icon_only: false,
             is_full_width: false,
             motion: ButtonMotion::default(),
             text: ButtonText::default(),
@@ -443,11 +441,6 @@ impl ButtonSpec {
         self
     }
 
-    pub fn icon_only(mut self, value: bool) -> Self {
-        self.is_icon_only = value;
-        self
-    }
-
     pub fn is_full_width(mut self, value: bool) -> Self {
         self.is_full_width = value;
         self
@@ -493,7 +486,6 @@ impl ButtonSpec {
                     color=self.color
                     radius=self.radius
                     size=self.size
-                    is_icon_only=self.is_icon_only
                     is_full_width=self.is_full_width
                     motion=self.motion
                     loading_placement=self.loading_placement
@@ -513,7 +505,6 @@ impl ButtonSpec {
                     color=self.color
                     radius=self.radius
                     size=self.size
-                    is_icon_only=self.is_icon_only
                     is_full_width=self.is_full_width
                     motion=self.motion
                     loading_placement=self.loading_placement
@@ -532,7 +523,6 @@ impl ButtonSpec {
                     color=self.color
                     radius=self.radius
                     size=self.size
-                    is_icon_only=self.is_icon_only
                     is_full_width=self.is_full_width
                     motion=self.motion
                     loading_placement=self.loading_placement
@@ -551,7 +541,6 @@ impl ButtonSpec {
                     color=self.color
                     radius=self.radius
                     size=self.size
-                    is_icon_only=self.is_icon_only
                     is_full_width=self.is_full_width
                     motion=self.motion
                     loading_placement=self.loading_placement

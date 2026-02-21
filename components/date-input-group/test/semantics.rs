@@ -2872,7 +2872,7 @@ fn date_input_group_performance_governance_is_mount_only_traceable_and_blocking_
 
     assert!(
         todo_source.contains(
-            "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据"
+            "建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据"
         ),
         "performance governance should keep explicit render_count follow-up item in docs plan."
     );
@@ -2889,7 +2889,7 @@ fn date_input_group_check2_marks_performance_governance_complete() {
         "`apps/docs-app/src/perf_probe.rs` 输出 `data-perf-budget-ms` / `data-perf-budget-update-ms` / `data-perf-budget-heap-kb` / `data-perf-violation` 机器可读标记",
         "`e2e/tests/docs_app_components_coverage.spec.mjs` 断言 perf probe 存在预算且 `data-perf-violation != true`",
         "`scripts/check-ui-components-performance.sh` 已纳入 `docs_perf_probe_budgets_are_wired_for_component_pages` 与 `perf_render_count_follow_up_is_tracked_in_plan`",
-        "N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”",
+        "N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”",
         "date_input_group_performance_governance_is_mount_only_traceable_and_blocking_via_shared_gates",
     ] {
         assert!(
@@ -2949,7 +2949,7 @@ fn date_input_group_semantics_and_performance_regression_cover_aria_data_focus_a
     for needle in [
         "- [x] 语义测试与性能回归：断言必须覆盖 `aria-*`、`data-*` 与焦点流转，不能只看快照；高频/重型组件必须补齐 `render_count` 断言/测量（如初始化空闲预算为 1）。",
         "N/A：`DateInputGroup` 焦点流转由子组件 `DateField`/`TimeField` 承载",
-        "N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”",
+        "N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”",
         "date_input_group_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement",
     ] {
         assert!(

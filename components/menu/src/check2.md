@@ -418,7 +418,7 @@
   - 语义与焦点流转证据：`components/menu/src/view.rs` 与 `components/menu/src/item/view.rs` 持续挂载 `role/aria-*`、`data-*`（含 `data-state`/`data-controlled`/`data-uncontrolled`/`data-focused`）以及 `on:keydown`、`on:pointermove` 交互路径。
   - 回归：`components/menu/test/semantics.rs::menu_semantic_contract_tests_cover_interaction_matrix_without_snapshot_dependency`、`components/menu/test/semantics.rs::menu_performance_governance_contract_is_budgeted_traceable_and_blocking`、`components/menu/test/semantics.rs::menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
   - 门禁脚本：`scripts/check-ui-components-performance.sh` 已纳入 `cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement`。
-  - N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据”。
+  - N/A（精确 `render_count` 自动计数）：当前仓库仍在 `docs/plan/TODO.md` 跟踪“建立 `render_count` 自动化回归（Button/Input/Accordion/DropZone），替换当前 mount-only 等价证据”。
   - 验证记录：`cargo test -p ui-menu menu_semantics_and_performance_regression_cover_aria_data_focus_and_render_count_measurement` 在当前环境编译阶段受 `Invalid cross-device link (os error 18)` 阻塞；契约由回归测试与门禁命令锁定。
 - [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。

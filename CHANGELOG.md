@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-button` + `docs-app` + `web-demo` (**breaking**): removes `Button`/`ActionButton` `is_icon_only` + `start_content/end_content` props and migrates callers to Spectrum-style child composition (icon + optional text as children), while keeping docs-app/dev startup flow validated via Trunk.
+
 - `docs-app` + `ui-layout`: migrates docs shell/page/playground high-level layout from inline/class-driven containers to `ui-layout` primitives (`Header/Flex/Grid/Card/Heading`), removes `index.html` inline CSS, and keeps docs styling focused on visual polish instead of structural layout ownership.
 - `ui-components` + `ui-badge` (**breaking**): migrates `badge` from `crates/ui-components/src/badge/*` to a dedicated `components/badge` crate (`ui-badge`), switches `ui-components` to feature-gated re-export (`pub use ui_badge as badge`), and updates docs/semantics/style-rule contracts to the new canonical source path (`components/badge/src/styles.rs`).
 - `ui-components` (**breaking**): migrates `alert_dialog` source tree from `crates/ui-components/src/alert_dialog/*` to `components/alert-dialog/src/*`, switches `ui-components` to path-based module wiring for `alert_dialog`, and updates semantic/style-rule contracts to the new canonical source path.

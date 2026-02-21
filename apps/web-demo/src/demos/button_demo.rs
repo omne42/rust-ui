@@ -42,9 +42,9 @@ pub fn ButtonDemo() -> impl IntoView {
                 <Button size=ButtonSize::Sm>"Small"</Button>
                 <Button size=ButtonSize::Default>"Default"</Button>
                 <Button size=ButtonSize::Lg>"Large"</Button>
-                <Button is_icon_only=true aria_label="Star button" size=ButtonSize::Icon>"★"</Button>
-                <Button is_icon_only=true size=ButtonSize::IconSm aria_label="Small star button">"☆"</Button>
-                <Button is_icon_only=true size=ButtonSize::IconLg aria_label="Large star button">"✦"</Button>
+                <Button aria_label="Star button" size=ButtonSize::Icon>"★"</Button>
+                <Button size=ButtonSize::IconSm aria_label="Small star button">"☆"</Button>
+                <Button size=ButtonSize::IconLg aria_label="Large star button">"✦"</Button>
             </div>
 
             <div class="demo-divider"></div>

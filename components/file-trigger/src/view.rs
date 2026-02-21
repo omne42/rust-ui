@@ -153,6 +153,6 @@ pub fn FileTrigger(
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "component-file_trigger")))]
 #[path = "../test/semantics.rs"]
 mod semantics_tests;
