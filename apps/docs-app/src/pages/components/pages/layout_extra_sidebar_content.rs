@@ -115,27 +115,6 @@ pub(super) fn sidebar_content() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Compact + Static + Custom" code_signal=compact_code>
-                <Sidebar
-                    side=SidebarSide::Left
-                    variant=SidebarVariant::Inset
-                    collapsible=SidebarCollapsible::Icon
-                    show_trigger=false
-                    aria_label="Compact sidebar content".to_string()
-                >
-                    <SidebarContent
-                        padded=false
-                        scrollable=false
-                        aria_label="Compact static content".to_string()
-                        class_name="docs-sidebar-content-custom".to_string()
-                    >
-                        <span class="ui-muted">"Activity"</span>
-                        <span class="ui-muted">"Usage"</span>
-                        <span class="ui-muted">"Limits"</span>
-                    </SidebarContent>
-                </Sidebar>
-            </Playground>
-
             <Playground
                 title="Workbench (All API Config)"
                 code_signal=workbench_code
@@ -185,6 +164,27 @@ pub(super) fn sidebar_content() -> AnyView {
                         <span>"Dashboard"</span>
                         <span>"Projects"</span>
                         <span>"Members"</span>
+                    </SidebarContent>
+                </Sidebar>
+            </Playground>
+
+            <Playground title="Compact + Static + Custom" code_signal=compact_code>
+                <Sidebar
+                    side=SidebarSide::Left
+                    variant=SidebarVariant::Inset
+                    collapsible=SidebarCollapsible::Icon
+                    show_trigger=false
+                    aria_label="Compact sidebar content".to_string()
+                >
+                    <SidebarContent
+                        padded=false
+                        scrollable=false
+                        aria_label="Compact static content".to_string()
+                        class_name="docs-sidebar-content-custom".to_string()
+                    >
+                        <span class="ui-muted">"Activity"</span>
+                        <span class="ui-muted">"Usage"</span>
+                        <span class="ui-muted">"Limits"</span>
                     </SidebarContent>
                 </Sidebar>
             </Playground>

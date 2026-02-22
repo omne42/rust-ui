@@ -422,115 +422,6 @@ pub(super) fn field_error() -> AnyView {
             </Playground>
 
             <Playground
-                title="Visible / Hidden / Disabled Gallery"
-                code_signal=state_matrix_code
-                code_imports=field_error_imports.clone()
-            >
-                <div class="docs-stack">
-                    <FieldError
-                        is_visible=true
-                        message="Email is required".to_string()
-                        aria_label="Email error".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        tone=FieldErrorTone::Neutral
-                        message="Password should include at least one symbol".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        tone=FieldErrorTone::Negative
-                        is_icon_visible=true
-                        message="Two-factor code is invalid".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        is_disabled=true
-                        is_icon_visible=true
-                        message="Read-only mode keeps the latest error snapshot".to_string()
-                    />
-                    <FieldError
-                        is_visible=false
-                        message="Hidden state keeps semantic contracts without visual output"
-                            .to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (Stateless Contract)"
-                code_signal=controlled_uncontrolled_code
-                code_imports=field_error_imports.clone()
-            >
-                <div class="docs-stack">
-                    <FieldError
-                        is_visible=true
-                        message="Uncontrolled snapshot: email is required".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        tone=FieldErrorTone::Negative
-                        message="Controlled snapshot: email format is invalid".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                code_signal=stream_snapshot_code
-                code_imports=field_error_imports.clone()
-            >
-                <div class="docs-stack">
-                    <FieldError
-                        is_visible=true
-                        message="Snapshot: email is required".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        tone=FieldErrorTone::Neutral
-                        message="Streaming fallback=snapshot: waiting for final validation"
-                            .to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground title="Visible + Tone" code_signal=default_code>
-                <div class="docs-stack">
-                    <FieldError
-                        is_visible=true
-                        message="Email is required".to_string()
-                        aria_label="Email error".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        tone=FieldErrorTone::Neutral
-                        message="Password should include at least one symbol".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        tone=FieldErrorTone::Negative
-                        is_icon_visible=true
-                        message="Two-factor code is invalid".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground title="Hidden + Disabled + Custom Class" code_signal=hidden_code>
-                <div class="docs-stack">
-                    <FieldError
-                        is_visible=false
-                        message="This text should not render when hidden".to_string()
-                    />
-                    <FieldError
-                        is_visible=true
-                        is_disabled=true
-                        is_icon_visible=true
-                        class_name="docs-field-error-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground (Props + State + Source Markers)"
                 description="Use settings to toggle FieldError props/state and inspect semantic marker feedback in real time."
                 code_signal=workbench_code
@@ -740,6 +631,115 @@ pub(super) fn field_error() -> AnyView {
                         class_name="docs-field-error-custom".to_string()
                         lang="ar".to_string()
                         dir=A11yDirection::Rtl
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Visible / Hidden / Disabled Gallery"
+                code_signal=state_matrix_code
+                code_imports=field_error_imports.clone()
+            >
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Email is required".to_string()
+                        aria_label="Email error".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Neutral
+                        message="Password should include at least one symbol".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Negative
+                        is_icon_visible=true
+                        message="Two-factor code is invalid".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        is_disabled=true
+                        is_icon_visible=true
+                        message="Read-only mode keeps the latest error snapshot".to_string()
+                    />
+                    <FieldError
+                        is_visible=false
+                        message="Hidden state keeps semantic contracts without visual output"
+                            .to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                code_signal=controlled_uncontrolled_code
+                code_imports=field_error_imports.clone()
+            >
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Uncontrolled snapshot: email is required".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Negative
+                        message="Controlled snapshot: email format is invalid".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                code_signal=stream_snapshot_code
+                code_imports=field_error_imports.clone()
+            >
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Snapshot: email is required".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Neutral
+                        message="Streaming fallback=snapshot: waiting for final validation"
+                            .to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Visible + Tone" code_signal=default_code>
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=true
+                        message="Email is required".to_string()
+                        aria_label="Email error".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Neutral
+                        message="Password should include at least one symbol".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        tone=FieldErrorTone::Negative
+                        is_icon_visible=true
+                        message="Two-factor code is invalid".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Hidden + Disabled + Custom Class" code_signal=hidden_code>
+                <div class="docs-stack">
+                    <FieldError
+                        is_visible=false
+                        message="This text should not render when hidden".to_string()
+                    />
+                    <FieldError
+                        is_visible=true
+                        is_disabled=true
+                        is_icon_visible=true
+                        class_name="docs-field-error-custom".to_string()
                     />
                 </div>
             </Playground>
@@ -1362,73 +1362,6 @@ pub(super) fn description() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix (Tone / Disabled / Truncate)"
-                code_signal=state_matrix_code
-                code_imports=description_imports.clone()
-            >
-                <div class="docs-stack docs-description-limit">
-                    <Description
-                        text="This appears below the field as guidance.".to_string()
-                        tone=DescriptionTone::Default
-                        aria_label="Name helper".to_string()
-                    />
-                    <Description
-                        text="Optional details are only visible to admins.".to_string()
-                        tone=DescriptionTone::Muted
-                    />
-                    <Description
-                        text="Two-factor code expired. Request a new one.".to_string()
-                        tone=DescriptionTone::Negative
-                    />
-                    <Description
-                        text="Read-only helper still keeps the latest snapshot.".to_string()
-                        tone=DescriptionTone::Muted
-                        is_disabled=true
-                    />
-                    <Description
-                        text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
-                        element=DescriptionElement::Span
-                        is_truncated=true
-                        class_name="docs-description-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (Stateless Contract)"
-                code_signal=controlled_uncontrolled_code
-                code_imports=description_imports.clone()
-            >
-                <div class="docs-stack">
-                    <Description
-                        text="Uncontrolled snapshot: email must include @".to_string()
-                    />
-                    <Description
-                        text="Controlled snapshot: email format is invalid".to_string()
-                        tone=DescriptionTone::Negative
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                description="Description is not a正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
-                code_signal=stream_snapshot_code
-                code_imports=description_imports.clone()
-            >
-                <div class="docs-stack docs-description-limit">
-                    <Description text="Snapshot: email is required".to_string() />
-                    <Description
-                        text="Streaming fallback=snapshot: waiting for final validation".to_string()
-                        tone=DescriptionTone::Muted
-                    />
-                    <p class="ui-muted">
-                        "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Workbench"
                 description="Interactive display/config/code/css-test playground for Description state contracts."
                 code_signal=workbench_code
@@ -1515,6 +1448,73 @@ pub(super) fn description() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Disabled / Truncate)"
+                code_signal=state_matrix_code
+                code_imports=description_imports.clone()
+            >
+                <div class="docs-stack docs-description-limit">
+                    <Description
+                        text="This appears below the field as guidance.".to_string()
+                        tone=DescriptionTone::Default
+                        aria_label="Name helper".to_string()
+                    />
+                    <Description
+                        text="Optional details are only visible to admins.".to_string()
+                        tone=DescriptionTone::Muted
+                    />
+                    <Description
+                        text="Two-factor code expired. Request a new one.".to_string()
+                        tone=DescriptionTone::Negative
+                    />
+                    <Description
+                        text="Read-only helper still keeps the latest snapshot.".to_string()
+                        tone=DescriptionTone::Muted
+                        is_disabled=true
+                    />
+                    <Description
+                        text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
+                        element=DescriptionElement::Span
+                        is_truncated=true
+                        class_name="docs-description-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                code_signal=controlled_uncontrolled_code
+                code_imports=description_imports.clone()
+            >
+                <div class="docs-stack">
+                    <Description
+                        text="Uncontrolled snapshot: email must include @".to_string()
+                    />
+                    <Description
+                        text="Controlled snapshot: email format is invalid".to_string()
+                        tone=DescriptionTone::Negative
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="Description is not a正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
+                code_signal=stream_snapshot_code
+                code_imports=description_imports.clone()
+            >
+                <div class="docs-stack docs-description-limit">
+                    <Description text="Snapshot: email is required".to_string() />
+                    <Description
+                        text="Streaming fallback=snapshot: waiting for final validation".to_string()
+                        tone=DescriptionTone::Muted
+                    />
+                    <p class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
+                    </p>
+                </div>
             </Playground>
 
             <Playground
@@ -1861,119 +1861,6 @@ pub(super) fn fieldset() -> AnyView {
                 </Fieldset>
             </Playground>
 
-            <Playground title="Legend + Description" code_signal=default_code>
-                <Fieldset
-                    legend="Notification channels".to_string()
-                    description="Pick every channel you want to receive release updates from.".to_string()
-                    is_required=true
-                    aria_label="Notification channel group".to_string()
-                >
-                    <label class="docs-choice-row">
-                        <input type="checkbox" />
-                        <span>"Email"</span>
-                    </label>
-                    <label class="docs-choice-row">
-                        <input type="checkbox" />
-                        <span>"SMS"</span>
-                    </label>
-                    <label class="docs-choice-row">
-                        <input type="checkbox" />
-                        <span>"Push"</span>
-                    </label>
-                </Fieldset>
-            </Playground>
-
-            <Playground title="Horizontal + Invalid + Actions" code_signal=invalid_code>
-                <Fieldset
-                    orientation=FieldsetOrientation::Horizontal
-                    tone=FieldsetTone::Muted
-                    is_invalid=true
-                    error_message="Pick at least one channel".to_string()
-                    class_name="docs-fieldset-custom".to_string()
-                    actions=move || {
-                        view! {
-                            <ui::Button
-                                variant=ui::ButtonVariant::Secondary
-                                size=ui::ButtonSize::Sm
-                            >
-                                "Manage channels"
-                            </ui::Button>
-                        }
-                    }
-                >
-                    <label class="docs-choice-row">
-                        <input type="checkbox" />
-                        <span>"Email"</span>
-                    </label>
-                    <label class="docs-choice-row">
-                        <input type="checkbox" />
-                        <span>"SMS"</span>
-                    </label>
-                </Fieldset>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (Snapshot Contrast)"
-                description="受控/非受控对照：默认值只初始化一次，受控值由外部 signal 驱动。"
-                code_signal=controlled_uncontrolled_code
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="fieldset-controlled-uncontrolled">
-                    <div class="docs-search__label">"Uncontrolled snapshot"</div>
-                    <Fieldset
-                        legend="Uncontrolled snapshot".to_string()
-                        default_is_invalid=true
-                        error_message="Uncontrolled snapshot: pick at least one channel".to_string()
-                    >
-                        <label class="docs-choice-row">
-                            <input type="checkbox" />
-                            <span>"Email"</span>
-                        </label>
-                    </Fieldset>
-
-                    <div class="docs-search__label">"Controlled snapshot"</div>
-                    <ui::Button
-                        variant=ui::ButtonVariant::Secondary
-                        size=ui::ButtonSize::Sm
-                        on_press=Callback::new(move |_| {
-                            set_controlled_invalid.update(|value| *value = !*value);
-                        })
-                    >
-                        {move || if controlled_invalid.get() { "Set controlled valid" } else { "Set controlled invalid" }}
-                    </ui::Button>
-                    <Fieldset
-                        legend="Controlled snapshot".to_string()
-                        is_invalid=controlled_invalid_signal.get()
-                        on_is_invalid_change=on_controlled_invalid_change
-                        error_message="Controlled snapshot: pick at least one channel".to_string()
-                    >
-                        <label class="docs-choice-row">
-                            <input type="checkbox" />
-                            <span>"SMS"</span>
-                        </label>
-                    </Fieldset>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                description="Fieldset 不是正文阅读面；文档展示 snapshot 输出与 fallback=snapshot 契约。"
-                code_signal=stream_snapshot_code
-            >
-                <Fieldset
-                    legend="Streaming validation snapshot".to_string()
-                    is_invalid=true
-                    error_message="Streaming fallback=snapshot: waiting for final validation".to_string()
-                >
-                    <label class="docs-choice-row">
-                        <input type="checkbox" />
-                        <span>"Email"</span>
-                    </label>
-                </Fieldset>
-                <div class="docs-subtitle">
-                    "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode."
-                </div>
-            </Playground>
-
             <Playground
                 title="Fieldset Workbench (Display + Config + Code + CSS Test)"
                 description="展示 / config / code / css test 一体化工作台，并提供多场景对比。"
@@ -2234,6 +2121,119 @@ pub(super) fn fieldset() -> AnyView {
                             <span>"Push"</span>
                         </label>
                     </Fieldset>
+                </div>
+            </Playground>
+
+            <Playground title="Legend + Description" code_signal=default_code>
+                <Fieldset
+                    legend="Notification channels".to_string()
+                    description="Pick every channel you want to receive release updates from.".to_string()
+                    is_required=true
+                    aria_label="Notification channel group".to_string()
+                >
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Email"</span>
+                    </label>
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"SMS"</span>
+                    </label>
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Push"</span>
+                    </label>
+                </Fieldset>
+            </Playground>
+
+            <Playground title="Horizontal + Invalid + Actions" code_signal=invalid_code>
+                <Fieldset
+                    orientation=FieldsetOrientation::Horizontal
+                    tone=FieldsetTone::Muted
+                    is_invalid=true
+                    error_message="Pick at least one channel".to_string()
+                    class_name="docs-fieldset-custom".to_string()
+                    actions=move || {
+                        view! {
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                size=ui::ButtonSize::Sm
+                            >
+                                "Manage channels"
+                            </ui::Button>
+                        }
+                    }
+                >
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Email"</span>
+                    </label>
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"SMS"</span>
+                    </label>
+                </Fieldset>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Snapshot Contrast)"
+                description="受控/非受控对照：默认值只初始化一次，受控值由外部 signal 驱动。"
+                code_signal=controlled_uncontrolled_code
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="fieldset-controlled-uncontrolled">
+                    <div class="docs-search__label">"Uncontrolled snapshot"</div>
+                    <Fieldset
+                        legend="Uncontrolled snapshot".to_string()
+                        default_is_invalid=true
+                        error_message="Uncontrolled snapshot: pick at least one channel".to_string()
+                    >
+                        <label class="docs-choice-row">
+                            <input type="checkbox" />
+                            <span>"Email"</span>
+                        </label>
+                    </Fieldset>
+
+                    <div class="docs-search__label">"Controlled snapshot"</div>
+                    <ui::Button
+                        variant=ui::ButtonVariant::Secondary
+                        size=ui::ButtonSize::Sm
+                        on_press=Callback::new(move |_| {
+                            set_controlled_invalid.update(|value| *value = !*value);
+                        })
+                    >
+                        {move || if controlled_invalid.get() { "Set controlled valid" } else { "Set controlled invalid" }}
+                    </ui::Button>
+                    <Fieldset
+                        legend="Controlled snapshot".to_string()
+                        is_invalid=controlled_invalid_signal.get()
+                        on_is_invalid_change=on_controlled_invalid_change
+                        error_message="Controlled snapshot: pick at least one channel".to_string()
+                    >
+                        <label class="docs-choice-row">
+                            <input type="checkbox" />
+                            <span>"SMS"</span>
+                        </label>
+                    </Fieldset>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="Fieldset 不是正文阅读面；文档展示 snapshot 输出与 fallback=snapshot 契约。"
+                code_signal=stream_snapshot_code
+            >
+                <Fieldset
+                    legend="Streaming validation snapshot".to_string()
+                    is_invalid=true
+                    error_message="Streaming fallback=snapshot: waiting for final validation".to_string()
+                >
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Email"</span>
+                    </label>
+                </Fieldset>
+                <div class="docs-subtitle">
+                    "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-stream-mode."
                 </div>
             </Playground>
 
@@ -2895,175 +2895,6 @@ pub(super) fn field() -> AnyView {
             </Playground>
 
             <Playground
-                title="Required + Description"
-                code_signal=required_code
-                code_imports=field_imports.clone()
-            >
-                <Field
-                    label="Email".to_string()
-                    required=true
-                    description="We'll only use this for release notes.".to_string()
-                    aria_label="Email field".to_string()
-                >
-                    <input
-                        class="docs-search__input"
-                        type="email"
-                        placeholder="name@example.com"
-                    />
-                </Field>
-            </Playground>
-
-            <Playground
-                title="Horizontal + Invalid + Custom Class"
-                code_signal=invalid_code
-                code_imports=field_imports.clone()
-            >
-                <Field
-                    orientation=FieldOrientation::Horizontal
-                    tone=FieldTone::Muted
-                    invalid=true
-                    error_message="A valid email is required".to_string()
-                    class_name="docs-field-custom".to_string()
-                >
-                    <input
-                        class="docs-search__input"
-                        type="email"
-                        placeholder="owner@company.com"
-                    />
-                </Field>
-            </Playground>
-
-            <Playground
-                title="Required / Invalid / Disabled Examples"
-                description="State matrix baseline for required/invalid/disabled semantic markers."
-                code_signal=state_matrix_code
-                code_imports=field_imports.clone()
-            >
-                <div class="docs-stack" data-slot="field-state-matrix">
-                    <Field
-                        label="Email".to_string()
-                        required=true
-                        description="Required: this field must be provided.".to_string()
-                    >
-                        <input
-                            class="docs-search__input"
-                            type="email"
-                            placeholder="name@example.com"
-                        />
-                    </Field>
-                    <Field
-                        label="Email".to_string()
-                        invalid=true
-                        error_message="A valid email is required".to_string()
-                    >
-                        <input
-                            class="docs-search__input"
-                            type="email"
-                            placeholder="owner@company.com"
-                        />
-                    </Field>
-                    <Field
-                        label="Email".to_string()
-                        disabled=true
-                        description="Disabled: read-only snapshot.".to_string()
-                    >
-                        <input
-                            class="docs-search__input"
-                            type="email"
-                            placeholder="disabled@example.com"
-                        />
-                    </Field>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (Stateless Contract)"
-                description="Field is stateless: parent controls derived flags/messages; Field renders semantic snapshot."
-                code_signal=controlled_uncontrolled_code
-                code_imports=field_imports.clone()
-            >
-                <div class="docs-stack" data-slot="field-controlled-matrix">
-                    <Field
-                        label="Email".to_string()
-                        description="Uncontrolled snapshot: email is required".to_string()
-                    >
-                        <input
-                            class="docs-search__input"
-                            type="email"
-                            placeholder="name@example.com"
-                        />
-                    </Field>
-                    <Field
-                        label="Email".to_string()
-                        invalid=true
-                        error_message="Controlled snapshot: email format is invalid".to_string()
-                    >
-                        <input
-                            class="docs-search__input"
-                            type="email"
-                            placeholder="owner@company.com"
-                        />
-                    </Field>
-                </div>
-            </Playground>
-
-            <section class="docs-card docs-prose" data-slot="field-api-matrix">
-                <h3>"API Matrix"</h3>
-                <ul data-slot="field-api-rows">
-                    <li>
-                        <code>"orientation: FieldOrientation"</code>
-                        " default = vertical"
-                    </li>
-                    <li>
-                        <code>"tone: FieldTone"</code>
-                        " default = default"
-                    </li>
-                    <li>
-                        <code>"is_required / is_disabled / is_invalid"</code>
-                        " default = false（优先命名）"
-                    </li>
-                    <li>
-                        <code>"required / disabled / invalid"</code>
-                        " 历史别名，默认 = false，且低于 `is_*` 优先级"
-                    </li>
-                    <li>
-                        <code>"label / description / error_message / aria_label / lang / class_name"</code>
-                        " optional semantic content (normalized in logic.rs)"
-                    </li>
-                    <li>
-                        <code>"dir: Option&lt;A11yDirection&gt;"</code>
-                        " optional"
-                    </li>
-                    <li>
-                        <code>"motion: FieldMotion"</code>
-                        " default = FieldMotion::default()"
-                    </li>
-                </ul>
-            </section>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                description="Field is not a 正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
-                code_signal=stream_snapshot_code
-                code_imports=field_imports.clone()
-            >
-                <Field
-                    label="Email".to_string()
-                    description="Streaming fallback=snapshot: waiting for final validation".to_string()
-                    aria_label="Email field".to_string()
-                >
-                    <input
-                        class="docs-search__input"
-                        type="email"
-                        placeholder="owner@company.com"
-                    />
-                    <span class="ui-muted">
-                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback."
-                    </span>
-                </Field>
-            </Playground>
-
-            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels, plus optional persisted context."
                 code_signal=workbench_code
@@ -3344,6 +3175,175 @@ pub(super) fn field() -> AnyView {
                 </div>
             </Playground>
 
+            <Playground
+                title="Required + Description"
+                code_signal=required_code
+                code_imports=field_imports.clone()
+            >
+                <Field
+                    label="Email".to_string()
+                    required=true
+                    description="We'll only use this for release notes.".to_string()
+                    aria_label="Email field".to_string()
+                >
+                    <input
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="name@example.com"
+                    />
+                </Field>
+            </Playground>
+
+            <Playground
+                title="Horizontal + Invalid + Custom Class"
+                code_signal=invalid_code
+                code_imports=field_imports.clone()
+            >
+                <Field
+                    orientation=FieldOrientation::Horizontal
+                    tone=FieldTone::Muted
+                    invalid=true
+                    error_message="A valid email is required".to_string()
+                    class_name="docs-field-custom".to_string()
+                >
+                    <input
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="owner@company.com"
+                    />
+                </Field>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="field-api-matrix">
+                <h3>"API Matrix"</h3>
+                <ul data-slot="field-api-rows">
+                    <li>
+                        <code>"orientation: FieldOrientation"</code>
+                        " default = vertical"
+                    </li>
+                    <li>
+                        <code>"tone: FieldTone"</code>
+                        " default = default"
+                    </li>
+                    <li>
+                        <code>"is_required / is_disabled / is_invalid"</code>
+                        " default = false（优先命名）"
+                    </li>
+                    <li>
+                        <code>"required / disabled / invalid"</code>
+                        " 历史别名，默认 = false，且低于 `is_*` 优先级"
+                    </li>
+                    <li>
+                        <code>"label / description / error_message / aria_label / lang / class_name"</code>
+                        " optional semantic content (normalized in logic.rs)"
+                    </li>
+                    <li>
+                        <code>"dir: Option&lt;A11yDirection&gt;"</code>
+                        " optional"
+                    </li>
+                    <li>
+                        <code>"motion: FieldMotion"</code>
+                        " default = FieldMotion::default()"
+                    </li>
+                </ul>
+            </section>
+
+            <Playground
+                title="Required / Invalid / Disabled Examples"
+                description="State matrix baseline for required/invalid/disabled semantic markers."
+                code_signal=state_matrix_code
+                code_imports=field_imports.clone()
+            >
+                <div class="docs-stack" data-slot="field-state-matrix">
+                    <Field
+                        label="Email".to_string()
+                        required=true
+                        description="Required: this field must be provided.".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="name@example.com"
+                        />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        invalid=true
+                        error_message="A valid email is required".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="owner@company.com"
+                        />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        disabled=true
+                        description="Disabled: read-only snapshot.".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="disabled@example.com"
+                        />
+                    </Field>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                description="Field is stateless: parent controls derived flags/messages; Field renders semantic snapshot."
+                code_signal=controlled_uncontrolled_code
+                code_imports=field_imports.clone()
+            >
+                <div class="docs-stack" data-slot="field-controlled-matrix">
+                    <Field
+                        label="Email".to_string()
+                        description="Uncontrolled snapshot: email is required".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="name@example.com"
+                        />
+                    </Field>
+                    <Field
+                        label="Email".to_string()
+                        invalid=true
+                        error_message="Controlled snapshot: email format is invalid".to_string()
+                    >
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="owner@company.com"
+                        />
+                    </Field>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="Field is not a 正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
+                code_signal=stream_snapshot_code
+                code_imports=field_imports.clone()
+            >
+                <Field
+                    label="Email".to_string()
+                    description="Streaming fallback=snapshot: waiting for final validation".to_string()
+                    aria_label="Email field".to_string()
+                >
+                    <input
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="owner@company.com"
+                    />
+                    <span class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback."
+                    </span>
+                </Field>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="field-source-first">
                 <h3>"Source-first / Copy-Paste Ready"</h3>
                 <p data-slot="field-source-first-contract">
@@ -3608,111 +3608,6 @@ pub(super) fn help_text() -> AnyView {
             </Playground>
 
             <Playground
-                title="Description / Error / Disabled Gallery"
-                code_signal=state_matrix_code
-                code_imports=help_text_imports.clone()
-            >
-                <div class="docs-stack">
-                    <HelpText
-                        description="Use at least 12 characters.".to_string()
-                        aria_label="Password hint".to_string()
-                    />
-                    <HelpText
-                        tone=HelpTextTone::Neutral
-                        description="This value is visible to project admins only.".to_string()
-                    />
-                    <HelpText
-                        is_invalid=true
-                        is_error_icon_visible=true
-                        error_message="Password does not meet complexity requirements.".to_string()
-                        class_name="docs-help-text-custom".to_string()
-                    />
-                    <HelpText
-                        is_invalid=true
-                        tone=HelpTextTone::Negative
-                        error_message="Two-factor token expired. Request a new code.".to_string()
-                        is_disabled=true
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (Stateless Contract)"
-                code_signal=controlled_uncontrolled_code
-                code_imports=help_text_imports.clone()
-            >
-                <div class="docs-stack">
-                    <HelpText
-                        description="Uncontrolled snapshot: email must include @".to_string()
-                    />
-                    <HelpText
-                        is_invalid=true
-                        error_message="Controlled snapshot: email format is invalid".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                description="HelpText is not a正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
-                code_signal=stream_snapshot_code
-                code_imports=help_text_imports.clone()
-            >
-                <div class="docs-stack">
-                    <HelpText
-                        is_invalid=true
-                        error_message="Snapshot: email is required".to_string()
-                    />
-                    <HelpText
-                        tone=HelpTextTone::Neutral
-                        description="Streaming fallback=snapshot: waiting for final validation"
-                            .to_string()
-                    />
-                    <p class="ui-muted">
-                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Description (Neutral)"
-                code_signal=description_code
-                code_imports=help_text_imports.clone()
-            >
-                <div class="docs-stack">
-                    <HelpText
-                        description="Use at least 12 characters.".to_string()
-                        aria_label="Password hint".to_string()
-                    />
-                    <HelpText
-                        tone=HelpTextTone::Neutral
-                        description="This value is visible to project admins only.".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Invalid + Error Icon"
-                code_signal=error_code
-                code_imports=help_text_imports.clone()
-            >
-                <div class="docs-stack">
-                    <HelpText
-                        is_invalid=true
-                        is_error_icon_visible=true
-                        error_message="Password does not meet complexity requirements.".to_string()
-                        class_name="docs-help-text-custom".to_string()
-                    />
-                    <HelpText
-                        is_invalid=true
-                        tone=HelpTextTone::Negative
-                        error_message="Two-factor token expired. Request a new code.".to_string()
-                        is_disabled=true
-                    />
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground"
                 code_signal=interactive_code
                 code_imports=help_text_imports.clone()
@@ -3867,6 +3762,111 @@ pub(super) fn help_text() -> AnyView {
                         tone=HelpTextTone::Neutral
                         description="This value is visible to project admins only.".to_string()
                     />
+                    <HelpText
+                        is_invalid=true
+                        is_error_icon_visible=true
+                        error_message="Password does not meet complexity requirements.".to_string()
+                        class_name="docs-help-text-custom".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        tone=HelpTextTone::Negative
+                        error_message="Two-factor token expired. Request a new code.".to_string()
+                        is_disabled=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Description / Error / Disabled Gallery"
+                code_signal=state_matrix_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        description="Use at least 12 characters.".to_string()
+                        aria_label="Password hint".to_string()
+                    />
+                    <HelpText
+                        tone=HelpTextTone::Neutral
+                        description="This value is visible to project admins only.".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        is_error_icon_visible=true
+                        error_message="Password does not meet complexity requirements.".to_string()
+                        class_name="docs-help-text-custom".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        tone=HelpTextTone::Negative
+                        error_message="Two-factor token expired. Request a new code.".to_string()
+                        is_disabled=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Stateless Contract)"
+                code_signal=controlled_uncontrolled_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        description="Uncontrolled snapshot: email must include @".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        error_message="Controlled snapshot: email format is invalid".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="HelpText is not a正文阅读面; docs expose snapshot mode + fallback=snapshot for copy/paste verification."
+                code_signal=stream_snapshot_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        is_invalid=true
+                        error_message="Snapshot: email is required".to_string()
+                    />
+                    <HelpText
+                        tone=HelpTextTone::Neutral
+                        description="Streaming fallback=snapshot: waiting for final validation"
+                            .to_string()
+                    />
+                    <p class="ui-muted">
+                        "Inspect data-ui-stream-support/data-ui-stream-mode/data-ui-stream-fallback."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Description (Neutral)"
+                code_signal=description_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        description="Use at least 12 characters.".to_string()
+                        aria_label="Password hint".to_string()
+                    />
+                    <HelpText
+                        tone=HelpTextTone::Neutral
+                        description="This value is visible to project admins only.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Invalid + Error Icon"
+                code_signal=error_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
                     <HelpText
                         is_invalid=true
                         is_error_icon_visible=true
@@ -5196,27 +5196,6 @@ pub(super) fn date_picker() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Monday First + Strong Tone" code_signal=states_code>
-                <DatePicker
-                    id_base="docs-date-picker-ship".to_string()
-                    year=2026
-                    month=4
-                    default_selected_day=21
-                    tone=DatePickerTone::Strong
-                    first_weekday=CalendarFirstWeekday::Monday
-                    show_outside_days=false
-                    placeholder="Pick ship date".to_string()
-                    class_name="docs-date-picker-custom".to_string()
-                    motion=DatePickerMotion {
-                        popover: PopoverMotion {
-                            initial_scale: 0.95,
-                            offset_y_px: 10.0,
-                            ..PopoverMotion::default()
-                        },
-                    }
-                />
-            </Playground>
-
             <Playground
                 title="展示 / Config / Code / CSS Test"
                 description="Workbench canvas: preview (展示) + settings panel (config) + copy-ready source (code) + scoped css verification (css test)."
@@ -5492,6 +5471,27 @@ pub(super) fn date_picker() -> AnyView {
                         placeholder="Unavailable".to_string()
                     />
                 </div>
+            </Playground>
+
+            <Playground title="Monday First + Strong Tone" code_signal=states_code>
+                <DatePicker
+                    id_base="docs-date-picker-ship".to_string()
+                    year=2026
+                    month=4
+                    default_selected_day=21
+                    tone=DatePickerTone::Strong
+                    first_weekday=CalendarFirstWeekday::Monday
+                    show_outside_days=false
+                    placeholder="Pick ship date".to_string()
+                    class_name="docs-date-picker-custom".to_string()
+                    motion=DatePickerMotion {
+                        popover: PopoverMotion {
+                            initial_scale: 0.95,
+                            offset_y_px: 10.0,
+                            ..PopoverMotion::default()
+                        },
+                    }
+                />
             </Playground>
         </ComponentPage>
     }

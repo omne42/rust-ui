@@ -53,12 +53,14 @@ fn sanitize_motion_clamps_values() {
 
 #[test]
 fn source_attr_reflects_default_vs_custom_motion() {
-    assert_eq!(source_attr(CalendarMotion::default()), "default");
+    let default = CalendarMotion::default();
+    let custom_duration = default.duration_ms + 60.0;
+    assert_eq!(source_attr(default), "default");
     assert_eq!(
         source_attr(CalendarMotion {
             enabled: true,
-            duration_ms: 240.0,
-            spring: ui_motion::presets::spring_soft(),
+            duration_ms: custom_duration,
+            spring: default.spring,
         }),
         "custom"
     );
@@ -66,22 +68,24 @@ fn source_attr_reflects_default_vs_custom_motion() {
 
 #[test]
 fn resolve_effective_motion_respects_disabled_and_reduced_paths() {
+    let default = CalendarMotion::default();
     let spring = ui_motion::spring::SpringConfig {
-        stiffness: 280.0,
-        damping: 22.0,
-        mass: 1.2,
-        precision: 0.002,
+        stiffness: default.spring.stiffness + 20.0,
+        damping: default.spring.damping + 2.0,
+        mass: default.spring.mass + 0.2,
+        precision: default.spring.precision * 2.0,
     };
+    let custom_duration = default.duration_ms + 60.0;
     let motion = CalendarMotion {
         enabled: true,
-        duration_ms: 240.0,
+        duration_ms: custom_duration,
         spring,
     };
 
     assert_eq!(
         resolve_effective_motion(motion, false),
         EffectiveCalendarMotion {
-            duration_ms: 240.0,
+            duration_ms: custom_duration,
             spring,
             reduced: false,
         }
@@ -100,7 +104,7 @@ fn resolve_effective_motion_respects_disabled_and_reduced_paths() {
         resolve_effective_motion(
             CalendarMotion {
                 enabled: false,
-                duration_ms: 240.0,
+                duration_ms: custom_duration,
                 spring,
             },
             false
@@ -115,16 +119,17 @@ fn resolve_effective_motion_respects_disabled_and_reduced_paths() {
 
 #[test]
 fn attach_motion_outputs_contract_css_variables() {
+    let default = CalendarMotion::default();
     let source = attach_motion(
         None,
         CalendarMotion {
             enabled: true,
-            duration_ms: 240.0,
+            duration_ms: default.duration_ms + 60.0,
             spring: ui_motion::spring::SpringConfig {
-                stiffness: 300.0,
-                damping: 24.0,
-                mass: 1.1,
-                precision: 0.003,
+                stiffness: default.spring.stiffness + 20.0,
+                damping: default.spring.damping + 4.0,
+                mass: default.spring.mass + 0.1,
+                precision: default.spring.precision * 3.0,
             },
         },
     );

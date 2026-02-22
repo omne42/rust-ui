@@ -766,26 +766,6 @@ pub(super) fn badge() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Variants (Default / Accent / Danger / Outline)" code_signal=matrix_code>
-                <div class="docs-row">
-                    <Badge variant=BadgeVariant::Default>"Default"</Badge>
-                    <Badge variant=BadgeVariant::Accent>"Accent"</Badge>
-                    <Badge variant=BadgeVariant::Danger>"Danger"</Badge>
-                    <Badge variant=BadgeVariant::Outline>"Outline"</Badge>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Class + Outline" code_signal=custom_code>
-                <div class="docs-row">
-                    <Badge variant=BadgeVariant::Accent class_name="docs-badge-custom".to_string()>
-                        "Release"
-                    </Badge>
-                    <Badge variant=BadgeVariant::Outline class_name="docs-badge-custom".to_string()>
-                        "Beta"
-                    </Badge>
-                </div>
-            </Playground>
-
             <Playground
                 title="Badge Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
@@ -876,6 +856,30 @@ pub(super) fn badge() -> AnyView {
                     }
                 }}
             </Playground>
+
+
+
+            <Playground title="Variants (Default / Accent / Danger / Outline)" code_signal=matrix_code>
+                <div class="docs-row">
+                    <Badge variant=BadgeVariant::Default>"Default"</Badge>
+                    <Badge variant=BadgeVariant::Accent>"Accent"</Badge>
+                    <Badge variant=BadgeVariant::Danger>"Danger"</Badge>
+                    <Badge variant=BadgeVariant::Outline>"Outline"</Badge>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Outline" code_signal=custom_code>
+                <div class="docs-row">
+                    <Badge variant=BadgeVariant::Accent class_name="docs-badge-custom".to_string()>
+                        "Release"
+                    </Badge>
+                    <Badge variant=BadgeVariant::Outline class_name="docs-badge-custom".to_string()>
+                        "Beta"
+                    </Badge>
+                </div>
+            </Playground>
+
+
 
             <Playground
                 title="Comparison Matrix (Variant + Fill)"
@@ -1728,97 +1732,6 @@ pub(super) fn circular_progress() -> AnyView {
             </Playground>
 
             <Playground
-                title="Size + Thickness Matrix"
-                code_signal=matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
-                    .to_string()
-                test_source_path="components/circular-progress/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <CircularProgress aria_label="Loading".to_string() />
-                    <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
-                    <CircularProgress aria_label="Syncing mail".to_string() thickness_px=3.0 />
-                    <CircularProgress
-                        aria_label="Syncing mail".to_string()
-                        size_px=30.0
-                        thickness_px=4.0
-                    />
-                </div>
-            </Playground>
-
-            // <Playground title="Custom Label + Class" code_signal=custom_code>
-            <Playground
-                title="Custom Label + Class"
-                code_signal=custom_code
-                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
-                    .to_string()
-                test_source_path="components/circular-progress/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <CircularProgress
-                        aria_label="Background refresh".to_string()
-                        size_px=28.0
-                        thickness_px=3.5
-                        class_name="docs-circular-progress-custom".to_string()
-                    />
-                    <CircularProgress
-                        aria_label="   ".to_string()
-                        class_name="docs-circular-progress-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="CircularProgress has no internal controlled/uncontrolled axis; compare default usage with app-state-mapped props."
-                code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
-                    .to_string()
-                test_source_path="components/circular-progress/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <CircularProgress />
-                    <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="CircularProgress is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
-                code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
-                    .to_string()
-                test_source_path="components/circular-progress/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <p class="ui-muted" data-slot="circular-progress-streaming-policy">
-                        "Streaming Optional; fallback=snapshot."
-                    </p>
-                    <p class="ui-muted" data-slot="circular-progress-copy-ready-hint">
-                        "Copy-ready snippets prepend imports automatically; source: components/circular-progress/src/view.rs."
-                    </p>
-                    <CircularProgress aria_label="Snapshot".to_string() />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run."
-                code_signal=source_first_code
-                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
-                    .to_string()
-                test_source_path="components/circular-progress/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <CircularProgress
-                        aria_label="Syncing mailbox".to_string()
-                        size_px=24.0
-                        thickness_px=3.0
-                    />
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground (Props / State / Preview)"
                 description="在线调整 props（size/thickness/label/class/lang/dir）并实时预览语义标记变化；组件本身无内部受控状态轴。"
                 code_signal=workbench_code
@@ -2025,6 +1938,7 @@ pub(super) fn circular_progress() -> AnyView {
                 }}
             </Playground>
 
+            // <Playground title="Custom Label + Class" code_signal=custom_code>
             <Playground
                 title="State Matrix (Size / Thickness / Locale Comparison)"
                 code_signal=matrix_code
@@ -2043,6 +1957,96 @@ pub(super) fn circular_progress() -> AnyView {
                         class_name="docs-circular-progress-custom".to_string()
                         lang="ar".to_string()
                         dir=A11yDirection::Rtl
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Size + Thickness Matrix"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress aria_label="Loading".to_string() />
+                    <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
+                    <CircularProgress aria_label="Syncing mail".to_string() thickness_px=3.0 />
+                    <CircularProgress
+                        aria_label="Syncing mail".to_string()
+                        size_px=30.0
+                        thickness_px=4.0
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Custom Label + Class"
+                code_signal=custom_code
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress
+                        aria_label="Background refresh".to_string()
+                        size_px=28.0
+                        thickness_px=3.5
+                        class_name="docs-circular-progress-custom".to_string()
+                    />
+                    <CircularProgress
+                        aria_label="   ".to_string()
+                        class_name="docs-circular-progress-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="CircularProgress has no internal controlled/uncontrolled axis; compare default usage with app-state-mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress />
+                    <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="CircularProgress is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="circular-progress-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="circular-progress-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/circular-progress/src/view.rs."
+                    </p>
+                    <CircularProgress aria_label="Snapshot".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports="use leptos::prelude::*;\nuse ui::CircularProgress;"
+                    .to_string()
+                test_source_path="components/circular-progress/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <CircularProgress
+                        aria_label="Syncing mailbox".to_string()
+                        size_px=24.0
+                        thickness_px=3.0
                     />
                 </div>
             </Playground>
@@ -3628,123 +3632,6 @@ use ui::{Meter, MeterSize, MeterVariant};
             </Playground>
 
             <Playground
-                title="Variant + Size Matrix"
-                code_signal=matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Meter, MeterSize, MeterVariant};".to_string()
-                test_source_path="components/meter/src/view.rs".to_string()
-            >
-                <div class="docs-stack">
-                    <Meter
-                        id="docs-meter-default".to_string()
-                        label="Completion".to_string()
-                        value=meter_value
-                        min=0.0
-                        max=100.0
-                    />
-                    <Meter
-                        id="docs-meter-danger".to_string()
-                        label="Risk".to_string()
-                        value=meter_value
-                        variant=MeterVariant::Danger
-                        size=MeterSize::Lg
-                    />
-                    <Meter
-                        id="docs-meter-compact".to_string()
-                        label="Compact".to_string()
-                        value=meter_value
-                        size=MeterSize::Sm
-                        show_value_label=false
-                    />
-                    <div class="docs-row">
-                        <ui::Button
-                            variant=ui::ButtonVariant::Secondary
-                            on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 10).min(100)))
-                        >
-                            "+10"
-                        </ui::Button>
-                        <span class="ui-muted">"value: " {move || value.get()}</span>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Custom Label + Motion + Class"
-                code_signal=custom_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Meter, MeterMotion};".to_string()
-                test_source_path="components/meter/src/view.rs".to_string()
-            >
-                <div class="docs-stack">
-                    <Meter
-                        id="docs-meter-custom".to_string()
-                        label="Sync progress".to_string()
-                        aria_label="Background sync".to_string()
-                        value=Signal::derive(|| Some(64.0))
-                        min=0.0
-                        max=100.0
-                        value_label="64 complete".to_string()
-                        motion=ui::MeterMotion::fast()
-                        class_name="docs-meter-custom".to_string()
-                    />
-                    <Meter
-                        id="docs-meter-fallback".to_string()
-                        label="   ".to_string()
-                        aria_label="   ".to_string()
-                        value=Signal::derive(|| Some(18.0))
-                        class_name="docs-meter-custom".to_string()
-                    />
-                    <Meter
-                        id="docs-meter-indeterminate".to_string()
-                        label="Pending".to_string()
-                        value=Signal::derive(|| None)
-                        class_name="docs-meter-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="Meter has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
-                code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui::Meter;".to_string()
-                test_source_path="components/meter/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <Meter
-                        id="docs-meter-controlled-na-default".to_string()
-                        label="Default path".to_string()
-                        value=Signal::derive(|| Some(42.0))
-                    />
-                    <Meter
-                        id="docs-meter-controlled-na-upstream".to_string()
-                        label="Upstream mapped".to_string()
-                        value=Signal::derive(move || Some(workbench_value.get() as f64))
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="Meter is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
-                code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui::Meter;".to_string()
-                test_source_path="components/meter/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <p class="ui-muted" data-slot="meter-streaming-policy">
-                        "Streaming Optional; fallback=snapshot."
-                    </p>
-                    <p class="ui-muted" data-slot="meter-copy-ready-hint">
-                        "Copy-ready snippets prepend imports automatically; source: components/meter/src/view.rs."
-                    </p>
-                    <Meter
-                        id="docs-meter-stream-snapshot".to_string()
-                        label="Snapshot".to_string()
-                        value=Signal::derive(|| Some(88.0))
-                    />
-                </div>
-            </Playground>
-
-            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="调样式优先走 CSS Test 即时反馈；`preserve_state` 可选保留当前配置上下文。"
                 code_signal=workbench_code
@@ -4033,6 +3920,123 @@ use ui::{Meter, MeterSize, MeterVariant};
                 </div>
             </Playground>
 
+            <Playground
+                title="Variant + Size Matrix"
+                code_signal=matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Meter, MeterSize, MeterVariant};".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
+                <div class="docs-stack">
+                    <Meter
+                        id="docs-meter-default".to_string()
+                        label="Completion".to_string()
+                        value=meter_value
+                        min=0.0
+                        max=100.0
+                    />
+                    <Meter
+                        id="docs-meter-danger".to_string()
+                        label="Risk".to_string()
+                        value=meter_value
+                        variant=MeterVariant::Danger
+                        size=MeterSize::Lg
+                    />
+                    <Meter
+                        id="docs-meter-compact".to_string()
+                        label="Compact".to_string()
+                        value=meter_value
+                        size=MeterSize::Sm
+                        show_value_label=false
+                    />
+                    <div class="docs-row">
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 10).min(100)))
+                        >
+                            "+10"
+                        </ui::Button>
+                        <span class="ui-muted">"value: " {move || value.get()}</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Custom Label + Motion + Class"
+                code_signal=custom_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Meter, MeterMotion};".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
+                <div class="docs-stack">
+                    <Meter
+                        id="docs-meter-custom".to_string()
+                        label="Sync progress".to_string()
+                        aria_label="Background sync".to_string()
+                        value=Signal::derive(|| Some(64.0))
+                        min=0.0
+                        max=100.0
+                        value_label="64 complete".to_string()
+                        motion=ui::MeterMotion::fast()
+                        class_name="docs-meter-custom".to_string()
+                    />
+                    <Meter
+                        id="docs-meter-fallback".to_string()
+                        label="   ".to_string()
+                        aria_label="   ".to_string()
+                        value=Signal::derive(|| Some(18.0))
+                        class_name="docs-meter-custom".to_string()
+                    />
+                    <Meter
+                        id="docs-meter-indeterminate".to_string()
+                        label="Pending".to_string()
+                        value=Signal::derive(|| None)
+                        class_name="docs-meter-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Meter has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui::Meter;".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Meter
+                        id="docs-meter-controlled-na-default".to_string()
+                        label="Default path".to_string()
+                        value=Signal::derive(|| Some(42.0))
+                    />
+                    <Meter
+                        id="docs-meter-controlled-na-upstream".to_string()
+                        label="Upstream mapped".to_string()
+                        value=Signal::derive(move || Some(workbench_value.get() as f64))
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Meter is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui::Meter;".to_string()
+                test_source_path="components/meter/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="meter-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="meter-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/meter/src/view.rs."
+                    </p>
+                    <Meter
+                        id="docs-meter-stream-snapshot".to_string()
+                        label="Snapshot".to_string()
+                        value=Signal::derive(|| Some(88.0))
+                    />
+                </div>
+            </Playground>
+
             <section class="docs-card docs-prose" data-slot="meter-state-matrix">
                 <h3>"State Matrix"</h3>
                 <ul data-slot="meter-state-rows">
@@ -4228,76 +4232,6 @@ pub(super) fn code() -> AnyView {
                 <Code>"cargo check -p ui"</Code>
             </Playground>
 
-            <Playground title="Variant Matrix" code_signal=variants_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <span>"Run "</span>
-                        <Code variant=CodeVariant::Inline>"cargo test -p ui"</Code>
-                        <span>" before opening a PR."</span>
-                    </div>
-                    <Code variant=CodeVariant::Block>
-                        {r#"cargo fmt --all
-cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
-                    </Code>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Class + Block" code_signal=custom_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <span>"CI flags: "</span>
-                        <Code variant=CodeVariant::Inline class_name="docs-code-custom".to_string()>
-                            "--deny warnings"
-                        </Code>
-                    </div>
-                    <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
-                        {r#"cargo test -p ui --test code_semantics
-cargo test -p ui"#}
-                    </Code>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="Code has no internal controlled/uncontrolled axis; compare default usage vs app-state mapped props."
-                code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
-            >
-                <div class="docs-stack">
-                    <Code>"Default path: no controlled/uncontrolled state axis."</Code>
-                    <Code variant=CodeVariant::Block>
-                        "Controlled-like usage lives in app state only: map upstream state to variant/class_name props."
-                    </Code>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="Code is a display leaf: streaming is optional and falls back to snapshot rendering."
-                code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
-            >
-                <div class="docs-stack">
-                    <Code variant=CodeVariant::Inline>
-                        "Snapshot: complete validated output rendered in one pass."
-                    </Code>
-                    <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
-                        "Streaming Optional -> fallback=snapshot; inspect data-ui-streaming=optional, data-ui-fallback=snapshot, data-ui-output-state=verified."
-                    </Code>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run."
-                code_signal=source_first_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
-            >
-                <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
-                    "cargo test -p ui --test code_semantics"
-                </Code>
-            </Playground>
-
             <Playground
                 title="Interactive Playground"
                 code_signal=interactive_code
@@ -4428,6 +4362,76 @@ cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
                         </Code>
                     </div>
                 </div>
+            </Playground>
+
+            <Playground title="Variant Matrix" code_signal=variants_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <span>"Run "</span>
+                        <Code variant=CodeVariant::Inline>"cargo test -p ui"</Code>
+                        <span>" before opening a PR."</span>
+                    </div>
+                    <Code variant=CodeVariant::Block>
+                        {r#"cargo fmt --all
+cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
+                    </Code>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Block" code_signal=custom_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <span>"CI flags: "</span>
+                        <Code variant=CodeVariant::Inline class_name="docs-code-custom".to_string()>
+                            "--deny warnings"
+                        </Code>
+                    </div>
+                    <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+                        {r#"cargo test -p ui --test code_semantics
+cargo test -p ui"#}
+                    </Code>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Code has no internal controlled/uncontrolled axis; compare default usage vs app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
+            >
+                <div class="docs-stack">
+                    <Code>"Default path: no controlled/uncontrolled state axis."</Code>
+                    <Code variant=CodeVariant::Block>
+                        "Controlled-like usage lives in app state only: map upstream state to variant/class_name props."
+                    </Code>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Code is a display leaf: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
+            >
+                <div class="docs-stack">
+                    <Code variant=CodeVariant::Inline>
+                        "Snapshot: complete validated output rendered in one pass."
+                    </Code>
+                    <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+                        "Streaming Optional -> fallback=snapshot; inspect data-ui-streaming=optional, data-ui-fallback=snapshot, data-ui-output-state=verified."
+                    </Code>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};".to_string()
+            >
+                <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+                    "cargo test -p ui --test code_semantics"
+                </Code>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="code-state-matrix">
@@ -4642,91 +4646,10 @@ pub(super) fn kbd() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix (Size + Keys + Label-only)"
-                code_signal=state_matrix_code
-                code_imports=kbd_imports.clone()
-            >
-                <div class="docs-row">
-                    <Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
-                    <Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>
-                    <Kbd size=KbdSize::Md keys="Alt".to_string()>"Enter"</Kbd>
-                    <Kbd size=KbdSize::Md>"Esc"</Kbd>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="Kbd has no internal controlled/uncontrolled axis; compare default static props with app-state mapped props."
-                code_signal=controlled_contrast_code
-                code_imports=kbd_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Kbd keys="Ctrl".to_string()>"K"</Kbd>
-                        <Kbd size=KbdSize::Sm>"Esc"</Kbd>
-                    </div>
-                    <p class="ui-muted">
-                        "N/A: Kbd is snapshot-only display leaf without `value/on_value_change/default_value` state axis."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Custom Class + Label Only"
-                code_signal=custom_code
-                code_imports=kbd_imports.clone()
-            >
-                <div class="docs-row">
-                    <Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
-                    <Kbd
-                        size=KbdSize::Sm
-                        keys="Shift".to_string()
-                        class_name="docs-kbd-custom".to_string()
-                    >
-                        "Tab"
-                    </Kbd>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="Kbd defaults to snapshot rendering; streaming path is optional and falls back to snapshot semantics."
-                code_signal=stream_snapshot_code
-                code_imports=kbd_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="kbd-streaming-snapshot">
-                    <div class="docs-row">
-                        <Kbd keys="Ctrl".to_string()>"K"</Kbd>
-                        <Kbd size=KbdSize::Sm>"Esc"</Kbd>
-                    </div>
-                    <p class="ui-muted" data-slot="kbd-streaming-hint">
-                        "Streaming Optional -> fallback=snapshot; keep output-state semantic continuity at upstream layer."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Playground copy action injects missing imports for direct run."
-                code_signal=source_first_code
-                code_imports=kbd_imports.clone()
-            >
-                <div class="docs-row">
-                    <Kbd
-                        size=KbdSize::Sm
-                        keys="Shift".to_string()
-                        class_name="docs-kbd-custom".to_string()
-                    >
-                        "Tab"
-                    </Kbd>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels for size/keys/class contracts."
                 code_signal=workbench_code
-                code_imports=kbd_imports
+                code_imports=kbd_imports.clone()
                 test_css_source=workbench_test_css
                 test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/kbd/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
@@ -4833,6 +4756,87 @@ pub(super) fn kbd() -> AnyView {
                         .into_any()
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Size + Keys + Label-only)"
+                code_signal=state_matrix_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-row">
+                    <Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
+                    <Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>
+                    <Kbd size=KbdSize::Md keys="Alt".to_string()>"Enter"</Kbd>
+                    <Kbd size=KbdSize::Md>"Esc"</Kbd>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Kbd has no internal controlled/uncontrolled axis; compare default static props with app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Kbd keys="Ctrl".to_string()>"K"</Kbd>
+                        <Kbd size=KbdSize::Sm>"Esc"</Kbd>
+                    </div>
+                    <p class="ui-muted">
+                        "N/A: Kbd is snapshot-only display leaf without `value/on_value_change/default_value` state axis."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Custom Class + Label Only"
+                code_signal=custom_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-row">
+                    <Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
+                    <Kbd
+                        size=KbdSize::Sm
+                        keys="Shift".to_string()
+                        class_name="docs-kbd-custom".to_string()
+                    >
+                        "Tab"
+                    </Kbd>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Kbd defaults to snapshot rendering; streaming path is optional and falls back to snapshot semantics."
+                code_signal=stream_snapshot_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="kbd-streaming-snapshot">
+                    <div class="docs-row">
+                        <Kbd keys="Ctrl".to_string()>"K"</Kbd>
+                        <Kbd size=KbdSize::Sm>"Esc"</Kbd>
+                    </div>
+                    <p class="ui-muted" data-slot="kbd-streaming-hint">
+                        "Streaming Optional -> fallback=snapshot; keep output-state semantic continuity at upstream layer."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Playground copy action injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=kbd_imports.clone()
+            >
+                <div class="docs-row">
+                    <Kbd
+                        size=KbdSize::Sm
+                        keys="Shift".to_string()
+                        class_name="docs-kbd-custom".to_string()
+                    >
+                        "Tab"
+                    </Kbd>
+                </div>
             </Playground>
 
             <Playground
@@ -5218,128 +5222,6 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
             </Playground>
 
             <Playground
-                title="Header + Copy Motion"
-                code_signal=matrix_code
-                code_imports=code_block_imports.clone()
-            >
-                <CodeBlock
-                    code=rust_code.to_string()
-                    language="rust".to_string()
-                    label="deploy.rs".to_string()
-                />
-            </Playground>
-
-            <Playground
-                title="Compact + No Copy"
-                code_signal=compact_code
-                code_imports=code_block_imports.clone()
-            >
-                <CodeBlock
-                    code="cargo test -p ui --test code_block_semantics".to_string()
-                    is_copyable=false
-                    class_name="docs-code-block-custom".to_string()
-                />
-            </Playground>
-
-            <Playground
-                title="State Matrix"
-                description="覆盖 single-line/multiline、header visible/hidden、copyable on/off、empty/custom class 等关键状态轴。"
-                code_signal=state_matrix_code
-                code_imports=code_block_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="code-block-state-matrix-preview">
-                    <CodeBlock code="cargo check -p ui".to_string() />
-                    <CodeBlock
-                        code={r#"cargo fmt --all
-cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
-                        language="bash".to_string()
-                        label="ci.sh".to_string()
-                    />
-                    <CodeBlock
-                        code="cargo test -p ui --test code_block_semantics".to_string()
-                        is_copyable=false
-                    />
-                    <CodeBlock
-                        code="   ".to_string()
-                        is_copyable=false
-                        class_name="docs-code-block-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (Copied State)"
-                description="对照 `default_copied`（非受控）与 `is_copied + on_copied_change`（受控）语义。"
-                code_signal=controlled_contrast_code
-                code_imports=code_block_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="code-block-controlled-preview">
-                    <CodeBlock
-                        code="Uncontrolled: internal copied state starts from default_copied=true.".to_string()
-                        default_copied=true
-                    />
-                    <CodeBlock
-                        code="Controlled: copied state comes from app signal.".to_string()
-                        is_copied=controlled_copied_signal
-                        on_copied_change=on_controlled_copied_change
-                    />
-                    <div class="docs-row">
-                        <span class="ui-muted">
-                            {move || format!("controlled copied: {}", controlled_copied.get())}
-                        </span>
-                        <ui::Button
-                            variant=ui::ButtonVariant::Secondary
-                            size=ui::ButtonSize::Sm
-                            on_press=on_controlled_reset
-                        >
-                            "Reset controlled copied"
-                        </ui::Button>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="CodeBlock 默认 Snapshot；如需边生成边显示，可显式启用 Streaming，并保持 output status 连续可读。"
-                code_signal=stream_snapshot_code
-                code_imports=code_block_stream_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="code-block-streaming-preview">
-                    <CodeBlock
-                        code="Snapshot: complete validated output rendered in one pass.".to_string()
-                        language="plain".to_string()
-                        output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::Snapshot
-                        output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::Validated
-                    />
-                    <CodeBlock
-                        code="Streaming: incremental draft output while LLM is generating.".to_string()
-                        language="plain".to_string()
-                        output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::Streaming
-                        output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::Draft
-                    />
-                    <p class="ui-muted">
-                        "Inspect "
-                        <code>"data-ui-output-mode"</code>
-                        " and "
-                        <code>"data-ui-output-status"</code>
-                        " on each root."
-                    </p>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="复制按钮输出最小可运行片段，并自动补齐 imports。"
-                code_signal=source_first_code
-                code_imports=code_block_imports.clone()
-            >
-                <CodeBlock
-                    code="cargo test -p ui --test code_block_semantics".to_string()
-                    language="bash".to_string()
-                />
-            </Playground>
-
-            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="调样式走 CSS Test 即时反馈；`preserve_state` 可选保持复制状态和编辑上下文，降低重复操作。"
                 code_signal=workbench_code
@@ -5474,6 +5356,128 @@ cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
                         is_copyable=false
                     />
                 </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="覆盖 single-line/multiline、header visible/hidden、copyable on/off、empty/custom class 等关键状态轴。"
+                code_signal=state_matrix_code
+                code_imports=code_block_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="code-block-state-matrix-preview">
+                    <CodeBlock code="cargo check -p ui".to_string() />
+                    <CodeBlock
+                        code={r#"cargo fmt --all
+cargo clippy --workspace --all-targets -- -D warnings"#.to_string()}
+                        language="bash".to_string()
+                        label="ci.sh".to_string()
+                    />
+                    <CodeBlock
+                        code="cargo test -p ui --test code_block_semantics".to_string()
+                        is_copyable=false
+                    />
+                    <CodeBlock
+                        code="   ".to_string()
+                        is_copyable=false
+                        class_name="docs-code-block-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Header + Copy Motion"
+                code_signal=matrix_code
+                code_imports=code_block_imports.clone()
+            >
+                <CodeBlock
+                    code=rust_code.to_string()
+                    language="rust".to_string()
+                    label="deploy.rs".to_string()
+                />
+            </Playground>
+
+            <Playground
+                title="Compact + No Copy"
+                code_signal=compact_code
+                code_imports=code_block_imports.clone()
+            >
+                <CodeBlock
+                    code="cargo test -p ui --test code_block_semantics".to_string()
+                    is_copyable=false
+                    class_name="docs-code-block-custom".to_string()
+                />
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (Copied State)"
+                description="对照 `default_copied`（非受控）与 `is_copied + on_copied_change`（受控）语义。"
+                code_signal=controlled_contrast_code
+                code_imports=code_block_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="code-block-controlled-preview">
+                    <CodeBlock
+                        code="Uncontrolled: internal copied state starts from default_copied=true.".to_string()
+                        default_copied=true
+                    />
+                    <CodeBlock
+                        code="Controlled: copied state comes from app signal.".to_string()
+                        is_copied=controlled_copied_signal
+                        on_copied_change=on_controlled_copied_change
+                    />
+                    <div class="docs-row">
+                        <span class="ui-muted">
+                            {move || format!("controlled copied: {}", controlled_copied.get())}
+                        </span>
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            size=ui::ButtonSize::Sm
+                            on_press=on_controlled_reset
+                        >
+                            "Reset controlled copied"
+                        </ui::Button>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="CodeBlock 默认 Snapshot；如需边生成边显示，可显式启用 Streaming，并保持 output status 连续可读。"
+                code_signal=stream_snapshot_code
+                code_imports=code_block_stream_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="code-block-streaming-preview">
+                    <CodeBlock
+                        code="Snapshot: complete validated output rendered in one pass.".to_string()
+                        language="plain".to_string()
+                        output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::Snapshot
+                        output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::Validated
+                    />
+                    <CodeBlock
+                        code="Streaming: incremental draft output while LLM is generating.".to_string()
+                        language="plain".to_string()
+                        output_mode=ui::code_block::protocol::CodeBlockAgentOutputMode::Streaming
+                        output_status=ui::code_block::protocol::CodeBlockAgentOutputStatus::Draft
+                    />
+                    <p class="ui-muted">
+                        "Inspect "
+                        <code>"data-ui-output-mode"</code>
+                        " and "
+                        <code>"data-ui-output-status"</code>
+                        " on each root."
+                    </p>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="复制按钮输出最小可运行片段，并自动补齐 imports。"
+                code_signal=source_first_code
+                code_imports=code_block_imports.clone()
+            >
+                <CodeBlock
+                    code="cargo test -p ui --test code_block_semantics".to_string()
+                    language="bash".to_string()
+                />
             </Playground>
 
             <Playground
@@ -6322,97 +6326,6 @@ use ui::{Avatar, AvatarSize};
             </Playground>
 
             <Playground
-                title="Image + Fallback"
-                code_signal=image_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
-                test_source_path="components/avatar/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <Avatar
-                        name="Ada Lovelace".to_string()
-                        src=into_owned_string(src)
-                        size=AvatarSize::Md
-                    />
-                    <Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
-                    <Avatar name="Alan Turing".to_string() size=AvatarSize::Lg />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Fallback Scenarios"
-                description="Label source + fallback state matrix with stable semantic markers."
-                code_signal=state_matrix_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
-                test_source_path="components/avatar/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <Avatar
-                        name="Ada Lovelace".to_string()
-                        src=into_owned_string(src)
-                        alt="Profile photo".to_string()
-                        size=AvatarSize::Sm
-                    />
-                    <Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
-                    <Avatar size=AvatarSize::Lg />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Custom Class + Normalized Props"
-                code_signal=custom_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
-                test_source_path="components/avatar/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <Avatar
-                        name="  Ada Lovelace  ".to_string()
-                        alt="  Team lead  ".to_string()
-                        size=AvatarSize::Lg
-                        class_name="docs-avatar-custom".to_string()
-                    />
-                    <Avatar
-                        alt="  Anonymous collaborator  ".to_string()
-                        src="   ".to_string()
-                        class_name="docs-avatar-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="Avatar has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
-                code_signal=controlled_contrast_code
-                code_imports="use leptos::prelude::*;\nuse ui::Avatar;".to_string()
-                test_source_path="components/avatar/src/view.rs".to_string()
-            >
-                <div class="docs-row">
-                    <Avatar />
-                    <Avatar name="Ada Lovelace".to_string() />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="Avatar is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
-                code_signal=stream_snapshot_code
-                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
-                test_source_path="components/avatar/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <p class="ui-muted" data-slot="avatar-streaming-policy">
-                        "Streaming Optional; fallback=snapshot."
-                    </p>
-                    <p class="ui-muted" data-slot="avatar-copy-ready-hint">
-                        "Copy-ready snippets prepend imports automatically; source: components/avatar/src/view.rs."
-                    </p>
-                    <div class="docs-row">
-                        <Avatar name="Snapshot User".to_string() size=AvatarSize::Md />
-                        <Avatar alt="Fallback viewer".to_string() size=AvatarSize::Sm />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground (Props + State Preview)"
                 description="Modify props live and inspect semantic state transitions without wiring internal state machines."
                 code_signal=workbench_code
@@ -6532,6 +6445,101 @@ use ui::{Avatar, AvatarSize};
                     }
                 }}
             </Playground>
+
+
+
+            <Playground
+                title="Image + Fallback"
+                code_signal=image_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Avatar
+                        name="Ada Lovelace".to_string()
+                        src=into_owned_string(src)
+                        size=AvatarSize::Md
+                    />
+                    <Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
+                    <Avatar name="Alan Turing".to_string() size=AvatarSize::Lg />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Fallback Scenarios"
+                description="Label source + fallback state matrix with stable semantic markers."
+                code_signal=state_matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Avatar
+                        name="Ada Lovelace".to_string()
+                        src=into_owned_string(src)
+                        alt="Profile photo".to_string()
+                        size=AvatarSize::Sm
+                    />
+                    <Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
+                    <Avatar size=AvatarSize::Lg />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Custom Class + Normalized Props"
+                code_signal=custom_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Avatar
+                        name="  Ada Lovelace  ".to_string()
+                        alt="  Team lead  ".to_string()
+                        size=AvatarSize::Lg
+                        class_name="docs-avatar-custom".to_string()
+                    />
+                    <Avatar
+                        alt="  Anonymous collaborator  ".to_string()
+                        src="   ".to_string()
+                        class_name="docs-avatar-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Avatar has no internal controlled/uncontrolled axis; compare default usage and app-state-mapped props."
+                code_signal=controlled_contrast_code
+                code_imports="use leptos::prelude::*;\nuse ui::Avatar;".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Avatar />
+                    <Avatar name="Ada Lovelace".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Avatar is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Avatar, AvatarSize};".to_string()
+                test_source_path="components/avatar/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="avatar-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="avatar-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/avatar/src/view.rs."
+                    </p>
+                    <div class="docs-row">
+                        <Avatar name="Snapshot User".to_string() size=AvatarSize::Md />
+                        <Avatar alt="Fallback viewer".to_string() size=AvatarSize::Sm />
+                    </div>
+                </div>
+            </Playground>
+
+
 
             <Playground
                 title="State Matrix (Image / Name / Fallback)"
@@ -7038,103 +7046,6 @@ let upstream_max = 2_usize;
                 </div>
             </Playground>
 
-            <Playground title="Overflow Stack" code_signal=overflow_code code_imports=code_imports.clone()>
-                <div class="docs-row">
-                    <AvatarGroup items=overflow_items.clone() max=3 size=AvatarSize::Md />
-                    <AvatarGroup
-                        items=overflow_items.clone()
-                        max=2
-                        size=AvatarSize::Lg
-                        aria_label="Core collaborators".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Sizes Without Overflow"
-                code_signal=sizes_code
-                code_imports=code_imports.clone()
-            >
-                <div class="docs-row">
-                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Sm />
-                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Md />
-                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Lg />
-                </div>
-            </Playground>
-
-            <Playground title="Custom Aria + Class" code_signal=custom_code code_imports=code_imports.clone()>
-                <div class="docs-row">
-                    <AvatarGroup
-                        items=empty_items_custom
-                        max=4
-                        size=AvatarSize::Md
-                        aria_label="No collaborators".to_string()
-                        class_name="docs-avatar-group-custom".to_string()
-                    />
-                    <AvatarGroup
-                        items=custom_items
-                        max=3
-                        size=AvatarSize::Md
-                        aria_label="Core collaborators".to_string()
-                        class_name="docs-avatar-group-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Roster Scenarios"
-                description="Covers empty/stable/overflow and custom aria-label contracts in one matrix."
-                code_signal=state_matrix_code
-                code_imports=code_imports.clone()
-            >
-                <div class="docs-row">
-                    <AvatarGroup items=empty_items_for_state_matrix />
-                    <AvatarGroup items=state_matrix_items.clone() max=6 size=AvatarSize::Md />
-                    <AvatarGroup
-                        items=state_matrix_items.clone()
-                        max=2
-                        size=AvatarSize::Md
-                        aria_label="Core collaborators".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="AvatarGroup has no controlled/uncontrolled state machine. Compare default props with app-state mapped props."
-                code_signal=controlled_contrast_code
-                code_imports=code_imports.clone()
-            >
-                <div class="docs-row">
-                    <AvatarGroup items=empty_items_for_controlled />
-                    <AvatarGroup
-                        items=controlled_items.clone()
-                        max=2
-                        size=AvatarSize::Md
-                        aria_label="Upstream mapped".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                description="AvatarGroup is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
-                code_signal=stream_snapshot_code
-                code_imports=code_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="avatar-group-streaming-preview">
-                    <AvatarGroup
-                        items=stream_snapshot_items.clone()
-                        max=2
-                        size=AvatarSize::Md
-                        aria_label="Snapshot baseline".to_string()
-                    />
-                    <p class="ui-muted" data-slot="avatar-group-streaming-policy">
-                        "Streaming Optional; fallback=snapshot."
-                    </p>
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Playground (Props + State + Preview)"
                 description="Adjust roster/size/max and semantic sources in real time. Use this as repeatable acceptance surface."
@@ -7269,6 +7180,107 @@ let upstream_max = 2_usize;
                     }
                 }}
             </Playground>
+
+
+
+            <Playground title="Overflow Stack" code_signal=overflow_code code_imports=code_imports.clone()>
+                <div class="docs-row">
+                    <AvatarGroup items=overflow_items.clone() max=3 size=AvatarSize::Md />
+                    <AvatarGroup
+                        items=overflow_items.clone()
+                        max=2
+                        size=AvatarSize::Lg
+                        aria_label="Core collaborators".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Sizes Without Overflow"
+                code_signal=sizes_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-row">
+                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Sm />
+                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Md />
+                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Lg />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Aria + Class" code_signal=custom_code code_imports=code_imports.clone()>
+                <div class="docs-row">
+                    <AvatarGroup
+                        items=empty_items_custom
+                        max=4
+                        size=AvatarSize::Md
+                        aria_label="No collaborators".to_string()
+                        class_name="docs-avatar-group-custom".to_string()
+                    />
+                    <AvatarGroup
+                        items=custom_items
+                        max=3
+                        size=AvatarSize::Md
+                        aria_label="Core collaborators".to_string()
+                        class_name="docs-avatar-group-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Roster Scenarios"
+                description="Covers empty/stable/overflow and custom aria-label contracts in one matrix."
+                code_signal=state_matrix_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-row">
+                    <AvatarGroup items=empty_items_for_state_matrix />
+                    <AvatarGroup items=state_matrix_items.clone() max=6 size=AvatarSize::Md />
+                    <AvatarGroup
+                        items=state_matrix_items.clone()
+                        max=2
+                        size=AvatarSize::Md
+                        aria_label="Core collaborators".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="AvatarGroup has no controlled/uncontrolled state machine. Compare default props with app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-row">
+                    <AvatarGroup items=empty_items_for_controlled />
+                    <AvatarGroup
+                        items=controlled_items.clone()
+                        max=2
+                        size=AvatarSize::Md
+                        aria_label="Upstream mapped".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="AvatarGroup is not a body-reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports=code_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="avatar-group-streaming-preview">
+                    <AvatarGroup
+                        items=stream_snapshot_items.clone()
+                        max=2
+                        size=AvatarSize::Md
+                        aria_label="Snapshot baseline".to_string()
+                    />
+                    <p class="ui-muted" data-slot="avatar-group-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                </div>
+            </Playground>
+
+
 
             <Playground
                 title="State Matrix (Empty / Stable / Overflow)"
@@ -7609,174 +7621,6 @@ pub(super) fn image() -> AnyView {
             </Playground>
 
             <Playground
-                title="Default Theme Visual Baseline (Visual Desire)"
-                description="Default-theme hierarchy, contrast, and hover feedback baseline."
-                code_signal=visual_baseline_code
-            >
-                <div
-                    class="docs-stack docs-stack--tight docs-image-visual-baseline"
-                    data-visual-baseline="image-default-theme"
-                >
-                    <span class="ui-muted">
-                        "HeroUI-quality visual direction baseline for Image under default theme."
-                    </span>
-                    <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"Editorial baseline"</span>
-                            <Image
-                                src=into_owned_string(src)
-                                alt="Editorial baseline".to_string()
-                                class_name="docs-image-frame".to_string()
-                            />
-                        </div>
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"Hover feedback baseline"</span>
-                            <Image
-                                src=into_owned_string(src)
-                                alt="Hover feedback baseline".to_string()
-                                is_zoomed=true
-                                class_name="docs-image-frame".to_string()
-                            />
-                        </div>
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"Depth / blur baseline"</span>
-                            <Image
-                                src=into_owned_string(src)
-                                alt="Depth / blur baseline".to_string()
-                                is_blurred=true
-                                class_name="docs-image-frame".to_string()
-                            />
-                        </div>
-                        <div class="docs-stack docs-stack--tight">
-                            <span class="ui-muted">"Fallback contrast baseline"</span>
-                            <Image
-                                src="https://example.invalid/rust-ui-image.png".to_string()
-                                fallback_src=into_owned_string(fallback_src)
-                                alt="Fallback contrast baseline".to_string()
-                                class_name="docs-image-frame".to_string()
-                            />
-                        </div>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Scenario Gallery: Loaded / Blurred / Fallback / Missing"
-                code_signal=matrix_code
-                code_imports=advanced_imports.clone()
-                test_source_path="components/image/src/view.rs".to_string()
-            >
-                <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Loaded + Zoom"</span>
-                        <Image
-                            src=into_owned_string(src)
-                            alt="Loaded + Zoom".to_string()
-                            is_zoomed=true
-                            radius=ImageRadius::Lg
-                            shadow=ImageShadow::Md
-                            class_name="docs-image-frame".to_string()
-                        />
-                    </div>
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Blurred + Soft"</span>
-                        <Image
-                            src=into_owned_string(src)
-                            alt="Blurred + Soft".to_string()
-                            is_blurred=true
-                            radius=ImageRadius::Md
-                            shadow=ImageShadow::Sm
-                            class_name="docs-image-frame".to_string()
-                        />
-                    </div>
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Invalid src -> Fallback"</span>
-                        <Image
-                            src="https://example.invalid/rust-ui-image.png".to_string()
-                            fallback_src=into_owned_string(fallback_src)
-                            alt="Invalid -> Fallback".to_string()
-                            radius=ImageRadius::Sm
-                            shadow=ImageShadow::None
-                            class_name="docs-image-frame".to_string()
-                        />
-                    </div>
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Missing src -> Fallback"</span>
-                        <Image
-                            src="".to_string()
-                            fallback_src=into_owned_string(fallback_src)
-                            alt="Missing -> Fallback".to_string()
-                            radius=ImageRadius::Full
-                            shadow=ImageShadow::Sm
-                            class_name="docs-image-frame".to_string()
-                        />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="Image has no internal controlled/uncontrolled state axis; contrast default props and app-state mapped props."
-                code_signal=controlled_contrast_code
-                code_imports=basic_imports.clone()
-                test_source_path="components/image/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <Image
-                        src=into_owned_string(src)
-                        alt="Default path".to_string()
-                    />
-                    <Image
-                        src=into_owned_string(src)
-                        alt="Upstream mapped".to_string()
-                        is_zoomed=is_zoomed.get()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="Image is not a body-reader surface: streaming is optional and fallback remains snapshot."
-                code_signal=stream_snapshot_code
-                code_imports=basic_imports.clone()
-                test_source_path="components/image/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <p class="ui-muted" data-slot="image-streaming-policy">
-                        "Streaming Optional; fallback=snapshot."
-                    </p>
-                    <p class="ui-muted" data-slot="image-copy-ready-hint">
-                        "Copy-ready snippets prepend imports automatically; source: components/image/src/view.rs."
-                    </p>
-                    <Image
-                        src=into_owned_string(src)
-                        alt="Snapshot baseline".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run."
-                code_signal=source_first_code
-                code_imports=advanced_imports.clone()
-                test_source_path="components/image/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <Image
-                        src=into_owned_string(src)
-                        fallback_src=into_owned_string(fallback_src)
-                        alt="Copy-ready starter".to_string()
-                        radius=ImageRadius::Lg
-                        shadow=ImageShadow::Sm
-                    />
-                    <span class="ui-muted">
-                        "Source-first path: copy snippet and run with imports auto-injected by Playground."
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Workbench: Display + Config + Code + CSS Test"
                 description="Interactive panel with scoped CSS test + actual config snapshot."
                 code_signal=workbench_code
@@ -7963,6 +7807,174 @@ pub(super) fn image() -> AnyView {
                             dir=A11yDirection::Rtl
                         />
                     </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Default Theme Visual Baseline (Visual Desire)"
+                description="Default-theme hierarchy, contrast, and hover feedback baseline."
+                code_signal=visual_baseline_code
+            >
+                <div
+                    class="docs-stack docs-stack--tight docs-image-visual-baseline"
+                    data-visual-baseline="image-default-theme"
+                >
+                    <span class="ui-muted">
+                        "HeroUI-quality visual direction baseline for Image under default theme."
+                    </span>
+                    <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Editorial baseline"</span>
+                            <Image
+                                src=into_owned_string(src)
+                                alt="Editorial baseline".to_string()
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Hover feedback baseline"</span>
+                            <Image
+                                src=into_owned_string(src)
+                                alt="Hover feedback baseline".to_string()
+                                is_zoomed=true
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Depth / blur baseline"</span>
+                            <Image
+                                src=into_owned_string(src)
+                                alt="Depth / blur baseline".to_string()
+                                is_blurred=true
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Fallback contrast baseline"</span>
+                            <Image
+                                src="https://example.invalid/rust-ui-image.png".to_string()
+                                fallback_src=into_owned_string(fallback_src)
+                                alt="Fallback contrast baseline".to_string()
+                                class_name="docs-image-frame".to_string()
+                            />
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Scenario Gallery: Loaded / Blurred / Fallback / Missing"
+                code_signal=matrix_code
+                code_imports=advanced_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Loaded + Zoom"</span>
+                        <Image
+                            src=into_owned_string(src)
+                            alt="Loaded + Zoom".to_string()
+                            is_zoomed=true
+                            radius=ImageRadius::Lg
+                            shadow=ImageShadow::Md
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Blurred + Soft"</span>
+                        <Image
+                            src=into_owned_string(src)
+                            alt="Blurred + Soft".to_string()
+                            is_blurred=true
+                            radius=ImageRadius::Md
+                            shadow=ImageShadow::Sm
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Invalid src -> Fallback"</span>
+                        <Image
+                            src="https://example.invalid/rust-ui-image.png".to_string()
+                            fallback_src=into_owned_string(fallback_src)
+                            alt="Invalid -> Fallback".to_string()
+                            radius=ImageRadius::Sm
+                            shadow=ImageShadow::None
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Missing src -> Fallback"</span>
+                        <Image
+                            src="".to_string()
+                            fallback_src=into_owned_string(fallback_src)
+                            alt="Missing -> Fallback".to_string()
+                            radius=ImageRadius::Full
+                            shadow=ImageShadow::Sm
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="Image has no internal controlled/uncontrolled state axis; contrast default props and app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=basic_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Image
+                        src=into_owned_string(src)
+                        alt="Default path".to_string()
+                    />
+                    <Image
+                        src=into_owned_string(src)
+                        alt="Upstream mapped".to_string()
+                        is_zoomed=is_zoomed.get()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Image is not a body-reader surface: streaming is optional and fallback remains snapshot."
+                code_signal=stream_snapshot_code
+                code_imports=basic_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <p class="ui-muted" data-slot="image-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="image-copy-ready-hint">
+                        "Copy-ready snippets prepend imports automatically; source: components/image/src/view.rs."
+                    </p>
+                    <Image
+                        src=into_owned_string(src)
+                        alt="Snapshot baseline".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=advanced_imports.clone()
+                test_source_path="components/image/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Image
+                        src=into_owned_string(src)
+                        fallback_src=into_owned_string(fallback_src)
+                        alt="Copy-ready starter".to_string()
+                        radius=ImageRadius::Lg
+                        shadow=ImageShadow::Sm
+                    />
+                    <span class="ui-muted">
+                        "Source-first path: copy snippet and run with imports auto-injected by Playground."
+                    </span>
                 </div>
             </Playground>
 
@@ -8177,83 +8189,6 @@ pub(super) fn illustrated_message() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix"
-                description="Covers default, rich slots, and partial-content states with stable aria/data markers."
-                code_signal=state_matrix_code
-                code_imports=code_imports.clone()
-                test_source_path="components/illustrated-message/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <IllustratedMessage
-                        title="Empty".to_string()
-                        description="Nothing here".to_string()
-                    />
-                    <IllustratedMessage
-                        title="No results".to_string()
-                        description="Try changing your search.".to_string()
-                        illustration=move || view! { <div class="docs-illustration">"◎"</div> }
-                        actions=move || view! { <ui::Button>"Clear"</ui::Button> }
-                    />
-                    <IllustratedMessage description="Only description provided.".to_string() />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="IllustratedMessage is display-only; compare default props and app-state-mapped props without internal state axis."
-                code_signal=controlled_contrast_code
-                code_imports=code_imports.clone()
-                test_source_path="components/illustrated-message/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <IllustratedMessage
-                        title="Default path".to_string()
-                        description="No controlled axis; props-only snapshot render.".to_string()
-                    />
-                    <IllustratedMessage
-                        title="Filtered empty".to_string()
-                        description="Mapped from external app state.".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="Display leaf keeps snapshot rendering; streaming lifecycle stays in upstream orchestration."
-                code_signal=stream_snapshot_code
-                code_imports=code_imports.clone()
-                test_source_path="components/illustrated-message/src/view.rs".to_string()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="illustrated-message-streaming-preview">
-                    <p class="ui-muted" data-slot="illustrated-message-streaming-policy">
-                        "Streaming Optional -> fallback=snapshot."
-                    </p>
-                    <p class="ui-muted" data-slot="illustrated-message-copy-ready-hint">
-                        "Copy-ready snippets prepend missing imports automatically."
-                    </p>
-                    <IllustratedMessage
-                        title="Snapshot result".to_string()
-                        description="Complete validated output rendered in one pass.".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Playground copy action injects missing imports for direct run."
-                code_signal=source_first_code
-                code_imports=code_imports.clone()
-                test_source_path="components/illustrated-message/src/view.rs".to_string()
-            >
-                <IllustratedMessage
-                    title="No results".to_string()
-                    description="Try changing your search.".to_string()
-                    illustration=move || view! { <div class="docs-illustration">"◎"</div> }
-                    actions=move || view! { <ui::Button>"Clear"</ui::Button> }
-                />
-            </Playground>
-
-            <Playground
                 title="Interactive Playground (Props + State + Preview)"
                 description="Live controls for slot toggles and orientation/dir mapping; preview state markers update in real time."
                 code_signal=workbench_code
@@ -8453,6 +8388,83 @@ pub(super) fn illustrated_message() -> AnyView {
                     }
                     .into_any()
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                description="Covers default, rich slots, and partial-content states with stable aria/data markers."
+                code_signal=state_matrix_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <IllustratedMessage
+                        title="Empty".to_string()
+                        description="Nothing here".to_string()
+                    />
+                    <IllustratedMessage
+                        title="No results".to_string()
+                        description="Try changing your search.".to_string()
+                        illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+                        actions=move || view! { <ui::Button>"Clear"</ui::Button> }
+                    />
+                    <IllustratedMessage description="Only description provided.".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="IllustratedMessage is display-only; compare default props and app-state-mapped props without internal state axis."
+                code_signal=controlled_contrast_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <IllustratedMessage
+                        title="Default path".to_string()
+                        description="No controlled axis; props-only snapshot render.".to_string()
+                    />
+                    <IllustratedMessage
+                        title="Filtered empty".to_string()
+                        description="Mapped from external app state.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Display leaf keeps snapshot rendering; streaming lifecycle stays in upstream orchestration."
+                code_signal=stream_snapshot_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="illustrated-message-streaming-preview">
+                    <p class="ui-muted" data-slot="illustrated-message-streaming-policy">
+                        "Streaming Optional -> fallback=snapshot."
+                    </p>
+                    <p class="ui-muted" data-slot="illustrated-message-copy-ready-hint">
+                        "Copy-ready snippets prepend missing imports automatically."
+                    </p>
+                    <IllustratedMessage
+                        title="Snapshot result".to_string()
+                        description="Complete validated output rendered in one pass.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Playground copy action injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <IllustratedMessage
+                    title="No results".to_string()
+                    description="Try changing your search.".to_string()
+                    illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+                    actions=move || view! { <ui::Button>"Clear"</ui::Button> }
+                />
             </Playground>
 
             <Playground
@@ -9366,27 +9378,6 @@ pub(super) fn sliding_number() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Separators + Motion + Class" code_signal=custom_code>
-                <div class="docs-stack">
-                    <SlidingNumber
-                        number=Signal::derive(|| 42123.456)
-                        decimal_separator=",".to_string()
-                        decimal_places=30
-                        thousand_separator=" ".to_string()
-                        class_name="docs-sliding-number-custom".to_string()
-                    />
-                    <SlidingNumber
-                        number=Signal::derive(|| f64::NAN)
-                        decimal_places=2
-                        motion=ui::SlidingNumberMotion {
-                            animate: false,
-                            ..Default::default()
-                        }
-                        class_name="docs-sliding-number-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels for sliding number motion and format contracts."
@@ -9613,6 +9604,27 @@ pub(super) fn sliding_number() -> AnyView {
                         class_name="docs-sliding-number-custom".to_string()
                         lang="zh-CN".to_string()
                         dir=A11yDirection::Rtl
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Separators + Motion + Class" code_signal=custom_code>
+                <div class="docs-stack">
+                    <SlidingNumber
+                        number=Signal::derive(|| 42123.456)
+                        decimal_separator=",".to_string()
+                        decimal_places=30
+                        thousand_separator=" ".to_string()
+                        class_name="docs-sliding-number-custom".to_string()
+                    />
+                    <SlidingNumber
+                        number=Signal::derive(|| f64::NAN)
+                        decimal_places=2
+                        motion=ui::SlidingNumberMotion {
+                            animate: false,
+                            ..Default::default()
+                        }
+                        class_name="docs-sliding-number-custom".to_string()
                     />
                 </div>
             </Playground>

@@ -1409,46 +1409,6 @@ pub(super) fn action_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Loading placement + icon-only" code_signal=states_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <ActionButton
-                            size=ActionButtonSize::S
-                            is_loading=true
-                            loading_placement=ActionButtonLoadingPlacement::Start
-                        >
-                            "Start"
-                        </ActionButton>
-                        <ActionButton
-                            size=ActionButtonSize::L
-                            is_loading=true
-                            loading_placement=ActionButtonLoadingPlacement::End
-                        >
-                            "End"
-                        </ActionButton>
-                        <ActionButton is_quiet=true aria_label="Settings".to_string()>
-                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <path
-                                    d="M10 13.3a3.3 3.3 0 1 0 0-6.6a3.3 3.3 0 0 0 0 6.6Z"
-                                    stroke="currentColor"
-                                    stroke_width="1.5"
-                                />
-                                <path
-                                    d="M3.8 10a6.2 6.2 0 0 1 .1-1l1.6-.9.2-.5-.6-1.8a7.6 7.6 0 0 1 1.5-1.5l1.8.6.5-.2.9-1.6a6.4 6.4 0 0 1 2 0l.9 1.6.5.2 1.8-.6c.6.4 1.1.9 1.5 1.5l-.6 1.8.2.5 1.6.9a6.5 6.5 0 0 1 0 2l-1.6.9-.2.5.6 1.8a7.6 7.6 0 0 1-1.5 1.5l-1.8-.6-.5.2-.9 1.6a6.4 6.4 0 0 1-2 0l-.9-1.6-.5-.2-1.8.6a7.6 7.6 0 0 1-1.5-1.5l.6-1.8-.2-.5-1.6-.9a6.2 6.2 0 0 1-.1-1Z"
-                                    stroke="currentColor"
-                                    stroke_width="1.2"
-                                    stroke_linecap="round"
-                                    stroke_linejoin="round"
-                                />
-                            </svg>
-                        </ActionButton>
-                    </div>
-                    <span class="ui-muted">
-                        "Start/end slots, loading placement, and icon-only mode all expose stable data-* attrs."
-                    </span>
-                </div>
-            </Playground>
-
             <Playground
                 title="ActionButton Workbench"
                 code_signal=workbench_code
@@ -1589,6 +1549,46 @@ pub(super) fn action_button() -> AnyView {
                     >
                         "Popup"
                     </ActionButton>
+                </div>
+            </Playground>
+
+            <Playground title="Loading placement + icon-only" code_signal=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ActionButton
+                            size=ActionButtonSize::S
+                            is_loading=true
+                            loading_placement=ActionButtonLoadingPlacement::Start
+                        >
+                            "Start"
+                        </ActionButton>
+                        <ActionButton
+                            size=ActionButtonSize::L
+                            is_loading=true
+                            loading_placement=ActionButtonLoadingPlacement::End
+                        >
+                            "End"
+                        </ActionButton>
+                        <ActionButton is_quiet=true aria_label="Settings".to_string()>
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path
+                                    d="M10 13.3a3.3 3.3 0 1 0 0-6.6a3.3 3.3 0 0 0 0 6.6Z"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M3.8 10a6.2 6.2 0 0 1 .1-1l1.6-.9.2-.5-.6-1.8a7.6 7.6 0 0 1 1.5-1.5l1.8.6.5-.2.9-1.6a6.4 6.4 0 0 1 2 0l.9 1.6.5.2 1.8-.6c.6.4 1.1.9 1.5 1.5l-.6 1.8.2.5 1.6.9a6.5 6.5 0 0 1 0 2l-1.6.9-.2.5.6 1.8a7.6 7.6 0 0 1-1.5 1.5l-1.8-.6-.5.2-.9 1.6a6.4 6.4 0 0 1-2 0l-.9-1.6-.5-.2-1.8.6a7.6 7.6 0 0 1-1.5-1.5l.6-1.8-.2-.5-1.6-.9a6.2 6.2 0 0 1-.1-1Z"
+                                    stroke="currentColor"
+                                    stroke_width="1.2"
+                                    stroke_linecap="round"
+                                    stroke_linejoin="round"
+                                />
+                            </svg>
+                        </ActionButton>
+                    </div>
+                    <span class="ui-muted">
+                        "Start/end slots, loading placement, and icon-only mode all expose stable data-* attrs."
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -4022,55 +4022,6 @@ pub(super) fn button_copy() -> AnyView {
                 <span class="ui-muted">"Start simple, then move to advanced controls."</span>
             </Playground>
 
-            <Playground title="Label + variant" code_signal=code>
-                <div class="docs-row">
-                    <ButtonCopy
-                        text="cargo add ui".to_string()
-                        label="Copy install command".to_string()
-                        copied_label="Copied!".to_string()
-                    />
-                    <ButtonCopy
-                        text="https://github.com/openai".to_string()
-                        variant=ButtonVariant::Outline
-                        label="Copy URL".to_string()
-                        copied_label="URL copied".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + empty matrix" code_signal=states_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <ButtonCopy
-                            text="https://example.com/docs".to_string()
-                            variant=ButtonVariant::Outline
-                        />
-                        <ButtonCopy text="   ".to_string() label="Nothing to copy".to_string() />
-                        <ButtonCopy text="token".to_string() is_disabled=true />
-                    </div>
-                    <span class="ui-muted">
-                        "Blank text and explicit disabled state both force non-copyable semantics."
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Mode matrix" code_signal=modes_code>
-                <div class="docs-row">
-                    <ButtonCopy
-                        text="cargo add ui".to_string()
-                        mode=ButtonCopyMode::TextOnly
-                    />
-                    <ButtonCopy
-                        text="cargo add ui".to_string()
-                        mode=ButtonCopyMode::IconOnly
-                    />
-                    <ButtonCopy
-                        text="cargo add ui".to_string()
-                        mode=ButtonCopyMode::IconAndText
-                    />
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (Isolated Canvas + Optional Persist)"
                 code_signal=workbench_code
@@ -4250,6 +4201,55 @@ pub(super) fn button_copy() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground title="Label + variant" code_signal=code>
+                <div class="docs-row">
+                    <ButtonCopy
+                        text="cargo add ui".to_string()
+                        label="Copy install command".to_string()
+                        copied_label="Copied!".to_string()
+                    />
+                    <ButtonCopy
+                        text="https://github.com/openai".to_string()
+                        variant=ButtonVariant::Outline
+                        label="Copy URL".to_string()
+                        copied_label="URL copied".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + empty matrix" code_signal=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ButtonCopy
+                            text="https://example.com/docs".to_string()
+                            variant=ButtonVariant::Outline
+                        />
+                        <ButtonCopy text="   ".to_string() label="Nothing to copy".to_string() />
+                        <ButtonCopy text="token".to_string() is_disabled=true />
+                    </div>
+                    <span class="ui-muted">
+                        "Blank text and explicit disabled state both force non-copyable semantics."
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Mode matrix" code_signal=modes_code>
+                <div class="docs-row">
+                    <ButtonCopy
+                        text="cargo add ui".to_string()
+                        mode=ButtonCopyMode::TextOnly
+                    />
+                    <ButtonCopy
+                        text="cargo add ui".to_string()
+                        mode=ButtonCopyMode::IconOnly
+                    />
+                    <ButtonCopy
+                        text="cargo add ui".to_string()
+                        mode=ButtonCopyMode::IconAndText
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -4411,39 +4411,6 @@ pub(super) fn flip_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Direction Gallery" code_signal=states_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <FlipButton
-                            from=FlipDirection::Bottom
-                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Bottom"</Button> }
-                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
-                        />
-                        <FlipButton
-                            from=FlipDirection::Left
-                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Left"</Button> }
-                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
-                        />
-                        <FlipButton
-                            from=FlipDirection::Right
-                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Right"</Button> }
-                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
-                        />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Class" code_signal=custom_code>
-                <div class="docs-row">
-                    <FlipButton
-                        from=FlipDirection::Left
-                        class_name="docs-flip-button-custom".to_string()
-                        front=move || view! { <Button variant=ButtonVariant::Outline>"Inspect"</Button> }
-                        back=move || view! { <Button variant=ButtonVariant::Accent>"Inspecting"</Button> }
-                    />
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Playground"
                 code_signal=interactive_code
@@ -4545,6 +4512,39 @@ pub(super) fn flip_button() -> AnyView {
                         node_ref=NodeRef::new()
                         front=move || view! { <Button variant=ButtonVariant::Secondary>"Left"</Button> }
                         back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Direction Gallery" code_signal=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <FlipButton
+                            from=FlipDirection::Bottom
+                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Bottom"</Button> }
+                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                        />
+                        <FlipButton
+                            from=FlipDirection::Left
+                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Left"</Button> }
+                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                        />
+                        <FlipButton
+                            from=FlipDirection::Right
+                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Right"</Button> }
+                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class" code_signal=custom_code>
+                <div class="docs-row">
+                    <FlipButton
+                        from=FlipDirection::Left
+                        class_name="docs-flip-button-custom".to_string()
+                        front=move || view! { <Button variant=ButtonVariant::Outline>"Inspect"</Button> }
+                        back=move || view! { <Button variant=ButtonVariant::Accent>"Inspecting"</Button> }
                     />
                 </div>
             </Playground>

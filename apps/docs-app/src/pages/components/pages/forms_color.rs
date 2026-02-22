@@ -515,118 +515,6 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                 <ColorArea id_base="docs-color-area-hello".to_string() />
             </Playground>
 
-            <Playground title="Controlled Grid Selection" code_signal=basic_code>
-                <div class="docs-stack docs-stack--tight">
-                    <ColorArea
-                        id_base="docs-color-area-basic".to_string()
-                        label="Saturation / Lightness".to_string()
-                        value=value.into()
-                        on_value_change=on_value_change
-                        preview_color="#7c3aed".to_string()
-                    />
-                    <span class="ui-muted">
-                        "value: "
-                        {move || {
-                            let (x, y) = value.get();
-                            format!("({:.2}, {:.2})", x, y)
-                        }}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled"
-                code_signal=controlled_vs_uncontrolled_code
-            >
-                <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Controlled"</span>
-                        <ColorArea
-                            id_base="docs-color-area-compare-controlled".to_string()
-                            label="Controlled".to_string()
-                            value=compare_value.into()
-                            on_value_change=on_compare_value_change
-                            preview_color="#22c55e".to_string()
-                        />
-                        <span class="ui-muted">
-                            "value: "
-                            {move || {
-                                let (x, y) = compare_value.get();
-                                format!("({:.2}, {:.2})", x, y)
-                            }}
-                        </span>
-                    </div>
-
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Uncontrolled"</span>
-                        <ColorArea
-                            id_base="docs-color-area-compare-uncontrolled".to_string()
-                            label="Uncontrolled".to_string()
-                            default_value=(0.25, 0.85)
-                            preview_color="#0ea5e9".to_string()
-                        />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Custom Grid + Custom Class" code_signal=states_code>
-                <ColorArea
-                    id_base="docs-color-area-disabled".to_string()
-                    label="Accent area".to_string()
-                    default_value=(0.25, 0.85)
-                    grid_size=15
-                    step=0.05
-                    is_disabled=true
-                    class_name="docs-color-area-custom".to_string()
-                />
-            </Playground>
-
-            <Playground title="State Matrix" code_signal=state_matrix_code>
-                <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Default"</span>
-                        <ColorArea
-                            id_base="docs-color-area-matrix-default".to_string()
-                            label="Default".to_string()
-                        />
-                    </div>
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Dense grid + preview"</span>
-                        <ColorArea
-                            id_base="docs-color-area-matrix-custom-grid".to_string()
-                            label="Dense grid".to_string()
-                            default_value=(0.25, 0.85)
-                            grid_size=15
-                            step=0.05
-                            preview_color="#a78bfa".to_string()
-                        />
-                    </div>
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"Disabled"</span>
-                        <ColorArea
-                            id_base="docs-color-area-matrix-disabled".to_string()
-                            label="Disabled".to_string()
-                            is_disabled=true
-                            class_name="docs-color-area-custom".to_string()
-                        />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <p class="ui-muted">
-                        "ColorArea is an input surface; docs output mode remains snapshot (`fallback=snapshot`)."
-                    </p>
-                    <ColorArea id_base="docs-color-area-snapshot".to_string() default_value=(0.6, 0.4) />
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含可调主样例 + 固定对照样例）。"
@@ -803,6 +691,118 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground title="State Matrix" code_signal=state_matrix_code>
+                <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Default"</span>
+                        <ColorArea
+                            id_base="docs-color-area-matrix-default".to_string()
+                            label="Default".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Dense grid + preview"</span>
+                        <ColorArea
+                            id_base="docs-color-area-matrix-custom-grid".to_string()
+                            label="Dense grid".to_string()
+                            default_value=(0.25, 0.85)
+                            grid_size=15
+                            step=0.05
+                            preview_color="#a78bfa".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Disabled"</span>
+                        <ColorArea
+                            id_base="docs-color-area-matrix-disabled".to_string()
+                            label="Disabled".to_string()
+                            is_disabled=true
+                            class_name="docs-color-area-custom".to_string()
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled Grid Selection" code_signal=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorArea
+                        id_base="docs-color-area-basic".to_string()
+                        label="Saturation / Lightness".to_string()
+                        value=value.into()
+                        on_value_change=on_value_change
+                        preview_color="#7c3aed".to_string()
+                    />
+                    <span class="ui-muted">
+                        "value: "
+                        {move || {
+                            let (x, y) = value.get();
+                            format!("({:.2}, {:.2})", x, y)
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled"
+                code_signal=controlled_vs_uncontrolled_code
+            >
+                <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Controlled"</span>
+                        <ColorArea
+                            id_base="docs-color-area-compare-controlled".to_string()
+                            label="Controlled".to_string()
+                            value=compare_value.into()
+                            on_value_change=on_compare_value_change
+                            preview_color="#22c55e".to_string()
+                        />
+                        <span class="ui-muted">
+                            "value: "
+                            {move || {
+                                let (x, y) = compare_value.get();
+                                format!("({:.2}, {:.2})", x, y)
+                            }}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Uncontrolled"</span>
+                        <ColorArea
+                            id_base="docs-color-area-compare-uncontrolled".to_string()
+                            label="Uncontrolled".to_string()
+                            default_value=(0.25, 0.85)
+                            preview_color="#0ea5e9".to_string()
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Custom Grid + Custom Class" code_signal=states_code>
+                <ColorArea
+                    id_base="docs-color-area-disabled".to_string()
+                    label="Accent area".to_string()
+                    default_value=(0.25, 0.85)
+                    grid_size=15
+                    step=0.05
+                    is_disabled=true
+                    class_name="docs-color-area-custom".to_string()
+                />
+            </Playground>
+
+            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-ui-streaming="optional"
+                    data-ui-fallback="snapshot"
+                    data-ui-output-state="snapshot"
+                >
+                    <p class="ui-muted">
+                        "ColorArea is an input surface; docs output mode remains snapshot (`fallback=snapshot`)."
+                    </p>
+                    <ColorArea id_base="docs-color-area-snapshot".to_string() default_value=(0.6, 0.4) />
+                </div>
             </Playground>
 
             <Playground
@@ -1323,6 +1323,7 @@ let on_controlled_hue_change =
             </Playground>
 
             // <Playground title="State Matrix" code_signal=state_matrix_code>
+
             <Playground
                 title="State Matrix"
                 code_signal=state_matrix_code
@@ -1389,30 +1390,6 @@ let on_controlled_hue_change =
                             default_value=180.0
                         />
                     </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                code_signal=output_mode_code
-                code_imports="use leptos::prelude::*;\nuse ui::{ColorSlider, ColorSliderChannel};".to_string()
-            >
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="color-slider-output-mode"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <span class="ui-muted">
-                        "ColorSlider is an input surface; docs output mode remains snapshot (`fallback=snapshot`)."
-                    </span>
-                    <ColorSlider
-                        id_base="docs-color-slider-snapshot".to_string()
-                        channel=ColorSliderChannel::Hue
-                        label="Snapshot fallback".to_string()
-                        default_value=188.0
-                    />
                 </div>
             </Playground>
 
@@ -1533,6 +1510,30 @@ let on_controlled_hue_change =
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                code_signal=output_mode_code
+                code_imports="use leptos::prelude::*;\nuse ui::{ColorSlider, ColorSliderChannel};".to_string()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="color-slider-output-mode"
+                    data-ui-streaming="optional"
+                    data-ui-fallback="snapshot"
+                    data-ui-output-state="snapshot"
+                >
+                    <span class="ui-muted">
+                        "ColorSlider is an input surface; docs output mode remains snapshot (`fallback=snapshot`)."
+                    </span>
+                    <ColorSlider
+                        id_base="docs-color-slider-snapshot".to_string()
+                        channel=ColorSliderChannel::Hue
+                        label="Snapshot fallback".to_string()
+                        default_value=188.0
+                    />
+                </div>
             </Playground>
 
             <Playground
@@ -2153,6 +2154,124 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             </Playground>
 
             <Playground
+                title="Interactive Workbench (DX)"
+                description="Scoped CSS test panel + workbench 隔离画布；默认保留上下文并支持可选持久化。"
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/color-wheel/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="color-wheel-workbench-controls">
+                        <div data-slot="color-wheel-workbench-preset">
+                            <div class="docs-search__label">"Preset"</div>
+                            <SegmentedControl
+                                id_base="docs-color-wheel-workbench-preset".to_string()
+                                options=workbench_preset_options.clone()
+                                selected_index=workbench_preset_index
+                                set_selected_index=set_workbench_preset_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="ColorWheel workbench preset".to_string()
+                            />
+                        </div>
+
+                        <div data-slot="color-wheel-workbench-toggle-disabled">
+                            <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                                "Disabled"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-custom-class">
+                            <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                "Custom class"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-reduced-motion">
+                            <Switch checked=workbench_reduced_motion set_checked=set_workbench_reduced_motion>
+                                "Reduced motion"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-value-label">
+                            <Switch
+                                checked=workbench_show_value_label
+                                set_checked=set_workbench_show_value_label
+                            >
+                                "Show value label"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-lang">
+                            <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                                "lang=zh-CN"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-dir">
+                            <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
+                                "dir=rtl"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-preserve-context">
+                            <Switch checked=workbench_preserve_context set_checked=set_workbench_preserve_context>
+                                "Preserve context on preset change"
+                            </Switch>
+                        </div>
+                        <div data-slot="color-wheel-workbench-toggle-persist-state">
+                            <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                                "Persist workbench state"
+                            </Switch>
+                        </div>
+                    </div>
+                }
+            >
+                {move || {
+                    let preset = workbench_preset.get();
+                    let value = workbench_value.get();
+                    let is_disabled = workbench_disabled.get();
+                    let motion = workbench_motion.get();
+                    let class_name = if workbench_custom_class.get() {
+                        "docs-color-wheel-workbench".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight" data-slot="color-wheel-workbench">
+                            <div class="docs-card docs-stack docs-stack--tight" data-slot="color-wheel-workbench-canvas">
+                                <ColorWheel
+                                    id_base="docs-color-wheel-workbench".to_string()
+                                    label=format!("{} (Workbench)", preset.label)
+                                    value=workbench_value_signal
+                                    on_value_change=on_workbench_value_change
+                                    default_value=preset.default_value
+                                    step=15.0
+                                    is_disabled=is_disabled
+                                    motion=motion
+                                    is_value_label_visible=workbench_show_value_label.get()
+                                    show_value_label=workbench_show_value_label.get()
+                                    class_name=class_name
+                                    aria_label="Workbench hue selector".to_string()
+                                    lang=if workbench_lang_zh.get() {
+                                        "zh-CN".to_string()
+                                    } else {
+                                        "en-US".to_string()
+                                    }
+                                    dir=if workbench_rtl_dir.get() {
+                                        A11yDirection::Rtl
+                                    } else {
+                                        A11yDirection::Ltr
+                                    }
+                                />
+                            </div>
+
+                            <span class="ui-muted" data-slot="color-wheel-workbench-state">
+                                "preset: " {preset.label}
+                                " · value: " {format!("{value:.1}")}
+                                " · preserve: " {if workbench_preserve_context.get() { "on" } else { "off" }}
+                                " · persist: " {if workbench_persist_state.get() { "on" } else { "off" }}
+                            </span>
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <Playground
                 title="State Matrix"
                 code_signal=state_matrix_code
                 code_imports="use leptos::prelude::*;\nuse ui::{ColorWheel, ColorWheelMotion};".to_string()
@@ -2271,124 +2390,6 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
                         default_value=188.0
                     />
                 </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Workbench (DX)"
-                description="Scoped CSS test panel + workbench 隔离画布；默认保留上下文并支持可选持久化。"
-                code_signal=workbench_code
-                test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/color-wheel/src/styles.rs".to_string()
-                test_config_signal=workbench_actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="color-wheel-workbench-controls">
-                        <div data-slot="color-wheel-workbench-preset">
-                            <div class="docs-search__label">"Preset"</div>
-                            <SegmentedControl
-                                id_base="docs-color-wheel-workbench-preset".to_string()
-                                options=workbench_preset_options.clone()
-                                selected_index=workbench_preset_index
-                                set_selected_index=set_workbench_preset_index
-                                size=SegmentedControlSize::Sm
-                                aria_label="ColorWheel workbench preset".to_string()
-                            />
-                        </div>
-
-                        <div data-slot="color-wheel-workbench-toggle-disabled">
-                            <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
-                                "Disabled"
-                            </Switch>
-                        </div>
-                        <div data-slot="color-wheel-workbench-toggle-custom-class">
-                            <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
-                                "Custom class"
-                            </Switch>
-                        </div>
-                        <div data-slot="color-wheel-workbench-toggle-reduced-motion">
-                            <Switch checked=workbench_reduced_motion set_checked=set_workbench_reduced_motion>
-                                "Reduced motion"
-                            </Switch>
-                        </div>
-                        <div data-slot="color-wheel-workbench-toggle-value-label">
-                            <Switch
-                                checked=workbench_show_value_label
-                                set_checked=set_workbench_show_value_label
-                            >
-                                "Show value label"
-                            </Switch>
-                        </div>
-                        <div data-slot="color-wheel-workbench-toggle-lang">
-                            <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
-                                "lang=zh-CN"
-                            </Switch>
-                        </div>
-                        <div data-slot="color-wheel-workbench-toggle-dir">
-                            <Switch checked=workbench_rtl_dir set_checked=set_workbench_rtl_dir>
-                                "dir=rtl"
-                            </Switch>
-                        </div>
-                        <div data-slot="color-wheel-workbench-toggle-preserve-context">
-                            <Switch checked=workbench_preserve_context set_checked=set_workbench_preserve_context>
-                                "Preserve context on preset change"
-                            </Switch>
-                        </div>
-                        <div data-slot="color-wheel-workbench-toggle-persist-state">
-                            <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
-                                "Persist workbench state"
-                            </Switch>
-                        </div>
-                    </div>
-                }
-            >
-                {move || {
-                    let preset = workbench_preset.get();
-                    let value = workbench_value.get();
-                    let is_disabled = workbench_disabled.get();
-                    let motion = workbench_motion.get();
-                    let class_name = if workbench_custom_class.get() {
-                        "docs-color-wheel-workbench".to_string()
-                    } else {
-                        String::new()
-                    };
-
-                    view! {
-                        <div class="docs-stack docs-stack--tight" data-slot="color-wheel-workbench">
-                            <div class="docs-card docs-stack docs-stack--tight" data-slot="color-wheel-workbench-canvas">
-                                <ColorWheel
-                                    id_base="docs-color-wheel-workbench".to_string()
-                                    label=format!("{} (Workbench)", preset.label)
-                                    value=workbench_value_signal
-                                    on_value_change=on_workbench_value_change
-                                    default_value=preset.default_value
-                                    step=15.0
-                                    is_disabled=is_disabled
-                                    motion=motion
-                                    is_value_label_visible=workbench_show_value_label.get()
-                                    show_value_label=workbench_show_value_label.get()
-                                    class_name=class_name
-                                    aria_label="Workbench hue selector".to_string()
-                                    lang=if workbench_lang_zh.get() {
-                                        "zh-CN".to_string()
-                                    } else {
-                                        "en-US".to_string()
-                                    }
-                                    dir=if workbench_rtl_dir.get() {
-                                        A11yDirection::Rtl
-                                    } else {
-                                        A11yDirection::Ltr
-                                    }
-                                />
-                            </div>
-
-                            <span class="ui-muted" data-slot="color-wheel-workbench-state">
-                                "preset: " {preset.label}
-                                " · value: " {format!("{value:.1}")}
-                                " · preserve: " {if workbench_preserve_context.get() { "on" } else { "off" }}
-                                " · persist: " {if workbench_persist_state.get() { "on" } else { "off" }}
-                            </span>
-                        </div>
-                    }
-                }}
             </Playground>
 
             <Playground
@@ -3201,161 +3202,6 @@ pub(super) fn color_thumb() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Focused + Dragging + Position" code_signal=basic_code>
-                <div style=board_style>
-                    <ColorThumb
-                        id_base="docs-color-thumb-idle".to_string()
-                        color="#f59e0b".to_string()
-                        x_percent=22.0
-                        y_percent=72.0
-                    />
-                    <ColorThumb
-                        id_base="docs-color-thumb-focused".to_string()
-                        color="#10b981".to_string()
-                        is_focused=true
-                        x_percent=52.0
-                        y_percent=44.0
-                    />
-                    <ColorThumb
-                        id_base="docs-color-thumb-dragging".to_string()
-                        color="#3b82f6".to_string()
-                        is_dragging=true
-                        x_percent=82.0
-                        y_percent=28.0
-                    />
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Custom Class + Loupe Off" code_signal=states_code>
-                <div style=board_style>
-                    <ColorThumb
-                        id_base="docs-color-thumb-disabled".to_string()
-                        color="#a78bfa".to_string()
-                        is_disabled=true
-                        x_percent=30.0
-                        y_percent=56.0
-                    />
-                    <ColorThumb
-                        id_base="docs-color-thumb-custom".to_string()
-                        color="rgba(56, 189, 248, 0.72)".to_string()
-                        is_dragging=true
-                        is_loupe_visible=false
-                        x_percent=70.0
-                        y_percent=40.0
-                        class_name="docs-color-thumb-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="State Matrix"
-                code_signal=state_matrix_code
-                code_imports=color_thumb_imports.clone()
-            >
-                <div style=board_style data-slot="color-thumb-state-matrix">
-                    <ColorThumb
-                        id_base="docs-color-thumb-matrix-idle".to_string()
-                        color="#f59e0b".to_string()
-                        x_percent=22.0
-                        y_percent=72.0
-                    />
-                    <ColorThumb
-                        id_base="docs-color-thumb-matrix-focused".to_string()
-                        color="#10b981".to_string()
-                        is_focused=true
-                        x_percent=52.0
-                        y_percent=44.0
-                    />
-                    <ColorThumb
-                        id_base="docs-color-thumb-matrix-dragging".to_string()
-                        color="#3b82f6".to_string()
-                        is_dragging=true
-                        x_percent=82.0
-                        y_percent=28.0
-                    />
-                    <ColorThumb
-                        id_base="docs-color-thumb-matrix-disabled".to_string()
-                        color="#a78bfa".to_string()
-                        is_disabled=true
-                        x_percent=30.0
-                        y_percent=56.0
-                    />
-                    <ColorThumb
-                        id_base="docs-color-thumb-matrix-custom".to_string()
-                        color="rgba(56, 189, 248, 0.72)".to_string()
-                        is_dragging=true
-                        is_loupe_visible=false
-                        x_percent=70.0
-                        y_percent=40.0
-                        class_name="docs-color-thumb-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                code_signal=controlled_vs_uncontrolled_code
-                code_imports=color_thumb_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <span class="ui-muted">
-                        "ColorThumb has no value/default_value/on_value_change axis; both examples are external-props driven."
-                    </span>
-                    <div class="docs-row" data-slot="color-thumb-controlled-vs-uncontrolled">
-                        <div class="docs-card">
-                            <div class="ui-muted">"External props path A"</div>
-                            <div style=board_style>
-                                <ColorThumb
-                                    id_base="docs-color-thumb-controlled-like".to_string()
-                                    color="#10b981".to_string()
-                                    is_focused=true
-                                    x_percent=48.0
-                                    y_percent=46.0
-                                />
-                            </div>
-                        </div>
-                        <div class="docs-card">
-                            <div class="ui-muted">"External props path B"</div>
-                            <div style=board_style>
-                                <ColorThumb
-                                    id_base="docs-color-thumb-uncontrolled-like".to_string()
-                                    color="#10b981".to_string()
-                                    is_focused=true
-                                    x_percent=48.0
-                                    y_percent=46.0
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                code_signal=output_mode_code
-                code_imports=color_thumb_imports.clone()
-            >
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="color-thumb-output-mode"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <span class="ui-muted">
-                        "ColorThumb is not a text-reading surface; docs output stays snapshot (`fallback=snapshot`)."
-                    </span>
-                    <div style=board_style>
-                        <ColorThumb
-                            id_base="docs-color-thumb-snapshot".to_string()
-                            color="#334155".to_string()
-                            x_percent=44.0
-                            y_percent=56.0
-                        />
-                    </div>
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Workbench (DX)"
                 description="在线 props/状态调节 + key-flow 回放 + Spec JSON 联动预览；作为可重复验收面。"
@@ -3621,6 +3467,161 @@ pub(super) fn color_thumb() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground title="Focused + Dragging + Position" code_signal=basic_code>
+                <div style=board_style>
+                    <ColorThumb
+                        id_base="docs-color-thumb-idle".to_string()
+                        color="#f59e0b".to_string()
+                        x_percent=22.0
+                        y_percent=72.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-focused".to_string()
+                        color="#10b981".to_string()
+                        is_focused=true
+                        x_percent=52.0
+                        y_percent=44.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-dragging".to_string()
+                        color="#3b82f6".to_string()
+                        is_dragging=true
+                        x_percent=82.0
+                        y_percent=28.0
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Custom Class + Loupe Off" code_signal=states_code>
+                <div style=board_style>
+                    <ColorThumb
+                        id_base="docs-color-thumb-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        is_disabled=true
+                        x_percent=30.0
+                        y_percent=56.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        is_dragging=true
+                        is_loupe_visible=false
+                        x_percent=70.0
+                        y_percent=40.0
+                        class_name="docs-color-thumb-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=state_matrix_code
+                code_imports=color_thumb_imports.clone()
+            >
+                <div style=board_style data-slot="color-thumb-state-matrix">
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-idle".to_string()
+                        color="#f59e0b".to_string()
+                        x_percent=22.0
+                        y_percent=72.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-focused".to_string()
+                        color="#10b981".to_string()
+                        is_focused=true
+                        x_percent=52.0
+                        y_percent=44.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-dragging".to_string()
+                        color="#3b82f6".to_string()
+                        is_dragging=true
+                        x_percent=82.0
+                        y_percent=28.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        is_disabled=true
+                        x_percent=30.0
+                        y_percent=56.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-matrix-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        is_dragging=true
+                        is_loupe_visible=false
+                        x_percent=70.0
+                        y_percent=40.0
+                        class_name="docs-color-thumb-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                code_signal=controlled_vs_uncontrolled_code
+                code_imports=color_thumb_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <span class="ui-muted">
+                        "ColorThumb has no value/default_value/on_value_change axis; both examples are external-props driven."
+                    </span>
+                    <div class="docs-row" data-slot="color-thumb-controlled-vs-uncontrolled">
+                        <div class="docs-card">
+                            <div class="ui-muted">"External props path A"</div>
+                            <div style=board_style>
+                                <ColorThumb
+                                    id_base="docs-color-thumb-controlled-like".to_string()
+                                    color="#10b981".to_string()
+                                    is_focused=true
+                                    x_percent=48.0
+                                    y_percent=46.0
+                                />
+                            </div>
+                        </div>
+                        <div class="docs-card">
+                            <div class="ui-muted">"External props path B"</div>
+                            <div style=board_style>
+                                <ColorThumb
+                                    id_base="docs-color-thumb-uncontrolled-like".to_string()
+                                    color="#10b981".to_string()
+                                    is_focused=true
+                                    x_percent=48.0
+                                    y_percent=46.0
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                code_signal=output_mode_code
+                code_imports=color_thumb_imports.clone()
+            >
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="color-thumb-output-mode"
+                    data-ui-streaming="optional"
+                    data-ui-fallback="snapshot"
+                    data-ui-output-state="snapshot"
+                >
+                    <span class="ui-muted">
+                        "ColorThumb is not a text-reading surface; docs output stays snapshot (`fallback=snapshot`)."
+                    </span>
+                    <div style=board_style>
+                        <ColorThumb
+                            id_base="docs-color-thumb-snapshot".to_string()
+                            color="#334155".to_string()
+                            x_percent=44.0
+                            y_percent=56.0
+                        />
+                    </div>
+                </div>
             </Playground>
 
             <Playground
@@ -4083,6 +4084,34 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
             </Playground>
 
             // Playground title="State Matrix" code_signal=state_matrix_code
+
+            <Playground
+                title="State Matrix (Disabled / Motion / Hidden Alpha)"
+                code_signal=states_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorEditor
+                        id_base="docs-color-editor-disabled".to_string()
+                        label="Disabled editor".to_string()
+                        default_selected_color="#0ea5e9".to_string()
+                        default_format=ColorEditorFormat::Rgb
+                        is_alpha_channel_hidden=true
+                        is_disabled=true
+                        class_name="docs-color-editor-custom".to_string()
+                    />
+
+                    <ColorEditor
+                        id_base="docs-color-editor-motion".to_string()
+                        label="Brand editor".to_string()
+                        default_format=ColorEditorFormat::Hsb
+                        default_hue=282.0
+                        default_alpha=64.0
+                        default_area=(0.46, 0.88)
+                        motion=reduced_motion
+                    />
+                </div>
+            </Playground>
+
             <Playground title="State Gallery" code_signal=state_matrix_code>
                 <div class="docs-row" data-slot="color-editor-state-matrix">
                     <div class="docs-card">
@@ -4142,26 +4171,6 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                             default_area=(0.62, 0.18)
                         />
                     </div>
-                </div>
-            </Playground>
-
-            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="color-editor-output-mode"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <span class="ui-muted">
-                        "ColorEditor is not a text-reading surface; docs output stays snapshot (`fallback=snapshot`)."
-                    </span>
-                    <ColorEditor
-                        id_base="docs-color-editor-snapshot".to_string()
-                        label="Snapshot fallback".to_string()
-                        default_selected_color="#334155".to_string()
-                        default_format=ColorEditorFormat::Hex
-                    />
                 </div>
             </Playground>
 
@@ -4284,6 +4293,26 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                 }}
             </Playground>
 
+            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="color-editor-output-mode"
+                    data-ui-streaming="optional"
+                    data-ui-fallback="snapshot"
+                    data-ui-output-state="snapshot"
+                >
+                    <span class="ui-muted">
+                        "ColorEditor is not a text-reading surface; docs output stays snapshot (`fallback=snapshot`)."
+                    </span>
+                    <ColorEditor
+                        id_base="docs-color-editor-snapshot".to_string()
+                        label="Snapshot fallback".to_string()
+                        default_selected_color="#334155".to_string()
+                        default_format=ColorEditorFormat::Hex
+                    />
+                </div>
+            </Playground>
+
             <Playground title="Controlled Color + Controlled Format" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorEditor
@@ -4301,33 +4330,6 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                         " · format: "
                         {move || format.get().as_attr()}
                     </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="State Matrix (Disabled / Motion / Hidden Alpha)"
-                code_signal=states_code
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <ColorEditor
-                        id_base="docs-color-editor-disabled".to_string()
-                        label="Disabled editor".to_string()
-                        default_selected_color="#0ea5e9".to_string()
-                        default_format=ColorEditorFormat::Rgb
-                        is_alpha_channel_hidden=true
-                        is_disabled=true
-                        class_name="docs-color-editor-custom".to_string()
-                    />
-
-                    <ColorEditor
-                        id_base="docs-color-editor-motion".to_string()
-                        label="Brand editor".to_string()
-                        default_format=ColorEditorFormat::Hsb
-                        default_hue=282.0
-                        default_alpha=64.0
-                        default_area=(0.46, 0.88)
-                        motion=reduced_motion
-                    />
                 </div>
             </Playground>
 
@@ -4598,127 +4600,6 @@ let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
                 </div>
             </Playground>
 
-            <Playground title="State Variants" code_signal=state_matrix_code>
-                <div style=surface_style data-slot="color-handle-state-matrix">
-                    <ColorHandle
-                        id_base="docs-color-handle-idle".to_string()
-                        color="#f59e0b".to_string()
-                        x_percent=22.0
-                        y_percent=72.0
-                    />
-                    <ColorHandle
-                        id_base="docs-color-handle-focused".to_string()
-                        color="#10b981".to_string()
-                        is_focused=true
-                        x_percent=52.0
-                        y_percent=44.0
-                    />
-                    <ColorHandle
-                        id_base="docs-color-handle-dragging".to_string()
-                        color="#3b82f6".to_string()
-                        is_dragging=true
-                        x_percent=82.0
-                        y_percent=28.0
-                    />
-                    <ColorHandle
-                        id_base="docs-color-handle-disabled".to_string()
-                        color="#a78bfa".to_string()
-                        is_disabled=true
-                        x_percent=30.0
-                        y_percent=56.0
-                    />
-                    <ColorHandle
-                        id_base="docs-color-handle-custom".to_string()
-                        color="rgba(56, 189, 248, 0.72)".to_string()
-                        is_dragging=true
-                        is_loupe_visible=false
-                        x_percent=70.0
-                        y_percent=40.0
-                        class_name="docs-color-handle-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                code_signal=controlled_vs_uncontrolled_code
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <span class="ui-muted">
-                        "ColorHandle has no value/default_value/on_value_change axis; both examples are external-props driven."
-                    </span>
-                    <div class="docs-row">
-                        <div class="docs-card">
-                            <div class="ui-muted">"External props path A"</div>
-                            <div style=surface_style>
-                                <ColorHandle
-                                    id_base="docs-color-handle-controlled-like".to_string()
-                                    color="#10b981".to_string()
-                                    is_focused=true
-                                    x_percent=48.0
-                                    y_percent=46.0
-                                />
-                            </div>
-                        </div>
-                        <div class="docs-card">
-                            <div class="ui-muted">"External props path B"</div>
-                            <div style=surface_style>
-                                <ColorHandle
-                                    id_base="docs-color-handle-uncontrolled-like".to_string()
-                                    color="#10b981".to_string()
-                                    is_focused=true
-                                    x_percent=48.0
-                                    y_percent=46.0
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="color-handle-output-mode"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <span class="ui-muted">
-                        "ColorHandle is not a text-reading surface; docs output stays snapshot (`fallback=snapshot`)."
-                    </span>
-                    <div style=surface_style>
-                        <ColorHandle
-                            id_base="docs-color-handle-snapshot".to_string()
-                            color="#334155".to_string()
-                            x_percent=44.0
-                            y_percent=56.0
-                        />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Custom Class + Loupe Off" code_signal=states_code>
-                <div style=surface_style>
-                    <ColorHandle
-                        id_base="docs-color-handle-disabled".to_string()
-                        color="#a78bfa".to_string()
-                        is_disabled=true
-                        x_percent=30.0
-                        y_percent=56.0
-                    />
-                    <ColorHandle
-                        id_base="docs-color-handle-custom".to_string()
-                        color="rgba(56, 189, 248, 0.72)".to_string()
-                        is_dragging=true
-                        is_loupe_visible=false
-                        x_percent=70.0
-                        y_percent=40.0
-                        class_name="docs-color-handle-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
             <Playground
                 title="Parameter Matrix Workbench (Display + Config + Code + CSS Test)"
                 description="参数矩阵 + 状态矩阵联动工作台：交互配置、copy-ready code、scoped CSS test。"
@@ -4937,6 +4818,127 @@ let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
                         y_percent=28.0
                         class_name="docs-color-handle-custom".to_string()
                         motion=ColorHandleMotion { duration_ms: 240 }
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="State Variants" code_signal=state_matrix_code>
+                <div style=surface_style data-slot="color-handle-state-matrix">
+                    <ColorHandle
+                        id_base="docs-color-handle-idle".to_string()
+                        color="#f59e0b".to_string()
+                        x_percent=22.0
+                        y_percent=72.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-focused".to_string()
+                        color="#10b981".to_string()
+                        is_focused=true
+                        x_percent=52.0
+                        y_percent=44.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-dragging".to_string()
+                        color="#3b82f6".to_string()
+                        is_dragging=true
+                        x_percent=82.0
+                        y_percent=28.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        is_disabled=true
+                        x_percent=30.0
+                        y_percent=56.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        is_dragging=true
+                        is_loupe_visible=false
+                        x_percent=70.0
+                        y_percent=40.0
+                        class_name="docs-color-handle-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                code_signal=controlled_vs_uncontrolled_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <span class="ui-muted">
+                        "ColorHandle has no value/default_value/on_value_change axis; both examples are external-props driven."
+                    </span>
+                    <div class="docs-row">
+                        <div class="docs-card">
+                            <div class="ui-muted">"External props path A"</div>
+                            <div style=surface_style>
+                                <ColorHandle
+                                    id_base="docs-color-handle-controlled-like".to_string()
+                                    color="#10b981".to_string()
+                                    is_focused=true
+                                    x_percent=48.0
+                                    y_percent=46.0
+                                />
+                            </div>
+                        </div>
+                        <div class="docs-card">
+                            <div class="ui-muted">"External props path B"</div>
+                            <div style=surface_style>
+                                <ColorHandle
+                                    id_base="docs-color-handle-uncontrolled-like".to_string()
+                                    color="#10b981".to_string()
+                                    is_focused=true
+                                    x_percent=48.0
+                                    y_percent=46.0
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="color-handle-output-mode"
+                    data-ui-streaming="optional"
+                    data-ui-fallback="snapshot"
+                    data-ui-output-state="snapshot"
+                >
+                    <span class="ui-muted">
+                        "ColorHandle is not a text-reading surface; docs output stays snapshot (`fallback=snapshot`)."
+                    </span>
+                    <div style=surface_style>
+                        <ColorHandle
+                            id_base="docs-color-handle-snapshot".to_string()
+                            color="#334155".to_string()
+                            x_percent=44.0
+                            y_percent=56.0
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Custom Class + Loupe Off" code_signal=states_code>
+                <div style=surface_style>
+                    <ColorHandle
+                        id_base="docs-color-handle-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        is_disabled=true
+                        x_percent=30.0
+                        y_percent=56.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        is_dragging=true
+                        is_loupe_visible=false
+                        x_percent=70.0
+                        y_percent=40.0
+                        class_name="docs-color-handle-custom".to_string()
                     />
                 </div>
             </Playground>
@@ -5160,140 +5162,6 @@ pub(super) fn color_loupe() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Open + Position Buckets" code_signal=basic_code>
-                <div style=surface_style>
-                    <ColorLoupe
-                        id_base="docs-color-loupe-start".to_string()
-                        color="#f59e0b".to_string()
-                        is_open=true
-                        x_percent=18.0
-                        y_percent=74.0
-                    />
-                    <ColorLoupe
-                        id_base="docs-color-loupe-center".to_string()
-                        color="#10b981".to_string()
-                        is_open=true
-                        x_percent=50.0
-                        y_percent=48.0
-                    />
-                    <ColorLoupe
-                        id_base="docs-color-loupe-end".to_string()
-                        color="#3b82f6".to_string()
-                        is_open=true
-                        x_percent=82.0
-                        y_percent=24.0
-                    />
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Custom Label + Custom Class" code_signal=states_code>
-                <div style=surface_style>
-                    <ColorLoupe
-                        id_base="docs-color-loupe-disabled".to_string()
-                        color="#a78bfa".to_string()
-                        is_open=true
-                        is_disabled=true
-                        x_percent=32.0
-                        y_percent=58.0
-                    />
-                    <ColorLoupe
-                        id_base="docs-color-loupe-custom".to_string()
-                        color="rgba(56, 189, 248, 0.72)".to_string()
-                        is_open=true
-                        x_percent=72.0
-                        y_percent=36.0
-                        aria_label="Accent loupe".to_string()
-                        class_name="docs-color-loupe-custom".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled（N/A）"
-                code_signal=controlled_vs_uncontrolled_code
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <span class="ui-muted">
-                        "ColorLoupe 是 snapshot 展示组件，不持有内部可变状态轴；受控/非受控切换语义 N/A。"
-                    </span>
-                    <div style=surface_style>
-                        <ColorLoupe
-                            id_base="docs-color-loupe-controlled".to_string()
-                            color="#10b981".to_string()
-                            is_open=true
-                            x_percent=50.0
-                            y_percent=48.0
-                        />
-                        <ColorLoupe id_base="docs-color-loupe-uncontrolled-na".to_string() />
-                    </div>
-                </div>
-            </Playground>
-
-            // title="State Matrix"
-            <Playground title="Baseline States" code_signal=state_matrix_code>
-                <div class="docs-stack docs-stack--tight">
-                    <span class="ui-muted">"default / open / disabled"</span>
-                    <div style=surface_style>
-                        <ColorLoupe id_base="docs-color-loupe-matrix-default".to_string() />
-                        <ColorLoupe
-                            id_base="docs-color-loupe-matrix-open".to_string()
-                            color="#f59e0b".to_string()
-                            is_open=true
-                            x_percent=18.0
-                            y_percent=74.0
-                        />
-                        <ColorLoupe
-                            id_base="docs-color-loupe-matrix-disabled".to_string()
-                            color="#a78bfa".to_string()
-                            is_open=true
-                            is_disabled=true
-                            x_percent=32.0
-                            y_percent=58.0
-                        />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
-                <div
-                    class="docs-stack docs-stack--tight"
-                    data-slot="color-loupe-output-mode"
-                    data-ui-streaming="optional"
-                    data-ui-fallback="snapshot"
-                    data-ui-output-state="snapshot"
-                >
-                    <span class="ui-muted">
-                        "ColorLoupe is not a text-reading surface; docs output mode stays snapshot (`fallback=snapshot`)."
-                    </span>
-                    <div style=surface_style>
-                        <ColorLoupe
-                            id_base="docs-color-loupe-snapshot-draft".to_string()
-                            color="#f59e0b".to_string()
-                            is_open=true
-                            x_percent=18.0
-                            y_percent=74.0
-                            output_state=ColorLoupeOutputState::Draft
-                        />
-                        <ColorLoupe
-                            id_base="docs-color-loupe-snapshot-verified".to_string()
-                            color="#10b981".to_string()
-                            is_open=true
-                            x_percent=50.0
-                            y_percent=48.0
-                            output_state=ColorLoupeOutputState::Verified
-                        />
-                        <ColorLoupe
-                            id_base="docs-color-loupe-snapshot-committable".to_string()
-                            color="#3b82f6".to_string()
-                            is_open=true
-                            x_percent=82.0
-                            y_percent=24.0
-                            output_state=ColorLoupeOutputState::Committable
-                        />
-                    </div>
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
@@ -5425,6 +5293,140 @@ pub(super) fn color_loupe() -> AnyView {
                             is_disabled=true
                             x_percent=32.0
                             y_percent=58.0
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Open + Position Buckets" code_signal=basic_code>
+                <div style=surface_style>
+                    <ColorLoupe
+                        id_base="docs-color-loupe-start".to_string()
+                        color="#f59e0b".to_string()
+                        is_open=true
+                        x_percent=18.0
+                        y_percent=74.0
+                    />
+                    <ColorLoupe
+                        id_base="docs-color-loupe-center".to_string()
+                        color="#10b981".to_string()
+                        is_open=true
+                        x_percent=50.0
+                        y_percent=48.0
+                    />
+                    <ColorLoupe
+                        id_base="docs-color-loupe-end".to_string()
+                        color="#3b82f6".to_string()
+                        is_open=true
+                        x_percent=82.0
+                        y_percent=24.0
+                    />
+                </div>
+            </Playground>
+
+            // title="State Matrix"
+            <Playground title="Disabled + Custom Label + Custom Class" code_signal=states_code>
+                <div style=surface_style>
+                    <ColorLoupe
+                        id_base="docs-color-loupe-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        is_open=true
+                        is_disabled=true
+                        x_percent=32.0
+                        y_percent=58.0
+                    />
+                    <ColorLoupe
+                        id_base="docs-color-loupe-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        is_open=true
+                        x_percent=72.0
+                        y_percent=36.0
+                        aria_label="Accent loupe".to_string()
+                        class_name="docs-color-loupe-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled（N/A）"
+                code_signal=controlled_vs_uncontrolled_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <span class="ui-muted">
+                        "ColorLoupe 是 snapshot 展示组件，不持有内部可变状态轴；受控/非受控切换语义 N/A。"
+                    </span>
+                    <div style=surface_style>
+                        <ColorLoupe
+                            id_base="docs-color-loupe-controlled".to_string()
+                            color="#10b981".to_string()
+                            is_open=true
+                            x_percent=50.0
+                            y_percent=48.0
+                        />
+                        <ColorLoupe id_base="docs-color-loupe-uncontrolled-na".to_string() />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Baseline States" code_signal=state_matrix_code>
+                <div class="docs-stack docs-stack--tight">
+                    <span class="ui-muted">"default / open / disabled"</span>
+                    <div style=surface_style>
+                        <ColorLoupe id_base="docs-color-loupe-matrix-default".to_string() />
+                        <ColorLoupe
+                            id_base="docs-color-loupe-matrix-open".to_string()
+                            color="#f59e0b".to_string()
+                            is_open=true
+                            x_percent=18.0
+                            y_percent=74.0
+                        />
+                        <ColorLoupe
+                            id_base="docs-color-loupe-matrix-disabled".to_string()
+                            color="#a78bfa".to_string()
+                            is_open=true
+                            is_disabled=true
+                            x_percent=32.0
+                            y_percent=58.0
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Streaming Optional / Snapshot" code_signal=output_mode_code>
+                <div
+                    class="docs-stack docs-stack--tight"
+                    data-slot="color-loupe-output-mode"
+                    data-ui-streaming="optional"
+                    data-ui-fallback="snapshot"
+                    data-ui-output-state="snapshot"
+                >
+                    <span class="ui-muted">
+                        "ColorLoupe is not a text-reading surface; docs output mode stays snapshot (`fallback=snapshot`)."
+                    </span>
+                    <div style=surface_style>
+                        <ColorLoupe
+                            id_base="docs-color-loupe-snapshot-draft".to_string()
+                            color="#f59e0b".to_string()
+                            is_open=true
+                            x_percent=18.0
+                            y_percent=74.0
+                            output_state=ColorLoupeOutputState::Draft
+                        />
+                        <ColorLoupe
+                            id_base="docs-color-loupe-snapshot-verified".to_string()
+                            color="#10b981".to_string()
+                            is_open=true
+                            x_percent=50.0
+                            y_percent=48.0
+                            output_state=ColorLoupeOutputState::Verified
+                        />
+                        <ColorLoupe
+                            id_base="docs-color-loupe-snapshot-committable".to_string()
+                            color="#3b82f6".to_string()
+                            is_open=true
+                            x_percent=82.0
+                            y_percent=24.0
+                            output_state=ColorLoupeOutputState::Committable
                         />
                     </div>
                 </div>

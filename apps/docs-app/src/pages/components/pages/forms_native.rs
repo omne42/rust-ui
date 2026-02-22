@@ -446,148 +446,6 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
             </Playground>
 
             <Playground
-                title="Controlled + Placeholder"
-                code_signal=code
-                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <NativeSelect
-                        id_base="docs-native-select-controlled".to_string()
-                        options=controlled_options_for_controlled
-                        selected_index=selected_signal
-                        on_selected_index_change=on_selected_change
-                        placeholder="Choose mode".to_string()
-                        name="mode".to_string()
-                        aria_label="Mode".to_string()
-                    />
-                    <span class="ui-muted">
-                        "selected index: "
-                        {move || {
-                            selected_raw
-                                .get()
-                                .map(|index| index.to_string())
-                                .unwrap_or_else(|| "None".to_string())
-                        }}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Required + Invalid + Disabled"
-                code_signal=states_code
-                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <NativeSelect
-                        id_base="docs-native-select-required".to_string()
-                        options=required_options_for_states
-                        default_selected_index=1
-                        is_required=true
-                        is_invalid=true
-                        size=NativeSelectSize::Lg
-                        aria_label="Deployment strategy".to_string()
-                        class_name="docs-native-select-custom".to_string()
-                    />
-
-                    <NativeSelect
-                        id_base="docs-native-select-disabled".to_string()
-                        options=disabled_options_for_states
-                        is_disabled=true
-                        placeholder="Disabled select".to_string()
-                        size=NativeSelectSize::Sm
-                        aria_label="Disabled native select".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled"
-                code_signal=controlled_uncontrolled_code
-                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="native-select-controlled-uncontrolled">
-                    <div class="docs-search__label">"Uncontrolled (default_selected_index)"</div>
-                    <NativeSelect
-                        id_base="docs-native-select-uncontrolled".to_string()
-                        options=controlled_options_for_compare.clone()
-                        default_selected_index=1
-                        aria_label="Uncontrolled native select".to_string()
-                    />
-                    <div class="docs-search__label">"Controlled (selected_index + on_selected_index_change)"</div>
-                    <NativeSelect
-                        id_base="docs-native-select-controlled-compare".to_string()
-                        options=controlled_options_for_compare
-                        selected_index=selected_signal_compare
-                        on_selected_index_change=on_selected_change_compare
-                        aria_label="Controlled native select".to_string()
-                    />
-                    <span class="ui-muted">
-                        "controlled selected index: "
-                        {move || {
-                            selected_raw
-                                .get()
-                                .map(|index| index.to_string())
-                                .unwrap_or_else(|| "None".to_string())
-                        }}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="State Matrix (Controlled / Uncontrolled / Disabled)"
-                code_signal=state_matrix_code
-                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="native-select-state-matrix">
-                    <NativeSelect
-                        id_base="docs-native-select-matrix-default".to_string()
-                        options=required_options_for_matrix.clone()
-                        default_selected_index=0
-                        aria_label="Default matrix".to_string()
-                    />
-                    <NativeSelect
-                        id_base="docs-native-select-matrix-controlled".to_string()
-                        options=required_options_for_matrix
-                        selected_index=Signal::derive(|| Some(2usize))
-                        aria_label="Controlled matrix".to_string()
-                    />
-                    <NativeSelect
-                        id_base="docs-native-select-matrix-disabled".to_string()
-                        options=disabled_options_for_matrix
-                        is_disabled=true
-                        placeholder="Disabled matrix".to_string()
-                        aria_label="Disabled matrix".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                description="NativeSelect 不是正文阅读面；这里展示 snapshot baseline 与 fallback=snapshot 语义标记。"
-                code_signal=stream_snapshot_code
-                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="native-select-streaming-snapshot">
-                    <NativeSelect
-                        id_base="docs-native-select-stream-snapshot".to_string()
-                        options=required_options_for_stream.clone()
-                        default_selected_index=1
-                        aria_label="Snapshot baseline".to_string()
-                    />
-                    <NativeSelect
-                        id_base="docs-native-select-stream-draft".to_string()
-                        options=required_options_for_stream
-                        selected_index=Signal::derive(|| Some(0usize))
-                        is_invalid=true
-                        aria_label="Draft fallback snapshot".to_string()
-                    />
-                    <div class="ui-muted" data-slot="native-select-streaming-contract-hint">
-                        "Inspect `data-streaming-mode/data-streaming-fallback/data-output-status`."
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground"
                 code_signal=workbench_code
                 code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
@@ -711,6 +569,148 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Controlled / Uncontrolled / Disabled)"
+                code_signal=state_matrix_code
+                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="native-select-state-matrix">
+                    <NativeSelect
+                        id_base="docs-native-select-matrix-default".to_string()
+                        options=required_options_for_matrix.clone()
+                        default_selected_index=0
+                        aria_label="Default matrix".to_string()
+                    />
+                    <NativeSelect
+                        id_base="docs-native-select-matrix-controlled".to_string()
+                        options=required_options_for_matrix
+                        selected_index=Signal::derive(|| Some(2usize))
+                        aria_label="Controlled matrix".to_string()
+                    />
+                    <NativeSelect
+                        id_base="docs-native-select-matrix-disabled".to_string()
+                        options=disabled_options_for_matrix
+                        is_disabled=true
+                        placeholder="Disabled matrix".to_string()
+                        aria_label="Disabled matrix".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled + Placeholder"
+                code_signal=code
+                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <NativeSelect
+                        id_base="docs-native-select-controlled".to_string()
+                        options=controlled_options_for_controlled
+                        selected_index=selected_signal
+                        on_selected_index_change=on_selected_change
+                        placeholder="Choose mode".to_string()
+                        name="mode".to_string()
+                        aria_label="Mode".to_string()
+                    />
+                    <span class="ui-muted">
+                        "selected index: "
+                        {move || {
+                            selected_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Required + Invalid + Disabled"
+                code_signal=states_code
+                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <NativeSelect
+                        id_base="docs-native-select-required".to_string()
+                        options=required_options_for_states
+                        default_selected_index=1
+                        is_required=true
+                        is_invalid=true
+                        size=NativeSelectSize::Lg
+                        aria_label="Deployment strategy".to_string()
+                        class_name="docs-native-select-custom".to_string()
+                    />
+
+                    <NativeSelect
+                        id_base="docs-native-select-disabled".to_string()
+                        options=disabled_options_for_states
+                        is_disabled=true
+                        placeholder="Disabled select".to_string()
+                        size=NativeSelectSize::Sm
+                        aria_label="Disabled native select".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled"
+                code_signal=controlled_uncontrolled_code
+                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="native-select-controlled-uncontrolled">
+                    <div class="docs-search__label">"Uncontrolled (default_selected_index)"</div>
+                    <NativeSelect
+                        id_base="docs-native-select-uncontrolled".to_string()
+                        options=controlled_options_for_compare.clone()
+                        default_selected_index=1
+                        aria_label="Uncontrolled native select".to_string()
+                    />
+                    <div class="docs-search__label">"Controlled (selected_index + on_selected_index_change)"</div>
+                    <NativeSelect
+                        id_base="docs-native-select-controlled-compare".to_string()
+                        options=controlled_options_for_compare
+                        selected_index=selected_signal_compare
+                        on_selected_index_change=on_selected_change_compare
+                        aria_label="Controlled native select".to_string()
+                    />
+                    <span class="ui-muted">
+                        "controlled selected index: "
+                        {move || {
+                            selected_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                description="NativeSelect 不是正文阅读面；这里展示 snapshot baseline 与 fallback=snapshot 语义标记。"
+                code_signal=stream_snapshot_code
+                code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="native-select-streaming-snapshot">
+                    <NativeSelect
+                        id_base="docs-native-select-stream-snapshot".to_string()
+                        options=required_options_for_stream.clone()
+                        default_selected_index=1
+                        aria_label="Snapshot baseline".to_string()
+                    />
+                    <NativeSelect
+                        id_base="docs-native-select-stream-draft".to_string()
+                        options=required_options_for_stream
+                        selected_index=Signal::derive(|| Some(0usize))
+                        is_invalid=true
+                        aria_label="Draft fallback snapshot".to_string()
+                    />
+                    <div class="ui-muted" data-slot="native-select-streaming-contract-hint">
+                        "Inspect `data-streaming-mode/data-streaming-fallback/data-output-status`."
+                    </div>
+                </div>
             </Playground>
 
             <Playground

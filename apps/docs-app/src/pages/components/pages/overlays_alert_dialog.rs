@@ -469,6 +469,144 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
             </Playground>
 
             <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                description="Button-style workbench: adjust variant/state props and inspect generated config + copy-ready code."
+                code_signal=workbench_code
+                code_imports=ALERT_DIALOG_DOC_IMPORTS.to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-workbench-controls">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-alert-dialog-workbench-variant".to_string()
+                            options=workbench_variant_options.clone()
+                            selected_index=workbench_variant_index
+                            set_selected_index=set_workbench_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="AlertDialog workbench variant".to_string()
+                        />
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_description.get()
+                                on:change=move |ev| set_workbench_show_description.set(event_target_checked(&ev))
+                            />
+                            " Show description"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_secondary.get()
+                                on:change=move |ev| set_workbench_show_secondary.set(event_target_checked(&ev))
+                            />
+                            " Enable secondary action"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_confirm_disabled.get()
+                                on:change=move |ev| set_workbench_confirm_disabled.set(event_target_checked(&ev))
+                            />
+                            " Disable confirm"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_secondary_disabled.get()
+                                on:change=move |ev| set_workbench_secondary_disabled.set(event_target_checked(&ev))
+                            />
+                            " Disable secondary"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_auto_focus_secondary.get()
+                                on:change=move |ev| set_workbench_auto_focus_secondary.set(event_target_checked(&ev))
+                            />
+                            " Auto-focus secondary"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " Custom motion"
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-workbench">
+                    <div class="docs-row">
+                        <Button attr:data-slot="alert-dialog-workbench-open" on_press=open_workbench_alert>
+                            "Open interactive alert"
+                        </Button>
+                        <Button
+                            attr:data-slot="alert-dialog-workbench-close"
+                            variant=ButtonVariant::Secondary
+                            on_press=close_workbench_alert
+                        >
+                            "Close"
+                        </Button>
+                        <span class="ui-muted">"confirm counter: " {move || workbench_confirm_count.get()}</span>
+                    </div>
+                    <Show when=move || workbench_present.get()>
+                        {move || {
+                            let variant = workbench_variant.get();
+                            let description = if workbench_show_description.get() {
+                                match variant {
+                                    AlertDialogVariant::Warning => "Potentially destructive operation. Confirm after review.",
+                                    AlertDialogVariant::Error => "Critical issue detected. Confirm remains disabled for safe acknowledgment.",
+                                    _ => "This operation cannot be undone.",
+                                }
+                                .to_string()
+                            } else {
+                                String::new()
+                            };
+                            let secondary_label = if workbench_show_secondary.get() {
+                                "Save draft".to_string()
+                            } else {
+                                String::new()
+                            };
+                            let auto_focus_button = if workbench_auto_focus_secondary.get() {
+                                ui::AlertDialogAutoFocusButton::Secondary
+                            } else {
+                                ui::AlertDialogAutoFocusButton::Confirm
+                            };
+                            let motion = workbench_motion.get();
+
+                            view! {
+                                <AlertDialog
+                                    open=workbench_open
+                                    id_base="docs-alert-workbench".to_string()
+                                    title=match variant {
+                                        AlertDialogVariant::Warning => "Warning review required".to_string(),
+                                        AlertDialogVariant::Error => "Error acknowledgement required".to_string(),
+                                        _ => "Delete item?".to_string(),
+                                    }
+                                    description=description
+                                    on_close=close_workbench_alert
+                                    confirm_label="Confirm".to_string()
+                                    on_confirm=on_workbench_confirm
+                                    secondary_label=secondary_label
+                                    on_secondary=on_workbench_secondary
+                                    variant=variant
+                                    confirm_disabled=workbench_confirm_disabled.get()
+                                    secondary_disabled=workbench_show_secondary.get()
+                                        && workbench_secondary_disabled.get()
+                                    auto_focus_button=auto_focus_button
+                                    motion=motion
+                                    on_exit_complete=on_workbench_exit_complete
+                                />
+                            }
+                        }}
+                    </Show>
+                </div>
+            </Playground>
+
+
+
+            <Playground
                 title="State + Source Markers"
                 code_signal=marker_code
                 code_imports=ALERT_DIALOG_DOC_IMPORTS.to_string()
@@ -679,141 +817,7 @@ let close_alert: OnPress = Callback::new(move |_| set_open_raw.set(false));
                 </div>
             </Playground>
 
-            <Playground
-                title="Interactive Playground (Display + Config + Code + CSS Test)"
-                description="Button-style workbench: adjust variant/state props and inspect generated config + copy-ready code."
-                code_signal=workbench_code
-                code_imports=ALERT_DIALOG_DOC_IMPORTS.to_string()
-                test_config_signal=workbench_actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-workbench-controls">
-                        <div class="docs-search__label">"Variant"</div>
-                        <SegmentedControl
-                            id_base="docs-alert-dialog-workbench-variant".to_string()
-                            options=workbench_variant_options.clone()
-                            selected_index=workbench_variant_index
-                            set_selected_index=set_workbench_variant_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="AlertDialog workbench variant".to_string()
-                        />
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_show_description.get()
-                                on:change=move |ev| set_workbench_show_description.set(event_target_checked(&ev))
-                            />
-                            " Show description"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_show_secondary.get()
-                                on:change=move |ev| set_workbench_show_secondary.set(event_target_checked(&ev))
-                            />
-                            " Enable secondary action"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_confirm_disabled.get()
-                                on:change=move |ev| set_workbench_confirm_disabled.set(event_target_checked(&ev))
-                            />
-                            " Disable confirm"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_secondary_disabled.get()
-                                on:change=move |ev| set_workbench_secondary_disabled.set(event_target_checked(&ev))
-                            />
-                            " Disable secondary"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_auto_focus_secondary.get()
-                                on:change=move |ev| set_workbench_auto_focus_secondary.set(event_target_checked(&ev))
-                            />
-                            " Auto-focus secondary"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_custom_motion.get()
-                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
-                            />
-                            " Custom motion"
-                        </label>
-                    </div>
-                }
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="alert-dialog-workbench">
-                    <div class="docs-row">
-                        <Button attr:data-slot="alert-dialog-workbench-open" on_press=open_workbench_alert>
-                            "Open interactive alert"
-                        </Button>
-                        <Button
-                            attr:data-slot="alert-dialog-workbench-close"
-                            variant=ButtonVariant::Secondary
-                            on_press=close_workbench_alert
-                        >
-                            "Close"
-                        </Button>
-                        <span class="ui-muted">"confirm counter: " {move || workbench_confirm_count.get()}</span>
-                    </div>
-                    <Show when=move || workbench_present.get()>
-                        {move || {
-                            let variant = workbench_variant.get();
-                            let description = if workbench_show_description.get() {
-                                match variant {
-                                    AlertDialogVariant::Warning => "Potentially destructive operation. Confirm after review.",
-                                    AlertDialogVariant::Error => "Critical issue detected. Confirm remains disabled for safe acknowledgment.",
-                                    _ => "This operation cannot be undone.",
-                                }
-                                .to_string()
-                            } else {
-                                String::new()
-                            };
-                            let secondary_label = if workbench_show_secondary.get() {
-                                "Save draft".to_string()
-                            } else {
-                                String::new()
-                            };
-                            let auto_focus_button = if workbench_auto_focus_secondary.get() {
-                                ui::AlertDialogAutoFocusButton::Secondary
-                            } else {
-                                ui::AlertDialogAutoFocusButton::Confirm
-                            };
-                            let motion = workbench_motion.get();
 
-                            view! {
-                                <AlertDialog
-                                    open=workbench_open
-                                    id_base="docs-alert-workbench".to_string()
-                                    title=match variant {
-                                        AlertDialogVariant::Warning => "Warning review required".to_string(),
-                                        AlertDialogVariant::Error => "Error acknowledgement required".to_string(),
-                                        _ => "Delete item?".to_string(),
-                                    }
-                                    description=description
-                                    on_close=close_workbench_alert
-                                    confirm_label="Confirm".to_string()
-                                    on_confirm=on_workbench_confirm
-                                    secondary_label=secondary_label
-                                    on_secondary=on_workbench_secondary
-                                    variant=variant
-                                    confirm_disabled=workbench_confirm_disabled.get()
-                                    secondary_disabled=workbench_show_secondary.get()
-                                        && workbench_secondary_disabled.get()
-                                    auto_focus_button=auto_focus_button
-                                    motion=motion
-                                    on_exit_complete=on_workbench_exit_complete
-                                />
-                            }
-                        }}
-                    </Show>
-                </div>
-            </Playground>
 
             <Playground
                 title="State Matrix (Destructive / Warning / Error)"

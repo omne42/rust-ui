@@ -326,6 +326,136 @@ pub(super) fn labeled_value() -> AnyView {
             </Playground>
 
             <Playground
+                title="Interactive Playground"
+                description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
+                code_signal=workbench_code
+                code_imports=labeled_value_imports.clone()
+                test_source_path="components/labeled-value/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Orientation"</div>
+                        <SegmentedControl
+                            id_base="docs-labeled-value-workbench-orientation".to_string()
+                            options=orientation_options.clone()
+                            selected_index=orientation_index
+                            set_selected_index=set_orientation_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="LabeledValue orientation".to_string()
+                        />
+
+                        <div class="docs-search__label">"Tone"</div>
+                        <SegmentedControl
+                            id_base="docs-labeled-value-workbench-tone".to_string()
+                            options=tone_options.clone()
+                            selected_index=tone_index
+                            set_selected_index=set_tone_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="LabeledValue tone".to_string()
+                        />
+
+                        <Switch checked=show_description set_checked=set_show_description>
+                            "Description"
+                        </Switch>
+                        <Switch checked=custom_aria set_checked=set_custom_aria>
+                            "Custom aria_label"
+                        </Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>
+                            "Custom class"
+                        </Switch>
+                        <Switch checked=custom_lang_zh set_checked=set_custom_lang_zh>
+                            "Lang=zh-CN"
+                        </Switch>
+                        <Switch checked=rtl_dir set_checked=set_rtl_dir>"dir=rtl"</Switch>
+                        <Switch checked=custom_motion set_checked=set_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let orientation = match orientation_index.get().unwrap_or(0) {
+                        0 => LabeledValueOrientation::Stacked,
+                        _ => LabeledValueOrientation::Inline,
+                    };
+                    let tone = match tone_index.get().unwrap_or(0) {
+                        0 => LabeledValueTone::Default,
+                        1 => LabeledValueTone::Subtle,
+                        _ => LabeledValueTone::Strong,
+                    };
+                    let description = if show_description.get() {
+                        "Updated 2 minutes ago".to_string()
+                    } else {
+                        "".to_string()
+                    };
+                    let aria_label = if custom_aria.get() {
+                        "Build status".to_string()
+                    } else {
+                        "".to_string()
+                    };
+                    let class_name = if custom_class.get() {
+                        "docs-labeled-value-workbench".to_string()
+                    } else {
+                        "".to_string()
+                    };
+                    let lang = if custom_lang_zh.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    };
+                    let dir = if rtl_dir.get() {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+                    let motion = if custom_motion.get() {
+                        ui::labeled_value::LabeledValueMotion {
+                            enabled: true,
+                            duration_ms: 260,
+                        }
+                    } else {
+                        ui::labeled_value::LabeledValueMotion::default()
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <LabeledValue
+                                label="Build".to_string()
+                                value="passing".to_string()
+                                description=description
+                                orientation=orientation
+                                tone=tone
+                                aria_label=aria_label
+                                class_name=class_name
+                                lang=lang.clone()
+                                dir=dir
+                                motion=motion
+                            />
+                            <LabeledValue
+                                label="Compare / Inline".to_string()
+                                value="Healthy".to_string()
+                                orientation=LabeledValueOrientation::Inline
+                                tone=LabeledValueTone::Subtle
+                                lang=lang.clone()
+                                dir=dir
+                                motion=motion
+                            />
+                            <LabeledValue
+                                label="Compare / Stacked".to_string()
+                                value="99.95%".to_string()
+                                orientation=LabeledValueOrientation::Stacked
+                                tone=LabeledValueTone::Strong
+                                description="SLA snapshot".to_string()
+                                lang=lang
+                                dir=dir
+                                motion=motion
+                            />
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <Playground
                 title="State Matrix"
                 code_signal=state_matrix_code
                 code_imports=labeled_value_imports.clone()
@@ -457,136 +587,6 @@ pub(super) fn labeled_value() -> AnyView {
                     orientation=LabeledValueOrientation::Inline
                     tone=LabeledValueTone::Subtle
                 />
-            </Playground>
-
-            <Playground
-                title="Interactive Playground"
-                description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
-                code_signal=workbench_code
-                code_imports=labeled_value_imports
-                test_source_path="components/labeled-value/src/styles.rs".to_string()
-                test_config_signal=workbench_actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight">
-                        <div class="docs-search__label">"Orientation"</div>
-                        <SegmentedControl
-                            id_base="docs-labeled-value-workbench-orientation".to_string()
-                            options=orientation_options.clone()
-                            selected_index=orientation_index
-                            set_selected_index=set_orientation_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="LabeledValue orientation".to_string()
-                        />
-
-                        <div class="docs-search__label">"Tone"</div>
-                        <SegmentedControl
-                            id_base="docs-labeled-value-workbench-tone".to_string()
-                            options=tone_options.clone()
-                            selected_index=tone_index
-                            set_selected_index=set_tone_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="LabeledValue tone".to_string()
-                        />
-
-                        <Switch checked=show_description set_checked=set_show_description>
-                            "Description"
-                        </Switch>
-                        <Switch checked=custom_aria set_checked=set_custom_aria>
-                            "Custom aria_label"
-                        </Switch>
-                        <Switch checked=custom_class set_checked=set_custom_class>
-                            "Custom class"
-                        </Switch>
-                        <Switch checked=custom_lang_zh set_checked=set_custom_lang_zh>
-                            "Lang=zh-CN"
-                        </Switch>
-                        <Switch checked=rtl_dir set_checked=set_rtl_dir>"dir=rtl"</Switch>
-                        <Switch checked=custom_motion set_checked=set_custom_motion>
-                            "Custom motion"
-                        </Switch>
-                    </div>
-                }
-            >
-                {move || {
-                    let orientation = match orientation_index.get().unwrap_or(0) {
-                        0 => LabeledValueOrientation::Stacked,
-                        _ => LabeledValueOrientation::Inline,
-                    };
-                    let tone = match tone_index.get().unwrap_or(0) {
-                        0 => LabeledValueTone::Default,
-                        1 => LabeledValueTone::Subtle,
-                        _ => LabeledValueTone::Strong,
-                    };
-                    let description = if show_description.get() {
-                        "Updated 2 minutes ago".to_string()
-                    } else {
-                        "".to_string()
-                    };
-                    let aria_label = if custom_aria.get() {
-                        "Build status".to_string()
-                    } else {
-                        "".to_string()
-                    };
-                    let class_name = if custom_class.get() {
-                        "docs-labeled-value-workbench".to_string()
-                    } else {
-                        "".to_string()
-                    };
-                    let lang = if custom_lang_zh.get() {
-                        "zh-CN".to_string()
-                    } else {
-                        "en-US".to_string()
-                    };
-                    let dir = if rtl_dir.get() {
-                        A11yDirection::Rtl
-                    } else {
-                        A11yDirection::Ltr
-                    };
-                    let motion = if custom_motion.get() {
-                        ui::labeled_value::LabeledValueMotion {
-                            enabled: true,
-                            duration_ms: 260,
-                        }
-                    } else {
-                        ui::labeled_value::LabeledValueMotion::default()
-                    };
-
-                    view! {
-                        <div class="docs-stack docs-stack--tight">
-                            <LabeledValue
-                                label="Build".to_string()
-                                value="passing".to_string()
-                                description=description
-                                orientation=orientation
-                                tone=tone
-                                aria_label=aria_label
-                                class_name=class_name
-                                lang=lang.clone()
-                                dir=dir
-                                motion=motion
-                            />
-                            <LabeledValue
-                                label="Compare / Inline".to_string()
-                                value="Healthy".to_string()
-                                orientation=LabeledValueOrientation::Inline
-                                tone=LabeledValueTone::Subtle
-                                lang=lang.clone()
-                                dir=dir
-                                motion=motion
-                            />
-                            <LabeledValue
-                                label="Compare / Stacked".to_string()
-                                value="99.95%".to_string()
-                                orientation=LabeledValueOrientation::Stacked
-                                tone=LabeledValueTone::Strong
-                                description="SLA snapshot".to_string()
-                                lang=lang
-                                dir=dir
-                                motion=motion
-                            />
-                        </div>
-                    }
-                }}
             </Playground>
 
             <Playground
@@ -816,79 +816,6 @@ pub(super) fn keyboard() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix (Tone / Compact / Source Markers)"
-                code_signal=state_matrix_code
-                code_imports=keyboard_imports.clone()
-            >
-                <div class="docs-row">
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Default"</span>
-                        <Keyboard>"⌘K"</Keyboard>
-                    </div>
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Muted"</span>
-                        <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
-                    </div>
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Compact"</span>
-                        <Keyboard is_compact=true>"Ctrl+K"</Keyboard>
-                    </div>
-                    <div class="docs-card" style="flex: 1 1 180px;">
-                        <span class="ui-muted">"Muted + Compact + Custom"</span>
-                        <Keyboard
-                            tone=KeyboardTone::Muted
-                            is_compact=true
-                            aria_label="Open command palette".to_string()
-                            class_name="docs-keyboard-custom".to_string()
-                        >
-                            "Ctrl+Shift+P"
-                        </Keyboard>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled Contrast (N/A for Keyboard)"
-                description="Keyboard has no controllable state axis; compare default rendering with upstream state mapped into plain props."
-                code_signal=controlled_contrast_code
-                code_imports=keyboard_imports.clone()
-            >
-                <div class="docs-row">
-                    <Keyboard>"⌘K"</Keyboard>
-                    <Keyboard
-                        tone=KeyboardTone::Muted
-                        is_compact=true
-                        class_name="docs-keyboard-custom".to_string()
-                    >
-                        "Mapped from upstream app state"
-                    </Keyboard>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming / Snapshot Contract"
-                description="Keyboard is a display leaf: streaming is optional and falls back to snapshot (`data-ui-streaming=optional`, `data-ui-streaming-fallback=snapshot`)."
-                code_signal=stream_snapshot_code
-                code_imports=keyboard_imports.clone()
-            >
-                <Keyboard
-                    tone=KeyboardTone::Muted
-                    aria_label="Snapshot contract marker".to_string()
-                >
-                    "⌘K"
-                </Keyboard>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run."
-                code_signal=source_first_code
-                code_imports=keyboard_imports.clone()
-            >
-                <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 code_imports=keyboard_imports.clone()
@@ -984,6 +911,79 @@ pub(super) fn keyboard() -> AnyView {
                         <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
                     </div>
                 </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Compact / Source Markers)"
+                code_signal=state_matrix_code
+                code_imports=keyboard_imports.clone()
+            >
+                <div class="docs-row">
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Default"</span>
+                        <Keyboard>"⌘K"</Keyboard>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Muted"</span>
+                        <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Compact"</span>
+                        <Keyboard is_compact=true>"Ctrl+K"</Keyboard>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 180px;">
+                        <span class="ui-muted">"Muted + Compact + Custom"</span>
+                        <Keyboard
+                            tone=KeyboardTone::Muted
+                            is_compact=true
+                            aria_label="Open command palette".to_string()
+                            class_name="docs-keyboard-custom".to_string()
+                        >
+                            "Ctrl+Shift+P"
+                        </Keyboard>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled Contrast (N/A for Keyboard)"
+                description="Keyboard has no controllable state axis; compare default rendering with upstream state mapped into plain props."
+                code_signal=controlled_contrast_code
+                code_imports=keyboard_imports.clone()
+            >
+                <div class="docs-row">
+                    <Keyboard>"⌘K"</Keyboard>
+                    <Keyboard
+                        tone=KeyboardTone::Muted
+                        is_compact=true
+                        class_name="docs-keyboard-custom".to_string()
+                    >
+                        "Mapped from upstream app state"
+                    </Keyboard>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Keyboard is a display leaf: streaming is optional and falls back to snapshot (`data-ui-streaming=optional`, `data-ui-streaming-fallback=snapshot`)."
+                code_signal=stream_snapshot_code
+                code_imports=keyboard_imports.clone()
+            >
+                <Keyboard
+                    tone=KeyboardTone::Muted
+                    aria_label="Snapshot contract marker".to_string()
+                >
+                    "⌘K"
+                </Keyboard>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run."
+                code_signal=source_first_code
+                code_imports=keyboard_imports.clone()
+            >
+                <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
             </Playground>
 
             <Playground
@@ -1550,91 +1550,6 @@ pub(super) fn icon() -> AnyView {
                 <Icon>"✓"</Icon>
             </Playground>
 
-            <Playground title="Size + Tone Matrix" code_signal=matrix_code>
-                <div class="docs-row">
-                    <Icon size=IconSize::Sm tone=IconTone::Default is_decorative=true>
-                        "✓"
-                    </Icon>
-                    <Icon size=IconSize::Md tone=IconTone::Muted is_decorative=true>
-                        "⚙"
-                    </Icon>
-                    <Icon size=IconSize::Lg tone=IconTone::Accent is_decorative=true>
-                        "★"
-                    </Icon>
-                    <Icon size=IconSize::Lg tone=IconTone::Danger is_decorative=true>
-                        "⚠"
-                    </Icon>
-                </div>
-            </Playground>
-
-            <Playground title="Accessible + Disabled + Custom Class" code_signal=states_code>
-                <div class="docs-row">
-                    <Icon
-                        size=IconSize::Md
-                        tone=IconTone::Accent
-                        is_decorative=false
-                        aria_label="Sync successful".to_string()
-                    >
-                        "✓"
-                    </Icon>
-                    <Icon
-                        size=IconSize::Lg
-                        tone=IconTone::Muted
-                        is_disabled=true
-                        class_name="docs-icon-custom".to_string()
-                        is_decorative=true
-                    >
-                        "⚙"
-                    </Icon>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled Contrast (N/A for Icon)"
-                description="Icon has no controllable state axis; compare default rendering with upstream state mapped into plain props."
-                code_signal=controlled_contrast_code
-                code_imports=icon_code_imports.clone()
-            >
-                <div class="docs-row">
-                    <Icon is_decorative=true>"✓"</Icon>
-                    <Icon
-                        size=IconSize::Lg
-                        tone=IconTone::Accent
-                        is_decorative=false
-                        aria_label="Mapped from upstream app state".to_string()
-                    >
-                        "★"
-                    </Icon>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming / Snapshot Contract"
-                description="Icon is a display leaf: streaming is optional and falls back to snapshot (`data-ui-streaming=optional`, `data-ui-streaming-fallback=snapshot`)."
-                code_signal=stream_snapshot_code
-                code_imports=icon_code_imports.clone()
-            >
-                <Icon
-                    size=IconSize::Md
-                    tone=IconTone::Muted
-                    is_decorative=false
-                    aria_label="Snapshot mode icon".to_string()
-                >
-                    "⏺"
-                </Icon>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="Copy action auto-injects missing imports for direct run; requires `ui` dependency in Cargo.toml."
-                code_signal=source_first_code
-                code_imports=icon_code_imports.clone()
-            >
-                <Icon size=IconSize::Sm tone=IconTone::Accent is_decorative=true>
-                    "✓"
-                </Icon>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels and live icon state controls."
@@ -1808,7 +1723,7 @@ pub(super) fn icon() -> AnyView {
             <Playground
                 title="State Matrix (Tone / Accessibility / Slot Comparison)"
                 code_signal=matrix_code
-                code_imports=icon_code_imports
+                code_imports=icon_code_imports.clone()
             >
                 <div class="docs-row">
                     <Icon
@@ -1842,6 +1757,91 @@ pub(super) fn icon() -> AnyView {
                         "⚠"
                     </Icon>
                 </div>
+            </Playground>
+
+            <Playground title="Size + Tone Matrix" code_signal=matrix_code>
+                <div class="docs-row">
+                    <Icon size=IconSize::Sm tone=IconTone::Default is_decorative=true>
+                        "✓"
+                    </Icon>
+                    <Icon size=IconSize::Md tone=IconTone::Muted is_decorative=true>
+                        "⚙"
+                    </Icon>
+                    <Icon size=IconSize::Lg tone=IconTone::Accent is_decorative=true>
+                        "★"
+                    </Icon>
+                    <Icon size=IconSize::Lg tone=IconTone::Danger is_decorative=true>
+                        "⚠"
+                    </Icon>
+                </div>
+            </Playground>
+
+            <Playground title="Accessible + Disabled + Custom Class" code_signal=states_code>
+                <div class="docs-row">
+                    <Icon
+                        size=IconSize::Md
+                        tone=IconTone::Accent
+                        is_decorative=false
+                        aria_label="Sync successful".to_string()
+                    >
+                        "✓"
+                    </Icon>
+                    <Icon
+                        size=IconSize::Lg
+                        tone=IconTone::Muted
+                        is_disabled=true
+                        class_name="docs-icon-custom".to_string()
+                        is_decorative=true
+                    >
+                        "⚙"
+                    </Icon>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled Contrast (N/A for Icon)"
+                description="Icon has no controllable state axis; compare default rendering with upstream state mapped into plain props."
+                code_signal=controlled_contrast_code
+                code_imports=icon_code_imports.clone()
+            >
+                <div class="docs-row">
+                    <Icon is_decorative=true>"✓"</Icon>
+                    <Icon
+                        size=IconSize::Lg
+                        tone=IconTone::Accent
+                        is_decorative=false
+                        aria_label="Mapped from upstream app state".to_string()
+                    >
+                        "★"
+                    </Icon>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="Icon is a display leaf: streaming is optional and falls back to snapshot (`data-ui-streaming=optional`, `data-ui-streaming-fallback=snapshot`)."
+                code_signal=stream_snapshot_code
+                code_imports=icon_code_imports.clone()
+            >
+                <Icon
+                    size=IconSize::Md
+                    tone=IconTone::Muted
+                    is_decorative=false
+                    aria_label="Snapshot mode icon".to_string()
+                >
+                    "⏺"
+                </Icon>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="Copy action auto-injects missing imports for direct run; requires `ui` dependency in Cargo.toml."
+                code_signal=source_first_code
+                code_imports=icon_code_imports.clone()
+            >
+                <Icon size=IconSize::Sm tone=IconTone::Accent is_decorative=true>
+                    "✓"
+                </Icon>
             </Playground>
         </ComponentPage>
     }
@@ -2058,115 +2058,6 @@ pub(super) fn empty_state() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix"
-                code_signal=state_matrix_code
-                code_imports=empty_state_imports.clone()
-            >
-                <div class="docs-stack">
-                    <EmptyState />
-                    <EmptyState
-                        title="Nothing matched".to_string()
-                        description="Try a different query or clear filters.".to_string()
-                        tone=EmptyStateTone::Muted
-                        align=EmptyStateAlign::Center
-                    />
-                    <EmptyState
-                        title="Deployments paused".to_string()
-                        description="Approvals are required before resuming this environment.".to_string()
-                        tone=EmptyStateTone::Accent
-                        is_compact=true
-                        is_bordered=true
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Tone + Alignment + Actions"
-                code_signal=tone_code
-                code_imports=empty_state_imports.clone()
-            >
-                <div class="docs-stack">
-                    <EmptyState
-                        title="No projects yet".to_string()
-                        description="Create your first project to unlock dashboards and team workflows.".to_string()
-                        tone=EmptyStateTone::Default
-                        icon=move || view! { <span>"📁"</span> }
-                        actions=move || {
-                            view! {
-                                <ui::Button>
-                                    "Create project"
-                                </ui::Button>
-                            }
-                        }
-                    />
-                    <EmptyState
-                        title="Nothing matched".to_string()
-                        description="Try a different query or clear filters.".to_string()
-                        tone=EmptyStateTone::Muted
-                        align=EmptyStateAlign::Center
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Compact + Bordered + Custom Class"
-                code_signal=state_code
-                code_imports=empty_state_imports.clone()
-            >
-                <EmptyState
-                    title="Deployments paused".to_string()
-                    description="Approvals are required before resuming this environment.".to_string()
-                    tone=EmptyStateTone::Accent
-                    is_compact=true
-                    is_bordered=true
-                    class_name="docs-empty-state-custom".to_string()
-                    icon=move || view! { <span>"⏸"</span> }
-                    actions=move || {
-                        view! {
-                            <ui::Button variant=ui::ButtonVariant::Secondary>
-                                "Review approvals"
-                            </ui::Button>
-                        }
-                    }
-                />
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                description="EmptyState has no controlled/uncontrolled runtime axis; compare default usage vs app-state mapped props."
-                code_signal=controlled_contrast_code
-                code_imports=empty_state_imports.clone()
-            >
-                <div class="docs-stack">
-                    <EmptyState />
-                    <EmptyState
-                        title="Mapped from parent state".to_string()
-                        description="EmptyState has no controlled/uncontrolled axis; parent can still map app state into props.".to_string()
-                        tone=EmptyStateTone::Muted
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="EmptyState is not an LLM reader surface: streaming is optional and falls back to snapshot rendering."
-                code_signal=stream_snapshot_code
-                code_imports=empty_state_imports.clone()
-            >
-                <div class="docs-stack">
-                    <EmptyState
-                        title="Snapshot baseline".to_string()
-                        description="Component default path renders complete config in one pass.".to_string()
-                    />
-                    <EmptyState
-                        title="Streaming optional fallback".to_string()
-                        description="Not an LLM body reader surface: optional streaming contracts fallback to snapshot.".to_string()
-                        tone=EmptyStateTone::Muted
-                    />
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground"
                 description="Interactive acceptance canvas: tune props/state and verify semantic markers in real time."
                 code_signal=workbench_code
@@ -2357,6 +2248,115 @@ pub(super) fn empty_state() -> AnyView {
                                 .into_any()
                         }
                     }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=state_matrix_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState />
+                    <EmptyState
+                        title="Nothing matched".to_string()
+                        description="Try a different query or clear filters.".to_string()
+                        tone=EmptyStateTone::Muted
+                        align=EmptyStateAlign::Center
+                    />
+                    <EmptyState
+                        title="Deployments paused".to_string()
+                        description="Approvals are required before resuming this environment.".to_string()
+                        tone=EmptyStateTone::Accent
+                        is_compact=true
+                        is_bordered=true
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Tone + Alignment + Actions"
+                code_signal=tone_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState
+                        title="No projects yet".to_string()
+                        description="Create your first project to unlock dashboards and team workflows.".to_string()
+                        tone=EmptyStateTone::Default
+                        icon=move || view! { <span>"📁"</span> }
+                        actions=move || {
+                            view! {
+                                <ui::Button>
+                                    "Create project"
+                                </ui::Button>
+                            }
+                        }
+                    />
+                    <EmptyState
+                        title="Nothing matched".to_string()
+                        description="Try a different query or clear filters.".to_string()
+                        tone=EmptyStateTone::Muted
+                        align=EmptyStateAlign::Center
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Compact + Bordered + Custom Class"
+                code_signal=state_code
+                code_imports=empty_state_imports.clone()
+            >
+                <EmptyState
+                    title="Deployments paused".to_string()
+                    description="Approvals are required before resuming this environment.".to_string()
+                    tone=EmptyStateTone::Accent
+                    is_compact=true
+                    is_bordered=true
+                    class_name="docs-empty-state-custom".to_string()
+                    icon=move || view! { <span>"⏸"</span> }
+                    actions=move || {
+                        view! {
+                            <ui::Button variant=ui::ButtonVariant::Secondary>
+                                "Review approvals"
+                            </ui::Button>
+                        }
+                    }
+                />
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                description="EmptyState has no controlled/uncontrolled runtime axis; compare default usage vs app-state mapped props."
+                code_signal=controlled_contrast_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState />
+                    <EmptyState
+                        title="Mapped from parent state".to_string()
+                        description="EmptyState has no controlled/uncontrolled axis; parent can still map app state into props.".to_string()
+                        tone=EmptyStateTone::Muted
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="EmptyState is not an LLM reader surface: streaming is optional and falls back to snapshot rendering."
+                code_signal=stream_snapshot_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState
+                        title="Snapshot baseline".to_string()
+                        description="Component default path renders complete config in one pass.".to_string()
+                    />
+                    <EmptyState
+                        title="Streaming optional fallback".to_string()
+                        description="Not an LLM body reader surface: optional streaming contracts fallback to snapshot.".to_string()
+                        tone=EmptyStateTone::Muted
+                    />
                 </div>
             </Playground>
 
@@ -4020,146 +4020,6 @@ pub(super) fn color_swatch_picker() -> AnyView {
             </Playground>
 
             <Playground
-                title="Basic Selection"
-                code_signal=basic_code
-                code_imports=color_swatch_picker_imports.clone()
-            >
-                <ColorSwatchPicker
-                    swatches=signal(swatches_for_basic).0
-                    default_selected_color="#f80".to_string()
-                />
-            </Playground>
-
-            <Playground
-                title="Transparency + Disabled + Custom Class"
-                code_signal=state_code
-                code_imports=color_swatch_picker_imports.clone()
-            >
-                <ColorSwatchPicker
-                    swatches=signal(disabled_swatches_for_state).0
-                    shape=ColorSwatchShape::Wide
-                    rounding=ColorSwatchRounding::Default
-                    class_name="docs-color-swatch-picker-custom".to_string()
-                    aria_label="Fill color".to_string()
-                />
-            </Playground>
-
-            <Playground
-                title="Variant Gallery"
-                code_signal=matrix_code
-                code_imports=color_swatch_picker_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <ColorSwatchPicker
-                        swatches=signal(swatches_for_matrix_final).0
-                        default_selected_color="#f80".to_string()
-                    />
-                    <ColorSwatchPicker
-                        swatches=signal(disabled_swatches_for_matrix_final).0
-                        shape=ColorSwatchShape::Wide
-                        rounding=ColorSwatchRounding::Default
-                        class_name="docs-color-swatch-picker-custom".to_string()
-                        aria_label="Fill color".to_string()
-                    />
-                </div>
-            </Playground>
-
-            // title="State Matrix"
-            // swatches=signal(swatches_for_matrix).0
-            // swatches=signal(disabled_swatches_for_matrix).0
-            <Playground
-                title="State Matrix"
-                code_signal=matrix_code
-                code_imports=color_swatch_picker_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-state-matrix">
-                    <ColorSwatchPicker
-                        swatches=signal(swatches_for_matrix_after.clone()).0
-                        default_selected_color="#f80".to_string()
-                        id_base="docs-color-swatch-picker-matrix-default".to_string()
-                        size=ColorSwatchSize::Md
-                        lang="en-US".to_string()
-                        dir=ui_headless::A11yDirection::Ltr
-                        motion=ColorSwatchPickerMotion::default()
-                    />
-                    <ColorSwatchPicker
-                        swatches=signal(disabled_swatches_for_matrix.clone()).0
-                        shape=ColorSwatchShape::Wide
-                        rounding=ColorSwatchRounding::Default
-                        id_base="docs-color-swatch-picker-matrix-disabled".to_string()
-                        is_disabled=true
-                        class_name="docs-color-swatch-picker-custom".to_string()
-                        aria_label="Fill color".to_string()
-                        lang="zh-CN".to_string()
-                        dir=ui_headless::A11yDirection::Rtl
-                        motion=ColorSwatchPickerMotion::default()
-                    />
-                    <ColorSwatchPicker
-                        swatches=signal(swatches_for_controlled_matrix.clone()).0
-                        id_base="docs-color-swatch-picker-matrix-controlled".to_string()
-                        size=ColorSwatchSize::Lg
-                        selected_color=controlled_selected_color
-                        on_selected_change=Callback::new(move |next| {
-                            set_controlled_selected_color.set(next);
-                        })
-                        aria_label="Controlled swatch picker".to_string()
-                        lang="en-US".to_string()
-                        dir=ui_headless::A11yDirection::Ltr
-                        motion=ColorSwatchPickerMotion::default()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled Contrast"
-                code_signal=controlled_contrast_code
-                code_imports=color_swatch_picker_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <ColorSwatchPicker
-                        swatches=signal(swatches_for_controlled.clone()).0
-                        default_selected_color="#f80".to_string()
-                    />
-                    <ColorSwatchPicker
-                        swatches=signal(swatches_for_controlled.clone()).0
-                        selected_color=controlled_selected_color
-                        on_selected_change=Callback::new(move |next| {
-                            set_controlled_selected_color.set(next);
-                        })
-                        aria_label="Controlled swatch picker".to_string()
-                    />
-                    <span class="ui-muted">
-                        {move || {
-                            format!(
-                                "controlled selected_color={}",
-                                controlled_selected_color
-                                    .get()
-                                    .unwrap_or_else(|| "none".to_string())
-                            )
-                        }}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming / Snapshot Contract"
-                description="ColorSwatchPicker is streaming-optional. Marker contract remains `data-ui-stream-support=unsupported` + `data-ui-stream-fallback=snapshot`."
-                code_signal=stream_snapshot_code
-                code_imports=color_swatch_picker_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <ColorSwatchPicker
-                        swatches=signal(swatches_for_stream).0
-                        default_selected_color="#f80".to_string()
-                        aria_label="Fill color".to_string()
-                    />
-                    <span class="ui-muted">
-                        "effective markers: data-ui-stream-support=unsupported data-ui-stream-fallback=snapshot data-ui-output-status=verified"
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground"
                 description="Interactive acceptance canvas: adjust props/state, observe selection feedback, and replay keyboard flow."
                 code_signal=workbench_code
@@ -4385,6 +4245,146 @@ pub(super) fn color_swatch_picker() -> AnyView {
                         <li>"Toggle Controlled mode and repeat ArrowRight to verify controlled callback sync."</li>
                         <li>"Enable disabled palette and Disabled switch to verify blocked interaction branch."</li>
                     </ol>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix"
+                code_signal=matrix_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-state-matrix">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_matrix_after.clone()).0
+                        default_selected_color="#f80".to_string()
+                        id_base="docs-color-swatch-picker-matrix-default".to_string()
+                        size=ColorSwatchSize::Md
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        motion=ColorSwatchPickerMotion::default()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(disabled_swatches_for_matrix.clone()).0
+                        shape=ColorSwatchShape::Wide
+                        rounding=ColorSwatchRounding::Default
+                        id_base="docs-color-swatch-picker-matrix-disabled".to_string()
+                        is_disabled=true
+                        class_name="docs-color-swatch-picker-custom".to_string()
+                        aria_label="Fill color".to_string()
+                        lang="zh-CN".to_string()
+                        dir=ui_headless::A11yDirection::Rtl
+                        motion=ColorSwatchPickerMotion::default()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_controlled_matrix.clone()).0
+                        id_base="docs-color-swatch-picker-matrix-controlled".to_string()
+                        size=ColorSwatchSize::Lg
+                        selected_color=controlled_selected_color
+                        on_selected_change=Callback::new(move |next| {
+                            set_controlled_selected_color.set(next);
+                        })
+                        aria_label="Controlled swatch picker".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        motion=ColorSwatchPickerMotion::default()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Basic Selection"
+                code_signal=basic_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <ColorSwatchPicker
+                    swatches=signal(swatches_for_basic).0
+                    default_selected_color="#f80".to_string()
+                />
+            </Playground>
+
+            // title="State Matrix"
+            // swatches=signal(swatches_for_matrix).0
+            // swatches=signal(disabled_swatches_for_matrix).0
+            <Playground
+                title="Transparency + Disabled + Custom Class"
+                code_signal=state_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <ColorSwatchPicker
+                    swatches=signal(disabled_swatches_for_state).0
+                    shape=ColorSwatchShape::Wide
+                    rounding=ColorSwatchRounding::Default
+                    class_name="docs-color-swatch-picker-custom".to_string()
+                    aria_label="Fill color".to_string()
+                />
+            </Playground>
+
+            <Playground
+                title="Variant Gallery"
+                code_signal=matrix_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_matrix_final).0
+                        default_selected_color="#f80".to_string()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(disabled_swatches_for_matrix_final).0
+                        shape=ColorSwatchShape::Wide
+                        rounding=ColorSwatchRounding::Default
+                        class_name="docs-color-swatch-picker-custom".to_string()
+                        aria_label="Fill color".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled Contrast"
+                code_signal=controlled_contrast_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_controlled.clone()).0
+                        default_selected_color="#f80".to_string()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_controlled.clone()).0
+                        selected_color=controlled_selected_color
+                        on_selected_change=Callback::new(move |next| {
+                            set_controlled_selected_color.set(next);
+                        })
+                        aria_label="Controlled swatch picker".to_string()
+                    />
+                    <span class="ui-muted">
+                        {move || {
+                            format!(
+                                "controlled selected_color={}",
+                                controlled_selected_color
+                                    .get()
+                                    .unwrap_or_else(|| "none".to_string())
+                            )
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming / Snapshot Contract"
+                description="ColorSwatchPicker is streaming-optional. Marker contract remains `data-ui-stream-support=unsupported` + `data-ui-stream-fallback=snapshot`."
+                code_signal=stream_snapshot_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_stream).0
+                        default_selected_color="#f80".to_string()
+                        aria_label="Fill color".to_string()
+                    />
+                    <span class="ui-muted">
+                        "effective markers: data-ui-stream-support=unsupported data-ui-stream-fallback=snapshot data-ui-output-status=verified"
+                    </span>
                 </div>
             </Playground>
 
@@ -5055,38 +5055,6 @@ let (is_flipped, set_is_flipped) = signal(false);
             </Playground>
 
             <Playground
-                title="Click + Keyboard Flip"
-                code_signal=basic_code
-                code_imports=flip_card_imports.clone()
-            >
-                <div class="docs-row">
-                    <FlipCard
-                        id="docs-flip-card-toggle".to_string()
-                        front=move || {
-                            view! {
-                                <>
-                                    <div class="ui-flip-card__title">"Front"</div>
-                                    <div class="ui-flip-card__description">
-                                        "Click or press Enter/Space to flip."
-                                    </div>
-                                </>
-                            }
-                        }
-                        back=move || {
-                            view! {
-                                <>
-                                    <div class="ui-flip-card__title">"Back"</div>
-                                    <div class="ui-flip-card__description">
-                                        "Back face stays keyboard reachable with the same button semantics."
-                                    </div>
-                                </>
-                            }
-                        }
-                    />
-                </div>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 code_imports=flip_card_imports.clone()
@@ -5266,6 +5234,75 @@ let (is_flipped, set_is_flipped) = signal(false);
             </Playground>
 
             <Playground
+                title="State Matrix (Default / Hover / Disabled / Dramatic Motion)"
+                code_signal=state_matrix_code
+                code_imports=flip_card_imports.clone()
+            >
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <FlipCard
+                            front=move || view! { <div class="ui-flip-card__title">"Default"</div> }
+                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
+                        />
+                        <FlipCard
+                            is_flip_on_hover=true
+                            front=move || view! { <div class="ui-flip-card__title">"Hover flip"</div> }
+                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
+                        />
+                    </div>
+                    <div class="docs-row">
+                        <FlipCard
+                            is_disabled=true
+                            front=move || view! { <div class="ui-flip-card__title">"Disabled"</div> }
+                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
+                        />
+                        <FlipCard
+                            motion=FlipCardMotion {
+                                hover_scale: 1.06,
+                                hover_tilt_deg: 7.5,
+                                ..FlipCardMotion::default()
+                            }
+                            is_flip_on_hover=true
+                            front=move || view! { <div class="ui-flip-card__title">"Dramatic motion"</div> }
+                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Click + Keyboard Flip"
+                code_signal=basic_code
+                code_imports=flip_card_imports.clone()
+            >
+                <div class="docs-row">
+                    <FlipCard
+                        id="docs-flip-card-toggle".to_string()
+                        front=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Front"</div>
+                                    <div class="ui-flip-card__description">
+                                        "Click or press Enter/Space to flip."
+                                    </div>
+                                </>
+                            }
+                        }
+                        back=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Back"</div>
+                                    <div class="ui-flip-card__description">
+                                        "Back face stays keyboard reachable with the same button semantics."
+                                    </div>
+                                </>
+                            }
+                        }
+                    />
+                </div>
+            </Playground>
+
+            <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-flip-mode`, `data-class-source`, `data-motion-source`, `data-id-source`, and face-level visibility markers (`data-visible`/`data-hidden`)."
                 code_signal=markers_code
@@ -5302,43 +5339,6 @@ let (is_flipped, set_is_flipped) = signal(false);
                             }
                         }
                     />
-                </div>
-            </Playground>
-
-            <Playground
-                title="State Matrix (Default / Hover / Disabled / Dramatic Motion)"
-                code_signal=state_matrix_code
-                code_imports=flip_card_imports.clone()
-            >
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <FlipCard
-                            front=move || view! { <div class="ui-flip-card__title">"Default"</div> }
-                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
-                        />
-                        <FlipCard
-                            is_flip_on_hover=true
-                            front=move || view! { <div class="ui-flip-card__title">"Hover flip"</div> }
-                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
-                        />
-                    </div>
-                    <div class="docs-row">
-                        <FlipCard
-                            is_disabled=true
-                            front=move || view! { <div class="ui-flip-card__title">"Disabled"</div> }
-                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
-                        />
-                        <FlipCard
-                            motion=FlipCardMotion {
-                                hover_scale: 1.06,
-                                hover_tilt_deg: 7.5,
-                                ..FlipCardMotion::default()
-                            }
-                            is_flip_on_hover=true
-                            front=move || view! { <div class="ui-flip-card__title">"Dramatic motion"</div> }
-                            back=move || view! { <div class="ui-flip-card__title">"Back"</div> }
-                        />
-                    </div>
                 </div>
             </Playground>
 

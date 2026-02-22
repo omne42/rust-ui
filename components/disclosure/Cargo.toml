@@ -17,6 +17,7 @@ ui-headless = { path = "../../crates/ui-headless" }
 ui-motion = { path = "../../crates/ui-motion" }
 ui-observability = { path = "../../crates/ui-observability" }
 ui-state-primitives = { path = "../../crates/ui-state-primitives" }
+ui-theme = { path = "../../crates/ui-theme" }
 ui-accordion = { path = "../accordion", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 

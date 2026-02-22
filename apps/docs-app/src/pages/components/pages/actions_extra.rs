@@ -288,6 +288,136 @@ ui = { workspace = true, default-features = false, features = ["component-action
             </Playground>
 
             <Playground
+                title="Interactive Playground (Props + State + Spec Preview)"
+                code_signal=interactive_playground_code
+                code_imports=action_bar_code_imports.clone()
+                test_config_signal=interactive_spec_preview
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="action-bar-interactive-controls">
+                        <div class="docs-search__label">"Position"</div>
+                        <SegmentedControl
+                            id_base="docs-action-bar-interactive-position".to_string()
+                            options=interactive_position_options.clone()
+                            selected_index=interactive_position_index
+                            set_selected_index=set_interactive_position_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ActionBar interactive position".to_string()
+                        />
+                        <Switch checked=interactive_force_visible set_checked=set_interactive_force_visible>
+                            "Force visible"
+                        </Switch>
+                        <Switch checked=interactive_with_clear_action set_checked=set_interactive_with_clear_action>
+                            "Enable clear action"
+                        </Switch>
+                        <Switch checked=interactive_custom_labels set_checked=set_interactive_custom_labels>
+                            "Use custom labels"
+                        </Switch>
+                        <Switch checked=interactive_reduced_motion set_checked=set_interactive_reduced_motion>
+                            "Reduced motion"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="action-bar-interactive-preview">
+                    <div class="docs-row" data-slot="action-bar-interactive-actions">
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            aria_label="Interactive select +1".to_string()
+                            on_press=Callback::new(move |_| {
+                                set_interactive_selected_count
+                                    .update(|count| *count = count.saturating_add(1));
+                            })
+                        >
+                            "Select +1"
+                        </ui::Button>
+                        <ui::Button
+                            variant=ui::ButtonVariant::Outline
+                            aria_label="Interactive select -1".to_string()
+                            on_press=Callback::new(move |_| {
+                                set_interactive_selected_count
+                                    .update(|count| *count = count.saturating_sub(1));
+                            })
+                        >
+                            "Select -1"
+                        </ui::Button>
+                        <ui::Button
+                            variant=ui::ButtonVariant::Ghost
+                            aria_label="Interactive reset count".to_string()
+                            on_press=Callback::new(move |_| set_interactive_selected_count.set(2))
+                        >
+                            "Reset to 2"
+                        </ui::Button>
+                        <span class="ui-muted">
+                            "selected: " {move || interactive_selected_count.get()}
+                        </span>
+                    </div>
+                    <span class="ui-muted">
+                        "Repeatable flow: Select +1 -> Clear selection -> Select +1."
+                    </span>
+                    {move || {
+                        let position = interactive_position.get();
+                        let is_force_visible = interactive_force_visible.get();
+                        let selection_text = if interactive_custom_labels.get() {
+                            "Rows selected".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let clear_label = if interactive_custom_labels.get() {
+                            "Clear rows".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let motion = if interactive_reduced_motion.get() {
+                            ActionBarMotion::disabled()
+                        } else {
+                            ActionBarMotion::default()
+                        };
+
+                        if interactive_with_clear_action.get() {
+                            view! {
+                                <ActionBar
+                                    selected_count=interactive_selected_count_signal
+                                    on_selected_count_change=interactive_on_selected_count_change
+                                    on_clear_selection=interactive_on_clear_selection
+                                    position=position
+                                    is_force_visible=is_force_visible
+                                    selection_text=selection_text
+                                    clear_label=clear_label
+                                    motion=motion
+                                    aria_label="Interactive bulk actions".to_string()
+                                    class_name="docs-action-bar-interactive".to_string()
+                                >
+                                    <ActionButton>"Delete"</ActionButton>
+                                    <ActionButton is_quiet=true>"Archive"</ActionButton>
+                                </ActionBar>
+                            }
+                                .into_any()
+                        } else {
+                            view! {
+                                <ActionBar
+                                    selected_count=interactive_selected_count_signal
+                                    on_selected_count_change=interactive_on_selected_count_change
+                                    position=position
+                                    is_force_visible=is_force_visible
+                                    selection_text=selection_text
+                                    clear_label=clear_label
+                                    motion=motion
+                                    aria_label="Interactive bulk actions".to_string()
+                                    class_name="docs-action-bar-interactive".to_string()
+                                >
+                                    <ActionButton>"Delete"</ActionButton>
+                                    <ActionButton is_quiet=true>"Archive"</ActionButton>
+                                </ActionBar>
+                            }
+                                .into_any()
+                        }
+                    }}
+                </div>
+            </Playground>
+
+
+
+            <Playground
                 title="Selection + clear action"
                 code_signal=code
                 code_imports=action_bar_code_imports.clone()
@@ -439,133 +569,7 @@ ui = { workspace = true, default-features = false, features = ["component-action
                 </div>
             </Playground>
 
-            <Playground
-                title="Interactive Playground (Props + State + Spec Preview)"
-                code_signal=interactive_playground_code
-                code_imports=action_bar_code_imports.clone()
-                test_config_signal=interactive_spec_preview
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="action-bar-interactive-controls">
-                        <div class="docs-search__label">"Position"</div>
-                        <SegmentedControl
-                            id_base="docs-action-bar-interactive-position".to_string()
-                            options=interactive_position_options.clone()
-                            selected_index=interactive_position_index
-                            set_selected_index=set_interactive_position_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="ActionBar interactive position".to_string()
-                        />
-                        <Switch checked=interactive_force_visible set_checked=set_interactive_force_visible>
-                            "Force visible"
-                        </Switch>
-                        <Switch checked=interactive_with_clear_action set_checked=set_interactive_with_clear_action>
-                            "Enable clear action"
-                        </Switch>
-                        <Switch checked=interactive_custom_labels set_checked=set_interactive_custom_labels>
-                            "Use custom labels"
-                        </Switch>
-                        <Switch checked=interactive_reduced_motion set_checked=set_interactive_reduced_motion>
-                            "Reduced motion"
-                        </Switch>
-                    </div>
-                }
-            >
-                <div class="docs-stack" data-slot="action-bar-interactive-preview">
-                    <div class="docs-row" data-slot="action-bar-interactive-actions">
-                        <ui::Button
-                            variant=ui::ButtonVariant::Secondary
-                            aria_label="Interactive select +1".to_string()
-                            on_press=Callback::new(move |_| {
-                                set_interactive_selected_count
-                                    .update(|count| *count = count.saturating_add(1));
-                            })
-                        >
-                            "Select +1"
-                        </ui::Button>
-                        <ui::Button
-                            variant=ui::ButtonVariant::Outline
-                            aria_label="Interactive select -1".to_string()
-                            on_press=Callback::new(move |_| {
-                                set_interactive_selected_count
-                                    .update(|count| *count = count.saturating_sub(1));
-                            })
-                        >
-                            "Select -1"
-                        </ui::Button>
-                        <ui::Button
-                            variant=ui::ButtonVariant::Ghost
-                            aria_label="Interactive reset count".to_string()
-                            on_press=Callback::new(move |_| set_interactive_selected_count.set(2))
-                        >
-                            "Reset to 2"
-                        </ui::Button>
-                        <span class="ui-muted">
-                            "selected: " {move || interactive_selected_count.get()}
-                        </span>
-                    </div>
-                    <span class="ui-muted">
-                        "Repeatable flow: Select +1 -> Clear selection -> Select +1."
-                    </span>
-                    {move || {
-                        let position = interactive_position.get();
-                        let is_force_visible = interactive_force_visible.get();
-                        let selection_text = if interactive_custom_labels.get() {
-                            "Rows selected".to_string()
-                        } else {
-                            String::new()
-                        };
-                        let clear_label = if interactive_custom_labels.get() {
-                            "Clear rows".to_string()
-                        } else {
-                            String::new()
-                        };
-                        let motion = if interactive_reduced_motion.get() {
-                            ActionBarMotion::disabled()
-                        } else {
-                            ActionBarMotion::default()
-                        };
 
-                        if interactive_with_clear_action.get() {
-                            view! {
-                                <ActionBar
-                                    selected_count=interactive_selected_count_signal
-                                    on_selected_count_change=interactive_on_selected_count_change
-                                    on_clear_selection=interactive_on_clear_selection
-                                    position=position
-                                    is_force_visible=is_force_visible
-                                    selection_text=selection_text
-                                    clear_label=clear_label
-                                    motion=motion
-                                    aria_label="Interactive bulk actions".to_string()
-                                    class_name="docs-action-bar-interactive".to_string()
-                                >
-                                    <ActionButton>"Delete"</ActionButton>
-                                    <ActionButton is_quiet=true>"Archive"</ActionButton>
-                                </ActionBar>
-                            }
-                                .into_any()
-                        } else {
-                            view! {
-                                <ActionBar
-                                    selected_count=interactive_selected_count_signal
-                                    on_selected_count_change=interactive_on_selected_count_change
-                                    position=position
-                                    is_force_visible=is_force_visible
-                                    selection_text=selection_text
-                                    clear_label=clear_label
-                                    motion=motion
-                                    aria_label="Interactive bulk actions".to_string()
-                                    class_name="docs-action-bar-interactive".to_string()
-                                >
-                                    <ActionButton>"Delete"</ActionButton>
-                                    <ActionButton is_quiet=true>"Archive"</ActionButton>
-                                </ActionBar>
-                            }
-                                .into_any()
-                        }
-                    }}
-                </div>
-            </Playground>
 
             <Playground
                 title="State Matrix (Single + Multi + Forced Visible)"

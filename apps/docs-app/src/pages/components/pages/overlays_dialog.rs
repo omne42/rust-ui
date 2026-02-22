@@ -413,6 +413,116 @@ let on_exit_complete = Callback::new(move |_| {});
             </Playground>
 
             <Playground
+                title="Interactive Playground"
+                description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
+                code_signal=workbench_code
+                code_imports=DIALOG_DOC_IMPORTS.to_string()
+                test_css_source=workbench_test_css_source
+                test_source_path="components/dialog/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-dialog-workbench-size".to_string()
+                            options=size_options.clone()
+                            selected_index=workbench_size_index
+                            set_selected_index=set_workbench_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Dialog workbench size".to_string()
+                        />
+                        <Switch
+                            checked=workbench_with_description
+                            set_checked=set_workbench_with_description
+                        >
+                            "With description"
+                        </Switch>
+                        <Switch checked=workbench_show_close set_checked=set_workbench_show_close>
+                            "Show close button"
+                        </Switch>
+                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="dialog-workbench">
+                    <div class="docs-row">
+                        <Button attr:data-slot="dialog-e2e-open-workbench" on_press=open_workbench_dialog>
+                            "Open workbench dialog"
+                        </Button>
+                        <span class="ui-muted">
+                            "size: "
+                            {move || workbench_size.get().as_attr()}
+                            " / description: "
+                            {move || if workbench_with_description.get() { "on" } else { "off" }}
+                        </span>
+                    </div>
+                    <div class="ui-muted">
+                        "Use Config panel to compare close-button, motion, and class-source behaviors."
+                    </div>
+                </div>
+
+                <Show when=move || workbench_present.get()>
+                    <Dialog
+                        open=workbench_open
+                        on_open_change=on_workbench_open_change
+                        on_close=close_workbench_dialog
+                        id_base="docs-dialog-workbench".to_string()
+                        title="Workbench dialog".to_string()
+                        size=workbench_size.get()
+                        show_close_button=workbench_show_close.get()
+                        description=if workbench_with_description.get() {
+                            "Toggle options to validate source markers and aria wiring.".to_string()
+                        } else {
+                            String::new()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-dialog-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                        motion=if workbench_custom_motion.get() {
+                            DialogMotion {
+                                overlay: OverlayMotion {
+                                    initial_scale: 0.92,
+                                    initial_y_px: 20.0,
+                                    ..OverlayMotion::default()
+                                },
+                            }
+                        } else {
+                            DialogMotion::default()
+                        }
+                        on_exit_complete=on_workbench_exit_complete
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        footer=move || view! {
+                            <div class="docs-row docs-row--end">
+                                <Button
+                                    attr:data-slot="dialog-e2e-close-workbench"
+                                    variant=ButtonVariant::Secondary
+                                    on_press=close_workbench_dialog
+                                >
+                                    "Cancel"
+                                </Button>
+                                <Button on_press=close_workbench_dialog>"Confirm"</Button>
+                            </div>
+                        }
+                    >
+                        <div class="docs-stack">
+                            <div>"This dialog is controlled by the workbench config panel."</div>
+                            <div class="ui-muted">
+                                "Open test panel to live-edit scoped CSS and inspect actual config."
+                            </div>
+                        </div>
+                    </Dialog>
+                </Show>
+            </Playground>
+
+            <Playground
                 title="Dialog"
                 code_signal=code
                 code_imports=DIALOG_DOC_IMPORTS.to_string()
@@ -746,116 +856,6 @@ let on_exit_complete = Callback::new(move |_| {});
                         "effective component markers: data-stream-mode=snapshot data-stream-fallback=snapshot data-output-status=verified"
                     </span>
                 </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Playground"
-                description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
-                code_signal=workbench_code
-                code_imports=DIALOG_DOC_IMPORTS.to_string()
-                test_css_source=workbench_test_css_source
-                test_source_path="components/dialog/src/styles.rs".to_string()
-                test_config_signal=workbench_actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight">
-                        <div class="docs-search__label">"Size"</div>
-                        <SegmentedControl
-                            id_base="docs-dialog-workbench-size".to_string()
-                            options=size_options.clone()
-                            selected_index=workbench_size_index
-                            set_selected_index=set_workbench_size_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="Dialog workbench size".to_string()
-                        />
-                        <Switch
-                            checked=workbench_with_description
-                            set_checked=set_workbench_with_description
-                        >
-                            "With description"
-                        </Switch>
-                        <Switch checked=workbench_show_close set_checked=set_workbench_show_close>
-                            "Show close button"
-                        </Switch>
-                        <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
-                            "Custom motion"
-                        </Switch>
-                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
-                            "Custom class"
-                        </Switch>
-                    </div>
-                }
-            >
-                <div class="docs-stack docs-stack--tight" attr:data-slot="dialog-workbench">
-                    <div class="docs-row">
-                        <Button attr:data-slot="dialog-e2e-open-workbench" on_press=open_workbench_dialog>
-                            "Open workbench dialog"
-                        </Button>
-                        <span class="ui-muted">
-                            "size: "
-                            {move || workbench_size.get().as_attr()}
-                            " / description: "
-                            {move || if workbench_with_description.get() { "on" } else { "off" }}
-                        </span>
-                    </div>
-                    <div class="ui-muted">
-                        "Use Config panel to compare close-button, motion, and class-source behaviors."
-                    </div>
-                </div>
-
-                <Show when=move || workbench_present.get()>
-                    <Dialog
-                        open=workbench_open
-                        on_open_change=on_workbench_open_change
-                        on_close=close_workbench_dialog
-                        id_base="docs-dialog-workbench".to_string()
-                        title="Workbench dialog".to_string()
-                        size=workbench_size.get()
-                        show_close_button=workbench_show_close.get()
-                        description=if workbench_with_description.get() {
-                            "Toggle options to validate source markers and aria wiring.".to_string()
-                        } else {
-                            String::new()
-                        }
-                        class_name=if workbench_custom_class.get() {
-                            "docs-dialog-workbench".to_string()
-                        } else {
-                            String::new()
-                        }
-                        motion=if workbench_custom_motion.get() {
-                            DialogMotion {
-                                overlay: OverlayMotion {
-                                    initial_scale: 0.92,
-                                    initial_y_px: 20.0,
-                                    ..OverlayMotion::default()
-                                },
-                            }
-                        } else {
-                            DialogMotion::default()
-                        }
-                        on_exit_complete=on_workbench_exit_complete
-                        lang="en-US".to_string()
-                        dir=ui_headless::A11yDirection::Ltr
-                        footer=move || view! {
-                            <div class="docs-row docs-row--end">
-                                <Button
-                                    attr:data-slot="dialog-e2e-close-workbench"
-                                    variant=ButtonVariant::Secondary
-                                    on_press=close_workbench_dialog
-                                >
-                                    "Cancel"
-                                </Button>
-                                <Button on_press=close_workbench_dialog>"Confirm"</Button>
-                            </div>
-                        }
-                    >
-                        <div class="docs-stack">
-                            <div>"This dialog is controlled by the workbench config panel."</div>
-                            <div class="ui-muted">
-                                "Open test panel to live-edit scoped CSS and inspect actual config."
-                            </div>
-                        </div>
-                    </Dialog>
-                </Show>
             </Playground>
 
             <Playground

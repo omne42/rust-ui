@@ -12,3 +12,4 @@ default = []
 
 [dependencies]
 ui-observability = { path = "../../crates/ui-observability" }
+ui-popover = { path = "../popover" }

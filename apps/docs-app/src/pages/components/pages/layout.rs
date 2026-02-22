@@ -138,36 +138,6 @@ pub(super) fn card() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Padding States" code_signal=padding_code>
-                <div class="docs-row">
-                    <Card padded=true>
-                        <div class="docs-stack">
-                            <div>"Padded"</div>
-                            <div class="ui-muted">"Default spacing"</div>
-                        </div>
-                    </Card>
-                    <Card padded=false>
-                        <div class="docs-stack">
-                            <div class="docs-row docs-row--tight">
-                                <span>"Flush"</span>
-                                <span class="ui-muted">"No internal padding"</span>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Class" code_signal=custom_class_code>
-                <div class="docs-row">
-                    <Card class_name="docs-card-custom".to_string()>
-                        <div class="docs-stack">
-                            <div>"Custom class marker"</div>
-                            <div class="ui-muted">"Verifies `data-custom-class` + class merge."</div>
-                        </div>
-                    </Card>
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels for variant, padding, and class-source contracts."
@@ -259,6 +229,36 @@ pub(super) fn card() -> AnyView {
                     </Card>
                     <Card variant=CardVariant::Outline class_name="docs-card-custom".to_string()>
                         <div>"Outline + custom class"</div>
+                    </Card>
+                </div>
+            </Playground>
+
+            <Playground title="Padding States" code_signal=padding_code>
+                <div class="docs-row">
+                    <Card padded=true>
+                        <div class="docs-stack">
+                            <div>"Padded"</div>
+                            <div class="ui-muted">"Default spacing"</div>
+                        </div>
+                    </Card>
+                    <Card padded=false>
+                        <div class="docs-stack">
+                            <div class="docs-row docs-row--tight">
+                                <span>"Flush"</span>
+                                <span class="ui-muted">"No internal padding"</span>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class" code_signal=custom_class_code>
+                <div class="docs-row">
+                    <Card class_name="docs-card-custom".to_string()>
+                        <div class="docs-stack">
+                            <div>"Custom class marker"</div>
+                            <div class="ui-muted">"Verifies `data-custom-class` + class merge."</div>
+                        </div>
                     </Card>
                 </div>
             </Playground>
@@ -719,28 +719,6 @@ pub(super) fn flex() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Inline + Distribution" code_signal=inline_code>
-                <div class="docs-stack">
-                    <Flex
-                        inline=true
-                        justify=FlexJustify::SpaceBetween
-                        align=FlexAlign::Baseline
-                        gap=FlexGap::Lg
-                        class_name="docs-flex-inline".to_string()
-                    >
-                        <Heading level=HeadingLevel::H5 tone=HeadingTone::Strong>
-                            "Inline Flex"
-                        </Heading>
-                        <Content tone=ContentTone::Muted>
-                            "Baseline aligned helper text."
-                        </Content>
-                        <Footer tone=FooterTone::Muted bordered=true>
-                            "Updated now"
-                        </Footer>
-                    </Flex>
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=interactive_code
@@ -921,6 +899,28 @@ pub(super) fn flex() -> AnyView {
                     </Flex>
                 </div>
             </Playground>
+
+            <Playground title="Inline + Distribution" code_signal=inline_code>
+                <div class="docs-stack">
+                    <Flex
+                        inline=true
+                        justify=FlexJustify::SpaceBetween
+                        align=FlexAlign::Baseline
+                        gap=FlexGap::Lg
+                        class_name="docs-flex-inline".to_string()
+                    >
+                        <Heading level=HeadingLevel::H5 tone=HeadingTone::Strong>
+                            "Inline Flex"
+                        </Heading>
+                        <Content tone=ContentTone::Muted>
+                            "Baseline aligned helper text."
+                        </Content>
+                        <Footer tone=FooterTone::Muted bordered=true>
+                            "Updated now"
+                        </Footer>
+                    </Flex>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -1048,21 +1048,6 @@ pub(super) fn content() -> AnyView {
                 </View>
             </Playground>
 
-            <Playground title="Padded + Custom Aria/Class" code_signal=padded_code>
-                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
-                    <Content
-                        padded=true
-                        aria_label="Dialog content".to_string()
-                        class_name="docs-content-custom".to_string()
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Padded content region"</strong>
-                            <span class="ui-muted">"Verifies padding marker + custom class source contract."</span>
-                        </div>
-                    </Content>
-                </View>
-            </Playground>
-
             <Playground
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=interactive_code
@@ -1176,6 +1161,21 @@ pub(super) fn content() -> AnyView {
                     </Content>
                 </div>
             </Playground>
+
+            <Playground title="Padded + Custom Aria/Class" code_signal=padded_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Content
+                        padded=true
+                        aria_label="Dialog content".to_string()
+                        class_name="docs-content-custom".to_string()
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Padded content region"</strong>
+                            <span class="ui-muted">"Verifies padding marker + custom class source contract."</span>
+                        </div>
+                    </Content>
+                </View>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -1268,22 +1268,6 @@ pub(super) fn header() -> AnyView {
                             <h3>"Strong header"</h3>
                         </Header>
                     </div>
-                </View>
-            </Playground>
-
-            <Playground title="Bordered + Custom Aria/Class" code_signal=bordered_code>
-                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
-                    <Header
-                        tone=HeaderTone::Strong
-                        bordered=true
-                        aria_label="Settings header".to_string()
-                        class_name="docs-header-custom".to_string()
-                    >
-                        <h3>"Settings"</h3>
-                    </Header>
-                    <Content padded=true>
-                        <p>"Header above content, matching baseline container semantics."</p>
-                    </Content>
                 </View>
             </Playground>
 
@@ -1422,6 +1406,22 @@ pub(super) fn header() -> AnyView {
                     >
                         <h3>"Strong + bordered + RTL"</h3>
                     </Header>
+                </View>
+            </Playground>
+
+            <Playground title="Bordered + Custom Aria/Class" code_signal=bordered_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Header
+                        tone=HeaderTone::Strong
+                        bordered=true
+                        aria_label="Settings header".to_string()
+                        class_name="docs-header-custom".to_string()
+                    >
+                        <h3>"Settings"</h3>
+                    </Header>
+                    <Content padded=true>
+                        <p>"Header above content, matching baseline container semantics."</p>
+                    </Content>
                 </View>
             </Playground>
 
@@ -1593,25 +1593,6 @@ pub(super) fn footer() -> AnyView {
                 </View>
             </Playground>
 
-            <Playground title="Bordered + Custom Aria/Class" code_signal=bordered_code>
-                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
-                    <Header bordered=true>
-                        <h3>"Profile settings"</h3>
-                    </Header>
-                    <Content padded=true>
-                        <p>"Main settings body"</p>
-                    </Content>
-                    <Footer
-                        tone=FooterTone::Muted
-                        bordered=true
-                        aria_label="Settings footer".to_string()
-                        class_name="docs-footer-custom".to_string()
-                    >
-                        <p>"Cancel · Save"</p>
-                    </Footer>
-                </View>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
@@ -1721,6 +1702,25 @@ pub(super) fn footer() -> AnyView {
                         <p>"Custom aria + class"</p>
                     </Footer>
                 </div>
+            </Playground>
+
+            <Playground title="Bordered + Custom Aria/Class" code_signal=bordered_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Header bordered=true>
+                        <h3>"Profile settings"</h3>
+                    </Header>
+                    <Content padded=true>
+                        <p>"Main settings body"</p>
+                    </Content>
+                    <Footer
+                        tone=FooterTone::Muted
+                        bordered=true
+                        aria_label="Settings footer".to_string()
+                        class_name="docs-footer-custom".to_string()
+                    >
+                        <p>"Cancel · Save"</p>
+                    </Footer>
+                </View>
             </Playground>
         </ComponentPage>
     }
@@ -2044,27 +2044,6 @@ pub(super) fn divider() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class Marker" code_signal=custom_class_code>
-                <div class="docs-stack">
-                    <span>"Custom horizontal divider"</span>
-                    <Divider
-                        class_name="docs-divider-custom".to_string()
-                        lang="en-US".to_string()
-                        dir=A11yDirection::Ltr
-                    />
-                    <div class="docs-row">
-                        <span>"Start"</span>
-                        <Divider
-                            orientation=DividerOrientation::Vertical
-                            class_name="docs-divider-custom docs-divider-rail".to_string()
-                            lang="ar".to_string()
-                            dir=A11yDirection::Rtl
-                        />
-                        <span>"End"</span>
-                    </div>
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
@@ -2236,6 +2215,27 @@ pub(super) fn divider() -> AnyView {
                             dir=A11yDirection::Rtl
                         />
                         <span>"Rail"</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class Marker" code_signal=custom_class_code>
+                <div class="docs-stack">
+                    <span>"Custom horizontal divider"</span>
+                    <Divider
+                        class_name="docs-divider-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <div class="docs-row">
+                        <span>"Start"</span>
+                        <Divider
+                            orientation=DividerOrientation::Vertical
+                            class_name="docs-divider-custom docs-divider-rail".to_string()
+                            lang="ar".to_string()
+                            dir=A11yDirection::Rtl
+                        />
+                        <span>"End"</span>
                     </div>
                 </div>
             </Playground>
@@ -2618,7 +2618,7 @@ pub(super) fn spacer() -> AnyView {
             // Contract marker for source-based semantics tests:
             // <Playground title="Custom Class Marker" code_signal=custom_class_code>
             <Playground
-                title="Custom Class Marker"
+                title="State Matrix (Custom Class Marker)"
                 code_signal=custom_class_code
                 code_imports="use ui::A11yDirection;\nuse ui_layout::{Spacer, SpacerAxis, SpacerMotion, SpacerSize};".to_string()
                 test_config_signal=custom_class_config
@@ -3022,18 +3022,6 @@ pub(super) fn scroll_shadow() -> AnyView {
                 </ScrollShadow>
             </Playground>
 
-            <Playground title="Default Scrollable" code_signal=default_code>
-                <ScrollShadow max_height_px=160>
-                    <div class="docs-stack docs-stack--tight">
-                        {(1..=20)
-                            .map(|idx| {
-                                view! { <div class="docs-scroll-shadow-item">{format!("Activity {idx}")}</div> }
-                            })
-                            .collect_view()}
-                    </div>
-                </ScrollShadow>
-            </Playground>
-
             <Playground
                 title="Workbench (Max Height + Class)"
                 code_signal=workbench_code
@@ -3079,6 +3067,18 @@ pub(super) fn scroll_shadow() -> AnyView {
                         {(1..=16)
                             .map(|idx| {
                                 view! { <div class="docs-scroll-shadow-item">{format!("Workbench {idx}")}</div> }
+                            })
+                            .collect_view()}
+                    </div>
+                </ScrollShadow>
+            </Playground>
+
+            <Playground title="Default Scrollable" code_signal=default_code>
+                <ScrollShadow max_height_px=160>
+                    <div class="docs-stack docs-stack--tight">
+                        {(1..=20)
+                            .map(|idx| {
+                                view! { <div class="docs-scroll-shadow-item">{format!("Activity {idx}")}</div> }
                             })
                             .collect_view()}
                     </div>
@@ -3220,33 +3220,6 @@ let motion = AutoHeightMotion {
                 </div>
             </Playground>
 
-            <Playground title="Static Motion + Custom Class" code_signal=static_code>
-                <div class="docs-stack">
-                    <ui::Button
-                        variant=ui::ButtonVariant::Secondary
-                        on_press=Callback::new(move |_| set_static_open.update(|v| *v = !*v))
-                    >
-                        {move || if static_open.get() { "Hide Static" } else { "Show Static" }}
-                    </ui::Button>
-
-                    <AutoHeight
-                        motion=AutoHeightMotion {
-                            animate_height: false,
-                            ..AutoHeightMotion::default()
-                        }
-                        class_name="docs-auto-height docs-auto-height--static-demo".to_string()
-                    >
-                        <Show when=move || static_open.get()>
-                            <div class="docs-stack">
-                                <div>"Static mode content"</div>
-                                <div class="ui-muted">"Uses custom motion contract (`animate_height=false`)."</div>
-                                <div class="ui-muted">"Useful for reduced-motion or deterministic layout jumps."</div>
-                            </div>
-                        </Show>
-                    </AutoHeight>
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
@@ -3348,6 +3321,33 @@ let motion = AutoHeightMotion {
                             <div>"Static custom motion"</div>
                             <div class="ui-muted">"animate_height=false + custom class"</div>
                         </div>
+                    </AutoHeight>
+                </div>
+            </Playground>
+
+            <Playground title="Static Motion + Custom Class" code_signal=static_code>
+                <div class="docs-stack">
+                    <ui::Button
+                        variant=ui::ButtonVariant::Secondary
+                        on_press=Callback::new(move |_| set_static_open.update(|v| *v = !*v))
+                    >
+                        {move || if static_open.get() { "Hide Static" } else { "Show Static" }}
+                    </ui::Button>
+
+                    <AutoHeight
+                        motion=AutoHeightMotion {
+                            animate_height: false,
+                            ..AutoHeightMotion::default()
+                        }
+                        class_name="docs-auto-height docs-auto-height--static-demo".to_string()
+                    >
+                        <Show when=move || static_open.get()>
+                            <div class="docs-stack">
+                                <div>"Static mode content"</div>
+                                <div class="ui-muted">"Uses custom motion contract (`animate_height=false`)."</div>
+                                <div class="ui-muted">"Useful for reduced-motion or deterministic layout jumps."</div>
+                            </div>
+                        </Show>
                     </AutoHeight>
                 </div>
             </Playground>

@@ -397,6 +397,149 @@ pub(super) fn bottom_sheet() -> AnyView {
             </Playground>
 
             <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                description="Button-style workbench: tune props/state and inspect generated config + copy-ready code."
+                code_signal=workbench_code
+                code_imports=BOTTOM_SHEET_DOC_IMPORTS.to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-workbench-controls">
+                        <div class="docs-search__label">"Title"</div>
+                        <SegmentedControl
+                            id_base="docs-bottom-sheet-workbench-title".to_string()
+                            options=workbench_title_options.clone()
+                            selected_index=workbench_title_index
+                            set_selected_index=set_workbench_title_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="BottomSheet workbench title".to_string()
+                        />
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_description.get()
+                                on:change=move |ev| set_workbench_show_description.set(event_target_checked(&ev))
+                            />
+                            " Show description"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_footer.get()
+                                on:change=move |ev| set_workbench_show_footer.set(event_target_checked(&ev))
+                            />
+                            " Show footer actions"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_is_detached.get()
+                                on:change=move |ev| set_workbench_is_detached.set(event_target_checked(&ev))
+                            />
+                            " Detached mode"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_close_button.get()
+                                on:change=move |ev| set_workbench_show_close_button.set(event_target_checked(&ev))
+                            />
+                            " Show close button"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " Custom motion"
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-workbench">
+                    <div class="docs-row">
+                        <Button attr:data-slot="bottom-sheet-workbench-open" on_press=open_workbench_sheet>
+                            "Open interactive sheet"
+                        </Button>
+                        <Button
+                            attr:data-slot="bottom-sheet-workbench-close"
+                            variant=ButtonVariant::Secondary
+                            on_press=close_workbench_sheet
+                        >
+                            "Close"
+                        </Button>
+                        <span class="ui-muted">"open: " {move || workbench_open_raw.get()}</span>
+                    </div>
+                    <Show when=move || workbench_present.get()>
+                        {move || {
+                            let title = workbench_title.get();
+                            let description = if workbench_show_description.get() {
+                                match title.as_str() {
+                                    "Quick actions" => "Choose one action, then dismiss.".to_string(),
+                                    "Install update" => "A newer version with security improvements is ready to install.".to_string(),
+                                    _ => "Default bottom-sheet copy from workbench.".to_string(),
+                                }
+                            } else {
+                                String::new()
+                            };
+                            let motion = workbench_motion.get();
+
+                            if workbench_show_footer.get() {
+                                view! {
+                                    <BottomSheet
+                                        open=workbench_open
+                                        id_base="docs-bottom-sheet-workbench".to_string()
+                                        title=title
+                                        description=description
+                                        is_detached=workbench_is_detached.get()
+                                        bottom_inset_px=if workbench_is_detached.get() { 16.0 } else { 0.0 }
+                                        is_close_button_visible=workbench_show_close_button.get()
+                                        motion=motion
+                                        footer=move || {
+                                            view! {
+                                                <div class="docs-row docs-row--end">
+                                                    <Button variant=ButtonVariant::Secondary on_press=close_workbench_sheet>
+                                                        "Later"
+                                                    </Button>
+                                                    <Button on_press=close_workbench_sheet>"Confirm"</Button>
+                                                </div>
+                                            }
+                                            .into_any()
+                                        }
+                                        on_close=close_workbench_sheet
+                                        on_exit_complete=on_workbench_exit_complete
+                                    >
+                                        <div class="ui-muted">"Interactive preview surface for BottomSheet contracts."</div>
+                                    </BottomSheet>
+                                }
+                                .into_any()
+                            } else {
+                                view! {
+                                    <BottomSheet
+                                        open=workbench_open
+                                        id_base="docs-bottom-sheet-workbench".to_string()
+                                        title=title
+                                        description=description
+                                        is_detached=workbench_is_detached.get()
+                                        bottom_inset_px=if workbench_is_detached.get() { 16.0 } else { 0.0 }
+                                        is_close_button_visible=workbench_show_close_button.get()
+                                        motion=motion
+                                        on_close=close_workbench_sheet
+                                        on_exit_complete=on_workbench_exit_complete
+                                    >
+                                        <div class="ui-muted">"Interactive preview surface for BottomSheet contracts."</div>
+                                    </BottomSheet>
+                                }
+                                .into_any()
+                            }
+                        }}
+                    </Show>
+                </div>
+            </Playground>
+
+
+
+            <Playground
                 title="Semantic Bottom Sheet"
                 code_signal=semantic_code
                 code_imports=BOTTOM_SHEET_DOC_IMPORTS.to_string()
@@ -651,146 +794,7 @@ pub(super) fn bottom_sheet() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground
-                title="Interactive Playground (Display + Config + Code + CSS Test)"
-                description="Button-style workbench: tune props/state and inspect generated config + copy-ready code."
-                code_signal=workbench_code
-                code_imports=BOTTOM_SHEET_DOC_IMPORTS.to_string()
-                test_config_signal=workbench_actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-workbench-controls">
-                        <div class="docs-search__label">"Title"</div>
-                        <SegmentedControl
-                            id_base="docs-bottom-sheet-workbench-title".to_string()
-                            options=workbench_title_options.clone()
-                            selected_index=workbench_title_index
-                            set_selected_index=set_workbench_title_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="BottomSheet workbench title".to_string()
-                        />
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_show_description.get()
-                                on:change=move |ev| set_workbench_show_description.set(event_target_checked(&ev))
-                            />
-                            " Show description"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_show_footer.get()
-                                on:change=move |ev| set_workbench_show_footer.set(event_target_checked(&ev))
-                            />
-                            " Show footer actions"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_is_detached.get()
-                                on:change=move |ev| set_workbench_is_detached.set(event_target_checked(&ev))
-                            />
-                            " Detached mode"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_show_close_button.get()
-                                on:change=move |ev| set_workbench_show_close_button.set(event_target_checked(&ev))
-                            />
-                            " Show close button"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_custom_motion.get()
-                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
-                            />
-                            " Custom motion"
-                        </label>
-                    </div>
-                }
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="bottom-sheet-workbench">
-                    <div class="docs-row">
-                        <Button attr:data-slot="bottom-sheet-workbench-open" on_press=open_workbench_sheet>
-                            "Open interactive sheet"
-                        </Button>
-                        <Button
-                            attr:data-slot="bottom-sheet-workbench-close"
-                            variant=ButtonVariant::Secondary
-                            on_press=close_workbench_sheet
-                        >
-                            "Close"
-                        </Button>
-                        <span class="ui-muted">"open: " {move || workbench_open_raw.get()}</span>
-                    </div>
-                    <Show when=move || workbench_present.get()>
-                        {move || {
-                            let title = workbench_title.get();
-                            let description = if workbench_show_description.get() {
-                                match title.as_str() {
-                                    "Quick actions" => "Choose one action, then dismiss.".to_string(),
-                                    "Install update" => "A newer version with security improvements is ready to install.".to_string(),
-                                    _ => "Default bottom-sheet copy from workbench.".to_string(),
-                                }
-                            } else {
-                                String::new()
-                            };
-                            let motion = workbench_motion.get();
 
-                            if workbench_show_footer.get() {
-                                view! {
-                                    <BottomSheet
-                                        open=workbench_open
-                                        id_base="docs-bottom-sheet-workbench".to_string()
-                                        title=title
-                                        description=description
-                                        is_detached=workbench_is_detached.get()
-                                        bottom_inset_px=if workbench_is_detached.get() { 16.0 } else { 0.0 }
-                                        is_close_button_visible=workbench_show_close_button.get()
-                                        motion=motion
-                                        footer=move || {
-                                            view! {
-                                                <div class="docs-row docs-row--end">
-                                                    <Button variant=ButtonVariant::Secondary on_press=close_workbench_sheet>
-                                                        "Later"
-                                                    </Button>
-                                                    <Button on_press=close_workbench_sheet>"Confirm"</Button>
-                                                </div>
-                                            }
-                                            .into_any()
-                                        }
-                                        on_close=close_workbench_sheet
-                                        on_exit_complete=on_workbench_exit_complete
-                                    >
-                                        <div class="ui-muted">"Interactive preview surface for BottomSheet contracts."</div>
-                                    </BottomSheet>
-                                }
-                                .into_any()
-                            } else {
-                                view! {
-                                    <BottomSheet
-                                        open=workbench_open
-                                        id_base="docs-bottom-sheet-workbench".to_string()
-                                        title=title
-                                        description=description
-                                        is_detached=workbench_is_detached.get()
-                                        bottom_inset_px=if workbench_is_detached.get() { 16.0 } else { 0.0 }
-                                        is_close_button_visible=workbench_show_close_button.get()
-                                        motion=motion
-                                        on_close=close_workbench_sheet
-                                        on_exit_complete=on_workbench_exit_complete
-                                    >
-                                        <div class="ui-muted">"Interactive preview surface for BottomSheet contracts."</div>
-                                    </BottomSheet>
-                                }
-                                .into_any()
-                            }
-                        }}
-                    </Show>
-                </div>
-            </Playground>
 
             <Playground
                 title="State Matrix (Description / Title-only / Detached)"

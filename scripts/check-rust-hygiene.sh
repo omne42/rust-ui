@@ -14,6 +14,8 @@ else
   echo "[rust-hygiene] skip check-api-contracts.sh (ripgrep built without PCRE2)." >&2
 fi
 
+bash ./scripts/check-motion-default-hardcode.sh
+
 unwrap_expect_count=0
 let_underscore_count=0
 string_clone_count=0

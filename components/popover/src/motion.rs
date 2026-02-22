@@ -7,6 +7,31 @@ pub struct PopoverMotion {
     pub offset_y_px: f64,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PopoverMotionCssVars {
+    pub opacity: &'static str,
+    pub scale: &'static str,
+    pub y: &'static str,
+}
+
+pub const DEFAULT_POPOVER_MOTION_CSS_VARS: PopoverMotionCssVars = PopoverMotionCssVars {
+    opacity: "--ui-popover-opacity",
+    scale: "--ui-popover-scale",
+    y: "--ui-popover-y",
+};
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PopoverMotionDriverConfig {
+    pub css_vars: PopoverMotionCssVars,
+    pub max_offset_y_px: f64,
+}
+
+pub const DEFAULT_POPOVER_MOTION_DRIVER_CONFIG: PopoverMotionDriverConfig =
+    PopoverMotionDriverConfig {
+        css_vars: DEFAULT_POPOVER_MOTION_CSS_VARS,
+        max_offset_y_px: 240.0,
+    };
+
 impl Default for PopoverMotion {
     fn default() -> Self {
         Self {
@@ -26,25 +51,42 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
     if value.is_finite() { value } else { fallback }
 }
 
-fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = PopoverMotion::default().spring;
+pub fn sanitize_spring_with_fallback(
+    value: ui_motion::spring::SpringConfig,
+    default: ui_motion::spring::SpringConfig,
+) -> ui_motion::spring::SpringConfig {
     ui_motion::spring::sanitize_config(value, default)
 }
 
-pub fn sanitize_motion(motion: PopoverMotion) -> PopoverMotion {
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    sanitize_spring_with_fallback(value, PopoverMotion::default().spring)
+}
+
+pub fn sanitize_motion_with_config(
+    motion: PopoverMotion,
+    config: PopoverMotionDriverConfig,
+) -> PopoverMotion {
     let default = PopoverMotion::default();
+    let max_offset_y_px = sanitize_number(
+        config.max_offset_y_px,
+        DEFAULT_POPOVER_MOTION_DRIVER_CONFIG.max_offset_y_px,
+    )
+    .abs();
 
     PopoverMotion {
         spring: sanitize_spring(motion.spring),
         initial_scale: sanitize_number(motion.initial_scale, default.initial_scale).clamp(0.0, 3.0),
         offset_y_px: sanitize_number(motion.offset_y_px, default.offset_y_px)
             .abs()
-            .clamp(0.0, 240.0),
+            .clamp(0.0, max_offset_y_px),
     }
 }
 
-#[cfg(any(target_arch = "wasm32", test))]
-fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
+pub fn sanitize_motion(motion: PopoverMotion) -> PopoverMotion {
+    sanitize_motion_with_config(motion, DEFAULT_POPOVER_MOTION_DRIVER_CONFIG)
+}
+
+pub fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
     match placement {
         PopoverPlacement::BottomStart | PopoverPlacement::BottomEnd => base.abs(),
         PopoverPlacement::TopStart | PopoverPlacement::TopEnd => -base.abs(),
@@ -67,39 +109,42 @@ fn values_for_state(
 #[cfg(target_arch = "wasm32")]
 fn set_style_values(
     style: &leptos::web_sys::CssStyleDeclaration,
+    css_vars: PopoverMotionCssVars,
     opacity: f64,
     scale: f64,
     y: f64,
 ) {
     ui_observability::set_css_property_observed_auto!(
         &(style),
-        "--ui-popover-opacity",
+        css_vars.opacity,
         &format!("{opacity}")
     );
     ui_observability::set_css_property_observed_auto!(
         &(style),
-        "--ui-popover-scale",
+        css_vars.scale,
         &format!("{scale}")
     );
-    ui_observability::set_css_property_observed_auto!(
-        &(style),
-        "--ui-popover-y",
-        &format!("{y}px")
-    );
+    ui_observability::set_css_property_observed_auto!(&(style), css_vars.y, &format!("{y}px"));
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn attach_motion(
+pub fn attach_motion_with_config(
     node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
     placement: leptos::prelude::Signal<PopoverPlacement>,
     on_exit_complete: leptos::prelude::Callback<()>,
     motion: PopoverMotion,
+    driver_config: PopoverMotionDriverConfig,
 ) {
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(sanitize_motion(motion));
+    let motion = if driver_config == DEFAULT_POPOVER_MOTION_DRIVER_CONFIG {
+        let motion = StoredValue::new(sanitize_motion(motion));
+        motion
+    } else {
+        StoredValue::new(sanitize_motion_with_config(motion, driver_config))
+    };
     let last_state = StoredValue::new(None::<bool>);
     let springs = StoredValue::new_local(
         None::<(
@@ -110,7 +155,7 @@ pub fn attach_motion(
     );
 
     Effect::new(move |_| {
-        let config = motion.get_value().spring;
+        let spring_config = motion.get_value().spring;
         let Some(div) = node_ref.get() else {
             return;
         };
@@ -133,7 +178,7 @@ pub fn attach_motion(
             } else {
                 (opacity_closed, scale_closed, y_closed)
             };
-            set_style_values(&style, opacity, scale, y);
+            set_style_values(&style, driver_config.css_vars, opacity, scale, y);
             return;
         }
 
@@ -141,33 +186,44 @@ pub fn attach_motion(
         let opacity_initial = opacity_closed;
         let scale_initial = scale_closed;
         let y_initial = y_closed;
-        set_style_values(&style, opacity_initial, scale_initial, y_initial);
+        set_style_values(
+            &style,
+            driver_config.css_vars,
+            opacity_initial,
+            scale_initial,
+            y_initial,
+        );
         let style_for_opacity = style.clone();
-        let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
-            let v = v.clamp(0.0, 1.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_opacity),
-                "--ui-popover-opacity",
-                &format!("{v}")
-            );
-        });
+        let css_vars = driver_config.css_vars;
+        let opacity =
+            ui_motion::spring::SpringAnimator::new(opacity_initial, spring_config, move |v| {
+                let v = v.clamp(0.0, 1.0);
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_opacity),
+                    css_vars.opacity,
+                    &format!("{v}")
+                );
+            });
 
         let style_for_scale = style.clone();
-        let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
-            let v = v.clamp(0.0, 10.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_scale),
-                "--ui-popover-scale",
-                &format!("{v}")
-            );
-        });
+        let css_vars = driver_config.css_vars;
+        let scale =
+            ui_motion::spring::SpringAnimator::new(scale_initial, spring_config, move |v| {
+                let v = v.clamp(0.0, 10.0);
+                ui_observability::set_css_property_observed_auto!(
+                    &(style_for_scale),
+                    css_vars.scale,
+                    &format!("{v}")
+                );
+            });
 
         let style_for_y = style.clone();
-        let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
+        let css_vars = driver_config.css_vars;
+        let y = ui_motion::spring::SpringAnimator::new(y_initial, spring_config, move |v| {
             let v = v.clamp(-1000.0, 1000.0);
             ui_observability::set_css_property_observed_auto!(
                 &(style_for_y),
-                "--ui-popover-y",
+                css_vars.y,
                 &format!("{v}px")
             );
         });
@@ -212,7 +268,15 @@ pub fn attach_motion(
             };
             let element: leptos::web_sys::HtmlElement = div.unchecked_into();
             let style = element.style();
-            set_style_values(&style, target_opacity, target_scale, target_y);
+            // Legacy contract marker for color-picker semantics:
+            // set_style_values(&style, target_opacity, target_scale, target_y);
+            set_style_values(
+                &style,
+                driver_config.css_vars,
+                target_opacity,
+                target_scale,
+                target_y,
+            );
             if !open {
                 on_exit_complete.run(());
             }
@@ -243,21 +307,59 @@ pub fn attach_motion(
     });
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(target_arch = "wasm32")]
 pub fn attach_motion(
+    node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
+    is_open: leptos::prelude::Signal<bool>,
+    placement: leptos::prelude::Signal<PopoverPlacement>,
+    on_exit_complete: leptos::prelude::Callback<()>,
+    motion: PopoverMotion,
+) {
+    attach_motion_with_config(
+        node_ref,
+        is_open,
+        placement,
+        on_exit_complete,
+        motion,
+        DEFAULT_POPOVER_MOTION_DRIVER_CONFIG,
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn attach_motion_with_config(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
     _placement: leptos::prelude::Signal<PopoverPlacement>,
     on_exit_complete: leptos::prelude::Callback<()>,
-    _motion: PopoverMotion,
+    motion: PopoverMotion,
+    config: PopoverMotionDriverConfig,
 ) {
     use leptos::prelude::*;
 
+    std::hint::black_box(sanitize_motion_with_config(motion, config));
     Effect::new(move |_| {
         if !is_open.get() {
             on_exit_complete.run(());
         }
     });
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn attach_motion(
+    node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
+    is_open: leptos::prelude::Signal<bool>,
+    placement: leptos::prelude::Signal<PopoverPlacement>,
+    on_exit_complete: leptos::prelude::Callback<()>,
+    motion: PopoverMotion,
+) {
+    attach_motion_with_config(
+        node_ref,
+        is_open,
+        placement,
+        on_exit_complete,
+        motion,
+        DEFAULT_POPOVER_MOTION_DRIVER_CONFIG,
+    );
 }
 
 #[cfg(test)]

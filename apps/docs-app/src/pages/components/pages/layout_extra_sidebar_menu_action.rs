@@ -155,31 +155,6 @@ pub(super) fn sidebar_menu_action() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Always Visible + Disabled + Custom" code_signal=always_visible_code>
-                <Sidebar
-                    side=SidebarSide::Right
-                    variant=SidebarVariant::Inset
-                    collapsible=SidebarCollapsible::Offcanvas
-                    show_trigger=false
-                    aria_label="Always visible action sidebar".to_string()
-                >
-                    <SidebarContent aria_label="Disabled action rows".to_string()>
-                        <div class="docs-stack docs-stack--tight">
-                            <div class="ui-sidebar-menu__item-main">
-                                <span class="ui-muted">"Locked Project"</span>
-                                <SidebarMenuAction
-                                    hover_only=false
-                                    disabled=true
-                                    label="!".to_string()
-                                    aria_label="Disabled always-visible action".to_string()
-                                    class_name="docs-sidebar-menu-action-custom".to_string()
-                                />
-                            </div>
-                        </div>
-                    </SidebarContent>
-                </Sidebar>
-            </Playground>
-
             <Playground
                 title="Workbench (All API Config)"
                 code_signal=workbench_code
@@ -240,6 +215,31 @@ pub(super) fn sidebar_menu_action() -> AnyView {
                                 "on_press count: "
                                 {move || workbench_press_count.get()}
                             </span>
+                        </div>
+                    </SidebarContent>
+                </Sidebar>
+            </Playground>
+
+            <Playground title="Always Visible + Disabled + Custom" code_signal=always_visible_code>
+                <Sidebar
+                    side=SidebarSide::Right
+                    variant=SidebarVariant::Inset
+                    collapsible=SidebarCollapsible::Offcanvas
+                    show_trigger=false
+                    aria_label="Always visible action sidebar".to_string()
+                >
+                    <SidebarContent aria_label="Disabled action rows".to_string()>
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="ui-sidebar-menu__item-main">
+                                <span class="ui-muted">"Locked Project"</span>
+                                <SidebarMenuAction
+                                    hover_only=false
+                                    disabled=true
+                                    label="!".to_string()
+                                    aria_label="Disabled always-visible action".to_string()
+                                    class_name="docs-sidebar-menu-action-custom".to_string()
+                                />
+                            </div>
                         </div>
                     </SidebarContent>
                 </Sidebar>

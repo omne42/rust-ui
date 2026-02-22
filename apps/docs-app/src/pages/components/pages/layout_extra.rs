@@ -242,26 +242,6 @@ pub(super) fn aspect_ratio() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Bordered + Fill + Custom Aria/Class" code_signal=framed_code>
-                <AspectRatio
-                    ratio=AspectRatioPreset::UltraWide
-                    radius=AspectRatioRadius::Lg
-                    bordered=true
-                    fill=true
-                    aria_label="Release trailer preview".to_string()
-                    class_name="docs-aspect-ratio-custom".to_string()
-                >
-                    <View
-                        background=ViewBackground::Accent
-                        border=ViewBorder::None
-                        padding=ViewPadding::Md
-                        radius=ViewRadius::None
-                    >
-                        "21:9 framed media"
-                    </View>
-                </AspectRatio>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
@@ -484,6 +464,26 @@ pub(super) fn aspect_ratio() -> AnyView {
                         </View>
                     </AspectRatio>
                 </div>
+            </Playground>
+
+            <Playground title="Bordered + Fill + Custom Aria/Class" code_signal=framed_code>
+                <AspectRatio
+                    ratio=AspectRatioPreset::UltraWide
+                    radius=AspectRatioRadius::Lg
+                    bordered=true
+                    fill=true
+                    aria_label="Release trailer preview".to_string()
+                    class_name="docs-aspect-ratio-custom".to_string()
+                >
+                    <View
+                        background=ViewBackground::Accent
+                        border=ViewBorder::None
+                        padding=ViewPadding::Md
+                        radius=ViewRadius::None
+                    >
+                        "21:9 framed media"
+                    </View>
+                </AspectRatio>
             </Playground>
         </ComponentPage>
     }
@@ -1369,27 +1369,6 @@ pub(super) fn resizable() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Controlled + Vertical Bounds" code_signal=vertical_code>
-                <div class="docs-stack docs-stack--tight">
-                    <Resizable
-                        orientation=ResizableOrientation::Vertical
-                        value=split
-                        on_value_change=on_split_change
-                        min_split_percent=25.0
-                        max_split_percent=80.0
-                        is_with_handle=true
-                        aria_label="Deployment regions split".to_string()
-                        class_name="docs-resizable-custom".to_string()
-                        first=move || view! { <div>"Header"</div> }
-                        second=move || view! { <div>"Body"</div> }
-                    />
-                    <span class="ui-muted">
-                        "controlled split: "
-                        {move || format!("{:.1}%", split_raw.get())}
-                    </span>
-                </div>
-            </Playground>
-
             <Playground
                 title="Config Workbench"
                 description="Covers full Resizable API with callback feedback."
@@ -1532,6 +1511,27 @@ pub(super) fn resizable() -> AnyView {
                         first=move || view! { <div>"Disabled left"</div> }
                         second=move || view! { <div>"Disabled right"</div> }
                     />
+                </div>
+            </Playground>
+
+            <Playground title="Controlled + Vertical Bounds" code_signal=vertical_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Resizable
+                        orientation=ResizableOrientation::Vertical
+                        value=split
+                        on_value_change=on_split_change
+                        min_split_percent=25.0
+                        max_split_percent=80.0
+                        is_with_handle=true
+                        aria_label="Deployment regions split".to_string()
+                        class_name="docs-resizable-custom".to_string()
+                        first=move || view! { <div>"Header"</div> }
+                        second=move || view! { <div>"Body"</div> }
+                    />
+                    <span class="ui-muted">
+                        "controlled split: "
+                        {move || format!("{:.1}%", split_raw.get())}
+                    </span>
                 </div>
             </Playground>
 

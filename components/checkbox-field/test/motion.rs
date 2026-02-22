@@ -48,28 +48,33 @@ fn source_attr_tracks_default_vs_custom_motion() {
 
 #[test]
 fn resolve_effective_motion_respects_reduced_motion_contract() {
+    let default_motion = CheckboxFieldMotion::default();
     let motion = CheckboxFieldMotion {
         enabled: true,
-        transition_ms: 220,
-        indicator_scale_pct: 112,
+        transition_ms: default_motion.transition_ms.saturating_add(40),
+        indicator_scale_pct: default_motion.indicator_scale_pct + 12,
     };
     let effective = resolve_effective_motion(motion, false);
-    assert_eq!(effective.transition_ms, 220);
-    assert_eq!(effective.indicator_scale_pct, 112);
+    assert_eq!(effective.transition_ms, motion.transition_ms);
+    assert_eq!(effective.indicator_scale_pct, motion.indicator_scale_pct);
 
     let reduced = resolve_effective_motion(motion, true);
     assert_eq!(reduced.transition_ms, 1);
-    assert_eq!(reduced.indicator_scale_pct, 100);
+    assert_eq!(
+        reduced.indicator_scale_pct,
+        default_motion.indicator_scale_pct
+    );
 }
 
 #[test]
 fn attach_motion_emits_css_custom_properties() {
+    let default_motion = CheckboxFieldMotion::default();
     let style = attach_motion(
         Some("--ui-existing-var:1;".to_string()),
         CheckboxFieldMotion {
             enabled: true,
-            transition_ms: 220,
-            indicator_scale_pct: 112,
+            transition_ms: default_motion.transition_ms.saturating_add(40),
+            indicator_scale_pct: default_motion.indicator_scale_pct + 12,
         },
     );
 

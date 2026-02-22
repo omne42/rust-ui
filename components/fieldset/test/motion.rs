@@ -35,29 +35,29 @@ fn default_motion_uses_theme_token_baseline() {
 
 #[test]
 fn resolve_effective_motion_honors_reduced_motion() {
-    let effective = resolve_effective_motion(
-        FieldsetMotion {
-            duration_ms: 220.0,
-            distance_px: 6.0,
-            stiffness: 280.0,
-            damping: 22.0,
-        },
-        true,
-    );
+    let default = FieldsetMotion::default();
+    let custom_motion = FieldsetMotion {
+        duration_ms: default.duration_ms + 40.0,
+        distance_px: default.distance_px + 2.0,
+        stiffness: default.stiffness + 20.0,
+        damping: default.damping + 2.0,
+    };
+    let effective = resolve_effective_motion(custom_motion, true);
 
     assert_eq!(effective.duration_ms, 1.0);
     assert_eq!(effective.distance_px, 0.0);
-    assert_eq!(effective.stiffness, 280.0);
-    assert_eq!(effective.damping, 22.0);
+    assert_eq!(effective.stiffness, custom_motion.stiffness);
+    assert_eq!(effective.damping, custom_motion.damping);
 }
 
 #[test]
 fn attach_motion_serializes_css_vars() {
+    let default = FieldsetMotion::default();
     let style = attach_motion(FieldsetMotion {
-        duration_ms: 220.0,
-        distance_px: 6.0,
-        stiffness: 300.0,
-        damping: 24.0,
+        duration_ms: default.duration_ms + 40.0,
+        distance_px: default.distance_px + 2.0,
+        stiffness: default.stiffness + 40.0,
+        damping: default.damping + 4.0,
     });
 
     assert!(style.contains("--ui-fieldset-motion-duration"));

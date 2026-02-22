@@ -449,6 +449,30 @@ def main() -> int:
         )
         has_matrix = any(MATRIX_TITLE_RE.search(title) for title in titles)
 
+        first_tag = tags[0]
+        first_title = titles[0] if titles else ""
+        first_is_showcase = ("controls=" not in first_tag) and bool(
+            SHOWCASE_TITLE_RE.search(first_title)
+        )
+        if not first_is_showcase:
+            errors.append(
+                f"{label}: first playground must be showcase (no controls + Hello/Default-style title)"
+            )
+
+        if len(tags) < 2:
+            errors.append(
+                f"{label}: second playground missing (expected config workbench with controls + test_config_signal)"
+            )
+        else:
+            second_tag = tags[1]
+            second_is_workbench = ("controls=" in second_tag) and (
+                "test_config_signal=" in second_tag
+            )
+            if not second_is_workbench:
+                errors.append(
+                    f"{label}: second playground must be config workbench (controls + test_config_signal)"
+                )
+
         if not has_showcase:
             errors.append(
                 f"{label}: missing simple showcase playground (expected Hello/Default-style title + no controls)"

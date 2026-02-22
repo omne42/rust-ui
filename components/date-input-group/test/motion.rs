@@ -32,12 +32,13 @@ fn sanitize_motion_falls_back_for_invalid_values() {
 
 #[test]
 fn sanitize_motion_clamps_scale_values() {
+    let default = DateInputGroupMotion::default();
     let motion = sanitize_motion(DateInputGroupMotion {
         spring: ui_motion::spring::SpringConfig {
-            stiffness: 300.0,
-            damping: 22.0,
-            mass: 1.0,
-            precision: 0.002,
+            stiffness: default.spring.stiffness + 20.0,
+            damping: default.spring.damping + 2.0,
+            mass: default.spring.mass,
+            precision: default.spring.precision * 2.0,
         },
         enter_scale: 8.0,
     });

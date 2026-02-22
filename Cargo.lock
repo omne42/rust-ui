@@ -4818,6 +4818,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-observability",
+ "ui-popover",
  "ui-state-primitives",
  "ui-visual-primitive",
 ]
@@ -5031,6 +5032,7 @@ dependencies = [
  "serde",
  "ui-headless",
  "ui-state-primitives",
+ "ui-theme",
 ]
 
 [[package]]
@@ -5175,6 +5177,7 @@ dependencies = [
  "ui-motion",
  "ui-observability",
  "ui-state-primitives",
+ "ui-theme",
  "web-sys",
 ]
 
@@ -5367,6 +5370,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-observability",
+ "ui-popover",
  "ui-state-primitives",
  "ui-theme",
 ]
@@ -5614,6 +5618,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-observability",
+ "ui-popover",
 ]
 
 [[package]]
@@ -5621,6 +5626,7 @@ name = "ui-preview-link-card"
 version = "0.0.0"
 dependencies = [
  "ui-observability",
+ "ui-popover",
 ]
 
 [[package]]

@@ -238,33 +238,6 @@ pub(super) fn coachmark() -> AnyView {
             </Playground>
 
             <Playground
-                title="Step + CTA + Asset Variant"
-                code_signal=basic_code
-                code_imports=COACHMARK_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <Coachmark
-                        title="Welcome to the tour".to_string()
-                        default_open=true
-                        current_step=2
-                        total_steps=5
-                        primary_cta="Next".to_string()
-                        secondary_cta="Back".to_string()
-                        on_primary=on_primary
-                        on_secondary=on_secondary
-                        asset_variant=CoachmarkAssetVariant::Folder
-                        asset_label="Tour folder".to_string()
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <div>"Discover navigation and command surfaces in this guided step."</div>
-                            <div class="ui-muted">"Uses contextual popover semantics with footer CTA controls."</div>
-                        </div>
-                    </Coachmark>
-                    <span class="ui-muted">"last action: " {move || last_action.get()}</span>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Controlled vs Uncontrolled"
                 description="Uncontrolled path uses default_open; controlled path binds open + on_open_change so parent state remains the single source of truth."
                 code_signal=controlled_code
@@ -314,132 +287,6 @@ pub(super) fn coachmark() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground
-                title="State + Source Markers"
-                description="Inspect root markers like `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, and content-level `data-asset-source` for baseline-compatible coachmark contracts."
-                code_signal=markers_code
-                code_imports=COACHMARK_DOC_IMPORTS.to_string()
-            >
-                <Coachmark
-                    title="Shortcuts".to_string()
-                    aria_label="Coachmark help".to_string()
-                    current_step=2
-                    total_steps=6
-                    primary_cta="Next".to_string()
-                    secondary_cta="Back".to_string()
-                    shortcut_key="K".to_string()
-                    modifier_keys=vec!["⌘".to_string()]
-                    asset_variant=CoachmarkAssetVariant::Folder
-                    class_name="docs-coachmark-state".to_string()
-                >
-                    <div class="docs-stack docs-stack--tight">
-                        <div>"Inspect data-state/source markers on root + content."</div>
-                        <div class="ui-muted">"Aria label + class source + asset source contracts are explicit."</div>
-                    </div>
-                </Coachmark>
-            </Playground>
-
-            <Playground
-                title="Variant Gallery"
-                description="Display matrix for common states to compare variant intent, asset source, and disabled behavior side by side."
-                code_signal=state_matrix_code
-                code_imports=COACHMARK_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight" attr:data-slot="coachmark-state-matrix">
-                    <Coachmark
-                        title="Help variant".to_string()
-                        default_open=true
-                        current_step=1
-                        total_steps=3
-                        primary_cta="Next".to_string()
-                        asset_variant=CoachmarkAssetVariant::Folder
-                    >
-                        <div>"Default help intent with built-in asset."</div>
-                    </Coachmark>
-                    <Coachmark
-                        variant=CoachmarkVariant::Info
-                        title="Info variant".to_string()
-                        default_open=true
-                        primary_cta="Understood".to_string()
-                        asset_src="https://picsum.photos/420/260".to_string()
-                        asset_alt="Info preview".to_string()
-                    >
-                        <div>"Info intent with external image source."</div>
-                    </Coachmark>
-                    <Coachmark
-                        title="Disabled preview".to_string()
-                        default_open=true
-                        is_disabled=true
-                        secondary_cta="Dismiss".to_string()
-                    >
-                        <div>"Disabled state keeps semantic markers for testing."</div>
-                    </Coachmark>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional / Snapshot"
-                description="Coachmark is not a long-form reader surface: it stays Snapshot-first and documents Streaming Optional with fallback=snapshot."
-                code_signal=streaming_snapshot_code
-                code_imports=COACHMARK_DOC_IMPORTS.to_string()
-            >
-                <div class="docs-stack docs-stack--tight" attr:data-slot="coachmark-streaming-modes">
-                    <Coachmark
-                        title="Snapshot baseline".to_string()
-                        default_open=true
-                        current_step=1
-                        total_steps=2
-                        primary_cta="Next".to_string()
-                    >
-                        <div>"Snapshot baseline; complete result renders in one pass."</div>
-                    </Coachmark>
-                    <div class="ui-muted" attr:data-slot="coachmark-streaming-policy">
-                        "Streaming Optional; fallback=snapshot."
-                    </div>
-                </div>
-            </Playground>
-
-            <section class="docs-card docs-prose" attr:data-slot="coachmark-defaults-contract">
-                <h3>"API + Defaults Contract"</h3>
-                <p>
-                    "This page keeps docs API names and defaults aligned with "
-                    <code>"components/coachmark/src/logic.rs"</code>
-                    " and "
-                    <code>"components/coachmark/src/view.rs"</code>
-                    "."
-                </p>
-                <ul>
-                    <li>
-                        <code>"variant=CoachmarkVariant::Help"</code>
-                        " (default via variant type default)."
-                    </li>
-                    <li>
-                        <code>"default_open=false"</code>
-                        " (from "
-                        <code>"resolve_default_open(default_open.unwrap_or(false))"</code>
-                        ")."
-                    </li>
-                    <li>
-                        <code>"is_disabled=false"</code>
-                        " when both "
-                        <code>"is_disabled"</code>
-                        " and "
-                        <code>"disabled"</code>
-                        " are unset (from "
-                        <code>"resolve_is_disabled(is_disabled.or(disabled).unwrap_or(false))"</code>
-                        ")."
-                    </li>
-                    <li>
-                        "Controlled axis stays "
-                        <code>"open + on_open_change"</code>
-                        "; uncontrolled axis uses "
-                        <code>"default_open"</code>
-                        "."
-                    </li>
-                </ul>
-            </section>
-
-            <div attr:data-slot="coachmark-interactive-playground">
                 <Playground
                     title="Config + Code + CSS Test Workbench"
                     description="Interactive acceptance surface: edit props/state in settings, inspect preview, then verify code + scoped CSS + actual config in one place."
@@ -584,7 +431,6 @@ pub(super) fn coachmark() -> AnyView {
                         }
                     }}
                 </Playground>
-            </div>
 
             <Playground
                 title="State Matrix"
@@ -621,6 +467,160 @@ pub(super) fn coachmark() -> AnyView {
                     >
                         <div>"Disabled state for regression checks."</div>
                     </Coachmark>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Step + CTA + Asset Variant"
+                code_signal=basic_code
+                code_imports=COACHMARK_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Coachmark
+                        title="Welcome to the tour".to_string()
+                        default_open=true
+                        current_step=2
+                        total_steps=5
+                        primary_cta="Next".to_string()
+                        secondary_cta="Back".to_string()
+                        on_primary=on_primary
+                        on_secondary=on_secondary
+                        asset_variant=CoachmarkAssetVariant::Folder
+                        asset_label="Tour folder".to_string()
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Discover navigation and command surfaces in this guided step."</div>
+                            <div class="ui-muted">"Uses contextual popover semantics with footer CTA controls."</div>
+                        </div>
+                    </Coachmark>
+                    <span class="ui-muted">"last action: " {move || last_action.get()}</span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect root markers like `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, and content-level `data-asset-source` for baseline-compatible coachmark contracts."
+                code_signal=markers_code
+                code_imports=COACHMARK_DOC_IMPORTS.to_string()
+            >
+                <Coachmark
+                    title="Shortcuts".to_string()
+                    aria_label="Coachmark help".to_string()
+                    current_step=2
+                    total_steps=6
+                    primary_cta="Next".to_string()
+                    secondary_cta="Back".to_string()
+                    shortcut_key="K".to_string()
+                    modifier_keys=vec!["⌘".to_string()]
+                    asset_variant=CoachmarkAssetVariant::Folder
+                    class_name="docs-coachmark-state".to_string()
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <div>"Inspect data-state/source markers on root + content."</div>
+                        <div class="ui-muted">"Aria label + class source + asset source contracts are explicit."</div>
+                    </div>
+                </Coachmark>
+            </Playground>
+
+            <section class="docs-card docs-prose" attr:data-slot="coachmark-defaults-contract">
+                <h3>"API + Defaults Contract"</h3>
+                <p>
+                    "This page keeps docs API names and defaults aligned with "
+                    <code>"components/coachmark/src/logic.rs"</code>
+                    " and "
+                    <code>"components/coachmark/src/view.rs"</code>
+                    "."
+                </p>
+                <ul>
+                    <li>
+                        <code>"variant=CoachmarkVariant::Help"</code>
+                        " (default via variant type default)."
+                    </li>
+                    <li>
+                        <code>"default_open=false"</code>
+                        " (from "
+                        <code>"resolve_default_open(default_open.unwrap_or(false))"</code>
+                        ")."
+                    </li>
+                    <li>
+                        <code>"is_disabled=false"</code>
+                        " when both "
+                        <code>"is_disabled"</code>
+                        " and "
+                        <code>"disabled"</code>
+                        " are unset (from "
+                        <code>"resolve_is_disabled(is_disabled.or(disabled).unwrap_or(false))"</code>
+                        ")."
+                    </li>
+                    <li>
+                        "Controlled axis stays "
+                        <code>"open + on_open_change"</code>
+                        "; uncontrolled axis uses "
+                        <code>"default_open"</code>
+                        "."
+                    </li>
+                </ul>
+            </section>
+
+            <div attr:data-slot="coachmark-interactive-playground">
+            <Playground
+                title="Variant Gallery"
+                description="Display matrix for common states to compare variant intent, asset source, and disabled behavior side by side."
+                code_signal=state_matrix_code
+                code_imports=COACHMARK_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="coachmark-state-matrix">
+                    <Coachmark
+                        title="Help variant".to_string()
+                        default_open=true
+                        current_step=1
+                        total_steps=3
+                        primary_cta="Next".to_string()
+                        asset_variant=CoachmarkAssetVariant::Folder
+                    >
+                        <div>"Default help intent with built-in asset."</div>
+                    </Coachmark>
+                    <Coachmark
+                        variant=CoachmarkVariant::Info
+                        title="Info variant".to_string()
+                        default_open=true
+                        primary_cta="Understood".to_string()
+                        asset_src="https://picsum.photos/420/260".to_string()
+                        asset_alt="Info preview".to_string()
+                    >
+                        <div>"Info intent with external image source."</div>
+                    </Coachmark>
+                    <Coachmark
+                        title="Disabled preview".to_string()
+                        default_open=true
+                        is_disabled=true
+                        secondary_cta="Dismiss".to_string()
+                    >
+                        <div>"Disabled state keeps semantic markers for testing."</div>
+                    </Coachmark>
+                </div>
+            </Playground>
+            </div>
+
+            <Playground
+                title="Streaming Optional / Snapshot"
+                description="Coachmark is not a long-form reader surface: it stays Snapshot-first and documents Streaming Optional with fallback=snapshot."
+                code_signal=streaming_snapshot_code
+                code_imports=COACHMARK_DOC_IMPORTS.to_string()
+            >
+                <div class="docs-stack docs-stack--tight" attr:data-slot="coachmark-streaming-modes">
+                    <Coachmark
+                        title="Snapshot baseline".to_string()
+                        default_open=true
+                        current_step=1
+                        total_steps=2
+                        primary_cta="Next".to_string()
+                    >
+                        <div>"Snapshot baseline; complete result renders in one pass."</div>
+                    </Coachmark>
+                    <div class="ui-muted" attr:data-slot="coachmark-streaming-policy">
+                        "Streaming Optional; fallback=snapshot."
+                    </div>
                 </div>
             </Playground>
 

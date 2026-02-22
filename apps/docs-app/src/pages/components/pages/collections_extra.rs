@@ -1182,51 +1182,6 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
                 </div>
             </Playground>
 
-            <Playground title="Single + Disabled Item + Custom Class" code_signal=states_code>
-                <div class="docs-stack">
-                    <DisclosureGroup
-                        labels=single_labels_for_state_playground.clone()
-                        id_base="docs-disclosure-group-single".to_string()
-                        expanded_indices=expanded_single_signal
-                        default_expanded_indices=if workbench_with_default_open.get() {
-                            open_set([1])
-                        } else {
-                            BTreeSet::new()
-                        }
-                        on_expanded_change=on_expanded_single_change
-                        selection_mode=DisclosureGroupSelectionMode::Single
-                        disabled=false
-                        disabled_indices=vec![2]
-                        motion=workbench_motion.get()
-                        aria_label="Operational disclosure sections".to_string()
-                        class_name="docs-disclosure-group-custom".to_string()
-                    >
-                        <div class="docs-stack">
-                            <strong>"Region routing"</strong>
-                            <span class="ui-muted">
-                                "Traffic enters through geo routing with weighted failover."
-                            </span>
-                        </div>
-                        <div class="docs-stack">
-                            <strong>"Failover strategy"</strong>
-                            <span class="ui-muted">
-                                "Single-expanded mode keeps one active policy focused at a time."
-                            </span>
-                        </div>
-                        <div class="docs-stack">
-                            <strong>"Legacy endpoints"</strong>
-                            <span class="ui-muted">
-                                "Disabled section stays non-interactive for decommissioning."
-                            </span>
-                        </div>
-                    </DisclosureGroup>
-                    <span class="ui-muted">
-                        "expanded: "
-                        {move || format!("{:?}", expanded_single.get())}
-                    </span>
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (All API + Actual Config)"
                 code_signal=states_code
@@ -1393,6 +1348,51 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
                         <div>"Billing policies read-only during freeze."</div>
                         <div>"Escalation policy locked for review."</div>
                     </DisclosureGroup>
+                </div>
+            </Playground>
+
+            <Playground title="Single + Disabled Item + Custom Class" code_signal=states_code>
+                <div class="docs-stack">
+                    <DisclosureGroup
+                        labels=single_labels_for_state_playground.clone()
+                        id_base="docs-disclosure-group-single".to_string()
+                        expanded_indices=expanded_single_signal
+                        default_expanded_indices=if workbench_with_default_open.get() {
+                            open_set([1])
+                        } else {
+                            BTreeSet::new()
+                        }
+                        on_expanded_change=on_expanded_single_change
+                        selection_mode=DisclosureGroupSelectionMode::Single
+                        disabled=false
+                        disabled_indices=vec![2]
+                        motion=workbench_motion.get()
+                        aria_label="Operational disclosure sections".to_string()
+                        class_name="docs-disclosure-group-custom".to_string()
+                    >
+                        <div class="docs-stack">
+                            <strong>"Region routing"</strong>
+                            <span class="ui-muted">
+                                "Traffic enters through geo routing with weighted failover."
+                            </span>
+                        </div>
+                        <div class="docs-stack">
+                            <strong>"Failover strategy"</strong>
+                            <span class="ui-muted">
+                                "Single-expanded mode keeps one active policy focused at a time."
+                            </span>
+                        </div>
+                        <div class="docs-stack">
+                            <strong>"Legacy endpoints"</strong>
+                            <span class="ui-muted">
+                                "Disabled section stays non-interactive for decommissioning."
+                            </span>
+                        </div>
+                    </DisclosureGroup>
+                    <span class="ui-muted">
+                        "expanded: "
+                        {move || format!("{:?}", expanded_single.get())}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -3029,54 +3029,6 @@ let (open, set_open) = signal(false);
                 </div>
             </Playground>
 
-            <Playground title="Default" code_signal=code>
-                <div class="docs-row" data-slot="dropdown-default-playground">
-                    <Dropdown
-                        id_base="docs-dropdown-default".to_string()
-                        items=items_for_default.clone()
-                        on_action=on_action
-                    >
-                        "Open actions"
-                    </Dropdown>
-                    <span class="ui-muted" data-slot="dropdown-last-action">
-                        "last action: "
-                        {move || {
-                            last_action
-                                .get()
-                                .map(|idx| idx.to_string())
-                                .unwrap_or_else(|| "None".to_string())
-                        }}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Controlled + Persistent + Motion" code_signal=states_code>
-                <div class="docs-stack" data-slot="dropdown-controlled-playground">
-                    <Dropdown
-                        id_base="docs-dropdown-controlled".to_string()
-                        items=controlled_items
-                        on_action=on_action
-                        open=open_signal
-                        on_open_change=on_open_change
-                        close_on_action=false
-                        disabled_indices=vec![1]
-                        item_kinds=vec![
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                        ]
-                        motion=motion
-                        class_name="docs-dropdown-custom".to_string()
-                    >
-                        "Controlled dropdown"
-                    </Dropdown>
-                    <span class="ui-muted" data-slot="dropdown-controlled-open">
-                        "open: "
-                        {move || open_raw.get()}
-                    </span>
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 四区合一：用于快速比对 controlled、placement、motion 与状态来源标记。"
@@ -3313,6 +3265,54 @@ let (open, set_open) = signal(false);
                                 .map(|index| index.to_string())
                                 .unwrap_or_else(|| "None".to_string())
                         }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Default" code_signal=code>
+                <div class="docs-row" data-slot="dropdown-default-playground">
+                    <Dropdown
+                        id_base="docs-dropdown-default".to_string()
+                        items=items_for_default.clone()
+                        on_action=on_action
+                    >
+                        "Open actions"
+                    </Dropdown>
+                    <span class="ui-muted" data-slot="dropdown-last-action">
+                        "last action: "
+                        {move || {
+                            last_action
+                                .get()
+                                .map(|idx| idx.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled + Persistent + Motion" code_signal=states_code>
+                <div class="docs-stack" data-slot="dropdown-controlled-playground">
+                    <Dropdown
+                        id_base="docs-dropdown-controlled".to_string()
+                        items=controlled_items
+                        on_action=on_action
+                        open=open_signal
+                        on_open_change=on_open_change
+                        close_on_action=false
+                        disabled_indices=vec![1]
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
+                        motion=motion
+                        class_name="docs-dropdown-custom".to_string()
+                    >
+                        "Controlled dropdown"
+                    </Dropdown>
+                    <span class="ui-muted" data-slot="dropdown-controlled-open">
+                        "open: "
+                        {move || open_raw.get()}
                     </span>
                 </div>
             </Playground>

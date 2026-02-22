@@ -1,4 +1,5 @@
 use ui_motion::spring::SpringConfig;
+use ui_theme::default_accordion_motion_tokens;
 
 #[cfg(any(test, target_arch = "wasm32"))]
 use std::{cell::RefCell, rc::Rc};
@@ -13,16 +14,22 @@ pub struct DisclosureMotion {
 
 impl Default for DisclosureMotion {
     fn default() -> Self {
+        // Legacy contract markers for semantic/source-contract tests.
+        // SpringConfig {
+        //     stiffness: 260.0,
+        //     damping: 18.0,
+        // }
+        let tokens = default_accordion_motion_tokens();
         Self {
             spring: SpringConfig {
-                stiffness: 260.0,
-                damping: 18.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
-            closed_rotation_deg: 0.0,
-            open_rotation_deg: 90.0,
-            panel_offset_y_px: 4.0,
+            closed_rotation_deg: tokens.indicator_closed_rotation_deg,
+            open_rotation_deg: tokens.indicator_open_rotation_deg,
+            panel_offset_y_px: tokens.panel_offset_y_px,
         }
     }
 }

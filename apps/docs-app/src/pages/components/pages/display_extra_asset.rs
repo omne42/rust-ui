@@ -170,82 +170,6 @@ pub(super) fn asset() -> AnyView {
             </Playground>
 
             <Playground
-                title="File + Folder Variants"
-                code_signal=variant_code
-                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
-            >
-                <div class="docs-row">
-                    <Asset
-                        variant=AssetVariant::File
-                        size=AssetSize::Size600
-                        label="Build Report".to_string()
-                    />
-                    <Asset
-                        variant=AssetVariant::Folder
-                        size=AssetSize::Size600
-                        label="Design Assets".to_string()
-                    />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Custom Image + Focused State"
-                code_signal=custom_code
-                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
-            >
-                <Asset size=AssetSize::Size700 is_selected=true is_focused=true>
-                    <img src="https://picsum.photos/420/280" alt="Preview image" />
-                </Asset>
-            </Playground>
-
-            <Playground
-                title="State + Source Markers"
-                description="Inspect `data-state`, `data-label-source`, `data-content-source`, and `data-class-source` on the Asset root for baseline-compatible style/source contracts."
-                code_signal=state_code
-                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
-            >
-                <Asset
-                    variant=AssetVariant::Custom
-                    size=AssetSize::Size800
-                    label="Featured Artwork".to_string()
-                    lang="en".to_string()
-                    dir="ltr".to_string()
-                    is_selected=true
-                    is_focused=true
-                    class_name="docs-asset-state".to_string()
-                >
-                    <img src="https://picsum.photos/500/360" alt="Cover artwork" />
-                </Asset>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A Axis)"
-                description="Asset does not expose a controlled/uncontrolled toggle contract. Selection and focus are external props only."
-                code_signal=controlled_uncontrolled_code
-                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
-            >
-                <div class="docs-row">
-                    <Asset label="Controlled (external props)".to_string() is_selected=true is_focused=true />
-                    <Asset label="Uncontrolled axis: N/A".to_string() is_selected=false is_focused=false />
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional + Snapshot Fallback"
-                description="Asset is not a text streaming surface. It renders full snapshot content while exposing optional-streaming/snapshot-fallback status markers."
-                code_signal=stream_policy_code
-                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
-            >
-                <Asset
-                    variant=AssetVariant::Custom
-                    size=AssetSize::Size700
-                    label="Snapshot output".to_string()
-                >
-                    <img src="https://picsum.photos/360/240" alt="Snapshot preview" />
-                </Asset>
-            </Playground>
-
-            <Playground
                 title="Interactive Playground (Props + State + Spec Preview)"
                 description="Edit props/state and observe semantic markers in real time. Includes spec-input to preview-output linkage and repeatable flow checkpoints."
                 code_signal=interactive_code
@@ -369,6 +293,86 @@ pub(super) fn asset() -> AnyView {
                     </pre>
                 </div>
             </Playground>
+
+
+
+            <Playground
+                title="File + Folder Variants"
+                code_signal=variant_code
+                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
+            >
+                <div class="docs-row">
+                    <Asset
+                        variant=AssetVariant::File
+                        size=AssetSize::Size600
+                        label="Build Report".to_string()
+                    />
+                    <Asset
+                        variant=AssetVariant::Folder
+                        size=AssetSize::Size600
+                        label="Design Assets".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Custom Image + Focused State"
+                code_signal=custom_code
+                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
+            >
+                <Asset size=AssetSize::Size700 is_selected=true is_focused=true>
+                    <img src="https://picsum.photos/420/280" alt="Preview image" />
+                </Asset>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-label-source`, `data-content-source`, and `data-class-source` on the Asset root for baseline-compatible style/source contracts."
+                code_signal=state_code
+                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
+            >
+                <Asset
+                    variant=AssetVariant::Custom
+                    size=AssetSize::Size800
+                    label="Featured Artwork".to_string()
+                    lang="en".to_string()
+                    dir="ltr".to_string()
+                    is_selected=true
+                    is_focused=true
+                    class_name="docs-asset-state".to_string()
+                >
+                    <img src="https://picsum.photos/500/360" alt="Cover artwork" />
+                </Asset>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A Axis)"
+                description="Asset does not expose a controlled/uncontrolled toggle contract. Selection and focus are external props only."
+                code_signal=controlled_uncontrolled_code
+                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
+            >
+                <div class="docs-row">
+                    <Asset label="Controlled (external props)".to_string() is_selected=true is_focused=true />
+                    <Asset label="Uncontrolled axis: N/A".to_string() is_selected=false is_focused=false />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional + Snapshot Fallback"
+                description="Asset is not a text streaming surface. It renders full snapshot content while exposing optional-streaming/snapshot-fallback status markers."
+                code_signal=stream_policy_code
+                code_imports=ASSET_PLAYGROUND_IMPORTS.to_string()
+            >
+                <Asset
+                    variant=AssetVariant::Custom
+                    size=AssetSize::Size700
+                    label="Snapshot output".to_string()
+                >
+                    <img src="https://picsum.photos/360/240" alt="Snapshot preview" />
+                </Asset>
+            </Playground>
+
+
 
             <Playground
                 title="State Matrix (File / Folder / Custom)"

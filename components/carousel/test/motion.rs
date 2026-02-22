@@ -20,17 +20,19 @@ fn sanitize_motion_falls_back_for_invalid_values() {
 
 #[test]
 fn sanitize_motion_preserves_valid_values() {
+    let default = super::super::CarouselMotion::default();
+    let custom_spring = ui_motion::spring::SpringConfig {
+        stiffness: default.spring.stiffness + 20.0,
+        damping: default.spring.damping + 4.0,
+        mass: default.spring.mass,
+        precision: default.spring.precision * 2.0,
+    };
     let motion = sanitize_motion(super::super::CarouselMotion {
-        spring: ui_motion::spring::SpringConfig {
-            stiffness: 280.0,
-            damping: 24.0,
-            mass: 1.0,
-            precision: 0.002,
-        },
+        spring: custom_spring,
     });
 
-    assert_eq!(motion.spring.stiffness, 280.0);
-    assert_eq!(motion.spring.damping, 24.0);
-    assert_eq!(motion.spring.mass, 1.0);
-    assert_eq!(motion.spring.precision, 0.002);
+    assert_eq!(motion.spring.stiffness, custom_spring.stiffness);
+    assert_eq!(motion.spring.damping, custom_spring.damping);
+    assert_eq!(motion.spring.mass, custom_spring.mass);
+    assert_eq!(motion.spring.precision, custom_spring.precision);
 }

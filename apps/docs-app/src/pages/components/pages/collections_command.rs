@@ -2024,63 +2024,6 @@ custom_motion.spring.damping = 24.0;
                 </div>
             </Playground>
 
-            <Playground title="Controlled + Manual Activation" code_signal=states_code>
-                <div class="docs-stack docs-stack--tight">
-                    <NavigationMenu
-                        id_base="docs-navigation-menu-controlled".to_string()
-                        items=controlled_items
-                        selected_id=controlled_selected
-                        on_selected_id_change=on_controlled_selected_change
-                        activate_on_focus=false
-                        class_name="docs-navigation-menu-custom".to_string()
-                    />
-                    <span class="ui-muted">
-                        "selected: "
-                        {move || controlled_selected_raw.get().unwrap_or_else(|| "none".to_string())}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="State + Source Markers" code_signal=marker_code>
-                <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <button
-                            type="button"
-                            on:click=move |_| set_marker_selected_raw.set(Some("workspace".to_string()))
-                        >
-                            "Select Workspace"
-                        </button>
-                        <button
-                            type="button"
-                            on:click=move |_| set_marker_selected_raw.set(Some("projects".to_string()))
-                        >
-                            "Select Projects"
-                        </button>
-                        <button type="button" on:click=move |_| set_marker_selected_raw.set(None)>
-                            "Clear"
-                        </button>
-                    </div>
-                    <div class="ui-muted">
-                        "Inspect data-id-source / data-aria-label-source / data-activate-on-focus-source / data-selected-id-source / data-selected-id-change-source / data-motion-source in DevTools."
-                    </div>
-                    <NavigationMenu
-                        id_base="docs-navigation-menu-markers".to_string()
-                        items=marker_items
-                        selected_id=marker_selected
-                        default_selected_id="workspace".to_string()
-                        on_selected_id_change=on_marker_selected_change
-                        activate_on_focus=false
-                        aria_label="Workspace navigation".to_string()
-                        class_name="docs-navigation-menu-custom".to_string()
-                        motion=marker_motion
-                    />
-                    <span class="ui-muted">
-                        "selected: "
-                        {move || marker_selected_raw.get().unwrap_or_else(|| "none".to_string())}
-                    </span>
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with baseline/configured comparison, live settings, copy-ready code, and scoped CSS test."
@@ -2367,6 +2310,63 @@ custom_motion.spring.damping = 24.0;
                         default_selected_id="workspace".to_string()
                         activate_on_focus=true
                     />
+                </div>
+            </Playground>
+
+            <Playground title="Controlled + Manual Activation" code_signal=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-controlled".to_string()
+                        items=controlled_items
+                        selected_id=controlled_selected
+                        on_selected_id_change=on_controlled_selected_change
+                        activate_on_focus=false
+                        class_name="docs-navigation-menu-custom".to_string()
+                    />
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || controlled_selected_raw.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State + Source Markers" code_signal=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <button
+                            type="button"
+                            on:click=move |_| set_marker_selected_raw.set(Some("workspace".to_string()))
+                        >
+                            "Select Workspace"
+                        </button>
+                        <button
+                            type="button"
+                            on:click=move |_| set_marker_selected_raw.set(Some("projects".to_string()))
+                        >
+                            "Select Projects"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_selected_raw.set(None)>
+                            "Clear"
+                        </button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-aria-label-source / data-activate-on-focus-source / data-selected-id-source / data-selected-id-change-source / data-motion-source in DevTools."
+                    </div>
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-markers".to_string()
+                        items=marker_items
+                        selected_id=marker_selected
+                        default_selected_id="workspace".to_string()
+                        on_selected_id_change=on_marker_selected_change
+                        activate_on_focus=false
+                        aria_label="Workspace navigation".to_string()
+                        class_name="docs-navigation-menu-custom".to_string()
+                        motion=marker_motion
+                    />
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || marker_selected_raw.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -2810,6 +2810,185 @@ let preserve_context = {preserve}; // optional\n\
                 />
             </Playground>
 
+            <Playground
+                title="Interactive Playground"
+                description="Workbench canvas: scoped CSS live-edit + optional selected-index context persistence across scenario switches."
+                code_signal=workbench_code
+                code_imports=carousel_imports.clone()
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/carousel/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="carousel-workbench-controls">
+                        <div class="docs-search__label">"Scenario"</div>
+                        <SegmentedControl
+                            id_base="docs-carousel-workbench-scenario".to_string()
+                            options=workbench_options.clone()
+                            selected_index=workbench_index
+                            set_selected_index=set_workbench_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Carousel workbench scenario".to_string()
+                        />
+                        <Switch
+                            checked=workbench_preserve_context
+                            set_checked=set_workbench_preserve_context
+                        >
+                            " Preserve selected index context (optional)"
+                        </Switch>
+                        <div class="ui-muted">
+                            "vertical: "
+                            {move || workbench_vertical.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "disabled_middle_item: "
+                            {move || workbench_disabled.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "custom_text: "
+                            {move || workbench_custom_text.get()}
+                        </div>
+                        <div class="ui-muted">
+                            "custom_motion: "
+                            {move || workbench_custom_motion.get()}
+                        </div>
+                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "dir=rtl"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="carousel-workbench">
+                    <div class="docs-row" data-slot="carousel-workbench-actions">
+                        <button
+                            type="button"
+                            data-slot="carousel-workbench-select-0"
+                            on:click=move |_| set_workbench_selected_raw.set(Some(0))
+                        >
+                            "Select #0"
+                        </button>
+                        <button
+                            type="button"
+                            data-slot="carousel-workbench-select-1"
+                            on:click=move |_| set_workbench_selected_raw.set(Some(1))
+                        >
+                            "Select #1"
+                        </button>
+                        <button
+                            type="button"
+                            data-slot="carousel-workbench-clear"
+                            on:click=move |_| set_workbench_selected_raw.set(None)
+                        >
+                            "Clear"
+                        </button>
+                    </div>
+                    <div data-slot="carousel-workbench-canvas">
+                        <Carousel
+                            id_base="docs-carousel-workbench".to_string()
+                            items=workbench_items.get()
+                            default_selected_index=0
+                            selected_index=workbench_selected
+                            on_selected_index_change=on_workbench_selected_change
+                            orientation=if workbench_vertical.get() {
+                                CarouselOrientation::Vertical
+                            } else {
+                                CarouselOrientation::Horizontal
+                            }
+                            is_loop_navigation=!workbench_disabled.get()
+                            aria_label=if workbench_custom_text.get() {
+                                "Workbench carousel".to_string()
+                            } else {
+                                String::new()
+                            }
+                            controls_aria_label="Carousel controls".to_string()
+                            indicators_aria_label="Carousel indicators".to_string()
+                            previous_label="Previous slide".to_string()
+                            next_label="Next slide".to_string()
+                            indicator_aria_label_template="Go to slide {index}".to_string()
+                            lang=if workbench_lang_zh.get() {
+                                "zh-CN".to_string()
+                            } else {
+                                "en-US".to_string()
+                            }
+                            dir=if workbench_rtl.get() {
+                                ui_headless::A11yDirection::Rtl
+                            } else {
+                                ui_headless::A11yDirection::Ltr
+                            }
+                            class_name=if workbench_custom_text.get() {
+                                "docs-carousel-custom".to_string()
+                            } else {
+                                String::new()
+                            }
+                            motion=workbench_motion.get()
+                        />
+                    </div>
+                    <span class="ui-muted">
+                        "selected index: "
+                        {move || {
+                            workbench_selected_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                    <span class="ui-muted" data-slot="carousel-workbench-last-selected">
+                        "last selected: "
+                        {move || workbench_last_selected.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "persist_context: "
+                        {move || workbench_preserve_context.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Default / Empty / Disabled / Vertical)"
+                description="Switch between default/empty/disabled/vertical branches and verify state markers."
+                code_signal=state_matrix_code
+                code_imports=carousel_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="carousel-state-matrix-final">
+                    <SegmentedControl
+                        id_base="docs-carousel-state-matrix-final-scenario".to_string()
+                        options=state_matrix_options.clone()
+                        selected_index=state_matrix_index
+                        set_selected_index=set_state_matrix_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Carousel state matrix scenario".to_string()
+                    />
+
+                    <Carousel
+                        id_base="docs-carousel-state-matrix-final".to_string()
+                        items=state_matrix_items.get()
+                        default_selected_index=0
+                        orientation=state_matrix_orientation.get()
+                        is_loop_navigation=state_matrix_is_loop.get()
+                        controls_aria_label="Carousel controls".to_string()
+                        indicators_aria_label="Carousel indicators".to_string()
+                        previous_label="Previous slide".to_string()
+                        next_label="Next slide".to_string()
+                        indicator_aria_label_template="Go to slide {index}".to_string()
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        motion=ui::CarouselMotion::default()
+                    />
+
+                    <span class="ui-muted">
+                        "state mode: "
+                        {move || match state_matrix_selected.get() {
+                            0 => "default",
+                            1 => "empty",
+                            2 => "disabled-middle",
+                            _ => "vertical-no-loop",
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
             <Playground title="Default + Indicator Motion" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
                     <Carousel
@@ -3029,185 +3208,6 @@ let preserve_context = {preserve}; // optional\n\
                     </span>
                     <span class="ui-muted">
                         "effective component markers: data-ui-stream-mode=snapshot data-ui-stream-fallback=snapshot data-ui-output-status=verified"
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Playground"
-                description="Workbench canvas: scoped CSS live-edit + optional selected-index context persistence across scenario switches."
-                code_signal=workbench_code
-                code_imports=carousel_imports.clone()
-                test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/carousel/src/styles.rs".to_string()
-                test_config_signal=workbench_actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="carousel-workbench-controls">
-                        <div class="docs-search__label">"Scenario"</div>
-                        <SegmentedControl
-                            id_base="docs-carousel-workbench-scenario".to_string()
-                            options=workbench_options.clone()
-                            selected_index=workbench_index
-                            set_selected_index=set_workbench_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="Carousel workbench scenario".to_string()
-                        />
-                        <Switch
-                            checked=workbench_preserve_context
-                            set_checked=set_workbench_preserve_context
-                        >
-                            " Preserve selected index context (optional)"
-                        </Switch>
-                        <div class="ui-muted">
-                            "vertical: "
-                            {move || workbench_vertical.get()}
-                        </div>
-                        <div class="ui-muted">
-                            "disabled_middle_item: "
-                            {move || workbench_disabled.get()}
-                        </div>
-                        <div class="ui-muted">
-                            "custom_text: "
-                            {move || workbench_custom_text.get()}
-                        </div>
-                        <div class="ui-muted">
-                            "custom_motion: "
-                            {move || workbench_custom_motion.get()}
-                        </div>
-                        <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
-                            "lang=zh-CN"
-                        </Switch>
-                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
-                            "dir=rtl"
-                        </Switch>
-                    </div>
-                }
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="carousel-workbench">
-                    <div class="docs-row" data-slot="carousel-workbench-actions">
-                        <button
-                            type="button"
-                            data-slot="carousel-workbench-select-0"
-                            on:click=move |_| set_workbench_selected_raw.set(Some(0))
-                        >
-                            "Select #0"
-                        </button>
-                        <button
-                            type="button"
-                            data-slot="carousel-workbench-select-1"
-                            on:click=move |_| set_workbench_selected_raw.set(Some(1))
-                        >
-                            "Select #1"
-                        </button>
-                        <button
-                            type="button"
-                            data-slot="carousel-workbench-clear"
-                            on:click=move |_| set_workbench_selected_raw.set(None)
-                        >
-                            "Clear"
-                        </button>
-                    </div>
-                    <div data-slot="carousel-workbench-canvas">
-                        <Carousel
-                            id_base="docs-carousel-workbench".to_string()
-                            items=workbench_items.get()
-                            default_selected_index=0
-                            selected_index=workbench_selected
-                            on_selected_index_change=on_workbench_selected_change
-                            orientation=if workbench_vertical.get() {
-                                CarouselOrientation::Vertical
-                            } else {
-                                CarouselOrientation::Horizontal
-                            }
-                            is_loop_navigation=!workbench_disabled.get()
-                            aria_label=if workbench_custom_text.get() {
-                                "Workbench carousel".to_string()
-                            } else {
-                                String::new()
-                            }
-                            controls_aria_label="Carousel controls".to_string()
-                            indicators_aria_label="Carousel indicators".to_string()
-                            previous_label="Previous slide".to_string()
-                            next_label="Next slide".to_string()
-                            indicator_aria_label_template="Go to slide {index}".to_string()
-                            lang=if workbench_lang_zh.get() {
-                                "zh-CN".to_string()
-                            } else {
-                                "en-US".to_string()
-                            }
-                            dir=if workbench_rtl.get() {
-                                ui_headless::A11yDirection::Rtl
-                            } else {
-                                ui_headless::A11yDirection::Ltr
-                            }
-                            class_name=if workbench_custom_text.get() {
-                                "docs-carousel-custom".to_string()
-                            } else {
-                                String::new()
-                            }
-                            motion=workbench_motion.get()
-                        />
-                    </div>
-                    <span class="ui-muted">
-                        "selected index: "
-                        {move || {
-                            workbench_selected_raw
-                                .get()
-                                .map(|index| index.to_string())
-                                .unwrap_or_else(|| "None".to_string())
-                        }}
-                    </span>
-                    <span class="ui-muted" data-slot="carousel-workbench-last-selected">
-                        "last selected: "
-                        {move || workbench_last_selected.get()}
-                    </span>
-                    <span class="ui-muted">
-                        "persist_context: "
-                        {move || workbench_preserve_context.get()}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground
-                title="State Matrix (Default / Empty / Disabled / Vertical)"
-                description="Switch between default/empty/disabled/vertical branches and verify state markers."
-                code_signal=state_matrix_code
-                code_imports=carousel_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="carousel-state-matrix-final">
-                    <SegmentedControl
-                        id_base="docs-carousel-state-matrix-final-scenario".to_string()
-                        options=state_matrix_options.clone()
-                        selected_index=state_matrix_index
-                        set_selected_index=set_state_matrix_index
-                        size=SegmentedControlSize::Sm
-                        aria_label="Carousel state matrix scenario".to_string()
-                    />
-
-                    <Carousel
-                        id_base="docs-carousel-state-matrix-final".to_string()
-                        items=state_matrix_items.get()
-                        default_selected_index=0
-                        orientation=state_matrix_orientation.get()
-                        is_loop_navigation=state_matrix_is_loop.get()
-                        controls_aria_label="Carousel controls".to_string()
-                        indicators_aria_label="Carousel indicators".to_string()
-                        previous_label="Previous slide".to_string()
-                        next_label="Next slide".to_string()
-                        indicator_aria_label_template="Go to slide {index}".to_string()
-                        lang="en-US".to_string()
-                        dir=ui_headless::A11yDirection::Ltr
-                        motion=ui::CarouselMotion::default()
-                    />
-
-                    <span class="ui-muted">
-                        "state mode: "
-                        {move || match state_matrix_selected.get() {
-                            0 => "default",
-                            1 => "empty",
-                            2 => "disabled-middle",
-                            _ => "vertical-no-loop",
-                        }}
                     </span>
                 </div>
             </Playground>

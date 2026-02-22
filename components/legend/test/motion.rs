@@ -51,21 +51,23 @@ fn sanitize_motion_clamps_values() {
 
 #[test]
 fn resolve_effective_motion_respects_reduced_motion_branch() {
+    let default = LegendMotion::default();
     let spring = ui_motion::spring::SpringConfig {
-        stiffness: 300.0,
-        damping: 24.0,
-        mass: 1.1,
-        precision: 0.002,
+        stiffness: default.spring.stiffness + 20.0,
+        damping: default.spring.damping + 4.0,
+        mass: default.spring.mass + 0.1,
+        precision: default.spring.precision * 2.0,
     };
+    let custom_duration = default.duration_ms + 40.0;
     let motion = LegendMotion {
-        duration_ms: 220.0,
+        duration_ms: custom_duration,
         spring,
     };
 
     assert_eq!(
         resolve_effective_motion(motion, false),
         EffectiveLegendMotion {
-            duration_ms: 220.0,
+            duration_ms: custom_duration,
             spring,
             reduced: false,
         }
@@ -82,13 +84,15 @@ fn resolve_effective_motion_respects_reduced_motion_branch() {
 
 #[test]
 fn attach_motion_outputs_contract_css_variables() {
+    let default = LegendMotion::default();
+    let custom_duration = default.duration_ms + 40.0;
     let source = attach_motion(LegendMotion {
-        duration_ms: 220.0,
+        duration_ms: custom_duration,
         spring: ui_motion::spring::SpringConfig {
-            stiffness: 300.0,
-            damping: 24.0,
-            mass: 1.1,
-            precision: 0.002,
+            stiffness: default.spring.stiffness + 20.0,
+            damping: default.spring.damping + 4.0,
+            mass: default.spring.mass + 0.1,
+            precision: default.spring.precision * 2.0,
         },
     });
 
@@ -107,12 +111,12 @@ fn attach_motion_outputs_contract_css_variables() {
     }
 
     let expected_duration = if cfg!(target_arch = "wasm32") {
-        "--ui-legend-motion-duration: 220ms;"
+        format!("--ui-legend-motion-duration: {custom_duration}ms;")
     } else {
-        "--ui-legend-motion-duration: 1ms;"
+        "--ui-legend-motion-duration: 1ms;".to_string()
     };
     assert!(
-        source.contains(expected_duration),
+        source.contains(&expected_duration),
         "legend duration var should reflect runtime reduced-motion branch."
     );
 

@@ -1,10 +1,14 @@
 use super::*;
+use ui_theme::default_text_field_motion_tokens;
 
 #[test]
 fn default_motion_is_stable() {
+    let tokens = default_text_field_motion_tokens();
     assert_eq!(
         ColorAreaMotion::default(),
-        ColorAreaMotion { duration_ms: 180.0 }
+        ColorAreaMotion {
+            duration_ms: f64::from(tokens.duration_ms),
+        }
     );
 }
 
@@ -32,15 +36,24 @@ fn sanitize_motion_clamps_values() {
 
 #[test]
 fn source_attr_distinguishes_default_and_custom_motion() {
+    let custom_duration = ColorAreaMotion::default().duration_ms + 40.0;
     assert_eq!(source_attr(ColorAreaMotion::default()), "default");
     assert_eq!(
-        source_attr(ColorAreaMotion { duration_ms: 220.0 }),
+        source_attr(ColorAreaMotion {
+            duration_ms: custom_duration
+        }),
         "custom"
     );
 }
 
 #[test]
 fn attach_motion_outputs_css_variable() {
+    let custom_duration = ColorAreaMotion::default().duration_ms + 40.0;
+    let expected = format!("--ui-color-area-motion-duration: {custom_duration}ms;");
+    let expected_with_base = format!(
+        "--ui-color-area-preview-color: #09f; --ui-color-area-motion-duration: {custom_duration}ms;"
+    );
+
     assert_eq!(attach_motion(None, ColorAreaMotion::default()), "");
     assert_eq!(
         attach_motion(
@@ -50,14 +63,21 @@ fn attach_motion_outputs_css_variable() {
         "--ui-color-area-preview-color: #09f;"
     );
     assert_eq!(
-        attach_motion(None, ColorAreaMotion { duration_ms: 220.0 }),
-        "--ui-color-area-motion-duration: 220ms;"
+        attach_motion(
+            None,
+            ColorAreaMotion {
+                duration_ms: custom_duration
+            }
+        ),
+        expected
     );
     assert_eq!(
         attach_motion(
             Some("--ui-color-area-preview-color: #09f;".to_string()),
-            ColorAreaMotion { duration_ms: 220.0 }
+            ColorAreaMotion {
+                duration_ms: custom_duration
+            }
         ),
-        "--ui-color-area-preview-color: #09f; --ui-color-area-motion-duration: 220ms;"
+        expected_with_base
     );
 }

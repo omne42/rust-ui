@@ -1969,22 +1969,38 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
     });
 
     let workbench_code = Signal::derive(move || {
-        r#"let saved = load_tabs_workbench_selected();
-let (selected, set_selected) = signal(saved.unwrap_or(0_usize));
-let on_change = Callback::new(move |next: usize| set_selected.set(next));
-// Workbench keeps interaction context and can optionally persist selected index.
-<Tabs
-  labels=vec!["Overview", "Details", "Settings"]
-  id_base="tabs-workbench".to_string()
-  selected_index=selected
-  on_selection_change=on_change
-  keyboard_activation=TabsKeyboardActivation::Automatic
->
-  <div>"Overview panel"</div>
-  <div>"Details panel"</div>
-  <div>"Settings panel"</div>
-</Tabs>"#
-            .to_string()
+        let selected_index = tabs_workbench_selected.get();
+        let keyboard_activation = if tabs_workbench_manual_mode.get() {
+            "TabsKeyboardActivation::Manual"
+        } else {
+            "TabsKeyboardActivation::Automatic"
+        };
+        let disabled_indices = if tabs_workbench_disable_settings.get() {
+            "vec![2]"
+        } else {
+            "Vec::<usize>::new()"
+        };
+        let persist_selected_index = bool_word(tabs_workbench_persist_state.get());
+
+        format!(
+            "let saved = load_tabs_workbench_selected();\n\
+let (selected, set_selected) = signal(saved.unwrap_or({selected_index}_usize));\n\
+let on_change = Callback::new(move |next: usize| set_selected.set(next));\n\
+// Workbench keeps interaction context and can optionally persist selected index.\n\
+<Tabs\n\
+  labels=vec![\"Overview\", \"Details\", \"Settings\"]\n\
+  id_base=\"tabs-workbench\".to_string()\n\
+  selected_index=selected\n\
+  on_selection_change=on_change\n\
+  keyboard_activation={keyboard_activation}\n\
+  disabled_indices={disabled_indices}\n\
+>\n\
+  <div>\"Overview panel\"</div>\n\
+  <div>\"Details panel\"</div>\n\
+  <div>\"Settings panel\"</div>\n\
+</Tabs>\n\
+// persist_selected_index={persist_selected_index}"
+        )
     });
     let workbench_actual_config = Signal::derive(move || {
         let keyboard_activation = if tabs_workbench_manual_mode.get() {
@@ -2514,123 +2530,6 @@ let (controlled_selected, set_controlled_selected) = signal(Some(1_usize));
             </Playground>
 
             <Playground
-                title="展示：多场景"
-                description="同一套 List 在默认、unsynced、disabled root、empty 四种状态下的行为对比。"
-                code_signal=showcase_code
-                code_imports=list_code_imports.clone()
-            >
-                <div class="docs-row" data-slot="list-showcase">
-                    <div class="docs-stack" style="min-width: 220px;">
-                        <span class="ui-muted">"default + disabled option"</span>
-                        <List
-                            id_base="docs-list-default".to_string()
-                            items=showcase_items_for_showcase.clone()
-                            selected_index=showcase_selected_default.into()
-                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_default.set(next))
-                            aria_label="Default list".to_string()
-                            disabled_indices=vec![2]
-                        />
-                        <span class="ui-muted">
-                            "selected: "
-                            {move || showcase_selected_default.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-
-                    <div class="docs-stack" style="min-width: 220px;">
-                        <span class="ui-muted">"unsynced active index"</span>
-                        <List
-                            id_base="docs-list-unsynced".to_string()
-                            items=showcase_items_for_showcase.clone()
-                            selected_index=showcase_selected_unsynced.into()
-                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_unsynced.set(next))
-                            aria_label="Unsynced list".to_string()
-                            is_active_index_synced_to_selected=false
-                        />
-                        <span class="ui-muted">
-                            "selected: "
-                            {move || showcase_selected_unsynced.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-
-                    <div class="docs-stack" style="min-width: 220px;">
-                        <span class="ui-muted">"disabled root"</span>
-                        <List
-                            id_base="docs-list-disabled".to_string()
-                            items=disabled_items
-                            selected_index=showcase_selected_disabled.into()
-                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_disabled.set(next))
-                            aria_label="Disabled list".to_string()
-                            is_disabled=true
-                        />
-                        <span class="ui-muted">
-                            "selected: "
-                            {move || showcase_selected_disabled.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-
-                    <div class="docs-stack" style="min-width: 220px;">
-                        <span class="ui-muted">"empty list"</span>
-                        <List
-                            id_base="docs-list-empty".to_string()
-                            items=empty_items
-                            selected_index=showcase_selected_empty.into()
-                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_empty.set(next))
-                            aria_label="Empty list".to_string()
-                        />
-                        <span class="ui-muted">
-                            "selected: "
-                            {move || showcase_selected_empty.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="状态矩阵 State Matrix（受控 / 非受控）"
-                description="同一组数据对照 uncontrolled / controlled / disabled 三种语义状态。"
-                code_signal=state_matrix_code
-                code_imports=list_code_imports.clone()
-            >
-                <div class="docs-row" data-slot="list-state-matrix">
-                    <div class="docs-stack">
-                        <span class="ui-muted">"uncontrolled"</span>
-                        <List
-                            id_base="docs-list-matrix-uncontrolled".to_string()
-                            items=showcase_items_for_matrix.clone()
-                            aria_label="Matrix uncontrolled list".to_string()
-                        />
-                    </div>
-
-                    <div class="docs-stack">
-                        <span class="ui-muted">"controlled"</span>
-                        <List
-                            id_base="docs-list-matrix-controlled".to_string()
-                            items=showcase_items_for_matrix.clone()
-                            selected_index=state_matrix_controlled_selected.into()
-                            on_selected_index_change=Callback::new(move |next| set_state_matrix_controlled_selected.set(next))
-                            aria_label="Matrix controlled list".to_string()
-                        />
-                        <span class="ui-muted">
-                            "selected: "
-                            {move || state_matrix_controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-
-                    <div class="docs-stack">
-                        <span class="ui-muted">"disabled"</span>
-                        <List
-                            id_base="docs-list-matrix-disabled".to_string()
-                            items=showcase_items_for_matrix.clone()
-                            selected_index=state_matrix_controlled_selected.into()
-                            on_selected_index_change=Callback::new(move |next| set_state_matrix_controlled_selected.set(next))
-                            aria_label="Matrix disabled list".to_string()
-                            is_disabled=true
-                        />
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Workbench（展示 + Config + Code + CSS Test）"
                 description="按钮式 workbench：单画布调参，支持 settings / code / css-test 面板联动。"
                 code_signal=workbench_code
@@ -2747,6 +2646,123 @@ let (controlled_selected, set_controlled_selected) = signal(Some(1_usize));
                         }
                         .into_any()
                     }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="状态矩阵 State Matrix（受控 / 非受控）"
+                description="同一组数据对照 uncontrolled / controlled / disabled 三种语义状态。"
+                code_signal=state_matrix_code
+                code_imports=list_code_imports.clone()
+            >
+                <div class="docs-row" data-slot="list-state-matrix">
+                    <div class="docs-stack">
+                        <span class="ui-muted">"uncontrolled"</span>
+                        <List
+                            id_base="docs-list-matrix-uncontrolled".to_string()
+                            items=showcase_items_for_matrix.clone()
+                            aria_label="Matrix uncontrolled list".to_string()
+                        />
+                    </div>
+
+                    <div class="docs-stack">
+                        <span class="ui-muted">"controlled"</span>
+                        <List
+                            id_base="docs-list-matrix-controlled".to_string()
+                            items=showcase_items_for_matrix.clone()
+                            selected_index=state_matrix_controlled_selected.into()
+                            on_selected_index_change=Callback::new(move |next| set_state_matrix_controlled_selected.set(next))
+                            aria_label="Matrix controlled list".to_string()
+                        />
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || state_matrix_controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <span class="ui-muted">"disabled"</span>
+                        <List
+                            id_base="docs-list-matrix-disabled".to_string()
+                            items=showcase_items_for_matrix.clone()
+                            selected_index=state_matrix_controlled_selected.into()
+                            on_selected_index_change=Callback::new(move |next| set_state_matrix_controlled_selected.set(next))
+                            aria_label="Matrix disabled list".to_string()
+                            is_disabled=true
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="展示：多场景"
+                description="同一套 List 在默认、unsynced、disabled root、empty 四种状态下的行为对比。"
+                code_signal=showcase_code
+                code_imports=list_code_imports.clone()
+            >
+                <div class="docs-row" data-slot="list-showcase">
+                    <div class="docs-stack" style="min-width: 220px;">
+                        <span class="ui-muted">"default + disabled option"</span>
+                        <List
+                            id_base="docs-list-default".to_string()
+                            items=showcase_items_for_showcase.clone()
+                            selected_index=showcase_selected_default.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_default.set(next))
+                            aria_label="Default list".to_string()
+                            disabled_indices=vec![2]
+                        />
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || showcase_selected_default.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack" style="min-width: 220px;">
+                        <span class="ui-muted">"unsynced active index"</span>
+                        <List
+                            id_base="docs-list-unsynced".to_string()
+                            items=showcase_items_for_showcase.clone()
+                            selected_index=showcase_selected_unsynced.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_unsynced.set(next))
+                            aria_label="Unsynced list".to_string()
+                            is_active_index_synced_to_selected=false
+                        />
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || showcase_selected_unsynced.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack" style="min-width: 220px;">
+                        <span class="ui-muted">"disabled root"</span>
+                        <List
+                            id_base="docs-list-disabled".to_string()
+                            items=disabled_items
+                            selected_index=showcase_selected_disabled.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_disabled.set(next))
+                            aria_label="Disabled list".to_string()
+                            is_disabled=true
+                        />
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || showcase_selected_disabled.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack" style="min-width: 220px;">
+                        <span class="ui-muted">"empty list"</span>
+                        <List
+                            id_base="docs-list-empty".to_string()
+                            items=empty_items
+                            selected_index=showcase_selected_empty.into()
+                            on_selected_index_change=Callback::new(move |next| set_showcase_selected_empty.set(next))
+                            aria_label="Empty list".to_string()
+                        />
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || showcase_selected_empty.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
                 </div>
             </Playground>
 
@@ -3369,53 +3385,6 @@ pub(super) fn menu_trigger() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Controlled + persistent open" code_signal=controlled_code>
-                <div class="docs-stack">
-                    <MenuTrigger
-                        id_base="docs-menu-trigger-controlled".to_string()
-                        items=controlled_items.clone()
-                        on_action=on_action
-                        close_on_action=false
-                        disabled_indices=vec![1]
-                        open=controlled_open
-                        on_open_change=on_open_change
-                        item_kinds=vec![
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                            MenuItemKind::Action,
-                        ]
-                    >
-                        "Controlled"
-                    </MenuTrigger>
-                    <span class="ui-muted">
-                        "open: "
-                        {move || controlled_open_raw.get()}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Empty" code_signal=disabled_code>
-                <div class="docs-row">
-                    <MenuTrigger
-                        id_base="docs-menu-trigger-disabled".to_string()
-                        items=disabled_items.clone()
-                        on_action=on_action
-                        disabled=true
-                        item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action]
-                    >
-                        "Disabled"
-                    </MenuTrigger>
-
-                    <MenuTrigger
-                        id_base="docs-menu-trigger-empty".to_string()
-                        items=empty_items
-                        on_action=on_action
-                    >
-                        "Empty"
-                    </MenuTrigger>
-                </div>
-            </Playground>
-
             <Playground
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=workbench_code
@@ -3643,6 +3612,53 @@ pub(super) fn menu_trigger() -> AnyView {
                             "Disabled"
                         </MenuTrigger>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled + persistent open" code_signal=controlled_code>
+                <div class="docs-stack">
+                    <MenuTrigger
+                        id_base="docs-menu-trigger-controlled".to_string()
+                        items=controlled_items.clone()
+                        on_action=on_action
+                        close_on_action=false
+                        disabled_indices=vec![1]
+                        open=controlled_open
+                        on_open_change=on_open_change
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
+                    >
+                        "Controlled"
+                    </MenuTrigger>
+                    <span class="ui-muted">
+                        "open: "
+                        {move || controlled_open_raw.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code_signal=disabled_code>
+                <div class="docs-row">
+                    <MenuTrigger
+                        id_base="docs-menu-trigger-disabled".to_string()
+                        items=disabled_items.clone()
+                        on_action=on_action
+                        disabled=true
+                        item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action]
+                    >
+                        "Disabled"
+                    </MenuTrigger>
+
+                    <MenuTrigger
+                        id_base="docs-menu-trigger-empty".to_string()
+                        items=empty_items
+                        on_action=on_action
+                    >
+                        "Empty"
+                    </MenuTrigger>
                 </div>
             </Playground>
         </ComponentPage>
@@ -4198,131 +4214,6 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
             </Playground>
 
             <Playground
-                title="Showcase Variants"
-                description="同一套 ComboBox 在校验、受控 open、禁用、空数据四种状态下的对比展示。"
-                code_signal=showcase_code
-                code_imports=combo_box_code_imports.clone()
-            >
-                <div class="docs-row" data-slot="combo-box-showcase">
-                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
-                        <span class="ui-muted">"validation + disabled option"</span>
-                        <ComboBox
-                            id_base="docs-combo-box".to_string()
-                            label="Language".to_string()
-                            items=showcase_items_for_showcase.clone()
-                            selected_index=selected
-                            set_selected_index=set_selected
-                            disabled_indices=vec![4]
-                            description="Pick one runtime language".to_string()
-                            error="Language is required".to_string()
-                            is_invalid=Signal::derive(move || invalid.get())
-                        />
-                        <div class="docs-row">
-                            <ui::Button
-                                variant=ui::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| set_invalid.update(|value| *value = !*value))
-                            >
-                                {move || if invalid.get() { "Clear invalid" } else { "Mark invalid" }}
-                            </ui::Button>
-                            <span class="ui-muted">
-                                "selected: "
-                                {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
-                        <span class="ui-muted">"controlled open"</span>
-                        <ComboBox
-                            id_base="docs-combo-box-controlled".to_string()
-                            label="Controlled language".to_string()
-                            items=showcase_items_for_showcase.clone()
-                            selected_index=controlled_selected
-                            set_selected_index=set_controlled_selected
-                            is_open=controlled_open
-                            on_open_change=on_open_change
-                            disabled_indices=vec![4]
-                            description="Open state is externally controlled".to_string()
-                        />
-                        <div class="docs-row">
-                            <ui::Button
-                                variant=ui::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_controlled_open_raw.update(|value| *value = !*value)
-                                })
-                            >
-                                "Toggle open"
-                            </ui::Button>
-                            <span class="ui-muted">
-                                "open: "
-                                {move || controlled_open_raw.get()}
-                                " · selected: "
-                                {move || controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
-                        <span class="ui-muted">"disabled root"</span>
-                        <ComboBox
-                            id_base="docs-combo-box-disabled".to_string()
-                            label="Disabled language".to_string()
-                            items=disabled_items
-                            selected_index=disabled_selected
-                            set_selected_index=set_disabled_selected
-                            is_disabled=true
-                        />
-                        <span class="ui-muted">
-                            "disabled selected: "
-                            {move || disabled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-
-                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
-                        <span class="ui-muted">"empty items"</span>
-                        <ComboBox
-                            id_base="docs-combo-box-empty".to_string()
-                            label="Empty language list".to_string()
-                            items=empty_items
-                            selected_index=empty_selected
-                            set_selected_index=set_empty_selected
-                            placeholder="No options".to_string()
-                        />
-                        <span class="ui-muted">
-                            "empty selected: "
-                            {move || empty_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-                </div>
-            </Playground>
-
-            <section class="docs-card docs-prose" data-slot="combo-box-state-matrix">
-                <h3>"State Matrix"</h3>
-                <ul data-slot="combo-box-state-rows">
-                    <li>
-                        <code>"open mode"</code>
-                        " = controlled | uncontrolled"
-                    </li>
-                    <li>
-                        <code>"disabled"</code>
-                        " = root disabled | enabled with disabled options"
-                    </li>
-                    <li>
-                        <code>"item set"</code>
-                        " = has items | empty"
-                    </li>
-                    <li>
-                        <code>"validation"</code>
-                        " = valid | invalid"
-                    </li>
-                    <li>
-                        <code>"selection"</code>
-                        " = selected | none"
-                    </li>
-                </ul>
-            </section>
-
-            <Playground
                 title="Workbench（展示 + Config + Code + CSS Test）"
                 description="按钮式 workbench：单画布调参，支持 settings / code / css-test 面板联动，并可选持久化 selected index。"
                 code_signal=workbench_code
@@ -4487,6 +4378,32 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                 </div>
             </Playground>
 
+            <section class="docs-card docs-prose" data-slot="combo-box-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="combo-box-state-rows">
+                    <li>
+                        <code>"open mode"</code>
+                        " = controlled | uncontrolled"
+                    </li>
+                    <li>
+                        <code>"disabled"</code>
+                        " = root disabled | enabled with disabled options"
+                    </li>
+                    <li>
+                        <code>"item set"</code>
+                        " = has items | empty"
+                    </li>
+                    <li>
+                        <code>"validation"</code>
+                        " = valid | invalid"
+                    </li>
+                    <li>
+                        <code>"selection"</code>
+                        " = selected | none"
+                    </li>
+                </ul>
+            </section>
+
             <Playground
                 title="State Matrix (Default / Controlled / Disabled)"
                 code_signal=matrix_code
@@ -4522,6 +4439,105 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                         disabled_indices=vec![4]
                         class_name="docs-combo-box-workbench--custom".to_string()
                     />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Showcase Variants"
+                description="同一套 ComboBox 在校验、受控 open、禁用、空数据四种状态下的对比展示。"
+                code_signal=showcase_code
+                code_imports=combo_box_code_imports.clone()
+            >
+                <div class="docs-row" data-slot="combo-box-showcase">
+                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
+                        <span class="ui-muted">"validation + disabled option"</span>
+                        <ComboBox
+                            id_base="docs-combo-box".to_string()
+                            label="Language".to_string()
+                            items=showcase_items_for_showcase.clone()
+                            selected_index=selected
+                            set_selected_index=set_selected
+                            disabled_indices=vec![4]
+                            description="Pick one runtime language".to_string()
+                            error="Language is required".to_string()
+                            is_invalid=Signal::derive(move || invalid.get())
+                        />
+                        <div class="docs-row">
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| set_invalid.update(|value| *value = !*value))
+                            >
+                                {move || if invalid.get() { "Clear invalid" } else { "Mark invalid" }}
+                            </ui::Button>
+                            <span class="ui-muted">
+                                "selected: "
+                                {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
+                        <span class="ui-muted">"controlled open"</span>
+                        <ComboBox
+                            id_base="docs-combo-box-controlled".to_string()
+                            label="Controlled language".to_string()
+                            items=showcase_items_for_showcase.clone()
+                            selected_index=controlled_selected
+                            set_selected_index=set_controlled_selected
+                            is_open=controlled_open
+                            on_open_change=on_open_change
+                            disabled_indices=vec![4]
+                            description="Open state is externally controlled".to_string()
+                        />
+                        <div class="docs-row">
+                            <ui::Button
+                                variant=ui::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_controlled_open_raw.update(|value| *value = !*value)
+                                })
+                            >
+                                "Toggle open"
+                            </ui::Button>
+                            <span class="ui-muted">
+                                "open: "
+                                {move || controlled_open_raw.get()}
+                                " · selected: "
+                                {move || controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
+                        <span class="ui-muted">"disabled root"</span>
+                        <ComboBox
+                            id_base="docs-combo-box-disabled".to_string()
+                            label="Disabled language".to_string()
+                            items=disabled_items
+                            selected_index=disabled_selected
+                            set_selected_index=set_disabled_selected
+                            is_disabled=true
+                        />
+                        <span class="ui-muted">
+                            "disabled selected: "
+                            {move || disabled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack" style="min-width: 260px; width: min(100%, 320px);">
+                        <span class="ui-muted">"empty items"</span>
+                        <ComboBox
+                            id_base="docs-combo-box-empty".to_string()
+                            label="Empty language list".to_string()
+                            items=empty_items
+                            selected_index=empty_selected
+                            set_selected_index=set_empty_selected
+                            placeholder="No options".to_string()
+                        />
+                        <span class="ui-muted">
+                            "empty selected: "
+                            {move || empty_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
                 </div>
             </Playground>
 
@@ -4918,6 +4934,151 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             </Playground>
 
             <Playground
+                title="Workbench（展示 + Config + Code + CSS Test）"
+                description="Autocomplete 单画布调参：支持 settings / code / css-test 联动，并可选持久化 selected index。"
+                code_signal=workbench_code
+                code_imports=autocomplete_code_imports.clone()
+                test_css_source=workbench_test_css
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/autocomplete/src/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="autocomplete-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_invalid.get()
+                                on:change=move |ev| set_workbench_invalid.set(event_target_checked(&ev))
+                            />
+                            " Invalid"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_disabled.get()
+                                on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
+                            />
+                            " Disabled root"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_disable_last.get()
+                                on:change=move |ev| set_workbench_disable_last.set(event_target_checked(&ev))
+                            />
+                            " Disable last option"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_use_controlled_open.get()
+                                on:change=move |ev| set_workbench_use_controlled_open.set(event_target_checked(&ev))
+                            />
+                            " Controlled open"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " Custom class marker"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_persist_state.get()
+                                on:change=move |ev| set_workbench_persist_state.set(event_target_checked(&ev))
+                            />
+                            " Persist selected index (optional)"
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="autocomplete-workbench" style="width: min(100%, 420px);">
+                    <div class="docs-row">
+                        <ui::Button
+                            variant=ui::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| {
+                                set_workbench_controlled_open.update(|value| *value = !*value)
+                            })
+                        >
+                            "Toggle open"
+                        </ui::Button>
+                        <span class="ui-muted">
+                            "open: "
+                            {move || workbench_controlled_open.get()}
+                            " · selected: "
+                            {move || workbench_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                            " · persist selected: "
+                            {move || if workbench_persist_state.get() { "on" } else { "off" }}
+                        </span>
+                    </div>
+
+                    {move || {
+                        let invalid = workbench_invalid.get();
+                        let disabled = workbench_disabled.get();
+                        let disable_last = workbench_disable_last.get();
+                        let use_controlled_open = workbench_use_controlled_open.get();
+                        let custom_class = workbench_custom_class.get();
+                        let controlled_open =
+                            Signal::derive(move || workbench_controlled_open.get());
+                        let on_workbench_open_change =
+                            Callback::new(move |next: bool| set_workbench_controlled_open.set(next));
+                        let class_name = if custom_class {
+                            "docs-autocomplete-workbench--custom".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let disabled_indices = if disable_last { vec![4] } else { vec![] };
+
+                        if use_controlled_open {
+                            view! {
+                                <div class="docs-card" data-slot="autocomplete-workbench-canvas">
+                                    <Autocomplete
+                                        id_base="docs-autocomplete-workbench".to_string()
+                                        label="City".to_string()
+                                        items=workbench_items.clone()
+                                        selected_index=workbench_selected
+                                        set_selected_index=set_workbench_selected
+                                        is_open=controlled_open
+                                        on_open_change=on_workbench_open_change
+                                        is_invalid=Signal::derive(move || invalid)
+                                        is_disabled=disabled
+                                        disabled_indices=disabled_indices.clone()
+                                        description="Search and pick one city".to_string()
+                                        error="City is required".to_string()
+                                        class_name=class_name.clone()
+                                    />
+                                </div>
+                            }
+                            .into_any()
+                        } else {
+                            view! {
+                                <div class="docs-card" data-slot="autocomplete-workbench-canvas">
+                                    <Autocomplete
+                                        id_base="docs-autocomplete-workbench".to_string()
+                                        label="City".to_string()
+                                        items=workbench_items.clone()
+                                        selected_index=workbench_selected
+                                        set_selected_index=set_workbench_selected
+                                        is_invalid=Signal::derive(move || invalid)
+                                        is_disabled=disabled
+                                        disabled_indices=disabled_indices
+                                        description="Search and pick one city".to_string()
+                                        error="City is required".to_string()
+                                        class_name=class_name
+                                    />
+                                </div>
+                            }
+                            .into_any()
+                        }
+                    }}
+                </div>
+            </Playground>
+
+
+
+            <Playground
                 title="Selection + Validation"
                 code_signal=code
                 code_imports=autocomplete_code_imports.clone()
@@ -5068,148 +5229,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                 </ul>
             </section>
 
-            <Playground
-                title="Workbench（展示 + Config + Code + CSS Test）"
-                description="Autocomplete 单画布调参：支持 settings / code / css-test 联动，并可选持久化 selected index。"
-                code_signal=workbench_code
-                code_imports=autocomplete_code_imports.clone()
-                test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/autocomplete/src/styles.rs".to_string()
-                test_config_signal=workbench_actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="autocomplete-workbench-controls">
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_invalid.get()
-                                on:change=move |ev| set_workbench_invalid.set(event_target_checked(&ev))
-                            />
-                            " Invalid"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_disabled.get()
-                                on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
-                            />
-                            " Disabled root"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_disable_last.get()
-                                on:change=move |ev| set_workbench_disable_last.set(event_target_checked(&ev))
-                            />
-                            " Disable last option"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_use_controlled_open.get()
-                                on:change=move |ev| set_workbench_use_controlled_open.set(event_target_checked(&ev))
-                            />
-                            " Controlled open"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_custom_class.get()
-                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
-                            />
-                            " Custom class marker"
-                        </label>
-                        <label class="docs-search__label">
-                            <input
-                                type="checkbox"
-                                prop:checked=move || workbench_persist_state.get()
-                                on:change=move |ev| set_workbench_persist_state.set(event_target_checked(&ev))
-                            />
-                            " Persist selected index (optional)"
-                        </label>
-                    </div>
-                }
-            >
-                <div class="docs-stack" data-slot="autocomplete-workbench" style="width: min(100%, 420px);">
-                    <div class="docs-row">
-                        <ui::Button
-                            variant=ui::ButtonVariant::Secondary
-                            on_press=Callback::new(move |_| {
-                                set_workbench_controlled_open.update(|value| *value = !*value)
-                            })
-                        >
-                            "Toggle open"
-                        </ui::Button>
-                        <span class="ui-muted">
-                            "open: "
-                            {move || workbench_controlled_open.get()}
-                            " · selected: "
-                            {move || workbench_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                            " · persist selected: "
-                            {move || if workbench_persist_state.get() { "on" } else { "off" }}
-                        </span>
-                    </div>
 
-                    {move || {
-                        let invalid = workbench_invalid.get();
-                        let disabled = workbench_disabled.get();
-                        let disable_last = workbench_disable_last.get();
-                        let use_controlled_open = workbench_use_controlled_open.get();
-                        let custom_class = workbench_custom_class.get();
-                        let controlled_open =
-                            Signal::derive(move || workbench_controlled_open.get());
-                        let on_workbench_open_change =
-                            Callback::new(move |next: bool| set_workbench_controlled_open.set(next));
-                        let class_name = if custom_class {
-                            "docs-autocomplete-workbench--custom".to_string()
-                        } else {
-                            String::new()
-                        };
-                        let disabled_indices = if disable_last { vec![4] } else { vec![] };
-
-                        if use_controlled_open {
-                            view! {
-                                <div class="docs-card" data-slot="autocomplete-workbench-canvas">
-                                    <Autocomplete
-                                        id_base="docs-autocomplete-workbench".to_string()
-                                        label="City".to_string()
-                                        items=workbench_items.clone()
-                                        selected_index=workbench_selected
-                                        set_selected_index=set_workbench_selected
-                                        is_open=controlled_open
-                                        on_open_change=on_workbench_open_change
-                                        is_invalid=Signal::derive(move || invalid)
-                                        is_disabled=disabled
-                                        disabled_indices=disabled_indices.clone()
-                                        description="Search and pick one city".to_string()
-                                        error="City is required".to_string()
-                                        class_name=class_name.clone()
-                                    />
-                                </div>
-                            }
-                            .into_any()
-                        } else {
-                            view! {
-                                <div class="docs-card" data-slot="autocomplete-workbench-canvas">
-                                    <Autocomplete
-                                        id_base="docs-autocomplete-workbench".to_string()
-                                        label="City".to_string()
-                                        items=workbench_items.clone()
-                                        selected_index=workbench_selected
-                                        set_selected_index=set_workbench_selected
-                                        is_invalid=Signal::derive(move || invalid)
-                                        is_disabled=disabled
-                                        disabled_indices=disabled_indices
-                                        description="Search and pick one city".to_string()
-                                        error="City is required".to_string()
-                                        class_name=class_name
-                                    />
-                                </div>
-                            }
-                            .into_any()
-                        }
-                    }}
-                </div>
-            </Playground>
 
             <Playground
                 title="State Matrix (Validation / Controlled / Empty)"

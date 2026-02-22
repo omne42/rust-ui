@@ -606,52 +606,6 @@ let custom_motion = PopoverMotion {
             </Playground>
 
             <Playground
-                title="State + Source Markers"
-                description="Inspect `data-state`, `data-modal`, `data-motion-source`, `data-placement-source`, `data-modal-source`, and `data-exit-source` contracts."
-                code_signal=motion_code
-            >
-                <div class="docs-row">
-                    <Button
-                        node_ref=custom_anchor_ref
-                        on_press=toggle_custom
-                        aria_haspopup="dialog"
-                        aria_expanded=custom_open
-                    >
-                        {move || {
-                            if custom_open_raw.get() {
-                                "Close custom popover"
-                            } else {
-                                "Open custom popover"
-                            }
-                        }}
-                    </Button>
-                </div>
-
-                <Show when=move || custom_present.get()>
-                    <Popover
-                        open=custom_open
-                        anchor_ref=custom_anchor_ref
-                        placement=ui_headless::PopoverPlacement::TopEnd
-                        on_close=close_custom
-                        motion=custom_motion
-                        is_modal=false
-                        class_name="docs-popover-state".to_string()
-                        on_exit_complete=on_custom_exit_complete
-                    >
-                        <div class="docs-stack">
-                            <div>"Custom spring-like popover motion"</div>
-                            <div class="ui-muted">
-                                "Inspect `data-modal-source`/`data-placement-source` while tuning PopoverMotion."
-                            </div>
-                            <Button variant=ButtonVariant::Secondary on_press=close_custom>
-                                "Close"
-                            </Button>
-                        </div>
-                    </Popover>
-                </Show>
-            </Playground>
-
-            <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-style playground with display/config/code/css-test panels for popover open/modal/motion/class contracts."
                 code_signal=workbench_code
@@ -861,6 +815,52 @@ let custom_motion = PopoverMotion {
                         </Popover>
                     </Show>
                 </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-modal`, `data-motion-source`, `data-placement-source`, `data-modal-source`, and `data-exit-source` contracts."
+                code_signal=motion_code
+            >
+                <div class="docs-row">
+                    <Button
+                        node_ref=custom_anchor_ref
+                        on_press=toggle_custom
+                        aria_haspopup="dialog"
+                        aria_expanded=custom_open
+                    >
+                        {move || {
+                            if custom_open_raw.get() {
+                                "Close custom popover"
+                            } else {
+                                "Open custom popover"
+                            }
+                        }}
+                    </Button>
+                </div>
+
+                <Show when=move || custom_present.get()>
+                    <Popover
+                        open=custom_open
+                        anchor_ref=custom_anchor_ref
+                        placement=ui_headless::PopoverPlacement::TopEnd
+                        on_close=close_custom
+                        motion=custom_motion
+                        is_modal=false
+                        class_name="docs-popover-state".to_string()
+                        on_exit_complete=on_custom_exit_complete
+                    >
+                        <div class="docs-stack">
+                            <div>"Custom spring-like popover motion"</div>
+                            <div class="ui-muted">
+                                "Inspect `data-modal-source`/`data-placement-source` while tuning PopoverMotion."
+                            </div>
+                            <Button variant=ButtonVariant::Secondary on_press=close_custom>
+                                "Close"
+                            </Button>
+                        </div>
+                    </Popover>
+                </Show>
             </Playground>
         </ComponentPage>
     }
@@ -3658,30 +3658,6 @@ pub(super) fn contextual_help() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Info Variant + Controlled" code_signal=controlled_code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <Button variant=ButtonVariant::Secondary on_press=toggle_controlled>
-                            "Toggle controlled help"
-                        </Button>
-                        <span class="ui-muted">"open: " {move || controlled_open_raw.get()}</span>
-                    </div>
-
-                    <ContextualHelp
-                        variant=ContextualHelpVariant::Info
-                        open=controlled_open
-                        on_open_change=on_controlled_open_change
-                        aria_label="More info".to_string()
-                        class_name="docs-contextual-help-custom".to_string()
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <div>"Controlled mode keeps parent state as the source of truth."</div>
-                            <div class="ui-muted">"No heading path falls back to aria-label on panel."</div>
-                        </div>
-                    </ContextualHelp>
-                </div>
-            </Playground>
-
             <Playground
                 title="Workbench (Display + Config + Code + CSS Test)"
                 description="Button-like playground surface: display/config/code/css-test with stable state/source markers."
@@ -3891,6 +3867,30 @@ pub(super) fn contextual_help() -> AnyView {
                         class_name="docs-contextual-help-custom".to_string()
                     >
                         <div>"Disabled Trigger"</div>
+                    </ContextualHelp>
+                </div>
+            </Playground>
+
+            <Playground title="Info Variant + Controlled" code_signal=controlled_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <Button variant=ButtonVariant::Secondary on_press=toggle_controlled>
+                            "Toggle controlled help"
+                        </Button>
+                        <span class="ui-muted">"open: " {move || controlled_open_raw.get()}</span>
+                    </div>
+
+                    <ContextualHelp
+                        variant=ContextualHelpVariant::Info
+                        open=controlled_open
+                        on_open_change=on_controlled_open_change
+                        aria_label="More info".to_string()
+                        class_name="docs-contextual-help-custom".to_string()
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Controlled mode keeps parent state as the source of truth."</div>
+                            <div class="ui-muted">"No heading path falls back to aria-label on panel."</div>
+                        </div>
                     </ContextualHelp>
                 </div>
             </Playground>

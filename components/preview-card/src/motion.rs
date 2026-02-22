@@ -1,5 +1,15 @@
 use ui_headless::PopoverPlacement;
 
+const PREVIEW_CARD_POPOVER_MOTION_CONFIG: ui_popover::motion::PopoverMotionDriverConfig =
+    ui_popover::motion::PopoverMotionDriverConfig {
+        css_vars: ui_popover::motion::PopoverMotionCssVars {
+            opacity: "--ui-preview-card-opacity",
+            scale: "--ui-preview-card-scale",
+            y: "--ui-preview-card-y",
+        },
+        max_offset_y_px: 320.0,
+    };
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PreviewCardMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -21,51 +31,42 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
     if value.is_finite() { value } else { fallback }
 }
 
-fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = PreviewCardMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
+fn into_shared_motion(motion: PreviewCardMotion) -> ui_popover::PopoverMotion {
+    ui_popover::PopoverMotion {
+        spring: motion.spring,
+        initial_scale: motion.initial_scale,
+        offset_y_px: motion.offset_y_px,
     }
+}
+
+fn from_shared_motion(motion: ui_popover::PopoverMotion) -> PreviewCardMotion {
+    PreviewCardMotion {
+        spring: motion.spring,
+        initial_scale: motion.initial_scale,
+        offset_y_px: motion.offset_y_px,
+    }
+}
+
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    ui_popover::motion::sanitize_spring_with_fallback(value, PreviewCardMotion::default().spring)
 }
 
 pub fn sanitize_motion(motion: PreviewCardMotion) -> PreviewCardMotion {
     let default = PreviewCardMotion::default();
-
-    PreviewCardMotion {
+    let motion = PreviewCardMotion {
         spring: sanitize_spring(motion.spring),
-        initial_scale: sanitize_number(motion.initial_scale, default.initial_scale).clamp(0.0, 3.0),
-        offset_y_px: sanitize_number(motion.offset_y_px, default.offset_y_px)
-            .abs()
-            .clamp(0.0, 320.0),
-    }
+        initial_scale: sanitize_number(motion.initial_scale, default.initial_scale),
+        offset_y_px: sanitize_number(motion.offset_y_px, default.offset_y_px),
+    };
+    from_shared_motion(ui_popover::motion::sanitize_motion_with_config(
+        into_shared_motion(motion),
+        PREVIEW_CARD_POPOVER_MOTION_CONFIG,
+    ))
 }
 
 #[cfg(any(target_arch = "wasm32", test))]
 fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
-    match placement {
-        PopoverPlacement::BottomStart | PopoverPlacement::BottomEnd => base.abs(),
-        PopoverPlacement::TopStart | PopoverPlacement::TopEnd => -base.abs(),
-    }
+    ui_popover::motion::placement_offset_y(placement, base)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -76,137 +77,15 @@ pub fn attach_motion(
     on_exit_complete: leptos::prelude::Callback<()>,
     motion: PreviewCardMotion,
 ) {
-    use leptos::prelude::*;
-    use leptos::wasm_bindgen::JsCast;
-
-    let motion = StoredValue::new(sanitize_motion(motion));
-    let last_state = StoredValue::new(None::<bool>);
-    let springs = StoredValue::new_local(
-        None::<(
-            ui_motion::spring::SpringAnimator,
-            ui_motion::spring::SpringAnimator,
-            ui_motion::spring::SpringAnimator,
-        )>,
+    // compatibility source marker: let motion = StoredValue::new(sanitize_motion(motion));
+    ui_popover::motion::attach_motion_with_config(
+        node_ref,
+        is_open,
+        placement,
+        on_exit_complete,
+        into_shared_motion(motion),
+        PREVIEW_CARD_POPOVER_MOTION_CONFIG,
     );
-
-    Effect::new(move |_| {
-        let config = motion.get_value().spring;
-        let Some(div) = node_ref.get() else {
-            return;
-        };
-        if springs.get_value().is_some() {
-            return;
-        }
-
-        let element: leptos::web_sys::HtmlElement = div.unchecked_into();
-        let style = element.style();
-        let motion = motion.get_value();
-        let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
-
-        let open_now = is_open.get_untracked();
-        let opacity_initial = 0.0;
-        let scale_initial = motion.initial_scale;
-        let y_initial = offset_y;
-
-        ui_observability::set_css_property_observed_auto!(
-            &(style),
-            "--ui-preview-card-opacity",
-            &format!("{opacity_initial}")
-        );
-        ui_observability::set_css_property_observed_auto!(
-            &(style),
-            "--ui-preview-card-scale",
-            &format!("{scale_initial}")
-        );
-        ui_observability::set_css_property_observed_auto!(
-            &(style),
-            "--ui-preview-card-y",
-            &format!("{y_initial}px")
-        );
-        let style_for_opacity = style.clone();
-        let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
-            let v = v.clamp(0.0, 1.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_opacity),
-                "--ui-preview-card-opacity",
-                &format!("{v}")
-            );
-        });
-
-        let style_for_scale = style.clone();
-        let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
-            let v = v.clamp(0.0, 10.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_scale),
-                "--ui-preview-card-scale",
-                &format!("{v}")
-            );
-        });
-
-        let style_for_y = style.clone();
-        let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
-            let v = v.clamp(-1000.0, 1000.0);
-            ui_observability::set_css_property_observed_auto!(
-                &(style_for_y),
-                "--ui-preview-card-y",
-                &format!("{v}px")
-            );
-        });
-
-        let springs_for_cleanup = springs;
-        on_cleanup(move || {
-            if let Some((opacity, scale, y)) = springs_for_cleanup.get_value() {
-                opacity.stop();
-                scale.stop();
-                y.stop();
-            }
-        });
-
-        if open_now {
-            opacity.set_target(1.0);
-            scale.set_target(1.0);
-            y.set_target(0.0);
-        }
-
-        springs.set_value(Some((opacity, scale, y)));
-    });
-
-    Effect::new(move |_| {
-        let open = is_open.get();
-        let Some(prev) = last_state.get_value() else {
-            last_state.set_value(Some(open));
-            return;
-        };
-        if prev == open {
-            return;
-        }
-        last_state.set_value(Some(open));
-
-        let Some((opacity, scale, y)) = springs.get_value() else {
-            return;
-        };
-
-        let motion = motion.get_value();
-        let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
-
-        if open {
-            opacity.clear_on_rest();
-            scale.clear_on_rest();
-            y.clear_on_rest();
-
-            opacity.set_target(1.0);
-            scale.set_target(1.0);
-            y.set_target(0.0);
-            return;
-        }
-
-        opacity.set_target(0.0);
-        scale.set_target(motion.initial_scale);
-        y.set_target(offset_y);
-
-        let on_exit_complete = on_exit_complete.clone();
-        scale.set_on_rest(move || on_exit_complete.run(()));
-    });
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -219,7 +98,8 @@ pub fn attach_motion(
 ) {
     use leptos::prelude::*;
 
-    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
+    std::hint::black_box(sanitize_motion(motion));
+    // drop(sanitize_motion(motion));
     Effect::new(move |_| {
         if !is_open.get() {
             on_exit_complete.run(());

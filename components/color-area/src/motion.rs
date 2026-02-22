@@ -1,3 +1,5 @@
+use ui_theme::default_text_field_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ColorAreaMotion {
     pub duration_ms: f64,
@@ -24,7 +26,10 @@ impl ColorAreaMotionSource {
 
 impl Default for ColorAreaMotion {
     fn default() -> Self {
-        Self { duration_ms: 180.0 }
+        let tokens = default_text_field_motion_tokens();
+        Self {
+            duration_ms: f64::from(tokens.duration_ms),
+        }
     }
 }
 

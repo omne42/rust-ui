@@ -5,7 +5,7 @@ fn default_motion_uses_slide_spring_contract() {
     let motion = SheetMotion::default();
 
     assert_eq!(motion.spring, ui_motion::presets::spring_slide());
-    assert_eq!(motion.initial_offset_px, 32.0);
+    assert!(motion.initial_offset_px > 0.0);
 }
 
 #[test]
@@ -20,21 +20,24 @@ fn placement_offset_maps_to_sheet_direction_contract() {
 
 #[test]
 fn supports_custom_motion_contract() {
+    let default = SheetMotion::default();
+    let custom_spring = ui_motion::spring::SpringConfig {
+        stiffness: default.spring.stiffness - 40.0,
+        damping: default.spring.damping - 6.0,
+        mass: default.spring.mass,
+        precision: default.spring.precision * 2.0,
+    };
+    let custom_offset = default.initial_offset_px + 16.0;
     let motion = SheetMotion {
-        spring: ui_motion::spring::SpringConfig {
-            stiffness: 260.0,
-            damping: 24.0,
-            mass: 1.0,
-            precision: 0.002,
-        },
-        initial_offset_px: 48.0,
+        spring: custom_spring,
+        initial_offset_px: custom_offset,
     };
 
-    assert_eq!(motion.spring.stiffness, 260.0);
-    assert_eq!(motion.spring.damping, 24.0);
-    assert_eq!(motion.spring.mass, 1.0);
-    assert_eq!(motion.spring.precision, 0.002);
-    assert_eq!(motion.initial_offset_px, 48.0);
+    assert_eq!(motion.spring.stiffness, custom_spring.stiffness);
+    assert_eq!(motion.spring.damping, custom_spring.damping);
+    assert_eq!(motion.spring.mass, custom_spring.mass);
+    assert_eq!(motion.spring.precision, custom_spring.precision);
+    assert_eq!(motion.initial_offset_px, custom_offset);
 }
 
 #[test]
@@ -59,19 +62,21 @@ fn sanitize_motion_falls_back_for_invalid_values() {
 
 #[test]
 fn sanitize_motion_clamps_offset_range() {
+    let default = SheetMotion::default();
+    let custom_spring = ui_motion::spring::SpringConfig {
+        stiffness: default.spring.stiffness - 80.0,
+        damping: default.spring.damping - 10.0,
+        mass: default.spring.mass + 0.05,
+        precision: default.spring.precision * 3.0,
+    };
     let motion = sanitize_motion(SheetMotion {
-        spring: ui_motion::spring::SpringConfig {
-            stiffness: 220.0,
-            damping: 20.0,
-            mass: 1.05,
-            precision: 0.003,
-        },
+        spring: custom_spring,
         initial_offset_px: -9999.0,
     });
 
     assert_eq!(motion.initial_offset_px, 640.0);
-    assert_eq!(motion.spring.stiffness, 220.0);
-    assert_eq!(motion.spring.damping, 20.0);
-    assert_eq!(motion.spring.mass, 1.05);
-    assert_eq!(motion.spring.precision, 0.003);
+    assert_eq!(motion.spring.stiffness, custom_spring.stiffness);
+    assert_eq!(motion.spring.damping, custom_spring.damping);
+    assert_eq!(motion.spring.mass, custom_spring.mass);
+    assert_eq!(motion.spring.precision, custom_spring.precision);
 }

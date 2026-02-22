@@ -681,110 +681,6 @@ let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
             </Playground>
 
             <Playground
-                title="State Gallery (Disabled / Motion / Callback)"
-                code_signal=state_matrix_code
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <div data-slot="drop-zone-e2e-state-default">
-                        <DropZone label="Default".to_string()>
-                            <div class="docs-drop-zone">"Default state"</div>
-                        </DropZone>
-                    </div>
-                    <div data-slot="drop-zone-e2e-state-disabled">
-                        <DropZone label="Disabled".to_string() is_disabled=true>
-                            <div class="docs-drop-zone">"Disabled state"</div>
-                        </DropZone>
-                    </div>
-                    <div data-slot="drop-zone-e2e-state-custom-motion">
-                        <DropZone
-                            label="Custom motion".to_string()
-                            motion=DropZoneMotion {
-                                hover_scale: 1.015,
-                                drop_scale: 1.03,
-                                hover_highlight: 0.42,
-                                ..DropZoneMotion::default()
-                            }
-                            on_drop_files=on_drop_files
-                        >
-                            <div class="docs-drop-zone">"Custom motion state"</div>
-                        </DropZone>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Controlled vs Uncontrolled (N/A)"
-                code_signal=controlled_contrast_code
-            >
-                <div class="docs-stack docs-stack--tight">
-                    <div class="ui-muted">
-                        "DropZone has no persistent controlled/uncontrolled state axis."
-                    </div>
-                    <div class="ui-muted">
-                        "Use on_drop_files callback to sync dropped files into app state."
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Streaming Optional (fallback=snapshot)"
-                code_signal=streaming_snapshot_code
-            >
-                <DropZone>
-                    <div class="docs-drop-zone">
-                        <div>"Streaming fallback=snapshot: waiting for final validation"</div>
-                        <div class="ui-muted">
-                            "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
-                        </div>
-                    </div>
-                </DropZone>
-            </Playground>
-
-            <Playground
-                title="Source-first Starter (Copy-Paste Ready)"
-                description="代码面板默认可复制运行片段；同时给出真实源码路径与最小依赖前提，避免“复制即报错”。"
-                code_signal=source_first_code
-                code_imports=source_first_imports.clone()
-            >
-                <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-first">
-                    <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-first-contract">
-                        <h3>"Source-first / Copy-Paste Ready Contract"</h3>
-                        <div class="ui-muted">
-                            "Open "
-                            <code>"Show code"</code>
-                            " then use the copy button. Snippets prepend imports automatically."
-                        </div>
-                        <div class="ui-muted">
-                            "docs entry: apps/docs-app/src/pages/components/pages/files.rs::drop_zone"
-                        </div>
-                    </div>
-
-                    <div
-                        class="docs-stack docs-stack--tight"
-                        data-slot="drop-zone-source-first-dependency-baseline"
-                    >
-                        <div class="docs-search__label">"Dependency baseline (Cargo.toml)"</div>
-                        <code>
-                            "ui = { default-features = false, features = [\"component-drop_zone\", \"inject-css\"] }"
-                        </code>
-                    </div>
-
-                    <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-paths">
-                        <div class="docs-search__label">"Source paths"</div>
-                        <div class="ui-muted">"components/drop-zone/src/mod.rs"</div>
-                        <div class="ui-muted">"components/drop-zone/src/logic.rs"</div>
-                        <div class="ui-muted">"components/drop-zone/src/view.rs"</div>
-                        <div class="ui-muted">"components/drop-zone/src/styles.rs"</div>
-                        <div class="ui-muted">"components/drop-zone/src/motion.rs"</div>
-                    </div>
-
-                    <div class="ui-muted" data-slot="drop-zone-source-prerequisites">
-                        "Feature prerequisites: component-drop_zone (inject-css optional for runtime style injection)."
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
                 title="Workbench（展示 + Config + Code + CSS Test）"
                 description="隔离画布用于拖放/粘贴演练；样式支持 scoped 热编辑；可选保留 workbench 状态。"
                 code_signal=workbench_code
@@ -885,6 +781,110 @@ let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
                         >
                             <div class="docs-drop-zone">"Custom motion state"</div>
                         </DropZone>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Gallery (Disabled / Motion / Callback)"
+                code_signal=state_matrix_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div data-slot="drop-zone-e2e-state-default">
+                        <DropZone label="Default".to_string()>
+                            <div class="docs-drop-zone">"Default state"</div>
+                        </DropZone>
+                    </div>
+                    <div data-slot="drop-zone-e2e-state-disabled">
+                        <DropZone label="Disabled".to_string() is_disabled=true>
+                            <div class="docs-drop-zone">"Disabled state"</div>
+                        </DropZone>
+                    </div>
+                    <div data-slot="drop-zone-e2e-state-custom-motion">
+                        <DropZone
+                            label="Custom motion".to_string()
+                            motion=DropZoneMotion {
+                                hover_scale: 1.015,
+                                drop_scale: 1.03,
+                                hover_highlight: 0.42,
+                                ..DropZoneMotion::default()
+                            }
+                            on_drop_files=on_drop_files
+                        >
+                            <div class="docs-drop-zone">"Custom motion state"</div>
+                        </DropZone>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Controlled vs Uncontrolled (N/A)"
+                code_signal=controlled_contrast_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="ui-muted">
+                        "DropZone has no persistent controlled/uncontrolled state axis."
+                    </div>
+                    <div class="ui-muted">
+                        "Use on_drop_files callback to sync dropped files into app state."
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Optional (fallback=snapshot)"
+                code_signal=streaming_snapshot_code
+            >
+                <DropZone>
+                    <div class="docs-drop-zone">
+                        <div>"Streaming fallback=snapshot: waiting for final validation"</div>
+                        <div class="ui-muted">
+                            "Inspect data-ui-stream-support/data-ui-stream-fallback/data-ui-output-status."
+                        </div>
+                    </div>
+                </DropZone>
+            </Playground>
+
+            <Playground
+                title="Source-first Starter (Copy-Paste Ready)"
+                description="代码面板默认可复制运行片段；同时给出真实源码路径与最小依赖前提，避免“复制即报错”。"
+                code_signal=source_first_code
+                code_imports=source_first_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-first">
+                    <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-first-contract">
+                        <h3>"Source-first / Copy-Paste Ready Contract"</h3>
+                        <div class="ui-muted">
+                            "Open "
+                            <code>"Show code"</code>
+                            " then use the copy button. Snippets prepend imports automatically."
+                        </div>
+                        <div class="ui-muted">
+                            "docs entry: apps/docs-app/src/pages/components/pages/files.rs::drop_zone"
+                        </div>
+                    </div>
+
+                    <div
+                        class="docs-stack docs-stack--tight"
+                        data-slot="drop-zone-source-first-dependency-baseline"
+                    >
+                        <div class="docs-search__label">"Dependency baseline (Cargo.toml)"</div>
+                        <code>
+                            "ui = { default-features = false, features = [\"component-drop_zone\", \"inject-css\"] }"
+                        </code>
+                    </div>
+
+                    <div class="docs-stack docs-stack--tight" data-slot="drop-zone-source-paths">
+                        <div class="docs-search__label">"Source paths"</div>
+                        <div class="ui-muted">"components/drop-zone/src/mod.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/logic.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/view.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/styles.rs"</div>
+                        <div class="ui-muted">"components/drop-zone/src/motion.rs"</div>
+                    </div>
+
+                    <div class="ui-muted" data-slot="drop-zone-source-prerequisites">
+                        "Feature prerequisites: component-drop_zone (inject-css optional for runtime style injection)."
                     </div>
                 </div>
             </Playground>

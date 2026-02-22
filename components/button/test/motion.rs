@@ -41,21 +41,23 @@ fn sanitize_motion_falls_back_for_invalid_values() {
 
 #[test]
 fn sanitize_motion_clamps_scale_values() {
+    let default = ButtonMotion::default();
+    let custom_spring = ui_motion::spring::SpringConfig {
+        stiffness: default.spring.stiffness + 60.0,
+        damping: default.spring.damping + 4.0,
+        mass: default.spring.mass + 0.1,
+        precision: default.spring.precision * 2.0,
+    };
     let motion = sanitize_motion(ButtonMotion {
-        spring: ui_motion::spring::SpringConfig {
-            stiffness: 320.0,
-            damping: 20.0,
-            mass: 1.1,
-            precision: 0.002,
-        },
+        spring: custom_spring,
         hover_scale: 5.0,
         tap_scale: -2.0,
     });
 
-    assert_eq!(motion.spring.stiffness, 320.0);
-    assert_eq!(motion.spring.damping, 20.0);
-    assert_eq!(motion.spring.mass, 1.1);
-    assert_eq!(motion.spring.precision, 0.002);
+    assert_eq!(motion.spring.stiffness, custom_spring.stiffness);
+    assert_eq!(motion.spring.damping, custom_spring.damping);
+    assert_eq!(motion.spring.mass, custom_spring.mass);
+    assert_eq!(motion.spring.precision, custom_spring.precision);
     assert_eq!(motion.hover_scale, 2.0);
     assert_eq!(motion.tap_scale, 0.5);
 }
@@ -74,21 +76,24 @@ fn default_button_group_motion_matches_spring_contract() {
 #[cfg(feature = "component-button_group")]
 #[test]
 fn sanitize_button_group_motion_keeps_valid_values() {
+    let default = ButtonGroupMotion::default();
+    let custom_spring = ui_motion::spring::SpringConfig {
+        stiffness: default.spring.stiffness + 60.0,
+        damping: default.spring.damping + 2.0,
+        mass: default.spring.mass + 0.2,
+        precision: default.spring.precision * 2.0,
+    };
+    let custom_enter_scale = default.enter_scale + 0.095;
     let motion = sanitize_button_group_motion(ButtonGroupMotion {
-        spring: ui_motion::spring::SpringConfig {
-            stiffness: 300.0,
-            damping: 22.0,
-            mass: 1.2,
-            precision: 0.002,
-        },
-        enter_scale: 1.08,
+        spring: custom_spring,
+        enter_scale: custom_enter_scale,
     });
 
-    assert_eq!(motion.spring.stiffness, 300.0);
-    assert_eq!(motion.spring.damping, 22.0);
-    assert_eq!(motion.spring.mass, 1.2);
-    assert_eq!(motion.spring.precision, 0.002);
-    assert_eq!(motion.enter_scale, 1.08);
+    assert_eq!(motion.spring.stiffness, custom_spring.stiffness);
+    assert_eq!(motion.spring.damping, custom_spring.damping);
+    assert_eq!(motion.spring.mass, custom_spring.mass);
+    assert_eq!(motion.spring.precision, custom_spring.precision);
+    assert_eq!(motion.enter_scale, custom_enter_scale);
 }
 
 #[cfg(feature = "component-button_group")]

@@ -691,59 +691,6 @@ let on_selected_change = Callback::new(move |next| set_selected.set(next));
                 <FormField label="Accept terms of service".to_string() />
             </Playground>
 
-            <Playground title="Switch Indicator + Description" code_signal=code>
-                <div class="docs-stack">
-                    <FormField
-                        is_selected=Signal::derive(move || marketing.get())
-                        on_selected_change=on_marketing_selected_change
-                        id_base="docs-form-field-marketing".to_string()
-                        label="Subscribe to product updates".to_string()
-                        description="Receive release notes and occasional best-practice tips.".to_string()
-                        indicator_placement=FormFieldIndicatorPlacement::Start
-                    />
-                    <span class="ui-muted">
-                        "marketing: " {move || marketing.get()}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Checkbox Indicator + Quiet + Invalid/Disabled" code_signal=states_code>
-                <div class="docs-stack">
-                    <FormField
-                        is_selected=Signal::derive(move || tos.get())
-                        on_selected_change=on_tos_selected_change
-                        id_base="docs-form-field-tos".to_string()
-                        label="Accept terms of service".to_string()
-                        description="Required before continuing checkout.".to_string()
-                        indicator_variant=FormFieldIndicatorVariant::Checkbox
-                        indicator_placement=FormFieldIndicatorPlacement::End
-                        tone=FormFieldTone::Quiet
-                        is_invalid=true
-                        error_message="Please accept terms to continue.".to_string()
-                        class_name="docs-form-field-custom".to_string()
-                    />
-
-                    <FormField
-                        default_selected=true
-                        id_base="docs-form-field-read-only".to_string()
-                        label="Maintenance window alerts".to_string()
-                        description="Read-only preference inherited from organization policy.".to_string()
-                        indicator_variant=FormFieldIndicatorVariant::Checkbox
-                        indicator_placement=FormFieldIndicatorPlacement::End
-                        is_disabled=true
-                        aria_label="Maintenance alerts (read only)".to_string()
-                    />
-
-                    <span class="ui-muted">
-                        "tos: " {move || tos.get()}
-                        " · read-only: true"
-                    </span>
-                    <div class="ui-muted" data-slot="form-field-state-matrix-note">
-                        "State matrix: controlled selected/unselected, invalid, disabled, indicator variant and tone."
-                    </div>
-                </div>
-            </Playground>
-
             <Playground
                 title="FormField Workbench (Display + Config + Code + CSS Test)"
                 description="Interactive playground: adjust props/state and inspect live preview + generated config."
@@ -857,6 +804,59 @@ let on_selected_change = Callback::new(move |next| set_selected.set(next));
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground title="Switch Indicator + Description" code_signal=code>
+                <div class="docs-stack">
+                    <FormField
+                        is_selected=Signal::derive(move || marketing.get())
+                        on_selected_change=on_marketing_selected_change
+                        id_base="docs-form-field-marketing".to_string()
+                        label="Subscribe to product updates".to_string()
+                        description="Receive release notes and occasional best-practice tips.".to_string()
+                        indicator_placement=FormFieldIndicatorPlacement::Start
+                    />
+                    <span class="ui-muted">
+                        "marketing: " {move || marketing.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Checkbox Indicator + Quiet + Invalid/Disabled" code_signal=states_code>
+                <div class="docs-stack">
+                    <FormField
+                        is_selected=Signal::derive(move || tos.get())
+                        on_selected_change=on_tos_selected_change
+                        id_base="docs-form-field-tos".to_string()
+                        label="Accept terms of service".to_string()
+                        description="Required before continuing checkout.".to_string()
+                        indicator_variant=FormFieldIndicatorVariant::Checkbox
+                        indicator_placement=FormFieldIndicatorPlacement::End
+                        tone=FormFieldTone::Quiet
+                        is_invalid=true
+                        error_message="Please accept terms to continue.".to_string()
+                        class_name="docs-form-field-custom".to_string()
+                    />
+
+                    <FormField
+                        default_selected=true
+                        id_base="docs-form-field-read-only".to_string()
+                        label="Maintenance window alerts".to_string()
+                        description="Read-only preference inherited from organization policy.".to_string()
+                        indicator_variant=FormFieldIndicatorVariant::Checkbox
+                        indicator_placement=FormFieldIndicatorPlacement::End
+                        is_disabled=true
+                        aria_label="Maintenance alerts (read only)".to_string()
+                    />
+
+                    <span class="ui-muted">
+                        "tos: " {move || tos.get()}
+                        " · read-only: true"
+                    </span>
+                    <div class="ui-muted" data-slot="form-field-state-matrix-note">
+                        "State matrix: controlled selected/unselected, invalid, disabled, indicator variant and tone."
+                    </div>
+                </div>
             </Playground>
 
             <Playground title="Controlled vs Default (Comparison)" code_signal=comparison_code>

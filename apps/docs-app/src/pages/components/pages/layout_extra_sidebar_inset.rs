@@ -129,28 +129,6 @@ pub(super) fn sidebar_inset() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Compact + Plain + Disabled" code_signal=compact_code>
-                <Sidebar
-                    side=SidebarSide::Right
-                    variant=SidebarVariant::Inset
-                    collapsible=SidebarCollapsible::Offcanvas
-                    show_trigger=false
-                    aria_label="Inspector sidebar inset".to_string()
-                >
-                    <SidebarInset
-                        side=SidebarSide::Right
-                        padded=false
-                        recessed=false
-                        disabled=true
-                        aria_label="Inspector inset panel".to_string()
-                        class_name="docs-sidebar-inset-custom".to_string()
-                    >
-                        <span class="ui-muted">"Read-only"</span>
-                        <span class="ui-muted">"3 warnings"</span>
-                    </SidebarInset>
-                </Sidebar>
-            </Playground>
-
             <Playground
                 title="Workbench (All API Config)"
                 code_signal=workbench_code
@@ -203,6 +181,28 @@ pub(super) fn sidebar_inset() -> AnyView {
                     >
                         <span>"Overview"</span>
                         <span>"Recent activity"</span>
+                    </SidebarInset>
+                </Sidebar>
+            </Playground>
+
+            <Playground title="Compact + Plain + Disabled" code_signal=compact_code>
+                <Sidebar
+                    side=SidebarSide::Right
+                    variant=SidebarVariant::Inset
+                    collapsible=SidebarCollapsible::Offcanvas
+                    show_trigger=false
+                    aria_label="Inspector sidebar inset".to_string()
+                >
+                    <SidebarInset
+                        side=SidebarSide::Right
+                        padded=false
+                        recessed=false
+                        disabled=true
+                        aria_label="Inspector inset panel".to_string()
+                        class_name="docs-sidebar-inset-custom".to_string()
+                    >
+                        <span class="ui-muted">"Read-only"</span>
+                        <span class="ui-muted">"3 warnings"</span>
                     </SidebarInset>
                 </Sidebar>
             </Playground>
