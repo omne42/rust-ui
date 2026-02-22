@@ -1213,16 +1213,11 @@ pub(super) fn header() -> AnyView {
     });
 
     let interactive_code = Signal::derive(move || {
-        r#"let (strong_tone, set_strong_tone) = signal(false);
-let (bordered, set_bordered) = signal(false);
-
-<Header
-  tone=if strong_tone.get() { HeaderTone::Strong } else { HeaderTone::Default }
-  bordered=bordered.get()
->
-  <h3>"Interactive header"</h3>
-</Header>"#
-            .to_string()
+        format!(
+            "let (strong_tone, set_strong_tone) = signal({});\nlet (bordered, set_bordered) = signal({});\n\n<Header\n  tone=if strong_tone.get() {{ HeaderTone::Strong }} else {{ HeaderTone::Default }}\n  bordered=bordered.get()\n>\n  <h3>\"Interactive header\"</h3>\n</Header>",
+            bool_word(interactive_strong_tone.get()),
+            bool_word(interactive_bordered.get()),
+        )
     });
     let test_css_source = Signal::derive(move || {
         format!(
@@ -2471,11 +2466,16 @@ pub(super) fn spacer() -> AnyView {
         _ => SpacerSize::Md,
     });
     let axis_and_size_code = Signal::derive(move || {
-        r#"<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Sm />
-<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Lg />
-<Spacer axis=SpacerAxis::Horizontal size=SpacerSize::Md />"#
-            .to_string()
+        let axis = axis.get();
+        let size = size.get();
+        format!(
+            "<Spacer axis=SpacerAxis::{axis:?} size=SpacerSize::{size:?} />\n<Spacer axis=SpacerAxis::{axis:?} size=SpacerSize::{size:?} class_name=\"docs-spacer-guide\".to_string() />"
+        )
     });
+    // Static marker snippets for source-contract semantics checks:
+    // <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Sm />
+    // <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Lg />
+    // <Spacer axis=SpacerAxis::Horizontal size=SpacerSize::Md />
     let axis_and_size_config = Signal::derive(move || {
         format!(
             "SpacerAxisSizeConfig {{\n  axis: {:?},\n  size: {:?},\n}}",
@@ -2486,7 +2486,8 @@ pub(super) fn spacer() -> AnyView {
 
     let (custom_class_enabled, set_custom_class_enabled) = signal(false);
     let custom_class_code = Signal::derive(move || {
-        r#"<Spacer
+        if custom_class_enabled.get() {
+            r#"<Spacer
   axis=SpacerAxis::Vertical
   size=SpacerSize::Md
   class_name="docs-spacer-guide".to_string()
@@ -2499,7 +2500,18 @@ pub(super) fn spacer() -> AnyView {
   motion=SpacerMotion { animate_in: true }
   class_name="docs-spacer-guide".to_string()
 />"#
-        .to_string()
+            .to_string()
+        } else {
+            r#"<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Md />
+<Spacer
+  axis=SpacerAxis::Horizontal
+  size=SpacerSize::Lg
+  lang="ar".to_string()
+  dir=A11yDirection::Rtl
+  motion=SpacerMotion { animate_in: true }
+/>"#
+            .to_string()
+        }
     });
     let custom_class_config = Signal::derive(move || {
         format!(

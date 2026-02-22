@@ -754,12 +754,14 @@ pub(super) fn button() -> AnyView {
         }
 
         format!(
-            "ButtonActualConfig {{\n  color: {color:?},\n  variant: {variant:?},\n  radius: {radius:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_icon_only: {icon_only},\n  aria_label: {},\n  is_full_width: {is_full_width},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  schema_json: {schema_json:?},\n  class: \"{}\",\n}}",
+            "ButtonActualConfig {{\n  color: {color:?},\n  variant: {variant:?},\n  radius: {radius:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_icon_only: {icon_only},\n  aria_label: {},\n  is_full_width: {is_full_width},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  schema_json: {schema_json:?},\n  class_name: {:?},\n  on_press: {:?},\n  class: \"{}\",\n}}",
             if icon_only {
                 "Some(\"Button\")"
             } else {
                 "None"
             },
+            None::<String>,
+            "Callback<MouseEvent>",
             classes.join(" ")
         )
     });

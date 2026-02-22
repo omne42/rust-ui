@@ -1164,6 +1164,8 @@ pub(super) fn description() -> AnyView {
     let (is_truncated, set_is_truncated) = signal(false);
     let (custom_aria_label, set_custom_aria_label) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
+    let (lang_zh, set_lang_zh) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
 
     let selected_tone: Signal<DescriptionTone> =
         Signal::derive(move || match tone_index.get().unwrap_or(0) {
@@ -1204,6 +1206,12 @@ pub(super) fn description() -> AnyView {
         if custom_class.get() {
             lines.push("  class_name=\"docs-description-custom\".into()".to_string());
         }
+        if lang_zh.get() {
+            lines.push("  lang=\"zh-CN\".into()".to_string());
+        }
+        if rtl_dir.get() {
+            lines.push("  dir=A11yDirection::Rtl".to_string());
+        }
         lines.push("/>".to_string());
         lines.join("\n")
     });
@@ -1231,9 +1239,19 @@ pub(super) fn description() -> AnyView {
         }
 
         format!(
-            "DescriptionActualConfig {{\n  tone: {tone:?},\n  element: {element:?},\n  is_disabled: {},\n  is_truncated: {},\n  has_custom_aria_label: {},\n  has_custom_class_name: {},\n  class: \"{}\",\n}}",
+            "DescriptionActualConfig {{\n  text: \"Helper text for this field.\",\n  tone: {tone:?},\n  element: {element:?},\n  is_disabled: {},\n  is_truncated: {},\n  lang: {},\n  dir: {},\n  has_custom_aria_label: {},\n  has_custom_class_name: {},\n  class: \"{}\",\n}}",
             is_disabled.get(),
             is_truncated.get(),
+            if lang_zh.get() {
+                "Some(\"zh-CN\")"
+            } else {
+                "Some(\"en-US\")"
+            },
+            if rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
             custom_aria_label.get(),
             custom_class.get(),
             classes.join(" ")
@@ -1452,6 +1470,12 @@ pub(super) fn description() -> AnyView {
                         <Switch checked=custom_class set_checked=set_custom_class>
                             "Custom class"
                         </Switch>
+                        <Switch checked=lang_zh set_checked=set_lang_zh>
+                            "lang=zh-CN"
+                        </Switch>
+                        <Switch checked=rtl_dir set_checked=set_rtl_dir>
+                            "dir=rtl"
+                        </Switch>
                     </div>
                 }
             >
@@ -1476,6 +1500,16 @@ pub(super) fn description() -> AnyView {
                                     "docs-description-custom".to_string()
                                 } else {
                                     "".to_string()
+                                }
+                                lang=if lang_zh.get() {
+                                    "zh-CN".to_string()
+                                } else {
+                                    "en-US".to_string()
+                                }
+                                dir=if rtl_dir.get() {
+                                    A11yDirection::Rtl
+                                } else {
+                                    A11yDirection::Ltr
                                 }
                             />
                         </div>
@@ -3439,6 +3473,9 @@ pub(super) fn help_text() -> AnyView {
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
     let (show_compare, set_show_compare) = signal(true);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (lang_zh, set_lang_zh) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
 
     let active_tone = Signal::derive(move || match tone_index.get().unwrap_or(0) {
         1 => HelpTextTone::Neutral,
@@ -3502,6 +3539,18 @@ pub(super) fn help_text() -> AnyView {
         if let Some(class_name) = class_name {
             lines.push(format!("  class_name={class_name:?}.into()"));
         }
+        if custom_motion.get() {
+            lines.push("  motion=HelpTextMotion::disabled()".to_string());
+        }
+        lines.push(format!(
+            "  lang={:?}.into()",
+            if lang_zh.get() { "zh-CN" } else { "en-US" }
+        ));
+        if rtl_dir.get() {
+            lines.push("  dir=A11yDirection::Rtl".to_string());
+        } else {
+            lines.push("  dir=A11yDirection::Ltr".to_string());
+        }
         lines.push("/>".to_string());
 
         lines.join("\n")
@@ -3522,7 +3571,22 @@ pub(super) fn help_text() -> AnyView {
         let has_custom_aria = custom_aria.get();
         let has_custom_class = custom_class.get();
         format!(
-            "HelpTextActualConfig {{\n  tone: HelpTextTone::{tone:?},\n  is_invalid: {is_invalid},\n  is_disabled: {is_disabled},\n  is_error_icon_visible: {is_error_icon_visible},\n  has_description: {has_description},\n  has_error_message: {has_error},\n  has_custom_aria_label: {has_custom_aria},\n  has_custom_class_name: {has_custom_class},\n}}"
+            "HelpTextActualConfig {{\n  tone: HelpTextTone::{tone:?},\n  is_invalid: {is_invalid},\n  is_disabled: {is_disabled},\n  is_error_icon_visible: {is_error_icon_visible},\n  motion: {},\n  lang: {},\n  dir: {},\n  has_description: {has_description},\n  has_error_message: {has_error},\n  has_custom_aria_label: {has_custom_aria},\n  has_custom_class_name: {has_custom_class},\n}}",
+            if custom_motion.get() {
+                "HelpTextMotion::disabled()"
+            } else {
+                "HelpTextMotion::default()"
+            },
+            if lang_zh.get() {
+                "Some(\"zh-CN\")"
+            } else {
+                "Some(\"en-US\")"
+            },
+            if rtl_dir.get() {
+                "Some(A11yDirection::Rtl)"
+            } else {
+                "Some(A11yDirection::Ltr)"
+            },
         )
     });
 
@@ -3544,7 +3608,7 @@ pub(super) fn help_text() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix (Description / Error / Disabled)"
+                title="Description / Error / Disabled Gallery"
                 code_signal=state_matrix_code
                 code_imports=help_text_imports.clone()
             >
@@ -3699,6 +3763,21 @@ pub(super) fn help_text() -> AnyView {
                                 "Custom class"
                             </ui::Switch>
                         </div>
+                        <div data-slot="help-text-toggle-custom-motion">
+                            <ui::Switch checked=custom_motion set_checked=set_custom_motion>
+                                "Motion disabled"
+                            </ui::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-lang-zh">
+                            <ui::Switch checked=lang_zh set_checked=set_lang_zh>
+                                "lang=zh-CN"
+                            </ui::Switch>
+                        </div>
+                        <div data-slot="help-text-toggle-dir-rtl">
+                            <ui::Switch checked=rtl_dir set_checked=set_rtl_dir>
+                                "dir=rtl"
+                            </ui::Switch>
+                        </div>
                         <div data-slot="help-text-toggle-show-compare">
                             <ui::Switch checked=show_compare set_checked=set_show_compare>
                                 "Show compare matrix"
@@ -3731,6 +3810,21 @@ pub(super) fn help_text() -> AnyView {
                                     error_message=error_message
                                     aria_label=aria_label
                                     class_name=class_name
+                                    motion=if custom_motion.get() {
+                                        ui::field_form::help_text::HelpTextMotion::disabled()
+                                    } else {
+                                        ui::field_form::help_text::HelpTextMotion::default()
+                                    }
+                                    lang=if lang_zh.get() {
+                                        "zh-CN".to_string()
+                                    } else {
+                                        "en-US".to_string()
+                                    }
+                                    dir=if rtl_dir.get() {
+                                        A11yDirection::Rtl
+                                    } else {
+                                        A11yDirection::Ltr
+                                    }
                                 />
                             </div>
 
@@ -3757,6 +3851,35 @@ pub(super) fn help_text() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Description / Error / Disabled)"
+                code_signal=state_matrix_code
+                code_imports=help_text_imports.clone()
+            >
+                <div class="docs-stack">
+                    <HelpText
+                        description="Use at least 12 characters.".to_string()
+                        aria_label="Password hint".to_string()
+                    />
+                    <HelpText
+                        tone=HelpTextTone::Neutral
+                        description="This value is visible to project admins only.".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        is_error_icon_visible=true
+                        error_message="Password does not meet complexity requirements.".to_string()
+                        class_name="docs-help-text-custom".to_string()
+                    />
+                    <HelpText
+                        is_invalid=true
+                        tone=HelpTextTone::Negative
+                        error_message="Two-factor token expired. Request a new code.".to_string()
+                        is_disabled=true
+                    />
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="help-text-source-first">

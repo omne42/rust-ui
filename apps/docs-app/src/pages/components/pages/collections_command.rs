@@ -435,7 +435,7 @@ let (last_action, set_last_action) = signal("none".to_string());
     let workbench_actual_config = Signal::derive(move || {
         let scenario = workbench_index.get().unwrap_or(0);
         format!(
-            "CommandWorkbenchConfig {{\n  scenario: {scenario},\n  disabled: {},\n  custom_text: {},\n  custom_motion: {},\n  class_name: {},\n}}",
+            "CommandWorkbenchConfig {{\n  scenario: {scenario},\n  disabled: {},\n  custom_text: {},\n  custom_motion: {},\n  class_name: {},\n  on_query_change: \"n/a in scenario workbench (covered in API workbench)\",\n  on_action: \"last={:?}\",\n}}",
             workbench_disabled.get(),
             workbench_custom_text.get(),
             workbench_custom_motion.get(),
@@ -443,7 +443,8 @@ let (last_action, set_last_action) = signal("none".to_string());
                 "\"docs-command-custom\""
             } else {
                 "\"\""
-            }
+            },
+            last_workbench_action.get(),
         )
     });
 
@@ -1392,13 +1393,14 @@ pub(super) fn menubar() -> AnyView {
             class_tokens.push("docs-menubar-custom".to_string());
         }
         format!(
-            "MenubarActualConfig {{\n  id_base: {:?},\n  menus: {:?},\n  on_open_index_change: {:?},\n  menu_set: \"{}\",\n  menu_count: {},\n  close_on_action: {},\n  placement: \"{}\",\n  default_open_index: {},\n  custom_motion: {},\n  custom_class_name: {},\n  class_name: {:?},\n  class: \"{}\",\n}}",
+            "MenubarActualConfig {{\n  id_base: {:?},\n  menus: {:?},\n  on_open_index_change: {:?},\n  on_action: \"last={:?}\",\n  menu_set: \"{}\",\n  menu_count: {},\n  close_on_action: {},\n  is_close_on_action: {:?},\n  placement: \"{}\",\n  default_open_index: {},\n  custom_motion: {},\n  custom_class_name: {},\n  class_name: {:?},\n  class: \"{}\",\n}}",
             "docs-menubar-workbench",
             menus
                 .iter()
                 .map(|menu| menu.id.as_str())
                 .collect::<Vec<_>>(),
             "handler",
+            workbench_last_action.get(),
             match menu_set_index.get().unwrap_or(0) {
                 1 => "workspace",
                 2 => "compact",
@@ -1406,6 +1408,7 @@ pub(super) fn menubar() -> AnyView {
             },
             menus.len(),
             workbench_close_on_action.get(),
+            Some(workbench_close_on_action.get()),
             if workbench_flip_placement.get() {
                 "bottom-start-flipped"
             } else {
@@ -2325,6 +2328,45 @@ custom_motion.spring.damping = 24.0;
                         "selected: "
                         {move || workbench_selected_raw.get().unwrap_or_else(|| "none".to_string())}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Default / Controlled / Marker Comparison)"
+                code_signal=states_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-matrix-default".to_string()
+                        items=vec![
+                            NavigationMenuItem::new("overview", "Overview", "/docs/overview"),
+                            NavigationMenuItem::new("components", "Components", "/docs/components"),
+                            NavigationMenuItem::new("patterns", "Patterns", "/docs/patterns"),
+                        ]
+                        default_selected_id="components".to_string()
+                    />
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-matrix-controlled".to_string()
+                        items=vec![
+                            NavigationMenuItem::new("home", "Home", "/"),
+                            NavigationMenuItem::new("docs", "Docs", "/docs"),
+                            NavigationMenuItem::new("blog", "Blog", "/blog"),
+                        ]
+                        selected_id=workbench_selected
+                        on_selected_id_change=on_workbench_selected_change
+                        activate_on_focus=false
+                        class_name="docs-navigation-menu-custom".to_string()
+                    />
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-matrix-disabled".to_string()
+                        items=vec![
+                            NavigationMenuItem::new("workspace", "Workspace", "/workspace"),
+                            NavigationMenuItem::new("projects", "Projects", "/projects").disabled(true),
+                            NavigationMenuItem::new("settings", "Settings", "/settings"),
+                        ]
+                        default_selected_id="workspace".to_string()
+                        activate_on_focus=true
+                    />
                 </div>
             </Playground>
         </ComponentPage>
@@ -3716,13 +3758,15 @@ let (last_action, set_last_action) = signal("none".to_string());
     let workbench_actual_config = Signal::derive(move || {
         let scenario = workbench_index.get().unwrap_or(0);
         format!(
-            "CommandDialogWorkbenchConfig {{\n  scenario: {scenario},\n  close_on_action: {},\n  disabled: {},\n  custom_text: {},\n  custom_motion: {},\n  preserve_context: {},\n  open: {},\n  last_action: {:?},\n}}",
+            "CommandDialogWorkbenchConfig {{\n  scenario: {scenario},\n  close_on_action: {},\n  disabled: {},\n  custom_text: {},\n  custom_motion: {},\n  preserve_context: {},\n  open: {},\n  on_open_change: \"set_workbench_open_raw(open={})\",\n  on_action: \"last={:?}\",\n  last_action: {:?},\n}}",
             workbench_close_on_action.get(),
             workbench_disabled.get(),
             workbench_custom_text.get(),
             workbench_custom_motion.get(),
             workbench_preserve_context.get(),
             workbench_open_raw.get(),
+            workbench_open_raw.get(),
+            last_workbench_action.get(),
             last_workbench_action.get(),
         )
     });

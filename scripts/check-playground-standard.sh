@@ -172,6 +172,11 @@ def iter_playground_tags(block: str) -> list[str]:
         j = block.find("<Playground", i)
         if j == -1:
             break
+        line_start = block.rfind("\n", 0, j) + 1
+        line_prefix = block[line_start:j]
+        if line_prefix.lstrip().startswith("//"):
+            i = j + len("<Playground")
+            continue
         if j > 0 and block[j - 1] in {'"', "'"}:
             i = j + len("<Playground")
             continue
@@ -193,6 +198,13 @@ def extract_test_config_idents(tag: str) -> list[str]:
     for m in re.finditer(r"test_config_signal=([A-Za-z_][A-Za-z0-9_]*)", tag):
         out.append(m.group(1))
     return out
+
+
+def extract_code_signal_ident(tag: str) -> str | None:
+    m = re.search(r"code_signal=([A-Za-z_][A-Za-z0-9_]*)", tag)
+    if not m:
+        return None
+    return m.group(1)
 
 
 def source_candidates() -> dict[str, list[tuple[Path, str]]]:
@@ -471,6 +483,24 @@ def main() -> int:
                     f"{label}: invalid playground order (expected Showcase -> Workbench -> Matrix)"
                 )
 
+        for tag in tags:
+            if "controls=" not in tag or "test_config_signal=" not in tag:
+                continue
+            code_ident = extract_code_signal_ident(tag)
+            if not code_ident:
+                errors.append(f"{label}: workbench missing code_signal")
+                continue
+            code_snippet = extract_signal_snippet(block, code_ident)
+            if not code_snippet:
+                errors.append(
+                    f"{label}: cannot resolve code_signal body `{code_ident}` for workbench"
+                )
+                continue
+            if ".get(" not in code_snippet and ".get()" not in code_snippet:
+                errors.append(
+                    f"{label}: workbench code_signal `{code_ident}` is not reactive to config (missing .get())"
+                )
+
         if name in SOURCE_CHECK_NA:
             continue
 
@@ -488,6 +518,12 @@ def main() -> int:
         if not candidates:
             errors.append(f"{label}: cannot locate source `pub fn {name}(...)` for API coverage")
             continue
+
+        callback_props_union: set[str] = set()
+        for _, cand_text in candidates:
+            for prop in extract_props_from_signature(cand_text, name):
+                if prop != "children" and prop.startswith("on_"):
+                    callback_props_union.add(prop)
 
         fallback_slug = camel_to_kebab(name)
         slug_snake = slug.replace("-", "_")
@@ -575,6 +611,12 @@ def main() -> int:
             if f"{prop}:" not in config_text:
                 errors.append(
                     f"{label}: config preview missing API key `{prop}:` in test_config_signal path"
+                )
+
+        for callback_prop in sorted(callback_props_union):
+            if f"{callback_prop}:" not in config_text:
+                errors.append(
+                    f"{label}: callback config missing `{callback_prop}:` in test_config_signal path"
                 )
 
     print("[playground-standard] scope: docs-app catalog components")

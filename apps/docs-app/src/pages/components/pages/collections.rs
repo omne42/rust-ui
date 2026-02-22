@@ -671,20 +671,23 @@ pub(super) fn accordion() -> AnyView {
     });
 
     let code = Signal::derive(move || {
-        r#"let (open, set_open) = signal(open_set([0]));
-let item_0_open = Signal::derive(move || open.get().contains(&0));
-let item_1_open = Signal::derive(move || open.get().contains(&1));
-let item_2_open = Signal::derive(move || open.get().contains(&2));
-
-<Accordion
-  id_base="accordion".to_string()
-  selection_mode=AccordionSelectionMode::Multiple
-  variant=AccordionVariant::Shadow
->
-  <AccordionItem key=0 label="First" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>"Panel 1"</div></AccordionItem>
-  <AccordionItem key=1 label="Second" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>"Panel 2"</div></AccordionItem>
-  <AccordionItem key=2 label="Third" open=item_2_open on_open_change=on_item_open_change(set_open, 2)><div>"Panel 3"</div></AccordionItem>
-</Accordion>"#.to_string()
+        let open_literal = open_set_literal(&open_multi.get());
+        format!(
+            "let (open, set_open) = signal({open_literal});\n\
+let item_0_open = Signal::derive(move || open.get().contains(&0));\n\
+let item_1_open = Signal::derive(move || open.get().contains(&1));\n\
+let item_2_open = Signal::derive(move || open.get().contains(&2));\n\
+\n\
+<Accordion\n\
+  id_base=\"accordion\".to_string()\n\
+  selection_mode=AccordionSelectionMode::Multiple\n\
+  variant=AccordionVariant::Shadow\n\
+>\n\
+  <AccordionItem key=0 label=\"First\" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>\"Panel 1\"</div></AccordionItem>\n\
+  <AccordionItem key=1 label=\"Second\" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>\"Panel 2\"</div></AccordionItem>\n\
+  <AccordionItem key=2 label=\"Third\" open=item_2_open on_open_change=on_item_open_change(set_open, 2)><div>\"Panel 3\"</div></AccordionItem>\n\
+</Accordion>"
+        )
     });
 
     let states_code = Signal::derive(move || {
@@ -708,7 +711,7 @@ let item_2_open = Signal::derive(move || open.get().contains(&2));
     let controlled_preview_actual_config = Signal::derive(move || {
         let open = open_multi.get().iter().copied().collect::<Vec<_>>();
         format!(
-            "AccordionControlledPreviewConfig {{\n  id_base: Some(\"docs-accordion\"),\n  selection_mode: \"multiple\",\n  variant: \"shadow\",\n  open: {open:?},\n  on_open_change: \"per-item callback updates open set\",\n}}"
+            "AccordionControlledPreviewConfig {{\n  id_base: Some(\"docs-accordion\"),\n  selection_mode: \"multiple\",\n  variant: \"shadow\",\n  open: {open:?},\n  on_open_change: \"per-item callback updates open set\",\n  on_panel_lifecycle: \"events=0 (not attached in controlled preview)\",\n}}"
         )
     });
 
@@ -2225,6 +2228,7 @@ pub(super) fn list() -> AnyView {
     .into();
     let showcase_items_for_showcase = showcase_items.clone();
     let showcase_items_for_matrix = showcase_items.clone();
+    let showcase_items_for_matrix_after = showcase_items.clone();
     let showcase_items_for_stream_snapshot = showcase_items.clone();
     let showcase_items_for_stream_streaming = showcase_items.clone();
     let disabled_items: Arc<[String]> = vec![
@@ -2743,6 +2747,42 @@ let (controlled_selected, set_controlled_selected) = signal(Some(1_usize));
                         }
                         .into_any()
                     }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Controlled / Uncontrolled / Disabled Comparison)"
+                code_signal=state_matrix_code
+                code_imports=list_code_imports.clone()
+            >
+                <div class="docs-row" data-slot="list-state-matrix-after-workbench">
+                    <div class="docs-stack">
+                        <span class="ui-muted">"uncontrolled"</span>
+                        <List
+                            id_base="docs-list-matrix-after-uncontrolled".to_string()
+                            items=showcase_items_for_matrix_after.clone()
+                            aria_label="Matrix uncontrolled list".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack">
+                        <span class="ui-muted">"unsynced active index"</span>
+                        <List
+                            id_base="docs-list-matrix-after-unsynced".to_string()
+                            items=showcase_items_for_matrix_after.clone()
+                            default_selected_index=1
+                            aria_label="Matrix unsynced list".to_string()
+                            is_active_index_synced_to_selected=false
+                        />
+                    </div>
+                    <div class="docs-stack">
+                        <span class="ui-muted">"disabled root"</span>
+                        <List
+                            id_base="docs-list-matrix-after-disabled".to_string()
+                            items=showcase_items_for_matrix_after.clone()
+                            aria_label="Matrix disabled list".to_string()
+                            is_disabled=true
+                        />
+                    </div>
                 </div>
             </Playground>
 
@@ -5421,8 +5461,16 @@ pub(super) fn dropdown_menu() -> AnyView {
         } else {
             None
         };
+        let on_open_change_feedback = if interactive_controlled.get() {
+            format!(
+                "set_interactive_open_raw(open={})",
+                interactive_open_raw.get()
+            )
+        } else {
+            "uncontrolled".to_string()
+        };
         format!(
-            "DropdownMenuActualConfig {{\n  id_base: \"docs-dropdown-interactive\",\n  items: {:?},\n  is_disabled: {:?},\n  item_kinds: {:?},\n  is_close_on_action: {:?},\n  placement: {:?},\n  is_open: {:?},\n  default_open: {:?},\n  on_open_change: {:?},\n  trigger_variant: {:?},\n  trigger_size: {:?},\n  motion: {motion},\n  class_name: {:?},\n  disabled_indices: {:?},\n}}",
+            "DropdownMenuActualConfig {{\n  id_base: \"docs-dropdown-interactive\",\n  items: {:?},\n  is_disabled: {:?},\n  item_kinds: {:?},\n  is_close_on_action: {:?},\n  placement: {:?},\n  is_open: {:?},\n  default_open: {:?},\n  on_action: \"last={:?}\",\n  on_open_change: {:?},\n  trigger_variant: {:?},\n  trigger_size: {:?},\n  motion: {motion},\n  class_name: {:?},\n  disabled_indices: {:?},\n}}",
             items,
             Some(interactive_disabled.get()),
             item_kinds,
@@ -5434,7 +5482,8 @@ pub(super) fn dropdown_menu() -> AnyView {
                 None
             },
             Some(false),
-            Some("Callback<bool>"),
+            interactive_last.get(),
+            on_open_change_feedback,
             ui::ButtonVariant::Secondary,
             ui::ButtonSize::Sm,
             class_name,

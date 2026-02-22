@@ -140,6 +140,9 @@ pub(super) fn labeled_value() -> AnyView {
     let (show_description, set_show_description) = signal(true);
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
+    let (custom_lang_zh, set_custom_lang_zh) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
 
     let hello_world_code = Signal::derive(move || {
         r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />"#.to_string()
@@ -241,9 +244,24 @@ pub(super) fn labeled_value() -> AnyView {
         } else {
             ""
         };
+        let lang_line = if custom_lang_zh.get() {
+            "  lang=\"zh-CN\".into()\n"
+        } else {
+            "  lang=\"en-US\".into()\n"
+        };
+        let dir_line = if rtl_dir.get() {
+            "  dir=A11yDirection::Rtl\n"
+        } else {
+            "  dir=A11yDirection::Ltr\n"
+        };
+        let motion_line = if custom_motion.get() {
+            "  motion=ui::labeled_value::LabeledValueMotion { enabled: true, duration_ms: 260 }\n"
+        } else {
+            "  motion=ui::labeled_value::LabeledValueMotion::default()\n"
+        };
 
         format!(
-            "<LabeledValue\n  label=\"Build\".into()\n  value=\"passing\".into()\n  orientation={orientation_variant} // {orientation}\n  tone={tone_variant}\n{description_line}{aria_line}{class_line}/>"
+            "<LabeledValue\n  label=\"Build\".into()\n  value=\"passing\".into()\n  orientation={orientation_variant} // {orientation}\n  tone={tone_variant}\n{description_line}{aria_line}{class_line}{lang_line}{dir_line}{motion_line}/>"
         )
     });
 
@@ -262,9 +280,30 @@ pub(super) fn labeled_value() -> AnyView {
             1 => "LabeledValueTone::Subtle",
             _ => "LabeledValueTone::Strong",
         };
+        let dir = if rtl_dir.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
+        let motion = if custom_motion.get() {
+            ui::labeled_value::LabeledValueMotion {
+                enabled: true,
+                duration_ms: 260,
+            }
+        } else {
+            ui::labeled_value::LabeledValueMotion::default()
+        };
 
         format!(
-            "LabeledValueActualConfig {{\n  orientation: {orientation_variant} ({orientation}),\n  tone: {tone_variant} ({tone}),\n  has_description: {},\n  custom_aria_label: {},\n  custom_class_name: {},\n}}",
+            "LabeledValueActualConfig {{\n  value: {:?},\n  orientation: {orientation_variant} ({orientation}),\n  tone: {tone_variant} ({tone}),\n  lang: {:?},\n  dir: {:?},\n  motion: {:?},\n  has_description: {},\n  custom_aria_label: {},\n  custom_class_name: {},\n}}",
+            "passing",
+            if custom_lang_zh.get() {
+                "zh-CN"
+            } else {
+                "en-US"
+            },
+            dir,
+            motion,
             show_description.get(),
             custom_aria.get(),
             custom_class.get(),
@@ -376,7 +415,7 @@ pub(super) fn labeled_value() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Matrix (Tone / Compact / Bordered Comparison)"
+                title="Reference Gallery (Tone / Compact / Bordered)"
                 code_signal=state_matrix_code
                 code_imports=labeled_value_imports.clone()
             >
@@ -458,6 +497,13 @@ pub(super) fn labeled_value() -> AnyView {
                         <Switch checked=custom_class set_checked=set_custom_class>
                             "Custom class"
                         </Switch>
+                        <Switch checked=custom_lang_zh set_checked=set_custom_lang_zh>
+                            "Lang=zh-CN"
+                        </Switch>
+                        <Switch checked=rtl_dir set_checked=set_rtl_dir>"dir=rtl"</Switch>
+                        <Switch checked=custom_motion set_checked=set_custom_motion>
+                            "Custom motion"
+                        </Switch>
                     </div>
                 }
             >
@@ -486,6 +532,24 @@ pub(super) fn labeled_value() -> AnyView {
                     } else {
                         "".to_string()
                     };
+                    let lang = if custom_lang_zh.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    };
+                    let dir = if rtl_dir.get() {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+                    let motion = if custom_motion.get() {
+                        ui::labeled_value::LabeledValueMotion {
+                            enabled: true,
+                            duration_ms: 260,
+                        }
+                    } else {
+                        ui::labeled_value::LabeledValueMotion::default()
+                    };
 
                     view! {
                         <div class="docs-stack docs-stack--tight">
@@ -497,12 +561,18 @@ pub(super) fn labeled_value() -> AnyView {
                                 tone=tone
                                 aria_label=aria_label
                                 class_name=class_name
+                                lang=lang.clone()
+                                dir=dir
+                                motion=motion
                             />
                             <LabeledValue
                                 label="Compare / Inline".to_string()
                                 value="Healthy".to_string()
                                 orientation=LabeledValueOrientation::Inline
                                 tone=LabeledValueTone::Subtle
+                                lang=lang.clone()
+                                dir=dir
+                                motion=motion
                             />
                             <LabeledValue
                                 label="Compare / Stacked".to_string()
@@ -510,10 +580,48 @@ pub(super) fn labeled_value() -> AnyView {
                                 orientation=LabeledValueOrientation::Stacked
                                 tone=LabeledValueTone::Strong
                                 description="SLA snapshot".to_string()
+                                lang=lang
+                                dir=dir
+                                motion=motion
                             />
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Orientation / Locale Comparison)"
+                code_signal=state_matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{LabeledValue, LabeledValueOrientation, LabeledValueTone};".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <LabeledValue
+                        label="Project".to_string()
+                        value="Omne".to_string()
+                        motion=ui::labeled_value::LabeledValueMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <LabeledValue
+                        label="Status".to_string()
+                        value="Healthy".to_string()
+                        orientation=LabeledValueOrientation::Inline
+                        tone=LabeledValueTone::Subtle
+                        motion=ui::labeled_value::LabeledValueMotion::default()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                    <LabeledValue
+                        label="SLA".to_string()
+                        value="99.95%".to_string()
+                        orientation=LabeledValueOrientation::Stacked
+                        tone=LabeledValueTone::Strong
+                        description="SLA snapshot".to_string()
+                        motion=ui::labeled_value::LabeledValueMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="labeled-value-streaming-modes">
@@ -551,6 +659,8 @@ pub(super) fn keyboard() -> AnyView {
     let (workbench_is_compact, set_workbench_is_compact) = signal(false);
     let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_lang_zh, set_workbench_lang_zh) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let workbench_tone = Signal::derive(move || match workbench_tone_index.get().unwrap_or(0) {
         1 => KeyboardTone::Muted,
@@ -568,6 +678,8 @@ pub(super) fn keyboard() -> AnyView {
         let is_compact = workbench_is_compact.get();
         let custom_aria = workbench_custom_aria.get();
         let custom_class = workbench_custom_class.get();
+        let lang_zh = workbench_lang_zh.get();
+        let rtl = workbench_rtl.get();
 
         let mut snippet = vec!["<Keyboard".to_string()];
         if tone == KeyboardTone::Muted {
@@ -582,6 +694,17 @@ pub(super) fn keyboard() -> AnyView {
         if custom_class {
             snippet.push("  class_name=\"docs-keyboard-custom\".into()".to_string());
         }
+        if lang_zh {
+            snippet.push("  lang=\"zh-CN\".into()".to_string());
+        }
+        snippet.push(format!(
+            "  dir={}",
+            if rtl {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            }
+        ));
         snippet.push(">".to_string());
         snippet.push(format!("  \"{key_text}\""));
         snippet.push("</Keyboard>".to_string());
@@ -594,6 +717,16 @@ pub(super) fn keyboard() -> AnyView {
         let is_compact = workbench_is_compact.get();
         let custom_aria = workbench_custom_aria.get();
         let custom_class = workbench_custom_class.get();
+        let lang = if workbench_lang_zh.get() {
+            Some("zh-CN")
+        } else {
+            None
+        };
+        let dir = if workbench_rtl.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
         let mut class_tokens = vec![
             "ui-keyboard".to_string(),
             match tone {
@@ -610,7 +743,9 @@ pub(super) fn keyboard() -> AnyView {
         }
 
         format!(
-            "KeyboardActualConfig {{\n  tone: {tone:?},\n  key_text: \"{key_text}\",\n  is_compact: {is_compact},\n  custom_aria_label: {custom_aria},\n  custom_class_name: {custom_class},\n  class: \"{}\",\n  marker_expectations: [\"data-tone\", \"data-state\", \"data-compact\", \"data-aria-source\", \"data-class-source\"],\n}}",
+            "KeyboardActualConfig {{\n  tone: {tone:?},\n  key_text: \"{key_text}\",\n  is_compact: {is_compact},\n  custom_aria_label: {custom_aria},\n  custom_class_name: {custom_class},\n  lang: {:?},\n  dir: {:?},\n  class: \"{}\",\n  marker_expectations: [\"data-tone\", \"data-state\", \"data-compact\", \"data-aria-source\", \"data-class-source\"],\n}}",
+            lang,
+            dir,
             class_tokens.join(" ")
         )
     });
@@ -793,6 +928,12 @@ pub(super) fn keyboard() -> AnyView {
                             <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
                                 "Custom class_name"
                             </Switch>
+                            <Switch checked=workbench_lang_zh set_checked=set_workbench_lang_zh>
+                                "Lang=zh-CN"
+                            </Switch>
+                            <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                                "dir=rtl"
+                            </Switch>
                         </div>
                     }
                 }
@@ -812,6 +953,16 @@ pub(super) fn keyboard() -> AnyView {
                         } else {
                             "".to_string()
                         };
+                        let lang = if workbench_lang_zh.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            "en-US".to_string()
+                        };
+                        let dir = if workbench_rtl.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        };
 
                         view! {
                             <Keyboard
@@ -819,6 +970,8 @@ pub(super) fn keyboard() -> AnyView {
                                 is_compact=is_compact
                                 aria_label=aria_label
                                 class_name=class_name
+                                lang=lang
+                                dir=dir
                             >
                                 {key_text}
                             </Keyboard>
@@ -830,6 +983,29 @@ pub(super) fn keyboard() -> AnyView {
                         <Keyboard>"⌘K"</Keyboard>
                         <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Compact / Locale Comparison)"
+                code_signal=state_matrix_code
+                code_imports=keyboard_imports.clone()
+            >
+                <div class="docs-row">
+                    <Keyboard lang="en-US".to_string() dir=A11yDirection::Ltr>"⌘K"</Keyboard>
+                    <Keyboard tone=KeyboardTone::Muted is_compact=true lang="zh-CN".to_string() dir=A11yDirection::Rtl>
+                        "⌥⇧P"
+                    </Keyboard>
+                    <Keyboard
+                        tone=KeyboardTone::Muted
+                        is_compact=true
+                        aria_label="Open command palette".to_string()
+                        class_name="docs-keyboard-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        "Ctrl+Shift+P"
+                    </Keyboard>
                 </div>
             </Playground>
 
@@ -1882,7 +2058,7 @@ pub(super) fn empty_state() -> AnyView {
             </Playground>
 
             <Playground
-                title="State Gallery"
+                title="State Matrix"
                 code_signal=state_matrix_code
                 code_imports=empty_state_imports.clone()
             >
@@ -2181,6 +2357,37 @@ pub(super) fn empty_state() -> AnyView {
                                 .into_any()
                         }
                     }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Tone / Align / Compact Comparison)"
+                code_signal=state_matrix_code
+                code_imports=empty_state_imports.clone()
+            >
+                <div class="docs-stack">
+                    <EmptyState />
+                    <EmptyState
+                        title="Nothing matched".to_string()
+                        description="Try a different query or clear filters.".to_string()
+                        tone=EmptyStateTone::Muted
+                        align=EmptyStateAlign::Center
+                        motion=ui::empty_state::EmptyStateMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <EmptyState
+                        title="Deployments paused".to_string()
+                        description="Approvals are required before resuming this environment.".to_string()
+                        tone=EmptyStateTone::Accent
+                        is_compact=true
+                        is_bordered=true
+                        aria_label="Deployments paused".to_string()
+                        class_name="docs-empty-state-custom".to_string()
+                        motion=ui::empty_state::EmptyStateMotion::default()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                    />
                 </div>
             </Playground>
 
@@ -2968,6 +3175,8 @@ pub(super) fn color_swatch() -> AnyView {
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
     let (custom_lang, set_custom_lang) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
 
     let workbench_code = Signal::derive(move || {
         let color = color.get();
@@ -2980,6 +3189,8 @@ pub(super) fn color_swatch() -> AnyView {
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
+        let rtl = rtl_dir.get();
+        let motion = custom_motion.get();
 
         let mut out = vec![
             "<ColorSwatch".to_string(),
@@ -3010,6 +3221,22 @@ pub(super) fn color_swatch() -> AnyView {
         if custom_lang {
             out.push("  lang=\"zh-CN\".into()".to_string());
         }
+        out.push(format!(
+            "  dir={}",
+            if rtl {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            }
+        ));
+        if motion {
+            out.push(
+                "  motion=ui::ColorSwatchMotion { spring: ui::ColorSwatchMotion::default().spring }"
+                    .to_string(),
+            );
+        } else {
+            out.push("  motion=ui::ColorSwatchMotion::default()".to_string());
+        }
         out.push("/>".to_string());
         out.join("\n")
     });
@@ -3024,6 +3251,19 @@ pub(super) fn color_swatch() -> AnyView {
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
+        let dir = if rtl_dir.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
+        let motion = if custom_motion.get() {
+            ui::color_swatch::ColorSwatchMotion {
+                spring: ui::color_swatch::ColorSwatchMotion::default().spring,
+                ..ui::color_swatch::ColorSwatchMotion::default()
+            }
+        } else {
+            ui::color_swatch::ColorSwatchMotion::default()
+        };
         let alpha_index = alpha_index.get().unwrap_or(0);
         let alpha_attr = match alpha_index {
             1 => "translucent",
@@ -3055,9 +3295,22 @@ pub(super) fn color_swatch() -> AnyView {
         }
 
         format!(
-            "ColorSwatchActualConfig {{\n  color: \"{color}\",\n  size: {size:?},\n  rounding: {rounding:?},\n  shape: {shape:?},\n  is_bordered: {is_bordered},\n  is_decorative: {is_decorative},\n  bool_source: \"{}\",\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  lang: {},\n  data_alpha: \"{alpha_attr}\",\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            "ColorSwatchActualConfig {{\n  color: \"{color}\",\n  color_name: {:?},\n  size: {size:?},\n  rounding: {rounding:?},\n  shape: {shape:?},\n  is_bordered: {is_bordered},\n  is_decorative: {is_decorative},\n  motion: {:?},\n  bool_source: \"{}\",\n  aria_label: {:?},\n  class_name: {:?},\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  lang: {},\n  dir: {:?},\n  data_alpha: \"{alpha_attr}\",\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            color_name.get(),
+            motion,
             "is-prop",
+            if custom_aria {
+                Some("Background color")
+            } else {
+                None
+            },
+            if custom_class {
+                Some("docs-color-swatch-custom")
+            } else {
+                None
+            },
             if custom_lang { "\"zh-CN\"" } else { "None" },
+            dir,
             classes.join(" ")
         )
     });
@@ -3207,6 +3460,14 @@ pub(super) fn color_swatch() -> AnyView {
                             <div data-slot="color-swatch-workbench-lang-switch">
                                 <Switch checked=custom_lang set_checked=set_custom_lang>"Lang=zh-CN"</Switch>
                             </div>
+                            <div data-slot="color-swatch-workbench-dir-switch">
+                                <Switch checked=rtl_dir set_checked=set_rtl_dir>"dir=rtl"</Switch>
+                            </div>
+                            <div data-slot="color-swatch-workbench-motion-switch">
+                                <Switch checked=custom_motion set_checked=set_custom_motion>
+                                    "Custom motion"
+                                </Switch>
+                            </div>
                         </div>
                     }
                 }
@@ -3233,7 +3494,20 @@ pub(super) fn color_swatch() -> AnyView {
                         let lang = if custom_lang.get() {
                             "zh-CN".to_string()
                         } else {
-                            String::new()
+                            "en-US".to_string()
+                        };
+                        let dir = if rtl_dir.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        };
+                        let motion = if custom_motion.get() {
+                            ui::color_swatch::ColorSwatchMotion {
+                                spring: ui::color_swatch::ColorSwatchMotion::default().spring,
+                                ..ui::color_swatch::ColorSwatchMotion::default()
+                            }
+                        } else {
+                            ui::color_swatch::ColorSwatchMotion::default()
                         };
 
                         view! {
@@ -3248,6 +3522,8 @@ pub(super) fn color_swatch() -> AnyView {
                                 aria_label=aria_label
                                 class_name=class_name
                                 lang=lang
+                                dir=dir
+                                motion=motion
                             />
                         }
                         .into_any()
@@ -3410,6 +3686,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
     ];
     let swatches_for_basic = swatches.clone();
     let swatches_for_matrix = swatches.clone();
+    let swatches_for_matrix_after = swatches.clone();
     let swatches_for_controlled = swatches.clone();
     let swatches_for_matrix_final = swatches.clone();
     let swatches_for_controlled_matrix = swatches.clone();
@@ -3424,6 +3701,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
     ];
     let disabled_swatches_for_state = disabled_swatches.clone();
     let disabled_swatches_for_matrix = disabled_swatches.clone();
+    let disabled_swatches_for_matrix_after = disabled_swatches.clone();
     let disabled_swatches_for_matrix_final = disabled_swatches.clone();
     let (controlled_selected_color, set_controlled_selected_color) =
         signal(Some("#A00".to_string()));
@@ -3786,6 +4064,9 @@ pub(super) fn color_swatch_picker() -> AnyView {
                 </div>
             </Playground>
 
+            // title="State Matrix"
+            // swatches=signal(swatches_for_matrix).0
+            // swatches=signal(disabled_swatches_for_matrix).0
             <Playground
                 title="State Matrix"
                 code_signal=matrix_code
@@ -3793,7 +4074,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
             >
                 <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-state-matrix">
                     <ColorSwatchPicker
-                        swatches=signal(swatches_for_matrix).0
+                        swatches=signal(swatches_for_matrix_after.clone()).0
                         default_selected_color="#f80".to_string()
                         id_base="docs-color-swatch-picker-matrix-default".to_string()
                         size=ColorSwatchSize::Md
@@ -3802,7 +4083,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
                         motion=ColorSwatchPickerMotion::default()
                     />
                     <ColorSwatchPicker
-                        swatches=signal(disabled_swatches_for_matrix).0
+                        swatches=signal(disabled_swatches_for_matrix.clone()).0
                         shape=ColorSwatchShape::Wide
                         rounding=ColorSwatchRounding::Default
                         id_base="docs-color-swatch-picker-matrix-disabled".to_string()
@@ -4104,6 +4385,36 @@ pub(super) fn color_swatch_picker() -> AnyView {
                         <li>"Toggle Controlled mode and repeat ArrowRight to verify controlled callback sync."</li>
                         <li>"Enable disabled palette and Disabled switch to verify blocked interaction branch."</li>
                     </ol>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State Matrix (Selection / Disabled / Shape Comparison)"
+                code_signal=matrix_code
+                code_imports=color_swatch_picker_imports.clone()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="color-swatch-picker-state-matrix-after-workbench">
+                    <ColorSwatchPicker
+                        swatches=signal(swatches_for_matrix.clone()).0
+                        default_selected_color="#f80".to_string()
+                        id_base="docs-color-swatch-picker-matrix-after-default".to_string()
+                        size=ColorSwatchSize::Md
+                        lang="en-US".to_string()
+                        dir=ui_headless::A11yDirection::Ltr
+                        motion=ColorSwatchPickerMotion::default()
+                    />
+                    <ColorSwatchPicker
+                        swatches=signal(disabled_swatches_for_matrix_after.clone()).0
+                        id_base="docs-color-swatch-picker-matrix-after-disabled".to_string()
+                        shape=ColorSwatchShape::Wide
+                        rounding=ColorSwatchRounding::Default
+                        is_disabled=true
+                        class_name="docs-color-swatch-picker-custom".to_string()
+                        aria_label="Fill color".to_string()
+                        lang="zh-CN".to_string()
+                        dir=ui_headless::A11yDirection::Rtl
+                        motion=ColorSwatchPickerMotion::default()
+                    />
                 </div>
             </Playground>
 

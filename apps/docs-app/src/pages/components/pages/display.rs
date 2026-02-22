@@ -1158,6 +1158,12 @@ pub(super) fn chip() -> AnyView {
         2 => ChipSize::Lg,
         _ => ChipSize::Md,
     });
+    let hello_code = Signal::derive(move || {
+        r#"<Chip variant=ChipVariant::Accent size=ChipSize::Md on_dismiss=Callback::new(|_| ())>
+  "Reviewer"
+</Chip>"#
+            .to_string()
+    });
 
     let workbench_code = Signal::derive(move || {
         let variant = workbench_variant.get();
@@ -1228,7 +1234,23 @@ pub(super) fn chip() -> AnyView {
         }
 
         format!(
-            "ChipActualConfig {{\n  variant: {variant:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_dismissible: {is_dismissible},\n  custom_dismiss_label: {custom_label},\n  custom_class: {custom_class},\n  class: \"{}\",\n  marker_expectations: [\"data-variant\", \"data-size\", \"data-state\", \"data-dismiss-label-source\", \"data-class-source\"],\n}}",
+            "ChipActualConfig {{\n  variant: {variant:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  on_dismiss: {:?},\n  motion: {:?},\n  dismiss_aria_label: {:?},\n  class_name: {:?},\n  is_dismissible: {is_dismissible},\n  custom_dismiss_label: {custom_label},\n  custom_class: {custom_class},\n  class: \"{}\",\n  marker_expectations: [\"data-variant\", \"data-size\", \"data-state\", \"data-dismiss-label-source\", \"data-class-source\"],\n}}",
+            if is_dismissible {
+                Some("Callback<MouseEvent>")
+            } else {
+                None
+            },
+            ui::chip::ChipMotion::default(),
+            if custom_label {
+                Some("Remove reviewer")
+            } else {
+                None
+            },
+            if custom_class {
+                Some("docs-chip-custom")
+            } else {
+                None
+            },
             classes.join(" ")
         )
     });
@@ -1266,6 +1288,21 @@ pub(super) fn chip() -> AnyView {
             group="Display"
             description="Chip / tag pill with centralized variant-size-state attrs, dismiss-label source contracts, and optional custom class semantics."
         >
+            <Playground
+                title="Hello World (Default API)"
+                code_signal=hello_code
+            >
+                <div class="docs-row">
+                    <Chip
+                        variant=ChipVariant::Accent
+                        size=ChipSize::Md
+                        on_dismiss=Callback::new(|_| ())
+                    >
+                        "Reviewer"
+                    </Chip>
+                </div>
+            </Playground>
+
             <Playground
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
@@ -1336,6 +1373,7 @@ pub(super) fn chip() -> AnyView {
                                     size=size
                                     is_disabled=is_disabled
                                     on_dismiss=Callback::new(|_| ())
+                                    motion=ui::chip::ChipMotion::default()
                                     dismiss_aria_label=dismiss_aria_label
                                     class_name=class_name
                                 >
@@ -1349,6 +1387,7 @@ pub(super) fn chip() -> AnyView {
                                     variant=variant
                                     size=size
                                     is_disabled=is_disabled
+                                    motion=ui::chip::ChipMotion::default()
                                     class_name=class_name
                                 >
                                     "Reviewer"
@@ -2592,7 +2631,7 @@ pub(super) fn progress() -> AnyView {
             // <Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
             // on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 12.0).min(100.0)))
             <Playground
-                title="Determinate + Indeterminate"
+                title="State Matrix (Determinate / Indeterminate Comparison)"
                 code_signal=matrix_code
                 code_imports="use leptos::prelude::*;\nuse ui::Progress;".to_string()
                 test_source_path="components/progress/src/view.rs".to_string()
@@ -3243,7 +3282,7 @@ pub(super) fn progress_circle() -> AnyView {
             // value_label="64 done".to_string()
             // aria_label="   ".to_string()
             // class_name="docs-progress-circle-custom".to_string()
-            <Playground title="Determinate + Indeterminate" code_signal=matrix_code>
+            <Playground title="State Matrix (Determinate / Indeterminate / Custom Comparison)" code_signal=matrix_code>
                 <div class="docs-row">
                     <ProgressCircle
                         aria_label="Determinate".to_string()
@@ -4102,6 +4141,8 @@ pub(super) fn code() -> AnyView {
     let (custom_class, set_custom_class) = signal(false);
     let (long_content, set_long_content) = signal(false);
     let (show_compare, set_show_compare) = signal(true);
+    let (custom_lang, set_custom_lang) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
 
     let active_variant = Signal::derive(move || {
         if variant_index.get().unwrap_or(0) == 1 {
@@ -4126,7 +4167,19 @@ pub(super) fn code() -> AnyView {
         } else {
             "".to_string()
         };
-        format!("<Code variant=CodeVariant::{variant:?}{class_line}>\n  {content:?}\n</Code>")
+        let lang_line = if custom_lang.get() {
+            "\n  lang=\"zh-CN\".into()"
+        } else {
+            ""
+        };
+        let dir_line = if rtl_dir.get() {
+            "\n  dir=A11yDirection::Rtl"
+        } else {
+            "\n  dir=A11yDirection::Ltr"
+        };
+        format!(
+            "<Code variant=CodeVariant::{variant:?}{class_line}{lang_line}{dir_line}>\n  {content:?}\n</Code>"
+        )
     });
     let test_css_source = Signal::derive(move || {
         format!(
@@ -4144,9 +4197,24 @@ pub(super) fn code() -> AnyView {
         } else {
             "(none)"
         };
+        let lang = if custom_lang.get() { "zh-CN" } else { "en-US" };
+        let dir = if rtl_dir.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
         format!(
-            "CodeActualConfig {{\n  variant: CodeVariant::{variant:?},\n  content_mode: \"{content_mode}\",\n  has_custom_class_name: {has_custom_class},\n  class_name: \"{class_name}\",\n  show_compare: {show_compare},\n}}"
+            "CodeActualConfig {{\n  variant: CodeVariant::{variant:?},\n  content_mode: \"{content_mode}\",\n  has_custom_class_name: {has_custom_class},\n  class_name: \"{class_name}\",\n  lang: {:?},\n  dir: {:?},\n  show_compare: {show_compare},\n}}",
+            lang, dir
         )
+    });
+    let state_matrix_code = Signal::derive(move || {
+        r#"<Code variant=CodeVariant::Inline lang="en-US".to_string() dir=A11yDirection::Ltr>"cargo test -p ui"</Code>
+<Code variant=CodeVariant::Block class_name="docs-code-custom".to_string() lang="en-US".to_string() dir=A11yDirection::Ltr>
+  "cargo fmt --all\ncargo clippy -p ui -p docs-app --all-targets -- -D warnings"
+</Code>
+<Code variant=CodeVariant::Inline lang="zh-CN".to_string() dir=A11yDirection::Rtl>"--deny warnings"</Code>"#
+            .to_string()
     });
 
     view! {
@@ -4257,6 +4325,12 @@ cargo test -p ui"#}
                         <ui::Switch checked=show_compare set_checked=set_show_compare>
                             "Show compare matrix"
                         </ui::Switch>
+                        <ui::Switch checked=custom_lang set_checked=set_custom_lang>
+                            "Lang=zh-CN"
+                        </ui::Switch>
+                        <ui::Switch checked=rtl_dir set_checked=set_rtl_dir>
+                            "dir=rtl"
+                        </ui::Switch>
                     </div>
                 }
             >
@@ -4268,6 +4342,16 @@ cargo test -p ui"#}
                     } else {
                         String::new()
                     };
+                    let lang = if custom_lang.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    };
+                    let dir = if rtl_dir.get() {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
                     let compare = show_compare.get();
 
                     view! {
@@ -4277,7 +4361,13 @@ cargo test -p ui"#}
                                 <span class="ui-muted">
                                     {format!("variant={variant:?}, custom_class={}", custom_class.get())}
                                 </span>
-                                <Code variant=variant class_name=class_name.clone()>
+                                // <Code variant=variant class_name=class_name.clone()>
+                                <Code
+                                    variant=variant
+                                    class_name=class_name.clone()
+                                    lang=lang.clone()
+                                    dir=dir
+                                >
                                     {content}
                                 </Code>
                             </div>
@@ -4287,11 +4377,21 @@ cargo test -p ui"#}
                                 <div class="docs-stack docs-stack--tight" data-slot="code-workbench-compare">
                                     <div class="docs-row">
                                         <span>"Inline: "</span>
-                                        <Code variant=CodeVariant::Inline class_name=class_name.clone()>
+                                        <Code
+                                            variant=CodeVariant::Inline
+                                            class_name=class_name.clone()
+                                            lang=lang.clone()
+                                            dir=dir
+                                        >
                                             "cargo test -p ui"
                                         </Code>
                                     </div>
-                                    <Code variant=CodeVariant::Block class_name=class_name.clone()>
+                                    <Code
+                                        variant=CodeVariant::Block
+                                        class_name=class_name.clone()
+                                        lang=lang.clone()
+                                        dir=dir
+                                    >
                                         {r#"cargo fmt --all
 cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
                                     </Code>
@@ -4300,6 +4400,34 @@ cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Variant / Class / Locale Comparison)"
+                code_signal=state_matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Code, CodeVariant};\nuse ui::color::area::A11yDirection;".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Code variant=CodeVariant::Inline lang="en-US".to_string() dir=A11yDirection::Ltr>
+                            "cargo test -p ui"
+                        </Code>
+                    </div>
+                    <Code
+                        variant=CodeVariant::Block
+                        class_name="docs-code-custom".to_string()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    >
+                        {r#"cargo fmt --all
+cargo clippy -p ui -p docs-app --all-targets -- -D warnings"#}
+                    </Code>
+                    <div class="docs-row">
+                        <Code variant=CodeVariant::Inline lang="zh-CN".to_string() dir=A11yDirection::Rtl>
+                            "--deny warnings"
+                        </Code>
+                    </div>
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="code-state-matrix">
@@ -4442,9 +4570,14 @@ pub(super) fn kbd() -> AnyView {
         }
 
         format!(
-            "KbdActualConfig {{\n  size: {size:?},\n  keys: {:?},\n  label: {:?},\n  custom_class: {custom_class},\n  data_size: \"{}\",\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
+            "KbdActualConfig {{\n  size: {size:?},\n  keys: {:?},\n  label: {:?},\n  class_name: {:?},\n  custom_class: {custom_class},\n  data_size: \"{}\",\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
             keys.trim(),
             label.trim(),
+            if custom_class {
+                Some("docs-kbd-custom")
+            } else {
+                None
+            },
             size.as_attr(),
             if has_keys { "with-keys" } else { "label-only" },
             classes.join(" "),
@@ -4700,6 +4833,20 @@ pub(super) fn kbd() -> AnyView {
                         .into_any()
                     }
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Size / Keys / Class Comparison)"
+                code_signal=state_matrix_code
+                code_imports="use leptos::prelude::*;\nuse ui::{Kbd, KbdSize};".to_string()
+            >
+                <div class="docs-row">
+                    <Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
+                    <Kbd size=KbdSize::Sm keys="⌘".to_string() class_name="docs-kbd-custom".to_string()>
+                        "P"
+                    </Kbd>
+                    <Kbd size=KbdSize::Md>"Esc"</Kbd>
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="kbd-state-matrix">
@@ -5095,7 +5242,7 @@ let controlled_copied_signal = Signal::derive(move || controlled_copied.get());
             </Playground>
 
             <Playground
-                title="State Gallery"
+                title="State Matrix"
                 description="覆盖 single-line/multiline、header visible/hidden、copyable on/off、empty/custom class 等关键状态轴。"
                 code_signal=state_matrix_code
                 code_imports=code_block_imports.clone()
@@ -5716,6 +5863,7 @@ pub(super) fn link() -> AnyView {
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
     let (custom_lang, set_custom_lang) = signal(false);
+    let (rtl_dir, set_rtl_dir) = signal(false);
 
     let workbench_code = Signal::derive(move || {
         let href = destination_href.get();
@@ -5726,6 +5874,7 @@ pub(super) fn link() -> AnyView {
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
+        let rtl = rtl_dir.get();
 
         let mut out = vec!["<Link".to_string(), format!("  href=\"{href}\".into()")];
 
@@ -5747,6 +5896,14 @@ pub(super) fn link() -> AnyView {
         if custom_lang {
             out.push("  lang=\"zh-CN\".into()".to_string());
         }
+        out.push(format!(
+            "  dir={}",
+            if rtl {
+                "A11yDirection::Rtl"
+            } else {
+                "A11yDirection::Ltr"
+            }
+        ));
 
         out.push(">".to_string());
         out.push(format!("  \"{label}\""));
@@ -5762,6 +5919,11 @@ pub(super) fn link() -> AnyView {
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
+        let dir = if rtl_dir.get() {
+            A11yDirection::Rtl
+        } else {
+            A11yDirection::Ltr
+        };
 
         let has_href = !href.trim().is_empty();
         let data_state = if is_disabled {
@@ -5796,9 +5958,20 @@ pub(super) fn link() -> AnyView {
         }
 
         format!(
-            "LinkActualConfig {{\n  href: \"{href}\",\n  has_href: {has_href},\n  is_disabled: {is_disabled},\n  disabled_source: \"{disabled_source}\",\n  target: \"{target_kind}\",\n  rel: {:?},\n  rel_source: \"{rel_source}\",\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  lang: {},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            "LinkActualConfig {{\n  href: \"{href}\",\n  has_href: {has_href},\n  is_disabled: {is_disabled},\n  disabled_source: \"{disabled_source}\",\n  target: \"{target_kind}\",\n  rel: {:?},\n  rel_source: \"{rel_source}\",\n  aria_label: {:?},\n  class_name: {:?},\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  lang: {},\n  dir: {:?},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
             rel,
+            if custom_aria {
+                Some("Open partner documentation")
+            } else {
+                None
+            },
+            if custom_class {
+                Some("docs-link-custom")
+            } else {
+                None
+            },
             if custom_lang { "\"zh-CN\"" } else { "None" },
+            dir,
             classes.join(" ")
         )
     });
@@ -5874,6 +6047,7 @@ pub(super) fn link() -> AnyView {
                                 "Custom class"
                             </Switch>
                             <Switch checked=custom_lang set_checked=set_custom_lang>"Lang=zh-CN"</Switch>
+                            <Switch checked=rtl_dir set_checked=set_rtl_dir>"dir=rtl"</Switch>
                         </div>
                     }
                 }
@@ -5900,6 +6074,11 @@ pub(super) fn link() -> AnyView {
                         } else {
                             String::new()
                         };
+                        let dir = if rtl_dir.get() {
+                            A11yDirection::Rtl
+                        } else {
+                            A11yDirection::Ltr
+                        };
 
                         if is_target_blank {
                             view! {
@@ -5911,6 +6090,7 @@ pub(super) fn link() -> AnyView {
                                     aria_label=aria_label
                                     class_name=class_name
                                     lang=lang
+                                    dir=dir
                                 >
                                     {label}
                                 </Link>
@@ -5925,6 +6105,7 @@ pub(super) fn link() -> AnyView {
                                     aria_label=aria_label
                                     class_name=class_name
                                     lang=lang
+                                    dir=dir
                                 >
                                     {label}
                                 </Link>
@@ -7827,6 +8008,8 @@ pub(super) fn illustrated_message() -> AnyView {
     let (workbench_show_illustration, set_workbench_show_illustration) = signal(false);
     let (workbench_show_actions, set_workbench_show_actions) = signal(false);
     let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_lang, set_workbench_custom_lang) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
     let (workbench_rtl, set_workbench_rtl) = signal(false);
 
     let hello_world_code = Signal::derive(move || {
@@ -7916,8 +8099,21 @@ pub(super) fn illustrated_message() -> AnyView {
                 "  class_name=\"docs-illustrated-message-workbench\".to_string()".to_string(),
             );
         }
+        if workbench_custom_lang.get() {
+            lines.push("  lang=\"zh-CN\".to_string()".to_string());
+        }
         if workbench_rtl.get() {
             lines.push("  dir=ui::color::area::A11yDirection::Rtl".to_string());
+        } else {
+            lines.push("  dir=ui::color::area::A11yDirection::Ltr".to_string());
+        }
+        if workbench_custom_motion.get() {
+            lines.push(
+                "  motion=ui::IllustratedMessageMotion { spring: ui::IllustratedMessageMotion::default().spring }"
+                    .to_string(),
+            );
+        } else {
+            lines.push("  motion=ui::IllustratedMessageMotion::default()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -7928,11 +8124,34 @@ pub(super) fn illustrated_message() -> AnyView {
             _ => "vertical",
         };
         format!(
-            "IllustratedMessageWorkbenchConfig {{ orientation: \"{orientation}\", show_title: {}, show_description: {}, show_illustration: {}, show_actions: {}, custom_class: {}, rtl: {} }}",
+            "IllustratedMessageWorkbenchConfig {{ orientation: \"{orientation}\", show_title: {}, show_description: {}, show_illustration: {}, show_actions: {}, class_name: {:?}, lang: {:?}, dir: {:?}, motion: {:?}, custom_class: {}, rtl: {} }}",
             workbench_show_title.get(),
             workbench_show_description.get(),
             workbench_show_illustration.get(),
             workbench_show_actions.get(),
+            if workbench_custom_class.get() {
+                Some("docs-illustrated-message-workbench")
+            } else {
+                None
+            },
+            if workbench_custom_lang.get() {
+                Some("zh-CN")
+            } else {
+                None
+            },
+            if workbench_rtl.get() {
+                A11yDirection::Rtl
+            } else {
+                A11yDirection::Ltr
+            },
+            if workbench_custom_motion.get() {
+                ui::IllustratedMessageMotion {
+                    spring: ui::IllustratedMessageMotion::default().spring,
+                    initial_y_px: ui::IllustratedMessageMotion::default().initial_y_px,
+                }
+            } else {
+                ui::IllustratedMessageMotion::default()
+            },
             workbench_custom_class.get(),
             workbench_rtl.get(),
         )
@@ -8074,15 +8293,25 @@ pub(super) fn illustrated_message() -> AnyView {
                                 </Switch>
                             </div>
                         </div>
-                        <div class="docs-row">
-                            <div data-slot="illustrated-message-workbench-toggle-custom-class">
-                                <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
-                                    "Custom class"
-                                </Switch>
-                            </div>
-                            <div data-slot="illustrated-message-workbench-toggle-rtl">
-                                <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
-                                    "RTL"
+                            <div class="docs-row">
+                                <div data-slot="illustrated-message-workbench-toggle-custom-class">
+                                    <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                        "Custom class"
+                                    </Switch>
+                                </div>
+                                <div data-slot="illustrated-message-workbench-toggle-custom-lang">
+                                    <Switch checked=workbench_custom_lang set_checked=set_workbench_custom_lang>
+                                        "Lang=zh-CN"
+                                    </Switch>
+                                </div>
+                                <div data-slot="illustrated-message-workbench-toggle-custom-motion">
+                                    <Switch checked=workbench_custom_motion set_checked=set_workbench_custom_motion>
+                                        "Custom motion"
+                                    </Switch>
+                                </div>
+                                <div data-slot="illustrated-message-workbench-toggle-rtl">
+                                    <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                                        "RTL"
                                 </Switch>
                             </div>
                         </div>
@@ -8113,10 +8342,23 @@ pub(super) fn illustrated_message() -> AnyView {
                     } else {
                         String::new()
                     };
+                    let lang = if workbench_custom_lang.get() {
+                        "zh-CN".to_string()
+                    } else {
+                        "en-US".to_string()
+                    };
                     let dir = if workbench_rtl.get() {
                         A11yDirection::Rtl
                     } else {
                         A11yDirection::Ltr
+                    };
+                    let motion = if workbench_custom_motion.get() {
+                        ui::IllustratedMessageMotion {
+                            spring: ui::IllustratedMessageMotion::default().spring,
+                            initial_y_px: ui::IllustratedMessageMotion::default().initial_y_px,
+                        }
+                    } else {
+                        ui::IllustratedMessageMotion::default()
                     };
 
                     view! {
@@ -8138,7 +8380,9 @@ pub(super) fn illustrated_message() -> AnyView {
                                             }
                                         }
                                         orientation=orientation
+                                        motion=motion
                                         class_name=class_name.clone()
+                                        lang=lang.clone()
                                         dir=dir
                                     />
                                 }
@@ -8150,7 +8394,9 @@ pub(super) fn illustrated_message() -> AnyView {
                                         description=description.clone()
                                         illustration=move || view! { <div class="docs-illustration">"◎"</div> }
                                         orientation=orientation
+                                        motion=motion
                                         class_name=class_name.clone()
+                                        lang=lang.clone()
                                         dir=dir
                                     />
                                 }
@@ -8171,7 +8417,9 @@ pub(super) fn illustrated_message() -> AnyView {
                                             }
                                         }
                                         orientation=orientation
+                                        motion=motion
                                         class_name=class_name.clone()
+                                        lang=lang.clone()
                                         dir=dir
                                     />
                                 }
@@ -8182,7 +8430,9 @@ pub(super) fn illustrated_message() -> AnyView {
                                         title=title
                                         description=description
                                         orientation=orientation
+                                        motion=motion
                                         class_name=class_name
+                                        lang=lang
                                         dir=dir
                                     />
                                 }
@@ -8203,6 +8453,34 @@ pub(super) fn illustrated_message() -> AnyView {
                     }
                     .into_any()
                 }}
+            </Playground>
+
+            <Playground
+                title="State Matrix (Default / Rich / Locale Comparison)"
+                code_signal=state_matrix_code
+                code_imports=code_imports.clone()
+                test_source_path="components/illustrated-message/src/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <IllustratedMessage
+                        title="Empty".to_string()
+                        description="Nothing here".to_string()
+                        motion=ui::IllustratedMessageMotion::default()
+                        lang="en-US".to_string()
+                        dir=A11yDirection::Ltr
+                    />
+                    <IllustratedMessage
+                        title="No results".to_string()
+                        description="Try changing your search.".to_string()
+                        illustration=move || view! { <div class="docs-illustration">"◎"</div> }
+                        actions=move || view! { <ui::Button>"Clear"</ui::Button> }
+                        orientation=ui::IllustratedMessageOrientation::Horizontal
+                        motion=ui::IllustratedMessageMotion::default()
+                        class_name="docs-illustrated-message-workbench".to_string()
+                        lang="zh-CN".to_string()
+                        dir=A11yDirection::Rtl
+                    />
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="illustrated-message-source-first">

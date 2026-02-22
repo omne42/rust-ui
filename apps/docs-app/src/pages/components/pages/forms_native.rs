@@ -534,7 +534,7 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
             </Playground>
 
             <Playground
-                title="Selection Modes (Controlled / Uncontrolled / Disabled)"
+                title="State Matrix (Controlled / Uncontrolled / Disabled)"
                 code_signal=state_matrix_code
                 code_imports=NATIVE_SELECT_DOC_IMPORTS.to_string()
             >

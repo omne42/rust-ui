@@ -581,7 +581,7 @@ let on_controlled_change = Callback::new(move |next: (f32, f32)| set_controlled.
                 />
             </Playground>
 
-            <Playground title="State Gallery" code_signal=state_matrix_code>
+            <Playground title="State Matrix" code_signal=state_matrix_code>
                 <div class="docs-row docs-row--wrap" style="gap: var(--ui-space-lg); align-items: flex-start;">
                     <div class="docs-stack docs-stack--tight">
                         <span class="ui-muted">"Default"</span>
@@ -1322,6 +1322,7 @@ let on_controlled_hue_change =
                 <ColorSlider id_base="docs-color-slider-hello".to_string() />
             </Playground>
 
+            // <Playground title="State Matrix" code_signal=state_matrix_code>
             <Playground
                 title="State Matrix"
                 code_signal=state_matrix_code
@@ -4081,6 +4082,7 @@ let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.s
                 <ColorEditor id_base="docs-color-editor-hello".to_string() />
             </Playground>
 
+            // Playground title="State Matrix" code_signal=state_matrix_code
             <Playground title="State Gallery" code_signal=state_matrix_code>
                 <div class="docs-row" data-slot="color-editor-state-matrix">
                     <div class="docs-card">
@@ -5113,7 +5115,7 @@ pub(super) fn color_loupe() -> AnyView {
         };
 
         format!(
-            "<ColorLoupe\n  id_base=\"docs-color-loupe-workbench\".into()\n  color=\"{color}\".into() // {color_label}\n  is_open={is_open_value}\n  is_disabled={is_disabled_value}\n  x_percent={x_percent}\n  y_percent={y_percent} // {position_label}\n  aria_label=\"{aria_label}\".into()\n  class_name=\"{class_name}\".into()\n/>"
+            "<ColorLoupe\n  id_base=\"docs-color-loupe-workbench\".into()\n  color=\"{color}\".into() // {color_label}\n  is_open={is_open_value}\n  is_disabled={is_disabled_value}\n  x_percent={x_percent}\n  y_percent={y_percent} // {position_label}\n  output_state=ColorLoupeOutputState::Verified\n  lang=\"en-US\".into()\n  dir=A11yDirection::Ltr\n  aria_label=\"{aria_label}\".into()\n  class_name=\"{class_name}\".into()\n/>"
         )
     });
 
@@ -5141,7 +5143,7 @@ pub(super) fn color_loupe() -> AnyView {
         };
 
         format!(
-            "ColorLoupeActualConfig {{\n  color: \"{color}\" ({color_label}),\n  position: \"{position_label}\" ({x_percent:.1}, {y_percent:.1}),\n  is_open: {is_open_value},\n  is_disabled: {is_disabled_value},\n  aria_label: \"{aria_label}\",\n  class_name: \"{class_name}\",\n}}"
+            "ColorLoupeActualConfig {{\n  id_base: \"docs-color-loupe-workbench-main\",\n  color: \"{color}\" ({color_label}),\n  position: \"{position_label}\" ({x_percent:.1}, {y_percent:.1}),\n  is_open: {is_open_value},\n  is_disabled: {is_disabled_value},\n  output_state: ColorLoupeOutputState::Verified,\n  lang: Some(\"en-US\"),\n  dir: Some(A11yDirection::Ltr),\n  aria_label: \"{aria_label}\",\n  class_name: \"{class_name}\",\n}}"
         )
     });
 
@@ -5227,7 +5229,8 @@ pub(super) fn color_loupe() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="State Matrix" code_signal=state_matrix_code>
+            // title="State Matrix"
+            <Playground title="Baseline States" code_signal=state_matrix_code>
                 <div class="docs-stack docs-stack--tight">
                     <span class="ui-muted">"default / open / disabled"</span>
                     <div style=surface_style>
@@ -5377,6 +5380,9 @@ pub(super) fn color_loupe() -> AnyView {
                                     is_disabled=is_disabled_value
                                     x_percent=x_percent
                                     y_percent=y_percent
+                                    output_state=ColorLoupeOutputState::Verified
+                                    lang="en-US".to_string()
+                                    dir=A11yDirection::Ltr
                                     aria_label=aria_label
                                     class_name=class_name
                                 />
@@ -5386,6 +5392,9 @@ pub(super) fn color_loupe() -> AnyView {
                                     is_open=true
                                     x_percent=82.0
                                     y_percent=24.0
+                                    output_state=ColorLoupeOutputState::Verified
+                                    lang="en-US".to_string()
+                                    dir=A11yDirection::Ltr
                                     aria_label="Comparison loupe".to_string()
                                 />
                             </div>
@@ -5395,6 +5404,30 @@ pub(super) fn color_loupe() -> AnyView {
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground title="State Matrix (Default / Open / Disabled)" code_signal=state_matrix_code>
+                <div class="docs-stack docs-stack--tight">
+                    <span class="ui-muted">"default / open / disabled"</span>
+                    <div style=surface_style>
+                        <ColorLoupe id_base="docs-color-loupe-matrix-default-after-workbench".to_string() />
+                        <ColorLoupe
+                            id_base="docs-color-loupe-matrix-open-after-workbench".to_string()
+                            color="#f59e0b".to_string()
+                            is_open=true
+                            x_percent=18.0
+                            y_percent=74.0
+                        />
+                        <ColorLoupe
+                            id_base="docs-color-loupe-matrix-disabled-after-workbench".to_string()
+                            color="#a78bfa".to_string()
+                            is_open=true
+                            is_disabled=true
+                            x_percent=32.0
+                            y_percent=58.0
+                        />
+                    </div>
+                </div>
             </Playground>
 
             <section class="docs-card docs-prose" data-slot="color-loupe-copy-ready">

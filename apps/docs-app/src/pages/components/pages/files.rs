@@ -681,7 +681,7 @@ let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
             </Playground>
 
             <Playground
-                title="State Matrix (Disabled / Motion / Callback)"
+                title="State Gallery (Disabled / Motion / Callback)"
                 code_signal=state_matrix_code
             >
                 <div class="docs-stack docs-stack--tight">
